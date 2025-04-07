@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  name             String
+  password         String
+  role             Role      @default(EMPLOYEE)
+  employeeGoals    Goal[]    @relation("EmployeeGoals")
+  managerGoals     Goal[]    @relation("ManagerGoals")
+  selfRatings      Rating[]  @relation("SelfRatings")
+  managerRatings   Rating[]  @relation("ManagerRatings")
+  feedbackGiven    Feedback[] @relation("FeedbackGiven")
+  feedbackReceived Feedback[] @relation("FeedbackReceived")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Goal {
+  id            String    @id @default(cuid())
+  title         String
+  description   String
+  status        Status    @default(PENDING)
+  dueDate       DateTime
+  userId        String
+  managerId     String?
+  comments      String?
+  user          User      @relation("EmployeeGoals", fields: [userId], references: [id])
+  manager       User?     @relation("ManagerGoals", fields: [managerId], references: [id])
+  ratings       Rating[]
+  feedback      Feedback[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([managerId])
+}
+
+model Rating {
+  id              String    @id @default(cuid())
+  goalId          String
+  goal            Goal      @relation(fields: [goalId], references: [id])
+  selfRating      Int?
+  managerRating   Int?
+  selfRatedById   String?
+  managerRatedById String?
+  selfRatedBy     User?     @relation("SelfRatings", fields: [selfRatedById], references: [id])
+  managerRatedBy  User?     @relation("ManagerRatings", fields: [managerRatedById], references: [id])
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([goalId])
+  @@index([selfRatedById])
+  @@index([managerRatedById])
+}
+
+model Feedback {
+  id            String    @id @default(cuid())
+  goalId        String
+  goal          Goal      @relation(fields: [goalId], references: [id])
+  content       String
+  givenById     String
+  receivedById  String
+  givenBy       User      @relation("FeedbackGiven", fields: [givenById], references: [id])
+  receivedBy    User      @relation("FeedbackReceived", fields: [receivedById], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([goalId])
+  @@index([givenById])
+  @@index([receivedById])
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+enum Status {
+  PENDING
+  APPROVED
+  NEEDS_MODIFICATION
+  MODIFIED
+  COMPLETED
+} 

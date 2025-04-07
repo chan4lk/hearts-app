@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: performance-db
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: performance_management
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - performance-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: performance-pgadmin
+    restart: always
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    depends_on:
+      - postgres
+    networks:
+      - performance-network
+
+volumes:
+  postgres-data:
+
+networks:
+  performance-network:
+    driver: bridge 
