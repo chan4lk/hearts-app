@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,53 +8,62 @@ datasource db {
 }
 
 model User {
-  id               String    @id @default(cuid())
-  email            String    @unique
-  name             String
-  password         String
-  role             Role      @default(EMPLOYEE)
-  employeeGoals    Goal[]    @relation("EmployeeGoals")
-  managerGoals     Goal[]    @relation("ManagerGoals")
-  selfRatings      Rating[]  @relation("SelfRatings")
-  managerRatings   Rating[]  @relation("ManagerRatings")
-  feedbackGiven    Feedback[] @relation("FeedbackGiven")
-  feedbackReceived Feedback[] @relation("FeedbackReceived")
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-}
+  id                                 String     @id @default(cuid())
+  email                              String     @unique
+  name                               String
+  role                               Role       @default(EMPLOYEE)
+  password                           String
+  createdAt                          DateTime   @default(now())
+  updatedAt                          DateTime   @updatedAt
+  managerId                          String?
+  feedbackGiven                      Feedback[] @relation("FeedbackGiven")
+  Feedback_Feedback_receiverIdToUser Feedback[] @relation("Feedback_receiverIdToUser")
+  Goal_Goal_employeeIdToUser         Goal[]     @relation("Goal_employeeIdToUser")
+  managerGoals                       Goal[]     @relation("ManagerGoals")
+  managerRatings                     Rating[]   @relation("ManagerRatings")
+  selfRatings                        Rating[]   @relation("SelfRatings")
+  User                               User?      @relation("UserToUser", fields: [managerId], references: [id])
+  other_User                         User[]     @relation("UserToUser")
 
-model Goal {
-  id            String    @id @default(cuid())
-  title         String
-  description   String
-  status        Status    @default(PENDING)
-  dueDate       DateTime
-  userId        String
-  managerId     String?
-  comments      String?
-  user          User      @relation("EmployeeGoals", fields: [userId], references: [id])
-  manager       User?     @relation("ManagerGoals", fields: [managerId], references: [id])
-  ratings       Rating[]
-  feedback      Feedback[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  @@index([userId])
   @@index([managerId])
 }
 
+model Goal {
+  id                         String     @id @default(cuid())
+  title                      String
+  description                String
+  createdAt                  DateTime   @default(now())
+  updatedAt                  DateTime   @updatedAt
+  dueDate                    DateTime
+  managerId                  String?
+  employeeId                 String
+  approvedAt                 DateTime?
+  approvedBy                 String?
+  rejectedAt                 DateTime?
+  rejectedBy                 String?
+  status                     GoalStatus @default(PENDING)
+  managerComments            String?
+  feedback                   Feedback[]
+  User_Goal_employeeIdToUser User       @relation("Goal_employeeIdToUser", fields: [employeeId], references: [id])
+  manager                    User?      @relation("ManagerGoals", fields: [managerId], references: [id])
+  ratings                    Rating[]
+
+  @@index([managerId])
+  @@index([employeeId])
+}
+
 model Rating {
-  id              String    @id @default(cuid())
-  goalId          String
-  goal            Goal      @relation(fields: [goalId], references: [id])
-  selfRating      Int?
-  managerRating   Int?
-  selfRatedById   String?
+  id               String   @id @default(cuid())
+  goalId           String
+  selfRatedById    String
   managerRatedById String?
-  selfRatedBy     User?     @relation("SelfRatings", fields: [selfRatedById], references: [id])
-  managerRatedBy  User?     @relation("ManagerRatings", fields: [managerRatedById], references: [id])
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  comments         String?
+  score            Int
+  goal             Goal     @relation(fields: [goalId], references: [id])
+  managerRatedBy   User?    @relation("ManagerRatings", fields: [managerRatedById], references: [id])
+  selfRatedBy      User     @relation("SelfRatings", fields: [selfRatedById], references: [id])
 
   @@index([goalId])
   @@index([selfRatedById])
@@ -65,20 +71,20 @@ model Rating {
 }
 
 model Feedback {
-  id            String    @id @default(cuid())
-  goalId        String
-  goal          Goal      @relation(fields: [goalId], references: [id])
-  content       String
-  givenById     String
-  receivedById  String
-  givenBy       User      @relation("FeedbackGiven", fields: [givenById], references: [id])
-  receivedBy    User      @relation("FeedbackReceived", fields: [receivedById], references: [id])
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                             String   @id @default(cuid())
+  goalId                         String
+  content                        String
+  givenById                      String
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @updatedAt
+  receiverId                     String
+  givenBy                        User     @relation("FeedbackGiven", fields: [givenById], references: [id])
+  goal                           Goal     @relation(fields: [goalId], references: [id])
+  User_Feedback_receiverIdToUser User     @relation("Feedback_receiverIdToUser", fields: [receiverId], references: [id])
 
   @@index([goalId])
   @@index([givenById])
-  @@index([receivedById])
+  @@index([receiverId])
 }
 
 enum Role {
@@ -87,10 +93,10 @@ enum Role {
   EMPLOYEE
 }
 
-enum Status {
+enum GoalStatus {
   PENDING
   APPROVED
-  NEEDS_MODIFICATION
+  REJECTED
   MODIFIED
   COMPLETED
-} 
+}

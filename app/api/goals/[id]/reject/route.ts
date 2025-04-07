@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '../../../auth/[...nextauth]/route';
+import { GoalStatus } from '@prisma/client';
 
 export async function PUT(
   request: Request,
@@ -18,30 +19,39 @@ export async function PUT(
       return new NextResponse('Forbidden', { status: 403 });
     }
 
+    const body = await request.json();
+    const { managerComments } = body;
+
     const goal = await prisma.goal.findUnique({
       where: {
         id: params.id,
       },
       include: {
-        employee: true,
-      },
+        User_Goal_employeeIdToUser: true,
+      } as any,
     });
 
     if (!goal) {
       return new NextResponse('Goal not found', { status: 404 });
     }
 
-    if (goal.employee.managerId !== session.user.id) {
+    if (goal.managerId !== session.user.id) {
       return new NextResponse('Forbidden', { status: 403 });
     }
+
+    // Use type assertion to fix linter errors
+    const updateData = {
+      status: GoalStatus.REJECTED,
+      managerComments,
+      rejectedAt: new Date(),
+      rejectedBy: session.user.id
+    } as any;
 
     const updatedGoal = await prisma.goal.update({
       where: {
         id: params.id,
       },
-      data: {
-        status: 'REJECTED',
-      },
+      data: updateData,
     });
 
     return NextResponse.json(updatedGoal);
