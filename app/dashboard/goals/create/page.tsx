@@ -3,7 +3,19 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import { BsCalendar, BsListTask, BsTag, BsArrowLeft, BsSearch, BsBarChartLine, BsCheckCircle, BsClock, BsXCircle } from 'react-icons/bs';
+import { 
+  BsCalendar, 
+  BsListTask, 
+  BsTag, 
+  BsArrowLeft, 
+  BsSearch, 
+  BsBarChartLine, 
+  BsCheckCircle, 
+  BsClock, 
+  BsXCircle,
+  BsChevronRight,
+  BsThreeDotsVertical
+} from 'react-icons/bs';
 
 interface Goal {
   id: string;
@@ -13,6 +25,7 @@ interface Goal {
   dueDate: string;
   status: string;
   createdAt: string;
+  managerComments?: string;
 }
 
 const CATEGORIES = [
@@ -49,6 +62,8 @@ export default function GoalsPage() {
     category: 'PROFESSIONAL',
     dueDate: ''
   });
+  const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   useEffect(() => {
     fetchGoals();
@@ -131,6 +146,28 @@ export default function GoalsPage() {
       case 'REJECTED': return <BsXCircle className="w-5 h-5" />;
       default: return null;
     }
+  };
+
+  const handleGoalClick = (goal: Goal) => {
+    setSelectedGoal(goal);
+    setShowDetailsModal(true);
+  };
+
+  const getProgressColor = (status: string) => {
+    switch (status) {
+      case 'APPROVED': return 'bg-green-500';
+      case 'PENDING': return 'bg-yellow-500';
+      case 'REJECTED': return 'bg-red-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
   return (
@@ -218,25 +255,44 @@ export default function GoalsPage() {
         {filteredGoals.length > 0 ? (
           <div className={`grid gap-4 ${isTimelineView ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
             {filteredGoals.map((goal) => (
-              <div key={goal.id} className="bg-[#1a1c23] rounded-lg p-6 space-y-4">
+              <div 
+                key={goal.id} 
+                className="bg-[#1a1c23] rounded-lg p-6 space-y-4 cursor-pointer hover:bg-[#2d2f36] transition-all duration-200 border border-transparent hover:border-indigo-500"
+                onClick={() => handleGoalClick(goal)}
+              >
                 <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-lg font-medium text-white">{goal.title}</h3>
-                    <p className="text-gray-400 text-sm mt-1">{goal.description}</p>
-                  </div>
-                  <div className={`flex items-center ${getStatusColor(goal.status)}`}>
-                    {getStatusIcon(goal.status)}
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(goal.status)} bg-opacity-20`}>
+                        {goal.status}
+                      </span>
+                      <BsChevronRight className="text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-medium text-white mt-2">{goal.title}</h3>
+                    <p className="text-gray-400 text-sm mt-1 line-clamp-2">{goal.description}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 text-sm text-gray-400">
-                  <div className="flex items-center gap-1">
-                    <BsTag />
-                    <span>{goal.category}</span>
+                <div className="flex items-center justify-between text-sm text-gray-400">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1">
+                      <BsTag />
+                      <span>{goal.category}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <BsCalendar />
+                      <span>{formatDate(goal.dueDate)}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <BsCalendar />
-                    <span>{new Date(goal.dueDate).toLocaleDateString()}</span>
-                  </div>
+                </div>
+                {/* Progress bar */}
+                <div className="w-full h-1 bg-gray-700 rounded-full mt-4">
+                  <div 
+                    className={`h-full rounded-full ${getProgressColor(goal.status)}`}
+                    style={{ 
+                      width: goal.status === 'APPROVED' ? '100%' : 
+                             goal.status === 'PENDING' ? '50%' : '0%' 
+                    }}
+                  />
                 </div>
               </div>
             ))}
@@ -258,6 +314,93 @@ export default function GoalsPage() {
             >
               + New Goal
             </button>
+          </div>
+        )}
+
+        {/* Goal Details Modal */}
+        {showDetailsModal && selectedGoal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div className="bg-[#1a1c23] rounded-lg p-6 w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className={`px-3 py-1 rounded-full text-sm ${getStatusColor(selectedGoal.status)} bg-opacity-20`}>
+                      {selectedGoal.status}
+                    </span>
+                    <span className="text-gray-400">
+                      Created on {formatDate(selectedGoal.createdAt)}
+                    </span>
+                  </div>
+                  <h2 className="text-2xl font-bold text-white">{selectedGoal.title}</h2>
+                </div>
+                <button
+                  onClick={() => setShowDetailsModal(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-medium text-white mb-2">Description</h3>
+                  <p className="text-gray-400">{selectedGoal.description}</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="text-lg font-medium text-white mb-2">Category</h3>
+                    <div className="flex items-center gap-2 text-gray-400">
+                      <BsTag />
+                      <span>{selectedGoal.category}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium text-white mb-2">Due Date</h3>
+                    <div className="flex items-center gap-2 text-gray-400">
+                      <BsCalendar />
+                      <span>{formatDate(selectedGoal.dueDate)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {selectedGoal.managerComments && (
+                  <div>
+                    <h3 className="text-lg font-medium text-white mb-2">Manager Comments</h3>
+                    <div className="bg-[#2d2f36] rounded-lg p-4 text-gray-300">
+                      {selectedGoal.managerComments}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <h3 className="text-lg font-medium text-white mb-2">Progress</h3>
+                  <div className="w-full h-2 bg-gray-700 rounded-full">
+                    <div 
+                      className={`h-full rounded-full ${getProgressColor(selectedGoal.status)}`}
+                      style={{ 
+                        width: selectedGoal.status === 'APPROVED' ? '100%' : 
+                               selectedGoal.status === 'PENDING' ? '50%' : '0%' 
+                      }}
+                    />
+                  </div>
+                  <div className="flex justify-between mt-2 text-sm text-gray-400">
+                    <span>Start</span>
+                    <span>In Progress</span>
+                    <span>Completed</span>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-6">
+                  <button
+                    onClick={() => setShowDetailsModal(false)}
+                    className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
