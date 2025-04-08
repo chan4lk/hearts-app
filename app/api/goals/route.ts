@@ -23,39 +23,47 @@ type GoalData = {
 };
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    return new NextResponse('Unauthorized', { status: 401 });
-  }
-
   try {
-    if (session.user.role === Role.MANAGER) {
-      // Managers see goals they need to approve
-      const goals = await prisma.goal.findMany({
-        where: {
-          managerId: session.user.id,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-      });
-      return NextResponse.json(goals);
-    } else {
-      // Employees see their own goals
-      const goals = await prisma.goal.findMany({
-        where: {
-          employeeId: session.user.id,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-      });
-      return NextResponse.json(goals);
-    }
+    // Fetch all goals that are not in draft status
+    const goals = await prisma.goal.findMany({
+      where: {
+        status: {
+          in: [GoalStatus.PENDING, GoalStatus.APPROVED, GoalStatus.REJECTED]
+        }
+      },
+      include: {
+        User_Goal_employeeIdToUser: {
+          select: {
+            name: true,
+            email: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    // Transform the data to match the expected format
+    const formattedGoals = goals.map(goal => ({
+      id: goal.id,
+      employeeName: goal.User_Goal_employeeIdToUser.name,
+      employeeEmail: goal.User_Goal_employeeIdToUser.email,
+      title: goal.title,
+      description: goal.description,
+      dueDate: goal.dueDate.toISOString(),
+      status: goal.status,
+      submittedDate: goal.createdAt.toISOString(),
+      feedback: goal.managerComments
+    }));
+
+    return NextResponse.json(formattedGoals);
   } catch (error) {
     console.error('Error fetching goals:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to fetch goals' },
+      { status: 500 }
+    );
   }
 }
 

@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
-import { authOptions } from '../../../auth/[...nextauth]/route';
 import { GoalStatus } from '@prisma/client';
 
 export async function PUT(
@@ -9,54 +7,40 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session) {
-      return new NextResponse('Unauthorized', { status: 401 });
-    }
-
-    if (session.user?.role !== 'MANAGER') {
-      return new NextResponse('Forbidden', { status: 403 });
-    }
-
-    const body = await request.json();
-    const { managerComments } = body;
-
-    const goal = await prisma.goal.findUnique({
+    const goal = await prisma.goal.update({
       where: {
         id: params.id,
+      },
+      data: {
+        status: GoalStatus.APPROVED,
+        approvedAt: new Date(),
       },
       include: {
-        User_Goal_employeeIdToUser: true,
-      } as any,
+        User_Goal_employeeIdToUser: {
+          select: {
+            name: true,
+            email: true
+          }
+        }
+      }
     });
 
-    if (!goal) {
-      return new NextResponse('Goal not found', { status: 404 });
-    }
-
-    if (goal.managerId !== session.user.id) {
-      return new NextResponse('Forbidden', { status: 403 });
-    }
-
-    // Use type assertion to fix linter errors
-    const updateData = {
-      status: GoalStatus.APPROVED,
-      managerComments,
-      approvedAt: new Date(),
-      approvedBy: session.user.id
-    } as any;
-
-    const updatedGoal = await prisma.goal.update({
-      where: {
-        id: params.id,
-      },
-      data: updateData,
+    return NextResponse.json({
+      id: goal.id,
+      employeeName: goal.User_Goal_employeeIdToUser.name,
+      employeeEmail: goal.User_Goal_employeeIdToUser.email,
+      title: goal.title,
+      description: goal.description,
+      dueDate: goal.dueDate.toISOString(),
+      status: goal.status,
+      submittedDate: goal.createdAt.toISOString(),
+      feedback: goal.managerComments
     });
-
-    return NextResponse.json(updatedGoal);
   } catch (error) {
     console.error('Error approving goal:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to approve goal' },
+      { status: 500 }
+    );
   }
 } 
