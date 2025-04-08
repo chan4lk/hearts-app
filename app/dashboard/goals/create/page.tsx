@@ -14,7 +14,11 @@ import {
   BsClock, 
   BsXCircle,
   BsChevronRight,
-  BsThreeDotsVertical
+  BsThreeDotsVertical,
+  BsLightningCharge,
+  BsBook,
+  BsGraphUp,
+  BsPeople
 } from 'react-icons/bs';
 
 interface Goal {
@@ -41,6 +45,45 @@ const STATUSES = [
   { value: 'PENDING', label: 'Pending' },
   { value: 'APPROVED', label: 'Approved' },
   { value: 'REJECTED', label: 'Rejected' }
+];
+
+const GOAL_TEMPLATES = [
+  {
+    id: 'project-completion',
+    title: 'Project Completion',
+    category: 'PROFESSIONAL',
+    icon: <BsLightningCharge className="w-6 h-6 text-yellow-400" />,
+    description: 'Complete [Project Name] by [Date] with [Specific Deliverables]',
+    subtitle: 'Project Management',
+    bgGradient: 'from-yellow-500/10 to-transparent'
+  },
+  {
+    id: 'skill-development',
+    title: 'Skill Development',
+    category: 'TECHNICAL',
+    icon: <BsBook className="w-6 h-6 text-blue-400" />,
+    description: 'Master [Skill/Technology] through [Training/Project] by [Date]',
+    subtitle: 'Professional Development',
+    bgGradient: 'from-blue-500/10 to-transparent'
+  },
+  {
+    id: 'performance-improvement',
+    title: 'Performance Improvement',
+    category: 'PERSONAL',
+    icon: <BsGraphUp className="w-6 h-6 text-green-400" />,
+    description: 'Improve [Metric/KPI] by [X%] through [Specific Actions]',
+    subtitle: 'Performance',
+    bgGradient: 'from-green-500/10 to-transparent'
+  },
+  {
+    id: 'team-collaboration',
+    title: 'Team Collaboration',
+    category: 'LEADERSHIP',
+    icon: <BsPeople className="w-6 h-6 text-purple-400" />,
+    description: 'Lead [Project/Initiative] with team to achieve [Specific Goal]',
+    subtitle: 'Teamwork',
+    bgGradient: 'from-purple-500/10 to-transparent'
+  }
 ];
 
 export default function GoalsPage() {
@@ -407,7 +450,7 @@ export default function GoalsPage() {
         {/* Create Goal Modal */}
         {isCreateModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-            <div className="bg-[#1a1c23] rounded-lg p-6 w-full max-w-2xl mx-4">
+            <div className="bg-[#1a1c23] rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-white">Create New Goal</h2>
                 <button
@@ -417,113 +460,151 @@ export default function GoalsPage() {
                   ×
                 </button>
               </div>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
-                    Goal Title
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <BsListTask className="text-gray-400" />
-                    </div>
-                    <input
-                      type="text"
-                      id="title"
-                      value={newGoal.title}
-                      onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2 bg-[#2d2f36] text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                      placeholder="Enter goal title"
-                      required
-                    />
-                  </div>
-                </div>
 
-                <div>
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    id="description"
-                    value={newGoal.description}
-                    onChange={(e) => setNewGoal({ ...newGoal, description: e.target.value })}
-                    className="w-full px-4 py-2 bg-[#2d2f36] text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="Describe your goal in detail"
-                    rows={4}
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="category" className="block text-sm font-medium text-gray-300 mb-2">
-                      Category
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <BsTag className="text-gray-400" />
+              {/* Goal Templates Section */}
+              <div className="mb-8">
+                <h3 className="text-sm font-medium text-gray-300 mb-4">Goal Templates</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {GOAL_TEMPLATES.map((template) => (
+                    <div
+                      key={template.id}
+                      onClick={() => {
+                        setNewGoal({
+                          ...newGoal,
+                          title: template.title,
+                          description: template.description,
+                          category: template.category
+                        });
+                      }}
+                      className={`group bg-gradient-to-br ${template.bgGradient} bg-[#2d2f36] hover:bg-[#3d3f46] border border-gray-700 hover:border-indigo-500 rounded-lg p-4 cursor-pointer transition-all duration-200 relative overflow-hidden`}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-lg bg-[#1a1c23] border border-gray-700 group-hover:border-gray-600 transition-colors">
+                          {template.icon}
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-white font-medium group-hover:text-indigo-400 transition-colors flex items-center gap-2">
+                            {template.title}
+                            <BsChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transform translate-x-0 group-hover:translate-x-1 transition-all" />
+                          </h4>
+                          <p className="text-sm text-gray-400 mt-1">{template.subtitle}</p>
+                        </div>
                       </div>
-                      <select
-                        id="category"
-                        value={newGoal.category}
-                        onChange={(e) => setNewGoal({ ...newGoal, category: e.target.value })}
-                        className="w-full pl-10 pr-4 py-2 bg-[#2d2f36] text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        required
-                      >
-                        {CATEGORIES.map(category => (
-                          <option key={category.value} value={category.value}>
-                            {category.label}
-                          </option>
-                        ))}
-                      </select>
                     </div>
-                  </div>
+                  ))}
+                </div>
+              </div>
 
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1a1c23] to-transparent h-8 -top-8"></div>
+                <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
-                    <label htmlFor="dueDate" className="block text-sm font-medium text-gray-300 mb-2">
-                      Due Date
+                    <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
+                      Goal Title
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <BsCalendar className="text-gray-400" />
+                        <BsListTask className="text-gray-400" />
                       </div>
                       <input
-                        type="date"
-                        id="dueDate"
-                        value={newGoal.dueDate}
-                        onChange={(e) => setNewGoal({ ...newGoal, dueDate: e.target.value })}
+                        type="text"
+                        id="title"
+                        value={newGoal.title}
+                        onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
                         className="w-full pl-10 pr-4 py-2 bg-[#2d2f36] text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        placeholder="Enter goal title"
                         required
                       />
                     </div>
                   </div>
-                </div>
 
-                <div className="flex justify-end space-x-4 pt-6">
-                  <button
-                    type="button"
-                    onClick={() => setIsCreateModalOpen(false)}
-                    className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className={`px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center space-x-2 ${
-                      loading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                  >
-                    {loading ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>Creating...</span>
-                      </>
-                    ) : (
-                      <span>Create Goal</span>
-                    )}
-                  </button>
-                </div>
-              </form>
+                  <div>
+                    <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-2">
+                      Description
+                    </label>
+                    <textarea
+                      id="description"
+                      value={newGoal.description}
+                      onChange={(e) => setNewGoal({ ...newGoal, description: e.target.value })}
+                      className="w-full px-4 py-2 bg-[#2d2f36] text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      placeholder="Describe your goal in detail"
+                      rows={4}
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label htmlFor="category" className="block text-sm font-medium text-gray-300 mb-2">
+                        Category
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <BsTag className="text-gray-400" />
+                        </div>
+                        <select
+                          id="category"
+                          value={newGoal.category}
+                          onChange={(e) => setNewGoal({ ...newGoal, category: e.target.value })}
+                          className="w-full pl-10 pr-4 py-2 bg-[#2d2f36] text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          required
+                        >
+                          {CATEGORIES.map(category => (
+                            <option key={category.value} value={category.value}>
+                              {category.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="dueDate" className="block text-sm font-medium text-gray-300 mb-2">
+                        Due Date
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <BsCalendar className="text-gray-400" />
+                        </div>
+                        <input
+                          type="date"
+                          id="dueDate"
+                          value={newGoal.dueDate}
+                          onChange={(e) => setNewGoal({ ...newGoal, dueDate: e.target.value })}
+                          className="w-full pl-10 pr-4 py-2 bg-[#2d2f36] text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end space-x-4 pt-6">
+                    <button
+                      type="button"
+                      onClick={() => setIsCreateModalOpen(false)}
+                      className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className={`px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center space-x-2 ${
+                        loading ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      {loading ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Creating...</span>
+                        </>
+                      ) : (
+                        <span>Create Goal</span>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         )}
