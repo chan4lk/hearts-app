@@ -28,6 +28,11 @@ export async function GET() {
             name: true,
           },
         },
+        goal: {
+          select: {
+            title: true,
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',
@@ -76,6 +81,11 @@ export async function POST(request: Request) {
         User_Feedback_receiverIdToUser: {
           select: {
             name: true,
+          },
+        },
+        goal: {
+          select: {
+            title: true,
           },
         },
       },
