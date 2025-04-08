@@ -30,7 +30,19 @@ export default function LoginPage() {
         return;
       }
 
-      router.push('/dashboard');
+      // Get the user's role from the session
+      const response = await fetch('/api/auth/session');
+      const session = await response.json();
+      
+      // Redirect based on role
+      if (session?.user?.role === 'ADMIN') {
+        router.push('/dashboard/admin');
+      } else if (session?.user?.role === 'MANAGER') {
+        router.push('/dashboard/manager');
+      } else {
+        router.push('/dashboard/employee');
+      }
+      
       router.refresh();
     } catch (error) {
       toast.error('An error occurred during login');
