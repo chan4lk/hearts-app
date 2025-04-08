@@ -18,7 +18,15 @@ import {
   BsLightningCharge,
   BsBook,
   BsGraphUp,
-  BsPeople
+  BsPeople,
+  BsStars,
+  BsTrophy,
+  BsGear,
+  BsArrowUpRight,
+  BsRocket,
+  BsLightbulb,
+  BsAward,
+  BsBriefcase
 } from 'react-icons/bs';
 
 interface Goal {
@@ -50,39 +58,57 @@ const STATUSES = [
 const GOAL_TEMPLATES = [
   {
     id: 'project-completion',
-    title: 'Project Completion',
+    title: 'Project Milestone',
     category: 'PROFESSIONAL',
-    icon: <BsLightningCharge className="w-6 h-6 text-yellow-400" />,
-    description: 'Complete [Project Name] by [Date] with [Specific Deliverables]',
-    subtitle: 'Project Management',
-    bgGradient: 'from-yellow-500/10 to-transparent'
-  },
-  {
-    id: 'skill-development',
-    title: 'Skill Development',
-    category: 'TECHNICAL',
-    icon: <BsBook className="w-6 h-6 text-blue-400" />,
-    description: 'Master [Skill/Technology] through [Training/Project] by [Date]',
-    subtitle: 'Professional Development',
+    icon: <BsRocket className="w-6 h-6 text-blue-400" />,
+    description: 'Complete [Project Name] milestone by [Date] achieving [Specific Metrics]',
+    subtitle: 'Project Excellence',
     bgGradient: 'from-blue-500/10 to-transparent'
   },
   {
-    id: 'performance-improvement',
-    title: 'Performance Improvement',
-    category: 'PERSONAL',
-    icon: <BsGraphUp className="w-6 h-6 text-green-400" />,
-    description: 'Improve [Metric/KPI] by [X%] through [Specific Actions]',
-    subtitle: 'Performance',
-    bgGradient: 'from-green-500/10 to-transparent'
+    id: 'skill-mastery',
+    title: 'Skill Mastery',
+    category: 'TECHNICAL',
+    icon: <BsLightbulb className="w-6 h-6 text-amber-400" />,
+    description: 'Master [Technology/Skill] through [Training/Project] by [Date]',
+    subtitle: 'Technical Growth',
+    bgGradient: 'from-amber-500/10 to-transparent'
   },
   {
-    id: 'team-collaboration',
-    title: 'Team Collaboration',
+    id: 'leadership-initiative',
+    title: 'Leadership Initiative',
     category: 'LEADERSHIP',
-    icon: <BsPeople className="w-6 h-6 text-purple-400" />,
-    description: 'Lead [Project/Initiative] with team to achieve [Specific Goal]',
-    subtitle: 'Teamwork',
+    icon: <BsAward className="w-6 h-6 text-purple-400" />,
+    description: 'Lead [Team/Project] to achieve [Specific Outcome] by [Date]',
+    subtitle: 'Leadership Development',
     bgGradient: 'from-purple-500/10 to-transparent'
+  },
+  {
+    id: 'career-growth',
+    title: 'Career Development',
+    category: 'PERSONAL',
+    icon: <BsGraphUp className="w-6 h-6 text-emerald-400" />,
+    description: 'Achieve [Career Milestone] through [Actions] by [Date]',
+    subtitle: 'Professional Growth',
+    bgGradient: 'from-emerald-500/10 to-transparent'
+  },
+  {
+    id: 'innovation-project',
+    title: 'Innovation Project',
+    category: 'PROFESSIONAL',
+    icon: <BsStars className="w-6 h-6 text-indigo-400" />,
+    description: 'Develop innovative solution for [Problem] achieving [Metrics]',
+    subtitle: 'Innovation & Creativity',
+    bgGradient: 'from-indigo-500/10 to-transparent'
+  },
+  {
+    id: 'certification-goal',
+    title: 'Certification Goal',
+    category: 'TRAINING',
+    icon: <BsBriefcase className="w-6 h-6 text-rose-400" />,
+    description: 'Obtain [Certification Name] certification by [Date]',
+    subtitle: 'Professional Certification',
+    bgGradient: 'from-rose-500/10 to-transparent'
   }
 ];
 
@@ -216,149 +242,246 @@ export default function GoalsPage() {
   return (
     <DashboardLayout type="employee">
       <div className="space-y-6">
-        {/* Notification */}
+        {/* Notification Toast */}
         {showNotification && (
-          <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
-            notificationType === 'success' ? 'bg-green-500' : 'bg-red-500'
+          <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg flex items-center gap-2 ${
+            notificationType === 'success' ? 'bg-emerald-500' : 'bg-rose-500'
           } text-white`}>
+            {notificationType === 'success' ? 
+              <BsCheckCircle className="w-5 h-5" /> : 
+              <BsXCircle className="w-5 h-5" />
+            }
             {notificationMessage}
           </div>
         )}
 
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Goal Setting</h1>
-            <p className="text-gray-400">Set and track your performance goals</p>
-          </div>
-          <div className="flex items-center gap-3">
+        {/* Header Section */}
+        <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800 shadow-lg">
+          <div className="flex items-center gap-4 mb-6">
             <button
-              onClick={() => {
-                setIsTimelineView(!isTimelineView);
-                router.push(isTimelineView ? '/dashboard/goals/create' : '?view=timeline');
-              }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                isTimelineView 
-                ? 'bg-indigo-600 text-white hover:bg-indigo-700' 
-                : 'bg-[#1a1c23] text-gray-300 hover:bg-[#2d2f36]'
-              }`}
+              onClick={() => router.back()}
+              className="bg-[#252832] p-2 rounded-lg text-gray-400 hover:text-white hover:bg-[#2d2f36] transition-colors"
             >
-              <BsBarChartLine />
-              <span>Timeline View</span>
+              <BsArrowLeft className="w-5 h-5" />
             </button>
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              <span>+ New Goal</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <BsSearch className="text-gray-400" />
+            <div>
+              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                Create New Goal
+                <span className="bg-indigo-500/10 p-1 rounded text-indigo-400 text-sm font-normal">
+                  Employee Portal
+                </span>
+              </h1>
+              <p className="text-gray-400 mt-1">Define your performance goals and track your progress</p>
             </div>
-            <input
-              type="text"
-              placeholder="Search goals..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-[#1a1c23] text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-            />
           </div>
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-4 py-2 bg-[#1a1c23] text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-          >
-            {STATUSES.map(status => (
-              <option key={status.value} value={status.value}>
-                {status.label}
-              </option>
-            ))}
-          </select>
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-4 py-2 bg-[#1a1c23] text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-          >
-            <option value="all">All Categories</option>
-            {CATEGORIES.map(category => (
-              <option key={category.value} value={category.value}>
-                {category.label}
-              </option>
-            ))}
-          </select>
-        </div>
 
-        {/* Goals List/Timeline View */}
-        {filteredGoals.length > 0 ? (
-          <div className={`grid gap-4 ${isTimelineView ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
-            {filteredGoals.map((goal) => (
-              <div 
-                key={goal.id} 
-                className="bg-[#1a1c23] rounded-lg p-6 space-y-4 cursor-pointer hover:bg-[#2d2f36] transition-all duration-200 border border-transparent hover:border-indigo-500"
-                onClick={() => handleGoalClick(goal)}
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(goal.status)} bg-opacity-20`}>
-                        {goal.status}
-                      </span>
-                      <BsChevronRight className="text-gray-400" />
-                    </div>
-                    <h3 className="text-lg font-medium text-white mt-2">{goal.title}</h3>
-                    <p className="text-gray-400 text-sm mt-1 line-clamp-2">{goal.description}</p>
-                  </div>
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <div className="bg-[#252832] rounded-lg p-4 border border-gray-800 hover:border-indigo-500/50 transition-all group cursor-pointer"
+                 onClick={() => setIsCreateModalOpen(true)}>
+              <div className="flex items-center gap-3">
+                <div className="bg-indigo-500/10 p-2 rounded-lg group-hover:scale-110 transition-transform">
+                  <BsLightningCharge className="w-5 h-5 text-indigo-400" />
                 </div>
-                <div className="flex items-center justify-between text-sm text-gray-400">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1">
-                      <BsTag />
-                      <span>{goal.category}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <BsCalendar />
-                      <span>{formatDate(goal.dueDate)}</span>
-                    </div>
-                  </div>
-                </div>
-                {/* Progress bar */}
-                <div className="w-full h-1 bg-gray-700 rounded-full mt-4">
-                  <div 
-                    className={`h-full rounded-full ${getProgressColor(goal.status)}`}
-                    style={{ 
-                      width: goal.status === 'APPROVED' ? '100%' : 
-                             goal.status === 'PENDING' ? '50%' : '0%' 
-                    }}
-                  />
+                <div>
+                  <h3 className="text-white font-medium">Quick Create</h3>
+                  <p className="text-sm text-gray-400">Start from scratch</p>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="bg-[#1a1c23] rounded-lg p-12 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#2d2f36] mb-4">
-              <BsListTask className="w-8 h-8 text-gray-400" />
             </div>
-            <h3 className="text-xl font-medium text-white mb-2">No goals found</h3>
-            <p className="text-gray-400 mb-6">
-              {searchQuery || selectedStatus !== 'all' || selectedCategory !== 'all'
-                ? 'No goals match your search criteria. Try adjusting your filters.'
-                : "You haven't created any goals yet. Click the 'New Goal' button to get started."}
-            </p>
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              + New Goal
-            </button>
+
+            <div className="bg-[#252832] rounded-lg p-4 border border-gray-800 hover:border-purple-500/50 transition-all group cursor-pointer"
+                 onClick={() => setIsTimelineView(!isTimelineView)}>
+              <div className="flex items-center gap-3">
+                <div className="bg-purple-500/10 p-2 rounded-lg group-hover:scale-110 transition-transform">
+                  <BsBarChartLine className="w-5 h-5 text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="text-white font-medium">Timeline View</h3>
+                  <p className="text-sm text-gray-400">Visualize your goals</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-[#252832] rounded-lg p-4 border border-gray-800 hover:border-emerald-500/50 transition-all group cursor-pointer">
+              <div className="flex items-center gap-3">
+                <div className="bg-emerald-500/10 p-2 rounded-lg group-hover:scale-110 transition-transform">
+                  <BsBook className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div>
+                  <h3 className="text-white font-medium">Goal Guide</h3>
+                  <p className="text-sm text-gray-400">Learn best practices</p>
+                </div>
+              </div>
+            </div>
           </div>
-        )}
+        </div>
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Templates Section - Left Column */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="bg-amber-500/10 p-2 rounded-lg">
+                    <BsLightbulb className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-white">Goal Templates</h2>
+                </div>
+                <button className="text-gray-400 hover:text-white transition-colors">
+                  <BsThreeDotsVertical className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {GOAL_TEMPLATES.map((template) => (
+                  <div
+                    key={template.id}
+                    onClick={() => {
+                      setNewGoal({
+                        ...newGoal,
+                        title: template.title,
+                        description: template.description,
+                        category: template.category
+                      });
+                      setIsCreateModalOpen(true);
+                    }}
+                    className={`group bg-gradient-to-br ${template.bgGradient} bg-[#252832] hover:bg-[#2d2f36] border border-gray-800 hover:border-indigo-500 rounded-lg p-4 cursor-pointer transition-all duration-200`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-lg bg-[#1E2028] border border-gray-700 group-hover:border-gray-600 transition-colors">
+                        {template.icon}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-white font-medium group-hover:text-indigo-400 transition-colors flex items-center gap-2">
+                          {template.title}
+                          <BsArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </h4>
+                        <p className="text-sm text-gray-400 mt-1">{template.subtitle}</p>
+                        <p className="text-xs text-gray-500 mt-2 line-clamp-2">{template.description}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Recent Goals Section */}
+            <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="bg-purple-500/10 p-2 rounded-lg">
+                    <BsClock className="w-5 h-5 text-purple-400" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-white">Recent Goals</h2>
+                </div>
+              </div>
+
+              {goals.length > 0 ? (
+                <div className="space-y-4">
+                  {goals.slice(0, 3).map((goal) => (
+                    <div
+                      key={goal.id}
+                      className="bg-[#252832] rounded-lg p-4 border border-gray-800 hover:border-indigo-500/50 transition-all group cursor-pointer"
+                      onClick={() => handleGoalClick(goal)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-white font-medium group-hover:text-indigo-400 transition-colors">
+                          {goal.title}
+                        </h3>
+                        <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(goal.status)} bg-opacity-20`}>
+                          {goal.status}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-400 mt-2 line-clamp-2">{goal.description}</p>
+                      <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <BsCalendar className="w-4 h-4" />
+                          <span>{formatDate(goal.dueDate)}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <BsTag className="w-4 h-4" />
+                          <span>{goal.category}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#252832] mb-4">
+                    <BsListTask className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-medium text-white mb-2">No goals yet</h3>
+                  <p className="text-gray-400">Create your first goal to get started</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column - Stats and Tips */}
+          <div className="space-y-6">
+            {/* Quick Stats */}
+            <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800">
+              <h3 className="text-lg font-semibold text-white mb-4">Goal Statistics</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-[#252832] rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-emerald-500/10 p-2 rounded-lg">
+                      <BsCheckCircle className="w-4 h-4 text-emerald-400" />
+                    </div>
+                    <span className="text-gray-400">Completed</span>
+                  </div>
+                  <span className="text-white font-medium">{goals.filter(g => g.status === 'APPROVED').length}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-[#252832] rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-amber-500/10 p-2 rounded-lg">
+                      <BsClock className="w-4 h-4 text-amber-400" />
+                    </div>
+                    <span className="text-gray-400">In Progress</span>
+                  </div>
+                  <span className="text-white font-medium">{goals.filter(g => g.status === 'PENDING').length}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Tips Section */}
+            <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800">
+              <h3 className="text-lg font-semibold text-white mb-4">Goal Setting Tips</h3>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="bg-blue-500/10 p-2 rounded-lg">
+                    <BsLightbulb className="w-4 h-4 text-blue-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-medium">Be Specific</h4>
+                    <p className="text-sm text-gray-400">Define clear, measurable objectives</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="bg-purple-500/10 p-2 rounded-lg">
+                    <BsCalendar className="w-4 h-4 text-purple-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-medium">Set Deadlines</h4>
+                    <p className="text-sm text-gray-400">Include realistic timeframes</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="bg-emerald-500/10 p-2 rounded-lg">
+                    <BsGraphUp className="w-4 h-4 text-emerald-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-medium">Track Progress</h4>
+                    <p className="text-sm text-gray-400">Regularly update your goals</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Goal Details Modal */}
         {showDetailsModal && selectedGoal && (
@@ -459,40 +582,6 @@ export default function GoalsPage() {
                 >
                   ×
                 </button>
-              </div>
-
-              {/* Goal Templates Section */}
-              <div className="mb-8">
-                <h3 className="text-sm font-medium text-gray-300 mb-4">Goal Templates</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {GOAL_TEMPLATES.map((template) => (
-                    <div
-                      key={template.id}
-                      onClick={() => {
-                        setNewGoal({
-                          ...newGoal,
-                          title: template.title,
-                          description: template.description,
-                          category: template.category
-                        });
-                      }}
-                      className={`group bg-gradient-to-br ${template.bgGradient} bg-[#2d2f36] hover:bg-[#3d3f46] border border-gray-700 hover:border-indigo-500 rounded-lg p-4 cursor-pointer transition-all duration-200 relative overflow-hidden`}
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-lg bg-[#1a1c23] border border-gray-700 group-hover:border-gray-600 transition-colors">
-                          {template.icon}
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="text-white font-medium group-hover:text-indigo-400 transition-colors flex items-center gap-2">
-                            {template.title}
-                            <BsChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transform translate-x-0 group-hover:translate-x-1 transition-all" />
-                          </h4>
-                          <p className="text-sm text-gray-400 mt-1">{template.subtitle}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
 
               <div className="relative">

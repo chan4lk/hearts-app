@@ -109,6 +109,17 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                 </Link>
               );
             })}
+
+            {/* Sign Out Button */}
+            <div className="pt-6 mt-6 border-t border-gray-800">
+              <button
+                onClick={() => signOut()}
+                className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors text-gray-400 hover:bg-[#2d2f36] hover:text-white w-full"
+              >
+                <BsBoxArrowRight className="text-xl" />
+                <span>Sign Out</span>
+              </button>
+            </div>
           </nav>
         </div>
       </div>
