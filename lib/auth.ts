@@ -3,6 +3,19 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from './prisma';
 import bcrypt from 'bcryptjs';
 
+declare module 'next-auth' {
+  interface User {
+    id: string;
+    role: string;
+  }
+  interface Session {
+    user: User & {
+      id: string;
+      role: string;
+    };
+  }
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -64,7 +77,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: '/auth/signin',
+    signIn: '/login',
   },
   secret: process.env.NEXTAUTH_SECRET,
 }; 
