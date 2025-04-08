@@ -3,7 +3,7 @@
 import { signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useRef, useEffect } from 'react';
 import { 
   BsGrid, 
   BsBullseye,
@@ -16,7 +16,9 @@ import {
   BsGraphUp,
   BsClipboardData,
   BsBell,
-  BsPeople
+  BsPeople,
+  BsChevronDown,
+  BsBoxArrowRight
 } from 'react-icons/bs';
 
 interface DashboardLayoutProps {
@@ -28,13 +30,29 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
   const { data: session } = useSession();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const getNavItems = () => {
     switch (type) {
       case 'employee':
         return [
           { href: '/dashboard/employee', icon: BsGrid, label: 'Dashboard' },
-          { href: '/goals', icon: BsBullseye, label: 'Goal Setting' },
+          { href: '/dashboard/goals/create', icon: BsBullseye, label: 'Goal Setting' },
           { href: '/self-rating', icon: BsStar, label: 'Self Rating' },
           { href: '/feedback', icon: BsChat, label: 'Feedback' },
           { href: '/reports', icon: BsBarChart, label: 'Reports' },
@@ -93,17 +111,6 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
             })}
           </nav>
         </div>
-        <div className="absolute bottom-4 left-0 w-full px-6">
-          <button
-            onClick={() => signOut()}
-            className="w-full px-4 py-2 text-gray-400 hover:text-white hover:bg-[#2d2f36] rounded-lg text-left flex items-center space-x-3"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            <span>Sign Out</span>
-          </button>
-        </div>
       </div>
 
       {/* Header */}
@@ -121,15 +128,41 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
             <button className="text-gray-400 hover:text-white">
               <BsBell className="w-6 h-6" />
             </button>
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
-                <span className="text-white text-sm font-medium">
-                  {session?.user?.email?.[0].toUpperCase()}
-                </span>
-              </div>
-              <div className="hidden md:block">
-                <p className="text-sm text-white">{session?.user?.email}</p>
-              </div>
+            <div className="relative" ref={userMenuRef}>
+              <button 
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className="flex items-center space-x-3 text-gray-400 hover:text-white focus:outline-none"
+              >
+                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                  <span className="text-white text-sm font-medium">
+                    {session?.user?.email?.[0].toUpperCase()}
+                  </span>
+                </div>
+                <div className="hidden md:flex items-center">
+                  <span className="text-sm text-white mr-1">{session?.user?.email}</span>
+                  <BsChevronDown className={`w-4 h-4 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                </div>
+              </button>
+              
+              {/* User Dropdown Menu */}
+              {isUserMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-[#1a1c23] rounded-lg shadow-lg py-1 z-50 border border-gray-700">
+                  <Link 
+                    href="/settings" 
+                    className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-[#2d2f36] hover:text-white"
+                  >
+                    <BsGear className="mr-2" />
+                    Settings
+                  </Link>
+                  <button 
+                    onClick={() => signOut()}
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-[#2d2f36] hover:text-white"
+                  >
+                    <BsBoxArrowRight className="mr-2" />
+                    Sign Out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
