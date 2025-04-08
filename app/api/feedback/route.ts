@@ -13,17 +13,17 @@ export async function GET() {
     const feedback = await prisma.feedback.findMany({
       where: {
         OR: [
-          { fromId: session.user.id },
-          { toId: session.user.id },
+          { givenById: session.user.id },
+          { receiverId: session.user.id },
         ],
       },
       include: {
-        from: {
+        givenBy: {
           select: {
             name: true,
           },
         },
-        to: {
+        User_Feedback_receiverIdToUser: {
           select: {
             name: true,
           },
@@ -51,11 +51,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { content, toId } = await request.json();
+    const { content, receiverId, goalId } = await request.json();
 
-    if (!content || !toId) {
+    if (!content || !receiverId || !goalId) {
       return NextResponse.json(
-        { error: 'Content and recipient are required' },
+        { error: 'Content, recipient, and goal are required' },
         { status: 400 }
       );
     }
@@ -63,16 +63,17 @@ export async function POST(request: Request) {
     const feedback = await prisma.feedback.create({
       data: {
         content,
-        fromId: session.user.id,
-        toId,
+        givenById: session.user.id,
+        receiverId,
+        goalId,
       },
       include: {
-        from: {
+        givenBy: {
           select: {
             name: true,
           },
         },
-        to: {
+        User_Feedback_receiverIdToUser: {
           select: {
             name: true,
           },

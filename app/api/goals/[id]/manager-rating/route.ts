@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
-import { authOptions } from '../../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 
 export async function POST(
   request: Request,
@@ -19,7 +19,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { score, comment } = body;
+    const { score, comments } = body;
 
     if (!score || score < 1 || score > 5) {
       return new NextResponse('Invalid rating score', { status: 400 });
@@ -30,7 +30,7 @@ export async function POST(
         id: params.id,
       },
       include: {
-        employee: true,
+        User_Goal_employeeIdToUser: true,
       },
     });
 
@@ -38,7 +38,7 @@ export async function POST(
       return new NextResponse('Goal not found', { status: 404 });
     }
 
-    if (goal.employee.managerId !== session.user.id) {
+    if (goal.User_Goal_employeeIdToUser.managerId !== session.user.id) {
       return new NextResponse('Forbidden', { status: 403 });
     }
 
@@ -46,24 +46,38 @@ export async function POST(
       return new NextResponse('Goal must be approved before rating', { status: 400 });
     }
 
-    const rating = await prisma.rating.upsert({
+    const existingRating = await prisma.rating.findFirst({
       where: {
         goalId: params.id,
       },
-      update: {
-        score,
-        comment,
-        managerRatedById: session.user.id,
-      },
-      create: {
-        score,
-        comment,
+    });
+
+    if (existingRating) {
+      const updatedRating = await prisma.rating.update({
+        where: {
+          id: existingRating.id,
+        },
+        data: {
+          score,
+          comments,
+          managerRatedById: session.user.id,
+        },
+      });
+
+      return NextResponse.json(updatedRating);
+    }
+
+    const newRating = await prisma.rating.create({
+      data: {
         goalId: params.id,
+        score,
+        comments,
+        selfRatedById: goal.employeeId,
         managerRatedById: session.user.id,
       },
     });
 
-    return NextResponse.json(rating);
+    return NextResponse.json(newRating);
   } catch (error) {
     console.error('Error submitting manager rating:', error);
     return new NextResponse('Internal Server Error', { status: 500 });

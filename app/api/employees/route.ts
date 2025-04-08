@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
-import { authOptions } from '../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
@@ -23,7 +25,7 @@ export async function GET() {
         id: true,
         name: true,
         email: true,
-        goals: {
+        Goal_Goal_employeeIdToUser: {
           where: {
             status: 'APPROVED',
           },
@@ -31,8 +33,22 @@ export async function GET() {
             id: true,
             title: true,
             description: true,
-            selfRating: true,
-            managerRating: true,
+            ratings: {
+              select: {
+                score: true,
+                comments: true,
+                selfRatedBy: {
+                  select: {
+                    name: true,
+                  },
+                },
+                managerRatedBy: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
           },
         },
       },

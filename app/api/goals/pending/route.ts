@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
-import { authOptions } from '../../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
@@ -18,12 +20,12 @@ export async function GET() {
     const goals = await prisma.goal.findMany({
       where: {
         status: 'PENDING',
-        employee: {
+        User_Goal_employeeIdToUser: {
           managerId: session.user.id,
         },
       },
       include: {
-        employee: {
+        User_Goal_employeeIdToUser: {
           select: {
             name: true,
             email: true,

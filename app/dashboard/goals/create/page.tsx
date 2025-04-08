@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { 
@@ -112,7 +112,7 @@ const GOAL_TEMPLATES = [
   }
 ];
 
-export default function GoalsPage() {
+function GoalsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
@@ -699,5 +699,13 @@ export default function GoalsPage() {
         )}
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function GoalsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <GoalsPageContent />
+    </Suspense>
   );
 } 
