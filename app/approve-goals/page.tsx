@@ -10,7 +10,49 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { BsPersonLinesFill, BsFilter, BsCheckCircle, BsXCircle } from 'react-icons/bs';
+import { 
+  BsSearch, 
+  BsCheckCircle, 
+  BsXCircle, 
+  BsClock, 
+  BsPerson, 
+  BsCalendar,
+  BsFilter,
+  BsLightningCharge,
+  BsArrowRight,
+  BsChat,
+  BsShield,
+  BsStars,
+  BsExclamationCircle,
+  BsPersonLinesFill
+} from 'react-icons/bs';
+
+const STATUS_STYLES = {
+  PENDING: {
+    bg: 'bg-amber-500/10',
+    text: 'text-amber-400',
+    icon: <BsClock className="w-4 h-4" />,
+    gradient: 'from-amber-500/10'
+  },
+  MODIFIED: {
+    bg: 'bg-blue-500/10',
+    text: 'text-blue-400',
+    icon: <BsExclamationCircle className="w-4 h-4" />,
+    gradient: 'from-blue-500/10'
+  },
+  APPROVED: {
+    bg: 'bg-emerald-500/10',
+    text: 'text-emerald-400',
+    icon: <BsCheckCircle className="w-4 h-4" />,
+    gradient: 'from-emerald-500/10'
+  },
+  REJECTED: {
+    bg: 'bg-rose-500/10',
+    text: 'text-rose-400',
+    icon: <BsXCircle className="w-4 h-4" />,
+    gradient: 'from-rose-500/10'
+  }
+} as const;
 
 interface Goal {
   id: string;
@@ -41,6 +83,7 @@ export default function ApproveGoalsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
+  const [selectedGoalDetails, setSelectedGoalDetails] = useState<Goal | null>(null);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<string>('all');
@@ -154,219 +197,370 @@ export default function ApproveGoalsPage() {
     selectedEmployee === 'all' || goal.User_Goal_employeeIdToUser.id === selectedEmployee
   );
 
-  const content = (
-    <div className="space-y-8">
-      {/* Header Section */}
-      <div className="bg-gradient-to-br from-[#1E2028] to-[#252832] p-8 rounded-xl shadow-lg border border-gray-800/50">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-indigo-500/10 rounded-xl">
-              <BsPersonLinesFill className="w-8 h-8 text-indigo-400" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white mb-1">Approve Goals</h1>
-              <p className="text-gray-400">Review and approve employee goals</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Employee Filter */}
-        <div className="flex flex-wrap items-start gap-6 mb-6 pb-6 border-b border-gray-800/50">
-          <div className="flex-1 min-w-[250px] space-y-2">
-            <Label className="text-gray-300 font-medium flex items-center gap-2">
-              <BsFilter className="w-4 h-4" />
-              Filter by Employee
-            </Label>
-            <Select
-              value={selectedEmployee}
-              onValueChange={setSelectedEmployee}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choose employee..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">👥 All Employees</SelectItem>
-                {employeeStats.map(emp => (
-                  <SelectItem key={emp.id} value={emp.id}>
-                    <div className="flex items-center justify-between w-full">
-                      <span>👤 {emp.name}</span>
-                      <span className="text-xs text-gray-400">
-                        {emp.pendingGoals} pending
-                      </span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-gray-500">Select an employee to view their pending goals</p>
-          </div>
-
-          {/* Stats Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-6">
-            <Card className="bg-[#2A2F3A] border-gray-800/50 hover:border-indigo-500/50 transition-all group">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-gray-400 text-sm">Total Pending Goals</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-white">{goals.length}</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-[#2A2F3A] border-gray-800/50 hover:border-emerald-500/50 transition-all group">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-gray-400 text-sm">Employees with Goals</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-white">{employeeStats.length}</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-[#2A2F3A] border-gray-800/50 hover:border-yellow-500/50 transition-all group">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-gray-400 text-sm">Average Goals per Employee</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-white">
-                  {employeeStats.length > 0
-                    ? (goals.length / employeeStats.length).toFixed(1)
-                    : '0.0'}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-
-      {/* Goals Grid */}
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12">
+  if (isLoading) {
+    return (
+      <DashboardLayout type="manager">
+        <div className="flex items-center justify-center h-64">
           <div className="animate-spin w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full"></div>
         </div>
-      ) : filteredGoals.length === 0 ? (
-        <Card className="bg-[#2A2F3A] border-gray-800/50">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <div className="p-4 bg-gray-800/30 rounded-full mb-4">
-              <BsPersonLinesFill className="w-8 h-8 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-medium text-white mb-2">No pending goals found</h3>
-            <p className="text-gray-400">
-              {selectedEmployee !== 'all'
-                ? "This employee has no pending goals"
-                : "There are no pending goals to approve"}
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredGoals.map(goal => (
-            <Card key={goal.id} className="bg-[#2A2F3A] border-gray-800/50 hover:border-indigo-500/50 transition-all">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-indigo-500/10 rounded-lg">
-                      <BsPersonLinesFill className="w-5 h-5 text-indigo-400" />
-                    </div>
-                    <span className="text-white">{goal.User_Goal_employeeIdToUser.name}</span>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-medium text-white mb-2">{goal.title}</h3>
-                  <p className="text-gray-400">{goal.description}</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Due Date</span>
-                    <span className="text-gray-400">{new Date(goal.dueDate).toLocaleDateString()}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Submitted</span>
-                    <span className="text-gray-400">{new Date(goal.createdAt).toLocaleDateString()}</span>
-                  </div>
-                </div>
-
-                {goal.managerComments && (
-                  <div className="p-3 bg-gray-800/30 rounded-lg">
-                    <p className="text-sm text-gray-400">{goal.managerComments}</p>
-                  </div>
-                )}
-
-                <div className="flex gap-2 pt-4">
-                  <Button
-                    onClick={() => openActionModal(goal, 'approve')}
-                    className="flex-1 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-white"
-                  >
-                    <BsCheckCircle className="w-4 h-4 mr-2" />
-                    Approve
-                  </Button>
-                  <Button
-                    onClick={() => openActionModal(goal, 'reject')}
-                    className="flex-1 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white"
-                  >
-                    <BsXCircle className="w-4 h-4 mr-2" />
-                    Reject
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {/* Action Modal */}
-      {selectedGoal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <Card className="bg-[#2A2F3A] border-gray-800/50 w-full max-w-lg">
-            <CardHeader>
-              <CardTitle className="text-white">{selectedGoal.title}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-gray-300">Comments</Label>
-                <Textarea
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  placeholder="Add your comments here..."
-                  className="bg-gray-800/30 border-gray-700 text-white"
-                  rows={4}
-                />
-              </div>
-              
-              <div className="flex justify-end gap-2 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={closeActionModal}
-                  disabled={isSubmitting}
-                  className="bg-gray-800/30 hover:bg-gray-700"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleApprove}
-                  disabled={isSubmitting}
-                  className="bg-emerald-500 hover:bg-emerald-600"
-                >
-                  {isSubmitting ? 'Processing...' : 'Approve'}
-                </Button>
-                <Button
-                  onClick={handleReject}
-                  disabled={isSubmitting}
-                  className="bg-red-500 hover:bg-red-600"
-                >
-                  {isSubmitting ? 'Processing...' : 'Reject'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-    </div>
-  );
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout type="manager">
       <div className="container mx-auto py-8 px-4">
-        {content}
+        <div className="space-y-8">
+          {/* Header Section */}
+          <div className="bg-[#1E2028] p-6 rounded-xl shadow-lg space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-indigo-500/10 rounded-xl">
+                  <BsStars className="w-8 h-8 text-indigo-400" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-white mb-1">Approve Goals</h1>
+                  <p className="text-gray-400">Review and manage pending employee goals</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                <div className="text-sm text-amber-400 mb-1">Pending Goals</div>
+                <div className="text-2xl font-bold text-white">{goals.length}</div>
+              </div>
+              <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                <div className="text-sm text-indigo-400 mb-1">Employees</div>
+                <div className="text-2xl font-bold text-white">{employeeStats.length}</div>
+              </div>
+              <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                <div className="text-sm text-emerald-400 mb-1">Avg. Goals/Employee</div>
+                <div className="text-2xl font-bold text-white">
+                  {employeeStats.length > 0 ? (goals.length / employeeStats.length).toFixed(1) : '0.0'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Filters Section */}
+          <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+            <div className="flex-1">
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <BsSearch className="text-gray-400 group-hover:text-indigo-400 transition-colors" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search by goal title or employee name..."
+                  value={selectedEmployee}
+                  onChange={(e) => setSelectedEmployee(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-[#1E2028] text-white rounded-xl border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all hover:bg-[#252832] hover:border-gray-600"
+                />
+              </div>
+            </div>
+
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <BsPerson className="text-gray-400 group-hover:text-indigo-400 transition-colors" />
+              </div>
+              <Select
+                value={selectedEmployee}
+                onValueChange={setSelectedEmployee}
+              >
+                <SelectTrigger className="pl-10 pr-4 py-3 bg-[#1E2028] text-white rounded-xl border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:bg-[#252832] hover:border-gray-600 transition-all min-w-[200px]">
+                  <SelectValue placeholder="Filter by employee..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">👥 All Employees</SelectItem>
+                  {employeeStats.map(emp => (
+                    <SelectItem key={emp.id} value={emp.id}>
+                      <div className="flex items-center justify-between w-full">
+                        <span>👤 {emp.name}</span>
+                        <span className="text-xs text-amber-400">
+                          {emp.pendingGoals} pending
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Goals Grid */}
+          {isLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full"></div>
+            </div>
+          ) : filteredGoals.length === 0 ? (
+            <div className="bg-[#1E2028] rounded-xl p-12 text-center border border-gray-800">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#252832] mb-4">
+                <BsPersonLinesFill className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-medium text-white mb-2">No pending goals found</h3>
+              <p className="text-gray-400">
+                {selectedEmployee !== 'all'
+                  ? "This employee has no pending goals"
+                  : "There are no goals waiting for approval"}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredGoals.map(goal => (
+                <div
+                  key={goal.id}
+                  onClick={() => setSelectedGoalDetails(goal)}
+                  className={`bg-gradient-to-br ${STATUS_STYLES[goal.status]?.gradient || 'from-gray-500/10'} bg-[#1E2028] rounded-xl p-6 hover:shadow-xl transition-all duration-300 border border-gray-800 hover:border-gray-700 group cursor-pointer transform hover:scale-[1.02]`}
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-lg font-medium text-white group-hover:text-indigo-400 transition-colors flex items-center gap-2">
+                      <BsLightningCharge className="w-5 h-5 text-indigo-400" />
+                      {goal.title}
+                    </h3>
+                    <span className={`px-3 py-1.5 rounded-full text-xs flex items-center gap-2 ${STATUS_STYLES[goal.status]?.bg || 'bg-gray-500/10'} ${STATUS_STYLES[goal.status]?.text || 'text-gray-400'}`}>
+                      {STATUS_STYLES[goal.status]?.icon || <BsClock className="w-4 h-4" />}
+                      {goal.status.charAt(0) + goal.status.slice(1).toLowerCase()}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center space-x-2 mb-4 text-gray-300">
+                    <div className="bg-[#252832] p-1.5 rounded-lg">
+                      <BsPerson className="w-4 h-4" />
+                    </div>
+                    <span className="group-hover:text-indigo-400 transition-colors">
+                      {goal.User_Goal_employeeIdToUser.name}
+                    </span>
+                  </div>
+
+                  <p className="text-gray-400 text-sm mb-4 line-clamp-2 group-hover:text-gray-300 transition-colors">
+                    {goal.description}
+                  </p>
+
+                  <div className="flex items-center justify-between text-sm text-gray-400">
+                    <div className="flex items-center space-x-2 bg-[#252832] px-3 py-1.5 rounded-lg">
+                      <BsCalendar className="w-4 h-4" />
+                      <span>Due: {new Date(goal.dueDate).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center space-x-2 bg-[#252832] px-3 py-1.5 rounded-lg">
+                      <BsClock className="w-4 h-4" />
+                      <span>Submitted: {new Date(goal.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 mt-6">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openActionModal(goal, 'approve');
+                      }}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-500/10 text-emerald-400 rounded-lg hover:bg-emerald-500 hover:text-white transition-all group"
+                    >
+                      <BsCheckCircle className="w-4 h-4 transform group-hover:scale-110 transition-transform" />
+                      Approve
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openActionModal(goal, 'reject');
+                      }}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-500/10 text-rose-400 rounded-lg hover:bg-rose-500 hover:text-white transition-all group"
+                    >
+                      <BsXCircle className="w-4 h-4 transform group-hover:scale-110 transition-transform" />
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Goal Details Modal */}
+          {selectedGoalDetails && (
+            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <div className="bg-[#1E2028] rounded-xl w-full max-w-3xl border border-gray-800 shadow-2xl overflow-hidden">
+                {/* Modal Header */}
+                <div className="p-6 border-b border-gray-800 bg-[#252832]">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                        <BsLightningCharge className="w-6 h-6 text-indigo-400" />
+                        {selectedGoalDetails.title}
+                      </h2>
+                      <p className="text-gray-400 mt-1 flex items-center gap-2">
+                        <BsPerson className="w-4 h-4" />
+                        {selectedGoalDetails.User_Goal_employeeIdToUser.name}
+                      </p>
+                    </div>
+                    <span className={`px-4 py-2 rounded-lg text-sm flex items-center gap-2 ${STATUS_STYLES[selectedGoalDetails.status]?.bg || 'bg-gray-500/10'} ${STATUS_STYLES[selectedGoalDetails.status]?.text || 'text-gray-400'}`}>
+                      {STATUS_STYLES[selectedGoalDetails.status]?.icon || <BsClock className="w-4 h-4" />}
+                      {selectedGoalDetails.status.charAt(0) + selectedGoalDetails.status.slice(1).toLowerCase()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Modal Content */}
+                <div className="p-6 space-y-6">
+                  {/* Description Section */}
+                  <div>
+                    <h3 className="text-lg font-medium text-white mb-3 flex items-center gap-2">
+                      <div className="p-1.5 bg-indigo-500/10 rounded-lg">
+                        <BsLightningCharge className="w-4 h-4 text-indigo-400" />
+                      </div>
+                      Description
+                    </h3>
+                    <p className="text-gray-300 leading-relaxed">
+                      {selectedGoalDetails.description}
+                    </p>
+                  </div>
+
+                  {/* Dates Section */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="p-1.5 bg-amber-500/10 rounded-lg">
+                          <BsCalendar className="w-4 h-4 text-amber-400" />
+                        </div>
+                        <h4 className="text-sm font-medium text-white">Due Date</h4>
+                      </div>
+                      <p className="text-gray-400">
+                        {new Date(selectedGoalDetails.dueDate).toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                    <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="p-1.5 bg-emerald-500/10 rounded-lg">
+                          <BsClock className="w-4 h-4 text-emerald-400" />
+                        </div>
+                        <h4 className="text-sm font-medium text-white">Submission Date</h4>
+                      </div>
+                      <p className="text-gray-400">
+                        {new Date(selectedGoalDetails.createdAt).toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-4 pt-4">
+                    <button
+                      onClick={() => {
+                        setSelectedGoalDetails(null);
+                        openActionModal(selectedGoalDetails, 'approve');
+                      }}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500/10 text-emerald-400 rounded-lg hover:bg-emerald-500 hover:text-white transition-all group"
+                    >
+                      <BsCheckCircle className="w-5 h-5 transform group-hover:scale-110 transition-transform" />
+                      Approve Goal
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedGoalDetails(null);
+                        openActionModal(selectedGoalDetails, 'reject');
+                      }}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-rose-500/10 text-rose-400 rounded-lg hover:bg-rose-500 hover:text-white transition-all group"
+                    >
+                      <BsXCircle className="w-5 h-5 transform group-hover:scale-110 transition-transform" />
+                      Reject Goal
+                    </button>
+                  </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="p-6 border-t border-gray-800 bg-[#252832] flex justify-end">
+                  <button
+                    onClick={() => setSelectedGoalDetails(null)}
+                    className="px-6 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    Close Details
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Action Modal */}
+          {selectedGoal && (
+            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <div className="bg-[#1E2028] rounded-xl w-full max-w-lg border border-gray-800 shadow-2xl overflow-hidden">
+                <div className="p-6 border-b border-gray-800 bg-[#252832]">
+                  <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                    {selectedGoal ? 'Approve' : 'Reject'} Goal
+                  </h2>
+                  <p className="text-gray-400 mt-1">{selectedGoal.title}</p>
+                </div>
+
+                <div className="p-6 space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-gray-300">Feedback Comments</Label>
+                    <Textarea
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      placeholder="Add your feedback comments here..."
+                      className="bg-[#252832] border-gray-700 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      rows={4}
+                    />
+                  </div>
+                  
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button
+                      variant="outline"
+                      onClick={closeActionModal}
+                      disabled={isSubmitting}
+                      className="bg-gray-700 hover:bg-gray-600 border-gray-600"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleApprove}
+                      disabled={isSubmitting}
+                      className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                    >
+                      {isSubmitting ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                          Processing...
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <BsCheckCircle className="w-4 h-4" />
+                          Approve
+                        </div>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={handleReject}
+                      disabled={isSubmitting}
+                      className="bg-rose-500 hover:bg-rose-600 text-white"
+                    >
+                      {isSubmitting ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                          Processing...
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <BsXCircle className="w-4 h-4" />
+                          Reject
+                        </div>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </DashboardLayout>
   );
