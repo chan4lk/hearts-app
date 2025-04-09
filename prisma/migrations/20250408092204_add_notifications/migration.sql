@@ -4,6 +4,9 @@ CREATE TYPE "Role" AS ENUM ('ADMIN', 'MANAGER', 'EMPLOYEE');
 -- CreateEnum
 CREATE TYPE "GoalStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'MODIFIED', 'COMPLETED');
 
+-- CreateEnum
+CREATE TYPE "NotificationType" AS ENUM ('GOAL_CREATED', 'GOAL_UPDATED', 'GOAL_APPROVED', 'GOAL_REJECTED', 'GOAL_MODIFIED', 'GOAL_COMPLETED', 'FEEDBACK_RECEIVED', 'RATING_RECEIVED');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -65,6 +68,19 @@ CREATE TABLE "Feedback" (
     CONSTRAINT "Feedback_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Notification" (
+    "id" TEXT NOT NULL,
+    "type" "NotificationType" NOT NULL,
+    "message" TEXT NOT NULL,
+    "isRead" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "userId" TEXT NOT NULL,
+    "goalId" TEXT,
+
+    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
@@ -95,6 +111,12 @@ CREATE INDEX "Feedback_givenById_idx" ON "Feedback"("givenById");
 -- CreateIndex
 CREATE INDEX "Feedback_receiverId_idx" ON "Feedback"("receiverId");
 
+-- CreateIndex
+CREATE INDEX "Notification_userId_idx" ON "Notification"("userId");
+
+-- CreateIndex
+CREATE INDEX "Notification_goalId_idx" ON "Notification"("goalId");
+
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_managerId_fkey" FOREIGN KEY ("managerId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
@@ -121,3 +143,9 @@ ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_goalId_fkey" FOREIGN KEY ("goalI
 
 -- AddForeignKey
 ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_receiverId_fkey" FOREIGN KEY ("receiverId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_goalId_fkey" FOREIGN KEY ("goalId") REFERENCES "Goal"("id") ON DELETE SET NULL ON UPDATE CASCADE;

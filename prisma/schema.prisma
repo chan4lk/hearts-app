@@ -24,6 +24,7 @@ model User {
   selfRatings                        Rating[]   @relation("SelfRatings")
   User                               User?      @relation("UserToUser", fields: [managerId], references: [id])
   other_User                         User[]     @relation("UserToUser")
+  notifications                      Notification[]
 
   @@index([managerId])
 }
@@ -47,6 +48,7 @@ model Goal {
   User_Goal_employeeIdToUser User       @relation("Goal_employeeIdToUser", fields: [employeeId], references: [id])
   manager                    User?      @relation("ManagerGoals", fields: [managerId], references: [id])
   ratings                    Rating[]
+  notifications              Notification[]
 
   @@index([managerId])
   @@index([employeeId])
@@ -87,6 +89,21 @@ model Feedback {
   @@index([receiverId])
 }
 
+model Notification {
+  id          String         @id @default(cuid())
+  type        NotificationType
+  message     String
+  isRead      Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  userId      String
+  goalId      String?
+  user        User           @relation(fields: [userId], references: [id])
+  goal        Goal?          @relation(fields: [goalId], references: [id])
+
+  @@index([userId])
+  @@index([goalId])
+}
+
 enum Role {
   ADMIN
   MANAGER
@@ -99,4 +116,15 @@ enum GoalStatus {
   REJECTED
   MODIFIED
   COMPLETED
+}
+
+enum NotificationType {
+  GOAL_CREATED
+  GOAL_UPDATED
+  GOAL_APPROVED
+  GOAL_REJECTED
+  GOAL_MODIFIED
+  GOAL_COMPLETED
+  FEEDBACK_RECEIVED
+  RATING_RECEIVED
 }
