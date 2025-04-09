@@ -138,7 +138,7 @@ export async function PUT(request: Request) {
 
   try {
     const body = await request.json();
-    const { goalId, status, comments } = body;
+    const { id, status, comments } = body;
 
     // Use type assertion to fix linter errors
     const updateData = {
@@ -148,7 +148,7 @@ export async function PUT(request: Request) {
 
     const goal = await prisma.goal.update({
       where: {
-        id: goalId,
+        id: id,
         managerId: session.user.id,
       },
       data: updateData,

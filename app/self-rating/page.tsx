@@ -72,6 +72,8 @@ const RATING_DESCRIPTIONS = {
   }
 } as const;
 
+type FilterStatus = 'all' | 'rated' | 'unrated' | 'submitted';
+
 const filterOptions = {
   status: [
     { value: 'all', label: '🔍 All Goals' },
@@ -87,7 +89,7 @@ const filterOptions = {
     { value: '4', label: '⭐⭐⭐⭐ Exceeding Expectations' },
     { value: '5', label: '⭐⭐⭐⭐⭐ Outstanding' }
   ]
-};
+} as const;
 
 export default function SelfRatingPage() {
   const { data: session } = useSession();
@@ -95,7 +97,7 @@ export default function SelfRatingPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'comparison'>('list');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'rated' | 'unrated' | 'submitted'>('all');
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [filterRating, setFilterRating] = useState<string>('all');
 
   useEffect(() => {
@@ -107,6 +109,11 @@ export default function SelfRatingPage() {
       const response = await fetch("/api/goals/employee");
       if (!response.ok) throw new Error("Failed to fetch goals");
       const data = await response.json();
+      
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid response format");
+      }
+      
       // Transform data to include previous ratings
       const goalsWithPrevious = data.map((goal: any) => ({
         ...goal,
@@ -203,7 +210,11 @@ export default function SelfRatingPage() {
     }
   };
 
-  const StarRating = ({ rating, previousRating, onRatingChange }: { rating?: number; previousRating?: number; onRatingChange: (rating: number) => void }) => {
+  const StarRating = ({ rating, previousRating, onRatingChange }: { 
+    rating?: number; 
+    previousRating?: number; 
+    onRatingChange: (rating: number) => void 
+  }) => {
     const [hover, setHover] = useState<number | null>(null);
     
     return (
@@ -327,7 +338,7 @@ export default function SelfRatingPage() {
             </Label>
             <Select
               value={filterStatus}
-              onValueChange={(value: 'all' | 'rated' | 'unrated' | 'submitted') => setFilterStatus(value)}
+              onValueChange={(value: FilterStatus) => setFilterStatus(value)}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Choose status..." />
@@ -376,8 +387,6 @@ export default function SelfRatingPage() {
             </div>
             <div className="flex bg-[#252832] rounded-lg p-1">
               <Button
-                variant="ghost"
-                size="sm"
                 className={`px-4 py-2 rounded-lg transition-all duration-200 ${
                   viewMode === 'list' 
                     ? 'bg-indigo-500 text-white shadow-lg' 
@@ -388,8 +397,6 @@ export default function SelfRatingPage() {
                 <BsList className="w-5 h-5" />
               </Button>
               <Button
-                variant="ghost"
-                size="sm"
                 className={`px-4 py-2 rounded-lg transition-all duration-200 ${
                   viewMode === 'comparison' 
                     ? 'bg-indigo-500 text-white shadow-lg' 
@@ -549,7 +556,6 @@ export default function SelfRatingPage() {
                       <Button
                         onClick={() => handleEdit(goal.id)}
                         className="bg-gray-700/50 hover:bg-gray-600 text-white"
-                        size="sm"
                       >
                         Edit Rating
                         <BsPencil className="ml-2 w-4 h-4" />
@@ -559,8 +565,6 @@ export default function SelfRatingPage() {
                         {goal.isEditing && (
                           <Button
                             onClick={() => handleCancelEdit(goal.id)}
-                            variant="outline"
-                            size="sm"
                             className="border-gray-700 hover:bg-gray-800/50"
                           >
                             Cancel
@@ -570,7 +574,6 @@ export default function SelfRatingPage() {
                           onClick={() => handleSubmitSingle(goal.id)}
                           disabled={goal.isSubmitting || !goal.selfRating}
                           className={`bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200`}
-                          size="sm"
                         >
                           {goal.isSubmitting ? (
                             <div className="flex items-center gap-2">
