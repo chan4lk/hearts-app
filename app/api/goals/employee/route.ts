@@ -8,9 +8,8 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-
-    if (!session) {
-      return new NextResponse('Unauthorized', { status: 401 });
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const goals = await prisma.goal.findMany({
@@ -18,34 +17,19 @@ export async function GET() {
         employeeId: session.user.id,
       },
       include: {
-        User_Goal_employeeIdToUser: {
-          select: {
-            name: true,
-            email: true
-          }
-        }
+        User_Goal_employeeIdToUser: true,
+        ratings: true,
       },
       orderBy: {
-        createdAt: 'desc'
-      }
+        createdAt: 'desc',
+      },
     });
 
-    // Transform the data to match the expected format
-    const formattedGoals = goals.map(goal => ({
-      id: goal.id,
-      title: goal.title,
-      description: goal.description,
-      dueDate: goal.dueDate.toISOString(),
-      status: goal.status,
-      submittedDate: goal.createdAt.toISOString(),
-      managerComments: goal.managerComments
-    }));
-
-    return NextResponse.json(formattedGoals);
+    return NextResponse.json(goals);
   } catch (error) {
-    console.error('Error fetching employee goals:', error);
+    console.error("Error fetching employee goals:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch goals' },
+      { error: "Failed to fetch employee goals" },
       { status: 500 }
     );
   }

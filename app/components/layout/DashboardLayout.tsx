@@ -61,7 +61,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       case 'manager':
         return [
           { href: '/dashboard/manager', icon: BsGrid, label: 'Goal Approvals' },
-          { href: '/manager-ratings', icon: BsStar, label: 'Manager Ratings' },
+          { href: '/rate-employees', icon: BsStar, label: 'Manager Ratings' },
           { href: '/performance-reviews', icon: BsBarChart, label: 'Performance Reviews' },
           { href: '/feedback', icon: BsChat, label: 'Feedback' },
           { href: '/team-management', icon: BsPeople, label: 'Team Management' },
@@ -82,6 +82,13 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
 
   const navItems = getNavItems();
   const portalTitle = type.charAt(0).toUpperCase() + type.slice(1) + ' Portal';
+
+  const handleSignOut = async () => {
+    await signOut({
+      callbackUrl: '/login',
+      redirect: true
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#0f1117]">
@@ -113,7 +120,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
             {/* Sign Out Button */}
             <div className="pt-6 mt-6 border-t border-gray-800">
               <button
-                onClick={() => signOut()}
+                onClick={handleSignOut}
                 className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors text-gray-400 hover:bg-[#2d2f36] hover:text-white w-full"
               >
                 <BsBoxArrowRight className="text-xl" />
@@ -166,7 +173,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                     Settings
                   </Link>
                   <button 
-                    onClick={() => signOut()}
+                    onClick={handleSignOut}
                     className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-[#2d2f36] hover:text-white"
                   >
                     <BsBoxArrowRight className="mr-2" />
