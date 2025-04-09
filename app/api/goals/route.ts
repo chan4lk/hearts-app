@@ -92,19 +92,19 @@ export async function POST(request: Request) {
       return new NextResponse('Invalid date format', { status: 400 });
     }
 
-    // Find a manager to assign the goal to
-    const manager = await prisma.user.findFirst({
+    // Find the employee's assigned manager
+    const employee = await prisma.user.findUnique({
       where: {
-        role: Role.MANAGER,
+        id: session.user.id,
       },
     });
 
-    if (!manager) {
-      console.error('No manager found in the system');
-      return new NextResponse('No manager found in the system', { status: 400 });
+    if (!employee?.managerId) {
+      console.error('Employee has no assigned manager');
+      return new NextResponse('Employee has no assigned manager', { status: 400 });
     }
 
-    console.log('Found manager:', manager.id);
+    console.log('Found manager:', employee.managerId);
     console.log('Creating goal for user:', session.user.id);
 
     // Create the goal with type assertion to fix linter errors
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
       dueDate: parsedDate,
       status: GoalStatus.PENDING,
       employeeId: session.user.id,
-      managerId: manager.id
+      managerId: employee.managerId
     } as any;
 
     const goal = await prisma.goal.create({

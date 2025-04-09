@@ -60,7 +60,8 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
         ];
       case 'manager':
         return [
-          { href: '/dashboard/manager', icon: BsGrid, label: 'Goal Approvals' },
+          { href: '/dashboard/manager', icon: BsGrid, label: 'Dashboard' },
+          { href: '/approve-goals', icon: BsGrid, label: 'Goal Approvals' },
           { href: '/rate-employees', icon: BsStar, label: 'Manager Ratings' },
           { href: '/performance-reviews', icon: BsBarChart, label: 'Performance Reviews' },
           { href: '/feedback', icon: BsChat, label: 'Feedback' },
