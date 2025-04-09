@@ -21,7 +21,10 @@ import {
   BsGrid,
   BsList,
   BsCheckCircle,
-  BsHourglassSplit
+  BsHourglassSplit,
+  BsClipboardData,
+  BsBarChart,
+  BsCalendar
 } from "react-icons/bs";
 
 interface GoalWithRating extends Goal {
@@ -58,6 +61,22 @@ const RATING_DESCRIPTIONS = {
   3: "Performance consistently meets job requirements and expectations. Demonstrates solid competence.",
   4: "Performance frequently exceeds job requirements. Demonstrates strong skills and initiative.",
   5: "Performance consistently exceeds all expectations. Demonstrates exceptional achievements."
+} as const;
+
+const RATING_COLORS = {
+  1: "text-red-400 border-red-500 bg-red-500/10",
+  2: "text-orange-400 border-orange-500 bg-orange-500/10",
+  3: "text-yellow-400 border-yellow-500 bg-yellow-500/10",
+  4: "text-green-400 border-green-500 bg-green-500/10",
+  5: "text-blue-400 border-blue-500 bg-blue-500/10"
+} as const;
+
+const RATING_HOVER_COLORS = {
+  1: "hover:bg-red-500 hover:text-white",
+  2: "hover:bg-orange-500 hover:text-white",
+  3: "hover:bg-yellow-500 hover:text-white",
+  4: "hover:bg-green-500 hover:text-white",
+  5: "hover:bg-blue-500 hover:text-white"
 } as const;
 
 export default function RateEmployeesPage() {
@@ -183,37 +202,39 @@ export default function RateEmployeesPage() {
           </div>
         </div>
 
-        {/* Stats and Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Card className="bg-[#252832] border-gray-800">
-            <div className="p-4">
-              <div className="flex items-center gap-2 text-indigo-400 mb-2">
-                <BsPersonLinesFill className="w-4 h-4" />
-                <span className="text-sm font-medium">Total Goals</span>
+        {/* Stats Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700 shadow-xl hover:shadow-2xl transition-all">
+            <div className="p-6">
+              <div className="flex items-center gap-3 text-blue-400 mb-3">
+                <BsClipboardData className="w-5 h-5" />
+                <span className="text-lg font-semibold">Total Goals</span>
               </div>
-              <div className="text-2xl font-bold text-white">{goals.length}</div>
+              <div className="text-3xl font-bold text-white">
+                {goals.length}
+              </div>
             </div>
           </Card>
 
-          <Card className="bg-[#252832] border-gray-800">
-            <div className="p-4">
-              <div className="flex items-center gap-2 text-emerald-400 mb-2">
-                <BsCheckCircle className="w-4 h-4" />
-                <span className="text-sm font-medium">Rated Goals</span>
+          <Card className="bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700 shadow-xl hover:shadow-2xl transition-all">
+            <div className="p-6">
+              <div className="flex items-center gap-3 text-green-400 mb-3">
+                <BsCheckCircle className="w-5 h-5" />
+                <span className="text-lg font-semibold">Rated Goals</span>
               </div>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-3xl font-bold text-white">
                 {goals.filter(g => g.rating?.score).length}
               </div>
             </div>
           </Card>
 
-          <Card className="bg-[#252832] border-gray-800">
-            <div className="p-4">
-              <div className="flex items-center gap-2 text-amber-400 mb-2">
-                <BsStar className="w-4 h-4" />
-                <span className="text-sm font-medium">Average Rating</span>
+          <Card className="bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700 shadow-xl hover:shadow-2xl transition-all">
+            <div className="p-6">
+              <div className="flex items-center gap-3 text-yellow-400 mb-3">
+                <BsBarChart className="w-5 h-5" />
+                <span className="text-lg font-semibold">Average Rating</span>
               </div>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-3xl font-bold text-white">
                 {goals.length > 0
                   ? (goals.reduce((acc, goal) => acc + (goal.rating?.score || 0), 0) / goals.length).toFixed(1)
                   : '0.0'}
@@ -260,104 +281,78 @@ export default function RateEmployeesPage() {
           </div>
         </div>
 
-        {/* Goals Grid */}
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="flex items-center gap-3 text-gray-400">
-              <div className="animate-spin w-5 h-5 border-2 border-current border-t-transparent rounded-full" />
-              <span>Loading goals...</span>
-            </div>
-          </div>
-        ) : filteredGoals.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredGoals.map(goal => (
-              <Card key={goal.id} className="bg-[#252832] border-gray-800 hover:border-gray-700 transition-all">
-                <div className="p-4 space-y-4">
-                  <div className="flex items-start justify-between">
+        {/* Goals List */}
+        <div className={`grid ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'} gap-6`}>
+          {filteredGoals.map((goal) => (
+            <Card key={goal.id} className="bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700 shadow-xl hover:shadow-2xl transition-all">
+              <CardHeader className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+                      <span className="text-white font-semibold text-lg">{goal.employee.name[0]}</span>
+                    </div>
                     <div>
-                      <h3 className="font-medium text-white mb-1">{goal.title}</h3>
-                      <p className="text-sm text-gray-400 line-clamp-2">{goal.description}</p>
+                      <h3 className="text-lg font-semibold text-white">{goal.employee.name}</h3>
+                      <p className="text-sm text-gray-400">{goal.employee.email}</p>
                     </div>
-                    {goal.rating?.score && (
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <BsStarFill
-                            key={star}
-                            className={`w-4 h-4 ${
-                              (goal.rating?.score || 0) >= star
-                                ? 'text-yellow-400'
-                                : 'text-gray-600'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    )}
                   </div>
-
-                  <div className="space-y-3">
-                    <Label className="text-gray-400">Rating</Label>
-                    <Select
-                      value={goal.rating?.score?.toString() || ""}
-                      onValueChange={(value: string) => handleRatingChange(goal.id, parseInt(value))}
-                    >
-                      <SelectTrigger className="w-full bg-[#1E2028] border-gray-800">
-                        <SelectValue placeholder="Select rating..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[1, 2, 3, 4, 5].map(rating => (
-                          <SelectItem key={rating} value={rating.toString()}>
-                            <div className="flex items-center gap-2">
-                              <div className="flex gap-1">
-                                {Array.from({ length: rating }).map((_, i) => (
-                                  <BsStarFill key={i} className="w-4 h-4 text-yellow-400" />
-                                ))}
-                              </div>
-                              <span>{RATING_LABELS[rating as keyof typeof RATING_LABELS]}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    {goal.rating?.score && (
-                      <p className="text-sm text-gray-400 mt-2">
-                        {RATING_DESCRIPTIONS[goal.rating.score as keyof typeof RATING_DESCRIPTIONS]}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-800">
-                    <div className="flex items-center gap-2">
-                      <BsPersonLinesFill className="text-gray-400" />
-                      <span className="text-sm text-gray-400">{goal.employee.name}</span>
-                    </div>
-                    {goal.rating?.score ? (
-                      <div className="px-2 py-1 bg-emerald-500/10 text-emerald-400 text-xs rounded-full">
-                        Rated
-                      </div>
-                    ) : (
-                      <div className="px-2 py-1 bg-amber-500/10 text-amber-400 text-xs rounded-full">
-                        Pending
-                      </div>
-                    )}
+                  <div className="flex items-center gap-2">
+                    <BsCalendar className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm text-gray-400">
+                      {new Date(goal.dueDate).toLocaleDateString()}
+                    </span>
                   </div>
                 </div>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-16">
-            <div className="p-4 bg-gray-800/30 rounded-full mb-4">
-              <BsExclamationCircle className="w-8 h-8 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-medium text-white mb-2">No goals found</h3>
-            <p className="text-gray-400">
-              {filterEmployee !== 'all'
-                ? "No goals found for the selected employee"
-                : "No goals are available for rating at this time"}
-            </p>
-          </div>
-        )}
+                <div className="space-y-3">
+                  <h4 className="text-xl font-semibold text-white">{goal.title}</h4>
+                  <p className="text-gray-300 leading-relaxed">{goal.description}</p>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6 pt-0">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium text-gray-300">Rating</Label>
+                    {goal.rating?.score && (
+                      <span className={`text-sm font-medium px-3 py-1.5 rounded-full ${RATING_COLORS[goal.rating.score as keyof typeof RATING_COLORS]}`}>
+                        {RATING_LABELS[goal.rating.score as keyof typeof RATING_LABELS]}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-center gap-4 py-4">
+                    {[1, 2, 3, 4, 5].map((rating) => (
+                      <Button
+                        key={rating}
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleRatingChange(goal.id, rating)}
+                        className={`w-14 h-14 ${
+                          goal.rating?.score === rating
+                            ? RATING_COLORS[rating as keyof typeof RATING_COLORS]
+                            : 'bg-gray-800 text-gray-400 border-gray-700'
+                        } ${RATING_HOVER_COLORS[rating as keyof typeof RATING_HOVER_COLORS]} transition-all duration-200`}
+                      >
+                        <div className="flex flex-col items-center gap-1">
+                          <BsStarFill className="w-5 h-5" />
+                          <span className="text-xs">{rating}</span>
+                        </div>
+                      </Button>
+                    ))}
+                  </div>
+                  {goal.rating?.score && (
+                    <div className="p-4 rounded-lg bg-gray-800/50 border border-gray-700">
+                      <p className={`text-sm font-medium mb-2 ${RATING_COLORS[goal.rating.score as keyof typeof RATING_COLORS]}`}>
+                        {RATING_LABELS[goal.rating.score as keyof typeof RATING_LABELS]}
+                      </p>
+                      <p className="text-sm text-gray-400 leading-relaxed">
+                        {RATING_DESCRIPTIONS[goal.rating.score as keyof typeof RATING_DESCRIPTIONS]}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </DashboardLayout>
   );
