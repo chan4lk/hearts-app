@@ -4,7 +4,7 @@ import Image from 'next/image';
 
 function Footer() {
   return (
-    <footer className="bg-[#1a1f2f] text-white relative z-50">
+    <footer className="bg-[#0f172a]/50 backdrop-blur-sm border-t border-indigo-500/20 relative z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           {/* Company Info */}
@@ -20,7 +20,7 @@ function Footer() {
                 />
               </Link>
               <Link href="/" className="group">
-                <span className="text-2xl font-bold text-white group-hover:text-[#4f46e5] transition-all duration-300">
+                <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 group-hover:from-indigo-300 group-hover:via-purple-300 group-hover:to-pink-300 transition-all duration-300">
                   Performance Management
                 </span>
               </Link>
@@ -42,7 +42,7 @@ function Footer() {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-[#4f46e5] transition-all duration-300 transform hover:scale-110 hover:rotate-6"
+                  className="text-gray-400 hover:text-indigo-400 transition-all duration-300 transform hover:scale-110 hover:rotate-6"
                 >
                   <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
                     {social.icon === 'facebook' && (
@@ -71,7 +71,7 @@ function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-xl font-semibold mb-8 text-white border-b border-[#4f46e5] pb-2 inline-block">
+            <h3 className="text-xl font-semibold mb-8 text-white border-b border-indigo-500/50 pb-2 inline-block">
               Quick Links
             </h3>
             <ul className="space-y-4">
@@ -83,9 +83,9 @@ function Footer() {
                 <li key={index}>
                   <Link
                     href={link.href}
-                    className="text-gray-400 hover:text-[#4f46e5] transition-colors duration-300 text-base flex items-center group"
+                    className="text-gray-400 hover:text-indigo-400 transition-colors duration-300 text-base flex items-center group"
                   >
-                    <span className="w-1.5 h-1.5 bg-[#4f46e5] rounded-full mr-3 transform group-hover:scale-150 transition-transform duration-300"></span>
+                    <span className="w-1.5 h-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full mr-3 transform group-hover:scale-150 transition-transform duration-300"></span>
                     {link.label}
                   </Link>
                 </li>
@@ -95,7 +95,7 @@ function Footer() {
 
           {/* Support */}
           <div>
-            <h3 className="text-xl font-semibold mb-8 text-white border-b border-[#4f46e5] pb-2 inline-block">
+            <h3 className="text-xl font-semibold mb-8 text-white border-b border-indigo-500/50 pb-2 inline-block">
               Support
             </h3>
             <ul className="space-y-4">
@@ -110,9 +110,9 @@ function Footer() {
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-400 hover:text-[#4f46e5] transition-colors duration-300 text-base flex items-center group"
+                    className="text-gray-400 hover:text-indigo-400 transition-colors duration-300 text-base flex items-center group"
                   >
-                    <span className="w-1.5 h-1.5 bg-[#4f46e5] rounded-full mr-3 transform group-hover:scale-150 transition-transform duration-300"></span>
+                    <span className="w-1.5 h-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full mr-3 transform group-hover:scale-150 transition-transform duration-300"></span>
                     {link.label}
                   </a>
                 </li>
@@ -122,29 +122,29 @@ function Footer() {
 
           {/* Contact Info */}
           <div>
-            <h3 className="text-xl font-semibold mb-8 text-white border-b border-[#4f46e5] pb-2 inline-block">
+            <h3 className="text-xl font-semibold mb-8 text-white border-b border-indigo-500/50 pb-2 inline-block">
               Contact Us
             </h3>
             <ul className="space-y-6 text-gray-400">
-              <li className="flex items-start group hover:text-[#4f46e5] transition-colors duration-300">
-                <svg className="h-6 w-6 mr-4 mt-1 flex-shrink-0 text-[#4f46e5] group-hover:scale-110 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <li className="flex items-start group hover:text-indigo-400 transition-colors duration-300">
+                <svg className="h-6 w-6 mr-4 mt-1 flex-shrink-0 text-indigo-400 group-hover:scale-110 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
                 <div className="text-base">
-                  <p className="font-medium text-white group-hover:text-[#4f46e5] transition-colors duration-300">Colombo Office</p>
+                  <p className="font-medium text-white group-hover:text-indigo-400 transition-colors duration-300">Colombo Office</p>
                   <p>No: 14, Sir Baron Jayathilake Mawatha,</p>
                   <p>Colombo 01, Sri Lanka</p>
                 </div>
               </li>
-              <li className="flex items-start group hover:text-[#4f46e5] transition-colors duration-300">
-                <svg className="h-6 w-6 mr-4 mt-1 flex-shrink-0 text-[#4f46e5] group-hover:scale-110 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <li className="flex items-start group hover:text-indigo-400 transition-colors duration-300">
+                <svg className="h-6 w-6 mr-4 mt-1 flex-shrink-0 text-indigo-400 group-hover:scale-110 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 <span className="text-base">info@bistecglobal.com</span>
               </li>
-              <li className="flex items-start group hover:text-[#4f46e5] transition-colors duration-300">
-                <svg className="h-6 w-6 mr-4 mt-1 flex-shrink-0 text-[#4f46e5] group-hover:scale-110 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <li className="flex items-start group hover:text-indigo-400 transition-colors duration-300">
+                <svg className="h-6 w-6 mr-4 mt-1 flex-shrink-0 text-indigo-400 group-hover:scale-110 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
                 <span className="text-base">+94 74 064 5569</span>
@@ -154,7 +154,7 @@ function Footer() {
         </div>
 
         {/* Copyright */}
-        <div className="mt-16 pt-8 border-t border-gray-700">
+        <div className="mt-16 pt-8 border-t border-indigo-500/20">
           <p className="text-center text-gray-400 text-base">
             © {new Date().getFullYear()} Performance Management System. All rights reserved.
           </p>
