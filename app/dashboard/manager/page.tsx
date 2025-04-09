@@ -55,9 +55,6 @@ export default function ManagerDashboard() {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
-  const [feedback, setFeedback] = useState('');
-  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
 
   // Load goals from the database
   useEffect(() => {
@@ -79,59 +76,6 @@ export default function ManagerDashboard() {
 
     fetchGoals();
   }, []);
-
-  const handleApprove = async (goalId: string) => {
-    try {
-      const response = await fetch(`/api/goals/${goalId}/approve`, {
-        method: 'PUT'
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to approve goal');
-      }
-
-      const updatedGoal = await response.json();
-      setGoals(goals.map(goal => 
-        goal.id === goalId ? updatedGoal : goal
-      ));
-    } catch (error) {
-      console.error('Error approving goal:', error);
-    }
-  };
-
-  const handleReject = (goalId: string) => {
-    setSelectedGoal(goalId);
-    setShowFeedbackModal(true);
-  };
-
-  const submitRejection = async () => {
-    if (!selectedGoal) return;
-
-    try {
-      const response = await fetch(`/api/goals/${selectedGoal}/reject`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ feedback })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to reject goal');
-      }
-
-      const updatedGoal = await response.json();
-      setGoals(goals.map(goal => 
-        goal.id === selectedGoal ? updatedGoal : goal
-      ));
-
-      setFeedback('');
-      setSelectedGoal(null);
-      setShowFeedbackModal(false);
-    } catch (error) {
-      console.error('Error rejecting goal:', error);
-    }
-  };
 
   const filteredGoals = goals.filter(goal => {
     const matchesSearch = goal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -157,9 +101,9 @@ export default function ManagerDashboard() {
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-3">
               <BsStars className="w-8 h-8 text-indigo-400" />
-              Employee Goals
+              Employee Goals Overview
             </h1>
-            <p className="text-gray-400 mt-1">Review and manage employee goals</p>
+            <p className="text-gray-400 mt-1">View and track employee goals progress</p>
           </div>
         </div>
 
@@ -234,25 +178,6 @@ export default function ManagerDashboard() {
                   </div>
                 </div>
 
-                {goal.status === 'PENDING' && (
-                  <div className="flex space-x-4">
-                    <button
-                      onClick={() => handleApprove(goal.id)}
-                      className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-all duration-300 group"
-                    >
-                      <BsCheckCircle className="w-5 h-5 transform group-hover:scale-110 transition-transform" />
-                      <span>Approve</span>
-                    </button>
-                    <button
-                      onClick={() => handleReject(goal.id)}
-                      className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-rose-600 text-white rounded-lg hover:bg-rose-500 transition-all duration-300 group"
-                    >
-                      <BsXCircle className="w-5 h-5 transform group-hover:scale-110 transition-transform" />
-                      <span>Reject</span>
-                    </button>
-                  </div>
-                )}
-
                 {goal.feedback && (
                   <div className="mt-4 p-4 bg-[#252832] rounded-lg border border-gray-700">
                     <div className="flex items-center gap-2 text-gray-300 mb-2">
@@ -280,46 +205,6 @@ export default function ManagerDashboard() {
             </div>
           )}
         </div>
-
-        {/* Feedback Modal */}
-        {showFeedbackModal && (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-[#1E2028] rounded-xl p-6 w-full max-w-md mx-4 border border-gray-800 shadow-2xl">
-              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
-                <BsChat className="w-6 h-6 text-rose-400" />
-                Provide Feedback
-              </h3>
-              <textarea
-                value={feedback}
-                onChange={(e) => setFeedback(e.target.value)}
-                placeholder="Enter feedback for rejection..."
-                className="w-full px-4 py-3 bg-[#252832] text-white rounded-xl border border-gray-700 focus:outline-none focus:ring-2 focus:ring-rose-500 mb-4 placeholder-gray-500"
-                rows={4}
-                required
-              />
-              <div className="flex justify-end space-x-4">
-                <button
-                  onClick={() => {
-                    setShowFeedbackModal(false);
-                    setSelectedGoal(null);
-                    setFeedback('');
-                  }}
-                  className="px-4 py-2 text-gray-400 hover:text-white transition-colors flex items-center gap-2"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={submitRejection}
-                  className="px-6 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-500 transition-all duration-300 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!feedback.trim()}
-                >
-                  Submit
-                  <BsArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </DashboardLayout>
   );
