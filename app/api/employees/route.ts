@@ -4,9 +4,15 @@ import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function GET() {
   try {
+    // During build time, return an empty array
+    if (process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE === 'phase-production-build') {
+      return NextResponse.json([]);
+    }
+
     const session = await getServerSession(authOptions);
 
     if (!session) {
