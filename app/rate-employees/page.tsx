@@ -21,15 +21,25 @@ import {
   BsArrowRight,
   BsFilter,
   BsGrid,
-  BsList
+  BsList,
+  BsCheckCircle,
+  BsHourglassSplit
 } from "react-icons/bs";
 
 interface GoalWithRating extends Goal {
   rating?: {
     id: string;
     score: number;
+    comments?: string;
   };
   employee: User;
+}
+
+interface EmployeeStats {
+  id: string;
+  name: string;
+  totalGoals: number;
+  ratedGoals: number;
 }
 
 const RATING_DESCRIPTIONS = {
@@ -48,20 +58,58 @@ export default function RateEmployeesPage() {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [filterEmployee, setFilterEmployee] = useState<string>('all');
   const [filterRating, setFilterRating] = useState<string>('all');
+  const [employeeStats, setEmployeeStats] = useState<EmployeeStats[]>([]);
 
   useEffect(() => {
     fetchEmployeeGoals();
   }, []);
 
+  useEffect(() => {
+    // Calculate employee statistics whenever goals change
+    const stats = calculateEmployeeStats(goals);
+    setEmployeeStats(stats);
+  }, [goals]);
+
+  const calculateEmployeeStats = (goals: GoalWithRating[]): EmployeeStats[] => {
+    const statsMap = new Map<string, EmployeeStats>();
+    
+    goals.forEach(goal => {
+      const { employee } = goal;
+      const currentStats = statsMap.get(employee.id) || {
+        id: employee.id,
+        name: employee.name,
+        totalGoals: 0,
+        ratedGoals: 0
+      };
+      
+      currentStats.totalGoals++;
+      if (goal.rating?.score) {
+        currentStats.ratedGoals++;
+      }
+      
+      statsMap.set(employee.id, currentStats);
+    });
+    
+    return Array.from(statsMap.values());
+  };
+
   const fetchEmployeeGoals = async () => {
     try {
+      setLoading(true);
       const response = await fetch("/api/goals/manager");
       if (!response.ok) throw new Error("Failed to fetch goals");
       const data = await response.json();
+      
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid response format");
+      }
+      
       setGoals(data);
+      toast.success("Goals loaded successfully");
     } catch (error) {
       console.error("Error fetching goals:", error);
-      toast.error("Failed to load goals");
+      toast.error("Failed to load goals. Please try again.");
+      setGoals([]);
     } finally {
       setLoading(false);
     }
@@ -77,7 +125,8 @@ export default function RateEmployeesPage() {
             ...goal, 
             rating: { 
               id: goal.rating?.id || "", 
-              score: numericValue 
+              score: numericValue,
+              comments: goal.rating?.comments
             } 
           } 
         : goal
@@ -94,6 +143,7 @@ export default function RateEmployeesPage() {
           ratings: goals.map(goal => ({
             goalId: goal.id,
             score: goal.rating?.score || 0,
+            comments: goal.rating?.comments || ""
           })),
         }),
       });
@@ -114,12 +164,6 @@ export default function RateEmployeesPage() {
     if (filterRating !== 'all' && goal.rating?.score !== parseInt(filterRating)) return false;
     return true;
   });
-
-  const uniqueEmployees = Array.from(new Set(goals.map(goal => goal.employee)))
-    .map(employee => ({
-      id: employee.id,
-      name: employee.name
-    }));
 
   const content = loading ? (
     <motion.div 
@@ -154,12 +198,12 @@ export default function RateEmployeesPage() {
           </div>
         </div>
 
-        {/* Filters Section */}
-        <div className="flex flex-wrap items-center gap-6 mb-6 pb-6 border-b border-gray-800/50">
+        {/* Employee Selection and Filters */}
+        <div className="flex flex-wrap items-start gap-6 mb-6 pb-6 border-b border-gray-800/50">
           <div className="flex-1 min-w-[250px] space-y-2">
             <Label className="text-gray-300 font-medium flex items-center gap-2">
               <BsFilter className="w-4 h-4" />
-              Filter by Employee
+              Select Employee
             </Label>
             <Select
               value={filterEmployee}
@@ -171,14 +215,20 @@ export default function RateEmployeesPage() {
               <SelectContent>
                 <SelectGroup>
                   <SelectItem value="all">👥 All Employees</SelectItem>
-                  {uniqueEmployees.map(emp => (
+                  {employeeStats.map(emp => (
                     <SelectItem key={emp.id} value={emp.id}>
-                      👤 {emp.name}
+                      <div className="flex items-center justify-between w-full">
+                        <span>👤 {emp.name}</span>
+                        <span className="text-xs text-gray-400">
+                          {emp.ratedGoals}/{emp.totalGoals} rated
+                        </span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectGroup>
               </SelectContent>
             </Select>
+            <p className="text-xs text-gray-500">Select an employee to view and rate their goals</p>
           </div>
 
           <div className="flex-1 min-w-[250px] space-y-2">
@@ -196,14 +246,18 @@ export default function RateEmployeesPage() {
               <SelectContent>
                 <SelectGroup>
                   <SelectItem value="all">🔍 All Ratings</SelectItem>
-                  {Object.entries(RATING_DESCRIPTIONS).map(([rating, { title }]) => (
-                    <SelectItem key={rating} value={rating}>
-                      {"⭐".repeat(parseInt(rating))} {title}
+                  {[1, 2, 3, 4, 5].map(rating => (
+                    <SelectItem key={rating} value={rating.toString()}>
+                      <div className="flex items-center gap-2">
+                        <span>{"⭐".repeat(rating)}</span>
+                        <span>{rating} - {getRatingLabel(rating)}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectGroup>
               </SelectContent>
             </Select>
+            <p className="text-xs text-gray-500">Filter goals by their rating level</p>
           </div>
 
           <div className="flex items-center gap-2 ml-auto">
@@ -297,9 +351,76 @@ export default function RateEmployeesPage() {
         </div>
       </motion.div>
 
+      {/* Employee Progress Overview */}
+      {filterEmployee === 'all' && (
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          {employeeStats.map((emp, index) => (
+            <motion.div
+              key={emp.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+            >
+              <Card className="bg-[#2A2F3A] border-gray-800/50 hover:border-indigo-500/50 transition-all duration-300">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-indigo-500/10 rounded-lg">
+                        <BsPersonLinesFill className="w-5 h-5 text-indigo-400" />
+                      </div>
+                      <span className="text-white">{emp.name}</span>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="mt-2">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-gray-400">Progress</span>
+                      <span className="text-gray-400">{emp.ratedGoals}/{emp.totalGoals} goals</span>
+                    </div>
+                    <div className="w-full bg-gray-800 rounded-full h-2">
+                      <div
+                        className="bg-indigo-500 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${(emp.ratedGoals / emp.totalGoals) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="pt-2">
+                  <Button
+                    onClick={() => setFilterEmployee(emp.id)}
+                    className="w-full bg-indigo-500/10 hover:bg-indigo-500 text-indigo-400 hover:text-white transition-colors"
+                    size="sm"
+                  >
+                    View Goals
+                  </Button>
+                </CardFooter>
+              </Card>
+            </motion.div>
+          ))}
+        </motion.div>
+      )}
+
       {/* Goals Rating Section */}
       <div className={viewMode === 'list' ? 'space-y-6' : 'grid grid-cols-1 md:grid-cols-2 gap-6'}>
-        {filteredGoals.length > 0 ? (
+        {loading ? (
+          <motion.div 
+            className="col-span-full flex flex-col items-center justify-center py-16"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="flex items-center gap-3 text-gray-400">
+              <div className="animate-spin w-5 h-5 border-2 border-current border-t-transparent rounded-full" />
+              <span>Loading goals...</span>
+            </div>
+          </motion.div>
+        ) : filteredGoals.length > 0 ? (
           filteredGoals.map((goal, index) => (
             <motion.div
               key={goal.id}
@@ -316,7 +437,7 @@ export default function RateEmployeesPage() {
                       </div>
                       <span className="text-white">{goal.employee.name}</span>
                     </div>
-                    {goal.rating?.score && (
+                    {goal.rating?.score ? (
                       <div className="flex items-center gap-2 px-3 py-1 bg-yellow-500/10 rounded-full">
                         <div className="flex gap-1">
                           {[1, 2, 3, 4, 5].map((star) => (
@@ -330,6 +451,11 @@ export default function RateEmployeesPage() {
                             />
                           ))}
                         </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 px-3 py-1 bg-gray-500/10 rounded-full">
+                        <BsHourglassSplit className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm text-gray-400">Pending</span>
                       </div>
                     )}
                   </CardTitle>
@@ -355,11 +481,11 @@ export default function RateEmployeesPage() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            {Object.entries(RATING_DESCRIPTIONS).map(([rating, { title, description }]) => (
-                              <SelectItem key={rating} value={rating}>
+                            {[1, 2, 3, 4, 5].map(rating => (
+                              <SelectItem key={rating} value={rating.toString()}>
                                 <div className="flex items-center gap-2">
-                                  <span>{"⭐".repeat(parseInt(rating))}</span>
-                                  <span>{title}</span>
+                                  <span>{"⭐".repeat(rating)}</span>
+                                  <span>{rating} - {getRatingLabel(rating)}</span>
                                 </div>
                               </SelectItem>
                             ))}
@@ -371,7 +497,7 @@ export default function RateEmployeesPage() {
                     {goal.rating?.score && (
                       <div className="p-4 bg-indigo-500/5 rounded-xl border border-indigo-500/10">
                         <p className="text-sm text-gray-400">
-                          {RATING_DESCRIPTIONS[goal.rating.score as keyof typeof RATING_DESCRIPTIONS].description}
+                          {getRatingDescription(goal.rating.score)}
                         </p>
                       </div>
                     )}
@@ -391,7 +517,11 @@ export default function RateEmployeesPage() {
               <BsExclamationCircle className="w-8 h-8" />
             </div>
             <h3 className="text-lg font-medium mb-2">No goals found</h3>
-            <p className="text-gray-500">Try adjusting your filters</p>
+            <p className="text-gray-500">
+              {filterEmployee !== 'all' || filterRating !== 'all' 
+                ? "Try adjusting your filters"
+                : "No employee goals are available for rating at this time"}
+            </p>
           </motion.div>
         )}
       </div>
@@ -433,4 +563,32 @@ export default function RateEmployeesPage() {
       </div>
     </DashboardLayout>
   );
+}
+
+function getRatingLabel(rating: number): string {
+  switch (rating) {
+    case 1: return "Needs Improvement";
+    case 2: return "Below Expectations";
+    case 3: return "Meets Expectations";
+    case 4: return "Exceeds Expectations";
+    case 5: return "Outstanding";
+    default: return "";
+  }
+}
+
+function getRatingDescription(rating: number): string {
+  switch (rating) {
+    case 1:
+      return "Performance consistently falls below expected standards. Significant improvement needed in key areas.";
+    case 2:
+      return "Performance occasionally meets standards but improvement is needed to fully meet expectations.";
+    case 3:
+      return "Performance consistently meets job requirements and expectations. Demonstrates solid competence.";
+    case 4:
+      return "Performance frequently exceeds job requirements. Demonstrates strong skills and initiative.";
+    case 5:
+      return "Performance consistently exceeds all expectations. Demonstrates exceptional achievements.";
+    default:
+      return "";
+  }
 } 
