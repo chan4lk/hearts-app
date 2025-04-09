@@ -8,11 +8,6 @@ export const runtime = 'nodejs';
 
 export async function GET() {
   try {
-    // During build time, return an empty array
-    if (process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE === 'phase-production-build') {
-      return NextResponse.json([]);
-    }
-
     const session = await getServerSession(authOptions);
 
     if (!session) {
@@ -63,6 +58,17 @@ export async function GET() {
     return NextResponse.json(employees);
   } catch (error) {
     console.error('Error fetching employees:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return new NextResponse(
+      JSON.stringify({ 
+        error: 'Internal Server Error',
+        message: error instanceof Error ? error.message : 'Unknown error occurred'
+      }), 
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
   }
 } 

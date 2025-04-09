@@ -6,25 +6,20 @@ const globalForPrisma = globalThis as unknown as {
 
 let prismaClient: PrismaClient;
 
-// During build time, return a mock client
-if (process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE === 'phase-production-build') {
-  prismaClient = {
-    user: {
-      findMany: async () => [],
-      findUnique: async () => null,
+// Create a new PrismaClient instance
+prismaClient = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
     },
-    goal: {
-      findMany: async () => [],
-      findUnique: async () => null,
-    },
-    rating: {
-      findMany: async () => [],
-      findUnique: async () => null,
-    },
-  } as unknown as PrismaClient;
-} else {
-  prismaClient = globalForPrisma.prisma ?? new PrismaClient();
-  if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prismaClient;
+  },
+});
+
+// In development, store the client in the global scope to prevent hot reloading issues
+if (process.env.NODE_ENV === 'development') {
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = prismaClient;
+  }
 }
 
 export const prisma = prismaClient; 
