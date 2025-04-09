@@ -29,6 +29,13 @@ interface Goal {
   feedback?: string;
 }
 
+interface EmployeeStats {
+  id: string;
+  name: string;
+  email: string;
+  goalsCount: number;
+}
+
 const STATUS_STYLES = {
   APPROVED: {
     bg: 'bg-emerald-500/10',
@@ -53,8 +60,20 @@ const STATUS_STYLES = {
 export default function ManagerDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedEmployee, setSelectedEmployee] = useState('all');
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [employees, setEmployees] = useState<EmployeeStats[]>([]);
+  const [selectedGoalDetails, setSelectedGoalDetails] = useState<Goal | null>(null);
+
+  // Calculate statistics
+  const stats = {
+    total: goals.length,
+    pending: goals.filter(g => g.status === 'PENDING').length,
+    approved: goals.filter(g => g.status === 'APPROVED').length,
+    rejected: goals.filter(g => g.status === 'REJECTED').length,
+    employeeCount: new Set(goals.map(g => g.employeeEmail)).size
+  };
 
   // Load goals from the database
   useEffect(() => {
@@ -65,8 +84,21 @@ export default function ManagerDashboard() {
           throw new Error('Failed to fetch goals');
         }
         const data = await response.json();
-        console.log('Fetched goals:', data); // Debug log
         setGoals(data);
+
+        // Process employee statistics
+        const employeeMap = new Map<string, EmployeeStats>();
+        data.forEach((goal: Goal) => {
+          const existing = employeeMap.get(goal.employeeEmail) || {
+            id: goal.employeeEmail,
+            name: goal.employeeName,
+            email: goal.employeeEmail,
+            goalsCount: 0
+          };
+          existing.goalsCount++;
+          employeeMap.set(goal.employeeEmail, existing);
+        });
+        setEmployees(Array.from(employeeMap.values()));
       } catch (error) {
         console.error('Error fetching goals:', error);
       } finally {
@@ -81,7 +113,8 @@ export default function ManagerDashboard() {
     const matchesSearch = goal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       goal.employeeName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = !selectedStatus || goal.status === selectedStatus;
-    return matchesSearch && matchesStatus;
+    const matchesEmployee = selectedEmployee === 'all' || goal.employeeEmail === selectedEmployee;
+    return matchesSearch && matchesStatus && matchesEmployee;
   });
 
   if (loading) {
@@ -97,13 +130,37 @@ export default function ManagerDashboard() {
   return (
     <DashboardLayout type="manager">
       <div className="space-y-6">
-        <div className="flex justify-between items-center bg-[#1E2028] p-6 rounded-xl shadow-lg">
+        <div className="bg-[#1E2028] p-6 rounded-xl shadow-lg space-y-6">
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-3">
               <BsStars className="w-8 h-8 text-indigo-400" />
               Employee Goals Overview
             </h1>
             <p className="text-gray-400 mt-1">View and track employee goals progress</p>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+              <div className="text-sm text-gray-400 mb-1">Total Goals</div>
+              <div className="text-2xl font-bold text-white">{stats.total}</div>
+            </div>
+            <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+              <div className="text-sm text-amber-400 mb-1">Pending</div>
+              <div className="text-2xl font-bold text-white">{stats.pending}</div>
+            </div>
+            <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+              <div className="text-sm text-emerald-400 mb-1">Approved</div>
+              <div className="text-2xl font-bold text-white">{stats.approved}</div>
+            </div>
+            <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+              <div className="text-sm text-rose-400 mb-1">Rejected</div>
+              <div className="text-2xl font-bold text-white">{stats.rejected}</div>
+            </div>
+            <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+              <div className="text-sm text-indigo-400 mb-1">Employees</div>
+              <div className="text-2xl font-bold text-white">{stats.employeeCount}</div>
+            </div>
           </div>
         </div>
 
@@ -138,6 +195,24 @@ export default function ManagerDashboard() {
               <option value="REJECTED">Rejected</option>
             </select>
           </div>
+
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <BsPerson className="text-gray-400 group-hover:text-indigo-400 transition-colors" />
+            </div>
+            <select 
+              value={selectedEmployee}
+              onChange={(e) => setSelectedEmployee(e.target.value)}
+              className="pl-10 pr-4 py-3 bg-[#1E2028] text-white rounded-xl border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:bg-[#252832] hover:border-gray-600 transition-all appearance-none cursor-pointer min-w-[200px]"
+            >
+              <option value="all">All Employees</option>
+              {employees.map(emp => (
+                <option key={emp.id} value={emp.email}>
+                  {emp.name} ({emp.goalsCount} goals)
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -145,7 +220,8 @@ export default function ManagerDashboard() {
             filteredGoals.map((goal) => (
               <div 
                 key={goal.id} 
-                className={`bg-gradient-to-br ${STATUS_STYLES[goal.status].gradient} bg-[#1E2028] rounded-xl p-6 hover:shadow-xl transition-all duration-300 border border-gray-800 hover:border-gray-700 group`}
+                onClick={() => setSelectedGoalDetails(goal)}
+                className={`bg-gradient-to-br ${STATUS_STYLES[goal.status].gradient} bg-[#1E2028] rounded-xl p-6 hover:shadow-xl transition-all duration-300 border border-gray-800 hover:border-gray-700 group cursor-pointer transform hover:scale-[1.02]`}
               >
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="text-lg font-medium text-white group-hover:text-indigo-400 transition-colors flex items-center gap-2">
@@ -205,6 +281,110 @@ export default function ManagerDashboard() {
             </div>
           )}
         </div>
+
+        {/* Goal Details Modal */}
+        {selectedGoalDetails && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-[#1E2028] rounded-xl w-full max-w-3xl border border-gray-800 shadow-2xl overflow-hidden">
+              {/* Modal Header */}
+              <div className="p-6 border-b border-gray-800 bg-[#252832]">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                      <BsLightningCharge className="w-6 h-6 text-indigo-400" />
+                      {selectedGoalDetails.title}
+                    </h2>
+                    <p className="text-gray-400 mt-1 flex items-center gap-2">
+                      <BsPerson className="w-4 h-4" />
+                      {selectedGoalDetails.employeeName}
+                    </p>
+                  </div>
+                  <span className={`px-4 py-2 rounded-lg text-sm flex items-center gap-2 ${STATUS_STYLES[selectedGoalDetails.status].bg} ${STATUS_STYLES[selectedGoalDetails.status].text}`}>
+                    {STATUS_STYLES[selectedGoalDetails.status].icon}
+                    {selectedGoalDetails.status.charAt(0) + selectedGoalDetails.status.slice(1).toLowerCase()}
+                  </span>
+                </div>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-6 space-y-6">
+                {/* Description Section */}
+                <div>
+                  <h3 className="text-lg font-medium text-white mb-3 flex items-center gap-2">
+                    <div className="p-1.5 bg-indigo-500/10 rounded-lg">
+                      <BsLightningCharge className="w-4 h-4 text-indigo-400" />
+                    </div>
+                    Description
+                  </h3>
+                  <p className="text-gray-300 leading-relaxed">
+                    {selectedGoalDetails.description}
+                  </p>
+                </div>
+
+                {/* Dates Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-1.5 bg-amber-500/10 rounded-lg">
+                        <BsCalendar className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <h4 className="text-sm font-medium text-white">Due Date</h4>
+                    </div>
+                    <p className="text-gray-400">
+                      {new Date(selectedGoalDetails.dueDate).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                  </div>
+                  <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-1.5 bg-emerald-500/10 rounded-lg">
+                        <BsClock className="w-4 h-4 text-emerald-400" />
+                      </div>
+                      <h4 className="text-sm font-medium text-white">Submission Date</h4>
+                    </div>
+                    <p className="text-gray-400">
+                      {new Date(selectedGoalDetails.submittedDate).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Feedback Section */}
+                {selectedGoalDetails.feedback && (
+                  <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="p-1.5 bg-rose-500/10 rounded-lg">
+                        <BsChat className="w-4 h-4 text-rose-400" />
+                      </div>
+                      <h4 className="text-sm font-medium text-white">Feedback</h4>
+                    </div>
+                    <p className="text-gray-300 leading-relaxed">
+                      {selectedGoalDetails.feedback}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-6 border-t border-gray-800 bg-[#252832] flex justify-end">
+                <button
+                  onClick={() => setSelectedGoalDetails(null)}
+                  className="px-6 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center gap-2"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
