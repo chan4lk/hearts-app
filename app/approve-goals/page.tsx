@@ -223,69 +223,66 @@ export default function ApproveGoalsPage() {
                   <p className="text-gray-400">Review and manage pending employee goals</p>
                 </div>
               </div>
+              <div className="relative group min-w-[280px]">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <BsFilter className="w-5 h-5 text-gray-400 group-hover:text-indigo-400 transition-colors" />
+                </div>
+                <Select
+                  value={selectedEmployee}
+                  onValueChange={setSelectedEmployee}
+                >
+                  <SelectTrigger className="pl-10 pr-4 py-3 bg-[#252832] text-white rounded-xl border border-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:border-gray-700 transition-all">
+                    <div className="flex items-center gap-2">
+                      <BsPerson className="w-4 h-4 text-gray-400" />
+                      <SelectValue placeholder="Filter by employee..." />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">
+                      <div className="flex items-center gap-2">
+                        <BsPersonLinesFill className="w-4 h-4" />
+                        <span>All Employees</span>
+                      </div>
+                    </SelectItem>
+                    {employeeStats.map(emp => (
+                      <SelectItem key={emp.id} value={emp.id}>
+                        <div className="flex items-center justify-between w-full gap-3">
+                          <div className="flex items-center gap-2">
+                            <BsPerson className="w-4 h-4" />
+                            <span>{emp.name}</span>
+                          </div>
+                          <span className="text-xs bg-amber-500/10 text-amber-400 px-2 py-1 rounded-full">
+                            {emp.pendingGoals} pending
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
-                <div className="text-sm text-amber-400 mb-1">Pending Goals</div>
-                <div className="text-2xl font-bold text-white">{goals.length}</div>
-              </div>
-              <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
-                <div className="text-sm text-indigo-400 mb-1">Employees</div>
-                <div className="text-2xl font-bold text-white">{employeeStats.length}</div>
-              </div>
-              <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
-                <div className="text-sm text-emerald-400 mb-1">Avg. Goals/Employee</div>
-                <div className="text-2xl font-bold text-white">
-                  {employeeStats.length > 0 ? (goals.length / employeeStats.length).toFixed(1) : '0.0'}
+            <div className="flex items-start justify-between gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
+                <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                  <div className="text-sm text-amber-400 mb-1">Pending Goals</div>
+                  <div className="text-2xl font-bold text-white">{goals.length}</div>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Filters Section */}
-          <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-            <div className="flex-1">
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <BsSearch className="text-gray-400 group-hover:text-indigo-400 transition-colors" />
+                <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                  <div className="text-sm text-indigo-400 mb-1">Employees</div>
+                  <div className="text-2xl font-bold text-white">{employeeStats.length}</div>
                 </div>
-                <input
-                  type="text"
-                  placeholder="Search by goal title or employee name..."
-                  value={selectedEmployee}
-                  onChange={(e) => setSelectedEmployee(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-[#1E2028] text-white rounded-xl border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all hover:bg-[#252832] hover:border-gray-600"
-                />
+                <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                  <div className="text-sm text-emerald-400 mb-1">Avg. Goals/Employee</div>
+                  <div className="text-2xl font-bold text-white">
+                    {employeeStats.length > 0 ? (goals.length / employeeStats.length).toFixed(1) : '0.0'}
+                  </div>
+                </div>
+                
               </div>
-            </div>
-
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <BsPerson className="text-gray-400 group-hover:text-indigo-400 transition-colors" />
-              </div>
-              <Select
-                value={selectedEmployee}
-                onValueChange={setSelectedEmployee}
-              >
-                <SelectTrigger className="pl-10 pr-4 py-3 bg-[#1E2028] text-white rounded-xl border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:bg-[#252832] hover:border-gray-600 transition-all min-w-[200px]">
-                  <SelectValue placeholder="Filter by employee..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">👥 All Employees</SelectItem>
-                  {employeeStats.map(emp => (
-                    <SelectItem key={emp.id} value={emp.id}>
-                      <div className="flex items-center justify-between w-full">
-                        <span>👤 {emp.name}</span>
-                        <span className="text-xs text-amber-400">
-                          {emp.pendingGoals} pending
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              
+              
             </div>
           </div>
 
