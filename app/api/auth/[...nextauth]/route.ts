@@ -1,11 +1,12 @@
 import NextAuth from "next-auth";
 import { authOptions } from "@/lib/auth";
 
+// Create the NextAuth handler
 const handler = NextAuth(authOptions);
 
-// Explicitly set Node.js runtime
+// Configure runtime and caching
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
+// Export the handler for GET and POST methods
 export { handler as GET, handler as POST }; 
