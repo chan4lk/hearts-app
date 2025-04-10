@@ -402,32 +402,7 @@ export default function SelfRatingPage() {
                     ))}
                   </div>
 
-                  {/* Rating Comments */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-300">Comments</Label>
-                    <textarea
-                      value={ratingComments[goal.id] || goal.rating?.comments || ''}
-                      onChange={(e) => setRatingComments(prev => ({
-                        ...prev,
-                        [goal.id]: e.target.value
-                      }))}
-                      placeholder="Add your comments about this rating..."
-                      className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                      rows={3}
-                    />
-                    {(ratingComments[goal.id] || goal.rating?.comments) && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={submitting[goal.id]}
-                        onClick={() => handleSelfRating(goal.id, goal.rating?.score || 0, ratingComments[goal.id])}
-                        className="w-full bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500 hover:text-white transition-colors"
-                      >
-                        {submitting[goal.id] ? 'Saving...' : 'Save Comments'}
-                      </Button>
-                    )}
-                  </div>
-
+                 
                   {goal.rating?.score && (
                     <div className="p-3 rounded bg-gray-800/50 border border-gray-700/50">
                       <p className={`text-sm font-medium ${RATING_COLORS[goal.rating.score as keyof typeof RATING_COLORS]}`}>

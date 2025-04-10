@@ -16,6 +16,9 @@ model User {
   createdAt                          DateTime   @default(now())
   updatedAt                          DateTime   @updatedAt
   managerId                          String?
+  failedLoginAttempts                Int        @default(0)
+  lastLoginAttempt                   DateTime?
+  lastLoginAt                        DateTime?
   feedbackGiven                      Feedback[] @relation("FeedbackGiven")
   feedbackReceived                   Feedback[] @relation("FeedbackReceived")
   goals                              Goal[]     @relation("EmployeeGoals")
@@ -27,6 +30,8 @@ model User {
   notifications                      Notification[]
 
   @@index([managerId])
+  @@index([lastLoginAt])
+  @@index([lastLoginAttempt])
 }
 
 model Goal {
