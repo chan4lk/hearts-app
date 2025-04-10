@@ -18,7 +18,13 @@ export async function GET() {
         name: true,
         email: true,
         role: true,
-        createdAt: true,
+        manager: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',
