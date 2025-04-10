@@ -64,7 +64,7 @@ export async function GET() {
       createdAt: goal.createdAt.toISOString(),
       dueDate: goal.dueDate.toISOString(),
       managerComments: goal.managerComments,
-      User_Goal_employeeIdToUser: {
+      employee: {
         id: goal.employee.id,
         name: goal.employee.name,
         email: goal.employee.email,

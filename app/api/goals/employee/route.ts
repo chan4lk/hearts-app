@@ -17,7 +17,7 @@ export async function GET() {
         employeeId: session.user.id,
       },
       include: {
-        User_Goal_employeeIdToUser: true,
+        employee: true,
         ratings: true,
       },
       orderBy: {

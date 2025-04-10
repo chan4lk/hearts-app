@@ -5,7 +5,6 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -19,9 +18,6 @@ import {
   BsCalendar,
   BsFilter,
   BsLightningCharge,
-  BsArrowRight,
-  BsChat,
-  BsShield,
   BsStars,
   BsExclamationCircle,
   BsPersonLinesFill
@@ -62,7 +58,7 @@ interface Goal {
   createdAt: string;
   dueDate: string;
   managerComments?: string;
-  User_Goal_employeeIdToUser: {
+  employee: {
     id: string;
     name: string;
     email: string;
@@ -126,7 +122,7 @@ export default function ApproveGoalsPage() {
       // Calculate employee statistics
       const statsMap = new Map<string, EmployeeStats>();
       data.forEach((goal: Goal) => {
-        const { id, name, email } = goal.User_Goal_employeeIdToUser;
+        const { id, name, email } = goal.employee;
         const currentStats = statsMap.get(id) || {
           id,
           name,
@@ -210,7 +206,7 @@ export default function ApproveGoalsPage() {
   };
 
   const filteredGoals = goals.filter(goal => 
-    selectedEmployee === 'all' || goal.User_Goal_employeeIdToUser.id === selectedEmployee
+    selectedEmployee === 'all' || goal.employee.id === selectedEmployee
   );
 
   if (isLoading) {
@@ -343,7 +339,7 @@ export default function ApproveGoalsPage() {
                       <BsPerson className="w-4 h-4" />
                     </div>
                     <span className="group-hover:text-indigo-400 transition-colors">
-                      {goal.User_Goal_employeeIdToUser.name}
+                      {goal.employee.name}
                     </span>
                   </div>
 
@@ -403,7 +399,7 @@ export default function ApproveGoalsPage() {
                       </h2>
                       <p className="text-gray-400 mt-1 flex items-center gap-2">
                         <BsPerson className="w-4 h-4" />
-                        {selectedGoalDetails.User_Goal_employeeIdToUser.name}
+                        {selectedGoalDetails.employee.name}
                       </p>
                     </div>
                     <span className={`px-4 py-2 rounded-lg text-sm flex items-center gap-2 ${STATUS_STYLES[selectedGoalDetails.status]?.bg || 'bg-gray-500/10'} ${STATUS_STYLES[selectedGoalDetails.status]?.text || 'text-gray-400'}`}>

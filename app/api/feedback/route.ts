@@ -13,8 +13,8 @@ export async function GET() {
     const feedback = await prisma.feedback.findMany({
       where: {
         OR: [
-          { givenById: session.user.id },
-          { receiverId: session.user.id },
+          { fromId: session.user.id },
+          { toId: session.user.id },
         ],
       },
       include: {
@@ -23,14 +23,9 @@ export async function GET() {
             name: true,
           },
         },
-        User_Feedback_receiverIdToUser: {
+        receivedBy: {
           select: {
             name: true,
-          },
-        },
-        goal: {
-          select: {
-            title: true,
           },
         },
       },
@@ -68,9 +63,9 @@ export async function POST(request: Request) {
     const feedback = await prisma.feedback.create({
       data: {
         content,
-        givenById: session.user.id,
-        receiverId,
-        goalId,
+        fromId: session.user.id,
+        toId: receiverId,
+        status: 'ACTIVE',
       },
       include: {
         givenBy: {
@@ -78,14 +73,9 @@ export async function POST(request: Request) {
             name: true,
           },
         },
-        User_Feedback_receiverIdToUser: {
+        receivedBy: {
           select: {
             name: true,
-          },
-        },
-        goal: {
-          select: {
-            title: true,
           },
         },
       },

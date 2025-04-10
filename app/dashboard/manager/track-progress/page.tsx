@@ -13,7 +13,7 @@ interface Goal {
   progressNotes: string | null;
   lastProgressUpdate: string | null;
   dueDate: string;
-  User_Goal_employeeIdToUser: {
+  employee: {
     name: string;
     email: string;
   };
@@ -70,9 +70,9 @@ export default function TrackEmployeeProgressPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Employees</SelectItem>
-            {Array.from(new Set(goals.map(g => g.User_Goal_employeeIdToUser.email))).map(email => (
+            {Array.from(new Set(goals.map(g => g.employee.email))).map(email => (
               <SelectItem key={email} value={email}>
-                {goals.find(g => g.User_Goal_employeeIdToUser.email === email)?.User_Goal_employeeIdToUser.name}
+                {goals.find(g => g.employee.email === email)?.employee.name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -85,7 +85,7 @@ export default function TrackEmployeeProgressPage() {
             <CardHeader>
               <CardTitle>{goal.title}</CardTitle>
               <p className="text-sm text-gray-500">
-                Employee: {goal.User_Goal_employeeIdToUser.name}
+                Employee: {goal.employee.name}
               </p>
               <p className="text-sm text-gray-500">
                 Due Date: {new Date(goal.dueDate).toLocaleDateString()}

@@ -26,7 +26,7 @@ export async function GET() {
         id: true,
         name: true,
         email: true,
-        Goal_Goal_employeeIdToUser: {
+        goals: {
           where: {
             status: 'APPROVED',
           },
