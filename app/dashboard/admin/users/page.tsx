@@ -40,6 +40,8 @@ export default function UserManagement() {
     role: '',
     manager: '',
   });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     if (!session?.user || session.user.role !== 'ADMIN') {
@@ -140,23 +142,52 @@ export default function UserManagement() {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
-
     try {
-      const response = await fetch(`/api/users/${userId}`, {
+      const response = await fetch(`/api/admin/users?id=${userId}`, {
         method: 'DELETE',
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete user');
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to delete user');
       }
 
       setUsers(users.filter(user => user.id !== userId));
-      toast.success('User deleted successfully');
+      setShowDeleteModal(false);
+      setUserToDelete(null);
+      
+      toast.success('User deleted successfully', {
+        position: 'top-center',
+        duration: 3000,
+        style: {
+          background: '#1E2028',
+          color: '#fff',
+          border: '1px solid #2D3748',
+          padding: '16px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        },
+      });
     } catch (error) {
       console.error('Error deleting user:', error);
-      toast.error('Failed to delete user');
+      toast.error(error instanceof Error ? error.message : 'Failed to delete user', {
+        position: 'top-center',
+        duration: 3000,
+        style: {
+          background: '#1E2028',
+          color: '#fff',
+          border: '1px solid #2D3748',
+          padding: '16px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        },
+      });
     }
+  };
+
+  const confirmDelete = (userId: string) => {
+    setUserToDelete(userId);
+    setShowDeleteModal(true);
   };
 
   const handleEditClick = (user: User) => {
@@ -331,8 +362,8 @@ export default function UserManagement() {
                           <BsPencil className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDeleteUser(user.id)}
-                          className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors"
+                          onClick={() => confirmDelete(user.id)}
+                          className="p-2 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors"
                           title="Delete User"
                         >
                           <BsTrash className="w-4 h-4" />
@@ -573,6 +604,11 @@ export default function UserManagement() {
             </div>
           </div>
         )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-[#1E2028] rounded-xl p-6 w-full max-w-md mx-4">
       </div>
     </DashboardLayout>
   );

@@ -59,11 +59,11 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
+    const { systemName, theme } = body;
 
-    // Validate required fields
-    if (!body.notificationSettings || !body.reviewSettings || !body.securitySettings) {
+    if (!systemName || !theme) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'System name and theme are required' },
         { status: 400 }
       );
     }
@@ -72,19 +72,57 @@ export async function PUT(request: Request) {
     const settings = await prisma.systemSettings.upsert({
       where: { id: 1 },
       update: {
-        notificationSettings: body.notificationSettings,
-        reviewSettings: body.reviewSettings,
-        securitySettings: body.securitySettings,
+        securitySettings: {
+          systemName,
+          theme,
+          passwordPolicy: {
+            minLength: 8,
+            requireSpecialChar: true,
+            requireNumbers: true,
+          },
+          sessionTimeout: 30,
+        },
+        notificationSettings: {
+          emailNotifications: true,
+          goalReminders: true,
+          reviewReminders: true,
+        },
+        reviewSettings: {
+          goalReviewPeriod: 30,
+          performanceReviewPeriod: 90,
+          selfReviewEnabled: true,
+        }
       },
       create: {
         id: 1,
-        notificationSettings: body.notificationSettings,
-        reviewSettings: body.reviewSettings,
-        securitySettings: body.securitySettings,
-      },
+        securitySettings: {
+          systemName,
+          theme,
+          passwordPolicy: {
+            minLength: 8,
+            requireSpecialChar: true,
+            requireNumbers: true,
+          },
+          sessionTimeout: 30,
+        },
+        notificationSettings: {
+          emailNotifications: true,
+          goalReminders: true,
+          reviewReminders: true,
+        },
+        reviewSettings: {
+          goalReviewPeriod: 30,
+          performanceReviewPeriod: 90,
+          selfReviewEnabled: true,
+        }
+      }
     });
 
-    return NextResponse.json(settings);
+    return NextResponse.json({
+      systemName,
+      theme,
+      ...settings
+    });
   } catch (error) {
     console.error('Error updating system settings:', error);
     return NextResponse.json(

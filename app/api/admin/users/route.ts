@@ -240,11 +240,11 @@ export async function DELETE(request: Request) {
       where: { id }
     });
 
-    return NextResponse.json({ message: 'User deleted successfully' });
+    return NextResponse.json({ success: true, message: 'User deleted successfully' });
   } catch (error) {
     console.error('Error deleting user:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to delete user. Please try again.' },
       { status: 500 }
     );
   }
