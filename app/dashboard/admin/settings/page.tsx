@@ -4,9 +4,22 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import { BsGear, BsSave, BsBell, BsCalendar, BsFileText, BsShield, BsCheckCircle, BsXCircle } from 'react-icons/bs';
+import { 
+  BsGear, 
+  BsSave, 
+  BsBell, 
+  BsCalendar, 
+  BsFileText, 
+  BsShield, 
+  BsCheckCircle, 
+  BsXCircle,
+  BsGlobe,
+  BsBuilding,
+  BsClock
+} from 'react-icons/bs';
 
 interface SystemSettings {
+  systemName: string;
   notificationSettings: {
     emailNotifications: boolean;
     goalReminders: boolean;
@@ -25,12 +38,54 @@ interface SystemSettings {
     };
     sessionTimeout: number;
   };
+  displaySettings: {
+    timezone: string;
+    dateFormat: string;
+    timeFormat: '12h' | '24h';
+  };
 }
+
+const timezones = [
+  { value: 'UTC', label: 'UTC (Coordinated Universal Time)' },
+  { value: 'America/New_York', label: 'Eastern Time (ET)' },
+  { value: 'America/Chicago', label: 'Central Time (CT)' },
+  { value: 'America/Denver', label: 'Mountain Time (MT)' },
+  { value: 'America/Los_Angeles', label: 'Pacific Time (PT)' },
+  { value: 'America/Anchorage', label: 'Alaska Time (AKT)' },
+  { value: 'Pacific/Honolulu', label: 'Hawaii Time (HT)' },
+  { value: 'Europe/London', label: 'London (GMT/BST)' },
+  { value: 'Europe/Paris', label: 'Central European Time (CET)' },
+  { value: 'Europe/Berlin', label: 'Berlin (CET)' },
+  { value: 'Europe/Moscow', label: 'Moscow Time (MSK)' },
+  { value: 'Asia/Dubai', label: 'Dubai (GST)' },
+  { value: 'Asia/Singapore', label: 'Singapore (SGT)' },
+  { value: 'Asia/Tokyo', label: 'Tokyo (JST)' },
+  { value: 'Asia/Shanghai', label: 'Shanghai (CST)' },
+  { value: 'Asia/Seoul', label: 'Seoul (KST)' },
+  { value: 'Australia/Sydney', label: 'Sydney (AEST)' },
+  { value: 'Australia/Perth', label: 'Perth (AWST)' },
+  { value: 'Pacific/Auckland', label: 'Auckland (NZST)' },
+  { value: 'Africa/Cairo', label: 'Cairo (EET)' },
+  { value: 'Africa/Johannesburg', label: 'Johannesburg (SAST)' },
+  { value: 'America/Sao_Paulo', label: 'São Paulo (BRT)' },
+  { value: 'America/Mexico_City', label: 'Mexico City (CST)' },
+  { value: 'America/Toronto', label: 'Toronto (ET)' },
+  { value: 'America/Vancouver', label: 'Vancouver (PT)' }
+];
+
+const dateFormats = [
+  'MM/DD/YYYY',
+  'DD/MM/YYYY',
+  'YYYY-MM-DD',
+  'DD MMM YYYY',
+  'MMM DD, YYYY'
+];
 
 export default function SystemSettings() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [settings, setSettings] = useState<SystemSettings>({
+    systemName: 'Performance Management System',
     notificationSettings: {
       emailNotifications: true,
       goalReminders: true,
@@ -48,6 +103,11 @@ export default function SystemSettings() {
         requireNumbers: true,
       },
       sessionTimeout: 30,
+    },
+    displaySettings: {
+      timezone: 'UTC',
+      dateFormat: 'MM/DD/YYYY',
+      timeFormat: '12h',
     },
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -97,6 +157,8 @@ export default function SystemSettings() {
           type: 'success',
           message: 'Settings saved successfully!',
         });
+        // Refresh the page to apply new settings
+        window.location.reload();
       } else {
         const error = await response.json();
         setSaveStatus({
@@ -162,6 +224,121 @@ export default function SystemSettings() {
         )}
 
         <div className="grid grid-cols-1 gap-6">
+          {/* System Information */}
+          <div className="bg-white shadow rounded-lg p-6">
+            <div className="flex items-center space-x-4 mb-4">
+              <BsBuilding className="h-6 w-6 text-blue-600" />
+              <h2 className="text-lg font-medium text-gray-900">System Information</h2>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  System Name
+                </label>
+                <input
+                  type="text"
+                  value={settings.systemName}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      systemName: e.target.value,
+                    })
+                  }
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  placeholder="Enter system name"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Display Settings */}
+          <div className="bg-white shadow rounded-lg p-6">
+            <div className="flex items-center space-x-4 mb-4">
+              <BsGlobe className="h-6 w-6 text-blue-600" />
+              <h2 className="text-lg font-medium text-gray-900">Display Settings</h2>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Timezone
+                </label>
+                <select
+                  value={settings.displaySettings.timezone}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      displaySettings: {
+                        ...settings.displaySettings,
+                        timezone: e.target.value,
+                      },
+                    })
+                  }
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                >
+                  {timezones.map((tz) => (
+                    <option key={tz.value} value={tz.value}>
+                      {tz.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-sm text-gray-500">
+                  Current time in selected timezone: {new Date().toLocaleTimeString('en-US', {
+                    timeZone: settings.displaySettings.timezone,
+                    hour12: settings.displaySettings.timeFormat === '12h',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    second: 'numeric',
+                  })}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Date Format
+                </label>
+                <select
+                  value={settings.displaySettings.dateFormat}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      displaySettings: {
+                        ...settings.displaySettings,
+                        dateFormat: e.target.value,
+                      },
+                    })
+                  }
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                >
+                  {dateFormats.map((format) => (
+                    <option key={format} value={format}>
+                      {format}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Time Format
+                </label>
+                <select
+                  value={settings.displaySettings.timeFormat}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      displaySettings: {
+                        ...settings.displaySettings,
+                        timeFormat: e.target.value as '12h' | '24h',
+                      },
+                    })
+                  }
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                >
+                  <option value="12h">12-hour (AM/PM)</option>
+                  <option value="24h">24-hour</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
           {/* Notification Settings */}
           <div className="bg-white shadow rounded-lg p-6">
             <div className="flex items-center space-x-4 mb-4">

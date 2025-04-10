@@ -2,8 +2,9 @@
 
 import { signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ReactNode, useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BsGrid, 
   BsBullseye,
@@ -19,20 +20,87 @@ import {
   BsPeople,
   BsChevronDown,
   BsBoxArrowRight,
-  BsBuilding
+  BsBuilding,
+  BsClock,
+  BsSun,
+  BsMoon,
+  BsSearch,
+  BsList,
+  BsX
 } from 'react-icons/bs';
+import dynamic from 'next/dynamic';
 
 interface DashboardLayoutProps {
   children: ReactNode;
   type: 'employee' | 'manager' | 'admin';
 }
 
+// Create a client-side only time display component
+const TimeDisplay = () => {
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatDate = (date: Date) => {
+    const options: Intl.DateTimeFormatOptions = {
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    };
+    return date.toLocaleString('en-US', options);
+  };
+
+  return (
+    <div className="flex items-center space-x-2 text-sm text-gray-400">
+      <BsClock className="h-4 w-4" />
+      <span>{formatDate(currentTime)}</span>
+    </div>
+  );
+};
+
+// Use dynamic import with ssr disabled for the time display
+const ClientTimeDisplay = dynamic(() => Promise.resolve(TimeDisplay), {
+  ssr: false
+});
+
 export default function DashboardLayout({ children, type }: DashboardLayoutProps) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [settings, setSettings] = useState({
+    systemName: 'Performance Management System',
+    timezone: 'UTC',
+    dateFormat: 'MM/DD/YYYY',
+    timeFormat: '12h'
+  });
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Fetch system settings
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/admin/settings');
+        if (response.ok) {
+          const data = await response.json();
+          setSettings(data);
+        }
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   // Close user menu when clicking outside
   useEffect(() => {
@@ -99,7 +167,17 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
       } md:translate-x-0 z-30`}>
         <div className="p-6">
-          <h1 className="text-xl font-bold text-white mb-8">{portalTitle}</h1>
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-xl font-bold text-white">
+              {portalTitle}
+            </h1>
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="md:hidden text-gray-400 hover:text-white"
+            >
+              <BsX className="w-6 h-6" />
+            </button>
+          </div>
           <nav className="space-y-1">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
@@ -134,17 +212,23 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       </div>
 
       {/* Header */}
-      <div className="fixed top-0 right-0 left-0 h-16 bg-[#1a1c23] md:pl-64 z-20">
+      <header className="fixed top-0 right-0 left-0 h-16 bg-[#1a1c23] md:pl-64 z-20">
         <div className="flex items-center justify-between h-full px-4">
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden text-gray-400 hover:text-white"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          <div className="flex items-center ml-auto space-x-4">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden text-gray-400 hover:text-white"
+            >
+              <BsList className="w-6 h-6" />
+            </button>
+            <div className="hidden md:flex items-center space-x-4">
+              <h1 className="text-lg font-semibold text-white">
+                {settings.systemName}
+              </h1>
+              <ClientTimeDisplay />
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
             <button className="text-gray-400 hover:text-white">
               <BsBell className="w-6 h-6" />
             </button>
@@ -186,14 +270,14 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
-      <div className="md:pl-64 pt-16">
+      <main className="md:pl-64 pt-16">
         <div className="p-6">
           {children}
         </div>
-      </div>
+      </main>
 
       {/* Mobile menu backdrop */}
       {isMobileMenuOpen && (
