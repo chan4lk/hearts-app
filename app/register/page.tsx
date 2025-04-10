@@ -1,16 +1,17 @@
-"use client";
+'use client';
 
-import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { BsEnvelope, BsShieldLock } from 'react-icons/bs';
+import { BsPerson, BsEnvelope, BsShieldLock } from 'react-icons/bs';
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
     password: '',
+    confirmPassword: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,34 +21,35 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
     try {
-      const result = await signIn('credentials', {
-        email: formData.email,
-        password: formData.password,
-        redirect: false,
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
       });
 
-      if (result?.error) {
-        setError('Invalid email or password');
-        return;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
       }
 
-      // Get the user's role from the session
-      const response = await fetch('/api/auth/session');
-      const session = await response.json();
-      
-      // Redirect based on role
-      if (session?.user?.role === 'ADMIN') {
-        router.push('/dashboard/admin');
-      } else if (session?.user?.role === 'MANAGER') {
-        router.push('/dashboard/manager');
-      } else {
-        router.push('/dashboard/employee');
-      }
-      
-      router.refresh();
+      // Redirect to login page after successful registration
+      router.push('/login');
     } catch (err) {
-      setError('An error occurred during login');
+      setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
       setLoading(false);
     }
@@ -58,8 +60,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="bg-[#252832] rounded-xl shadow-lg p-8 space-y-6">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-white">Welcome Back</h1>
-            <p className="text-gray-400 mt-2">Sign in to your account</p>
+            <h1 className="text-2xl font-bold text-white">Create Account</h1>
+            <p className="text-gray-400 mt-2">Join our performance management system</p>
           </div>
 
           {error && (
@@ -69,6 +71,26 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
+                Full Name
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <BsPerson className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  id="name"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full pl-10 pr-4 py-3 bg-[#1E2028] text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  placeholder="John Doe"
+                />
+              </div>
+            </div>
+
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
                 Email Address
@@ -109,19 +131,39 @@ export default function LoginPage() {
               </div>
             </div>
 
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <BsShieldLock className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  className="w-full pl-10 pr-4 py-3 bg-[#1E2028] text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
               className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
 
           <div className="text-center text-sm text-gray-400">
-            Don't have an account?{' '}
-            <Link href="/register" className="text-indigo-400 hover:text-indigo-300">
-              Create one
+            Already have an account?{' '}
+            <Link href="/login" className="text-indigo-400 hover:text-indigo-300">
+              Sign in
             </Link>
           </div>
         </div>

@@ -2,6 +2,8 @@ import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from './prisma';
 import bcrypt from 'bcryptjs';
+import { cookies } from 'next/headers';
+import { verify } from 'jsonwebtoken';
 
 declare module 'next-auth' {
   interface User {
@@ -91,6 +93,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/login',
     error: '/login',
+    newUser: '/register',
   },
   session: {
     strategy: 'jwt',
@@ -110,4 +113,41 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development',
-}; 
+};
+
+export interface AuthUser {
+  userId: string;
+  email: string;
+  role: string;
+}
+
+export async function getAuthUser(): Promise<AuthUser | null> {
+  const cookieStore = cookies();
+  const token = cookieStore.get('token')?.value;
+
+  if (!token) {
+    return null;
+  }
+
+  try {
+    const decoded = verify(token, process.env.JWT_SECRET || 'your-secret-key') as AuthUser;
+    return decoded;
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function isAuthenticated(): Promise<boolean> {
+  const user = await getAuthUser();
+  return !!user;
+}
+
+export async function hasRole(role: string): Promise<boolean> {
+  const user = await getAuthUser();
+  return user?.role === role;
+}
+
+export async function logout() {
+  const cookieStore = cookies();
+  cookieStore.delete('token');
+} 
