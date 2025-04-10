@@ -253,7 +253,7 @@ export default function SelfRatingPage() {
         {/* Filters Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label className="text-gray-300 font-medium flex items-center gap-2">
+            <Label className="text-blue-300 font-medium flex items-center gap-2">
               <BsFilter className="w-4 h-4" />
               Filter by Status
             </Label>
@@ -275,7 +275,7 @@ export default function SelfRatingPage() {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-gray-300 font-medium flex items-center gap-2">
+            <Label className="text-blue-300 font-medium flex items-center gap-2">
               <BsStar className="w-4 h-4" />
               Filter by Rating
             </Label>
