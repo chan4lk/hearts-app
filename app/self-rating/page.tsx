@@ -32,7 +32,7 @@ interface GoalWithRating extends Goal {
   rating?: {
     id: string;
     score: number;
-    comments?: string;
+    comments: string;
     updatedAt?: Date;
   };
 }
@@ -95,6 +95,8 @@ export default function SelfRatingPage() {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [filterRating, setFilterRating] = useState<string>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [ratingComments, setRatingComments] = useState<{ [key: string]: string }>({});
+  const [submitting, setSubmitting] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     fetchGoals();
@@ -112,7 +114,7 @@ export default function SelfRatingPage() {
       }
       
       // Transform goals to include ratings
-      const goalsWithRatings = await Promise.all(data.goals.map(async (goal) => {
+      const goalsWithRatings = await Promise.all(data.goals.map(async (goal: Goal) => {
         try {
           const ratingResponse = await fetch(`/api/goals/${goal.id}/ratings`);
           if (ratingResponse.ok) {
@@ -140,20 +142,25 @@ export default function SelfRatingPage() {
     }
   };
 
-  const handleSelfRating = async (goalId: string, value: number) => {
+  const handleSelfRating = async (goalId: string, value: number, comments: string = '') => {
     if (isNaN(value)) return;
 
     try {
+      setSubmitting(prev => ({ ...prev, [goalId]: true }));
+
       const response = await fetch(`/api/goals/${goalId}/ratings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           score: value,
-          comments: ''
+          comments: comments || ratingComments[goalId] || ''
         })
       });
 
-      if (!response.ok) throw new Error('Failed to update rating');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update rating');
+      }
 
       const updatedRating = await response.json();
       
@@ -164,17 +171,26 @@ export default function SelfRatingPage() {
               rating: { 
                 id: updatedRating.id, 
                 score: value,
-                comments: updatedRating.comments,
+                comments: updatedRating.comments || '',
                 updatedAt: updatedRating.updatedAt
               } 
             } 
           : goal
       ));
 
+      // Clear comments for this goal after successful submission
+      setRatingComments(prev => {
+        const newComments = { ...prev };
+        delete newComments[goalId];
+        return newComments;
+      });
+
       toast.success('Self-rating updated successfully');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating rating:', error);
-      toast.error('Failed to update rating');
+      toast.error(error.message || 'Failed to update rating');
+    } finally {
+      setSubmitting(prev => ({ ...prev, [goalId]: false }));
     }
   };
 
@@ -368,12 +384,15 @@ export default function SelfRatingPage() {
                         key={rating}
                         variant="outline"
                         size="icon"
+                        disabled={submitting[goal.id]}
                         onClick={() => handleSelfRating(goal.id, rating)}
                         className={`w-12 h-12 ${
                           goal.rating?.score === rating
                             ? RATING_COLORS[rating as keyof typeof RATING_COLORS]
                             : 'bg-gray-800/50 text-gray-400 border-gray-700 hover:bg-gray-700/50'
-                        } transition-all duration-200`}
+                        } transition-all duration-200 ${
+                          submitting[goal.id] ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                       >
                         <div className="flex flex-col items-center">
                           <span className="text-xs mb-0.5">{rating}</span>
@@ -382,6 +401,33 @@ export default function SelfRatingPage() {
                       </Button>
                     ))}
                   </div>
+
+                  {/* Rating Comments */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-300">Comments</Label>
+                    <textarea
+                      value={ratingComments[goal.id] || goal.rating?.comments || ''}
+                      onChange={(e) => setRatingComments(prev => ({
+                        ...prev,
+                        [goal.id]: e.target.value
+                      }))}
+                      placeholder="Add your comments about this rating..."
+                      className="w-full px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      rows={3}
+                    />
+                    {(ratingComments[goal.id] || goal.rating?.comments) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={submitting[goal.id]}
+                        onClick={() => handleSelfRating(goal.id, goal.rating?.score || 0, ratingComments[goal.id])}
+                        className="w-full bg-indigo-500/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-500 hover:text-white transition-colors"
+                      >
+                        {submitting[goal.id] ? 'Saving...' : 'Save Comments'}
+                      </Button>
+                    )}
+                  </div>
+
                   {goal.rating?.score && (
                     <div className="p-3 rounded bg-gray-800/50 border border-gray-700/50">
                       <p className={`text-sm font-medium ${RATING_COLORS[goal.rating.score as keyof typeof RATING_COLORS]}`}>

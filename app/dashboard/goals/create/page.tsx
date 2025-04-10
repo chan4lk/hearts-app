@@ -379,105 +379,83 @@ function GoalsPageContent() {
             <div className="bg-[#1E2028] rounded-xl overflow-hidden border border-gray-800">
               {/* Stats Header */}
               <div className="p-6 border-b border-gray-800 bg-gradient-to-r from-indigo-500/10 to-purple-500/10">
-                <div className="flex items-center gap-3">
-                  <div className="bg-indigo-500/10 p-2 rounded-lg">
-                    <BsBarChartLine className="w-5 h-5 text-indigo-400" />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-indigo-500/10 p-2 rounded-lg">
+                      <BsBarChartLine className="w-5 h-5 text-indigo-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">Goal Statistics</h3>
+                      <p className="text-sm text-gray-400">Performance Overview</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">Goal Statistics</h3>
-                    <p className="text-sm text-gray-400">Track your progress</p>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-white">{goals.length}</div>
+                    <div className="text-sm text-gray-400">Total Goals</div>
                   </div>
                 </div>
               </div>
 
               {/* Stats Content */}
-              <div className="p-6 space-y-4">
-                {/* Total Goals */}
-                <div className="bg-[#252832] rounded-lg p-4 border border-gray-800">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-gray-400 text-sm">Total Goals</span>
-                    <span className="text-2xl font-semibold text-white">{goals.length}</span>
-                  </div>
-                  <div className="w-full bg-gray-700 rounded-full h-1.5">
-                    <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: '100%' }}></div>
-                  </div>
-                </div>
-
-                {/* Status Breakdown */}
-                <div className="grid gap-3">
-                  <div className="flex items-center justify-between p-3 bg-[#252832] rounded-lg border border-gray-800/50 hover:border-emerald-500/20 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-emerald-500/10 p-2 rounded-lg">
-                        <BsCheckCircle className="w-4 h-4 text-emerald-400" />
-                      </div>
-                      <div>
-                        <span className="text-gray-400 text-sm">Completed</span>
-                        <div className="text-xs text-emerald-400/70">Approved goals</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-lg font-medium text-white">{goals.filter(g => g.status === 'APPROVED').length}</span>
-                      <div className="text-xs text-gray-500">{Math.round((goals.filter(g => g.status === 'APPROVED').length / goals.length) * 100) || 0}%</div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-[#252832] rounded-lg border border-gray-800/50 hover:border-amber-500/20 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-amber-500/10 p-2 rounded-lg">
-                        <BsClock className="w-4 h-4 text-amber-400" />
-                      </div>
-                      <div>
-                        <span className="text-gray-400 text-sm">In Progress</span>
-                        <div className="text-xs text-amber-400/70">Pending approval</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-lg font-medium text-white">{goals.filter(g => g.status === 'PENDING').length}</span>
-                      <div className="text-xs text-gray-500">{Math.round((goals.filter(g => g.status === 'PENDING').length / goals.length) * 100) || 0}%</div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-[#252832] rounded-lg border border-gray-800/50 hover:border-red-500/20 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-red-500/10 p-2 rounded-lg">
-                        <BsXCircle className="w-4 h-4 text-red-400" />
-                      </div>
-                      <div>
-                        <span className="text-gray-400 text-sm">Rejected</span>
-                        <div className="text-xs text-red-400/70">Needs revision</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-lg font-medium text-white">{goals.filter(g => g.status === 'REJECTED').length}</span>
-                      <div className="text-xs text-gray-500">{Math.round((goals.filter(g => g.status === 'REJECTED').length / goals.length) * 100) || 0}%</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Category Distribution */}
-                <div className="mt-6">
-                  <h4 className="text-sm font-medium text-gray-400 mb-3">Category Distribution</h4>
-                  <div className="space-y-2">
-                    {CATEGORIES.map(category => {
-                      const count = goals.filter(g => g.category === category.value).length;
-                      const percentage = Math.round((count / goals.length) * 100) || 0;
-                      return (
-                        <div key={category.value} className="bg-[#252832] rounded-lg p-3 border border-gray-800/50">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm text-gray-400">{category.label}</span>
-                            <span className="text-sm text-white">{count}</span>
-                          </div>
-                          <div className="w-full bg-gray-700 rounded-full h-1.5">
-                            <div 
-                              className="bg-indigo-500 h-1.5 rounded-full transition-all duration-500" 
-                              style={{ width: `${percentage}%` }}
-                            ></div>
-                          </div>
+              <div className="p-6 space-y-6">
+                {/* Status Overview */}
+                <div>
+                  <h4 className="text-sm font-medium text-gray-400 mb-4 flex items-center gap-2">
+                    <BsCheckCircle className="w-4 h-4" />
+                    Status Overview
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-[#252832] rounded-lg border border-gray-800/50 hover:border-emerald-500/20 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-emerald-500/10 p-2 rounded-lg">
+                          <BsCheckCircle className="w-4 h-4 text-emerald-400" />
                         </div>
-                      );
-                    })}
+                        <div>
+                          <span className="text-gray-400 text-sm">Completed</span>
+                          <div className="text-xs text-emerald-400/70">Approved goals</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-lg font-medium text-white">{goals.filter(g => g.status === 'APPROVED').length}</span>
+                        <div className="text-xs text-gray-500">{Math.round((goals.filter(g => g.status === 'APPROVED').length / goals.length) * 100) || 0}%</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 bg-[#252832] rounded-lg border border-gray-800/50 hover:border-amber-500/20 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-amber-500/10 p-2 rounded-lg">
+                          <BsClock className="w-4 h-4 text-amber-400" />
+                        </div>
+                        <div>
+                          <span className="text-gray-400 text-sm">In Progress</span>
+                          <div className="text-xs text-amber-400/70">Pending approval</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-lg font-medium text-white">{goals.filter(g => g.status === 'PENDING').length}</span>
+                        <div className="text-xs text-gray-500">{Math.round((goals.filter(g => g.status === 'PENDING').length / goals.length) * 100) || 0}%</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 bg-[#252832] rounded-lg border border-gray-800/50 hover:border-red-500/20 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-red-500/10 p-2 rounded-lg">
+                          <BsXCircle className="w-4 h-4 text-red-400" />
+                        </div>
+                        <div>
+                          <span className="text-gray-400 text-sm">Rejected</span>
+                          <div className="text-xs text-red-400/70">Needs revision</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-lg font-medium text-white">{goals.filter(g => g.status === 'REJECTED').length}</span>
+                        <div className="text-xs text-gray-500">{Math.round((goals.filter(g => g.status === 'REJECTED').length / goals.length) * 100) || 0}%</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
+
+              
               </div>
             </div>
           </div>
