@@ -5,7 +5,21 @@ const prisma = new PrismaClient();
 
 async function main() {
   try {
-    // Create manager user first
+    // Create admin user first
+    const adminPassword = await hash("admin123", 12);
+    const admin = await prisma.user.upsert({
+      where: { email: "admin@example.com" },
+      update: {},
+      create: {
+        email: "admin@example.com",
+        name: "Admin User",
+        password: adminPassword,
+        role: Role.ADMIN,
+      },
+    });
+    console.log('Created admin:', admin);
+
+    // Create manager user
     const managerPassword = await hash("manager123", 12);
     const manager = await prisma.user.upsert({
       where: { email: "manager@example.com" },

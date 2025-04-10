@@ -20,7 +20,12 @@ export default withAuth(
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
-    if (path.startsWith("/dashboard/admin") && token.role !== "ADMIN") {
+    if (
+      (path.startsWith("/dashboard/admin") || 
+       path.startsWith("/admin") || 
+       path.startsWith("/api/users")) && 
+      token.role !== "ADMIN"
+    ) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
@@ -43,6 +48,6 @@ export const config = {
     "/team/:path*",
     "/admin/:path*",
     "/profile/:path*",
-    "/api/goals/:path*",
+    "/api/:path*",
   ],
 }; 
