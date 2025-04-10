@@ -26,7 +26,8 @@ import {
   BsRocket,
   BsLightbulb,
   BsAward,
-  BsBriefcase
+  BsBriefcase,
+  BsPlus
 } from 'react-icons/bs';
 
 interface Goal {
@@ -257,8 +258,7 @@ function GoalsPageContent() {
 
         {/* Header Section */}
         <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800 shadow-lg">
-          <div className="flex items-center gap-4 mb-6">
-            
+          <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                 Create New Goal
@@ -268,53 +268,19 @@ function GoalsPageContent() {
               </h1>
               <p className="text-gray-400 mt-1">Define your performance goals and track your progress</p>
             </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-            <div className="bg-[#252832] rounded-lg p-4 border border-gray-800 hover:border-indigo-500/50 transition-all group cursor-pointer"
-                 onClick={() => setIsCreateModalOpen(true)}>
-              <div className="flex items-center gap-3">
-                <div className="bg-indigo-500/10 p-2 rounded-lg group-hover:scale-110 transition-transform">
-                  <BsLightningCharge className="w-5 h-5 text-indigo-400" />
-                </div>
-                <div>
-                  <h3 className="text-white font-medium">Quick Create</h3>
-                  <p className="text-sm text-gray-400">Start from scratch</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-[#252832] rounded-lg p-4 border border-gray-800 hover:border-purple-500/50 transition-all group cursor-pointer"
-                 onClick={() => setIsTimelineView(!isTimelineView)}>
-              <div className="flex items-center gap-3">
-                <div className="bg-purple-500/10 p-2 rounded-lg group-hover:scale-110 transition-transform">
-                  <BsBarChartLine className="w-5 h-5 text-purple-400" />
-                </div>
-                <div>
-                  <h3 className="text-white font-medium">Timeline View</h3>
-                  <p className="text-sm text-gray-400">Visualize your goals</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-[#252832] rounded-lg p-4 border border-gray-800 hover:border-emerald-500/50 transition-all group cursor-pointer">
-              <div className="flex items-center gap-3">
-                <div className="bg-emerald-500/10 p-2 rounded-lg group-hover:scale-110 transition-transform">
-                  <BsBook className="w-5 h-5 text-emerald-400" />
-                </div>
-                <div>
-                  <h3 className="text-white font-medium">Goal Guide</h3>
-                  <p className="text-sm text-gray-400">Learn best practices</p>
-                </div>
-              </div>
-            </div>
+            <button 
+              onClick={() => setIsCreateModalOpen(true)}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+            >
+              <BsPlus className="w-5 h-5" />
+              Quick Create
+            </button>
           </div>
         </div>
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Templates Section - Left Column */}
+          {/* Templates Section */}
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800">
               <div className="flex items-center justify-between mb-6">
@@ -324,9 +290,6 @@ function GoalsPageContent() {
                   </div>
                   <h2 className="text-xl font-semibold text-white">Goal Templates</h2>
                 </div>
-                <button className="text-gray-400 hover:text-white transition-colors">
-                  <BsThreeDotsVertical className="w-5 h-5" />
-                </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -374,31 +337,26 @@ function GoalsPageContent() {
               </div>
 
               {goals.length > 0 ? (
-                <div className="space-y-4">
-                  {goals.slice(0, 3).map((goal) => (
+                <div className="grid grid-cols-1 gap-4">
+                  {goals.slice(0, 6).map((goal) => (
                     <div
                       key={goal.id}
-                      className="bg-[#252832] rounded-lg p-4 border border-gray-800 hover:border-indigo-500/50 transition-all group cursor-pointer"
-                      onClick={() => handleGoalClick(goal)}
+                      className="bg-[#252832] rounded-lg p-4 border border-gray-800 hover:border-indigo-500/50 transition-all"
                     >
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-white font-medium group-hover:text-indigo-400 transition-colors">
-                          {goal.title}
-                        </h3>
+                      <div className="flex items-center justify-between mb-2">
                         <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(goal.status)} bg-opacity-20`}>
                           {goal.status}
                         </span>
-                      </div>
-                      <p className="text-sm text-gray-400 mt-2 line-clamp-2">{goal.description}</p>
-                      <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <BsCalendar className="w-4 h-4" />
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <BsCalendar className="w-3 h-3" />
                           <span>{formatDate(goal.dueDate)}</span>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <BsTag className="w-4 h-4" />
-                          <span>{goal.category}</span>
-                        </div>
+                      </div>
+                      <h3 className="text-white font-medium mb-1">{goal.title}</h3>
+                      <p className="text-sm text-gray-400 mb-2">{goal.description}</p>
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <BsTag className="w-3 h-3" />
+                        <span>{goal.category}</span>
                       </div>
                     </div>
                   ))}
@@ -415,155 +373,115 @@ function GoalsPageContent() {
             </div>
           </div>
 
-          {/* Right Column - Stats and Tips */}
+          {/* Right Column - Stats */}
           <div className="space-y-6">
             {/* Quick Stats */}
-            <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800">
-              <h3 className="text-lg font-semibold text-white mb-4">Goal Statistics</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-[#252832] rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-emerald-500/10 p-2 rounded-lg">
-                      <BsCheckCircle className="w-4 h-4 text-emerald-400" />
-                    </div>
-                    <span className="text-gray-400">Completed</span>
+            <div className="bg-[#1E2028] rounded-xl overflow-hidden border border-gray-800">
+              {/* Stats Header */}
+              <div className="p-6 border-b border-gray-800 bg-gradient-to-r from-indigo-500/10 to-purple-500/10">
+                <div className="flex items-center gap-3">
+                  <div className="bg-indigo-500/10 p-2 rounded-lg">
+                    <BsBarChartLine className="w-5 h-5 text-indigo-400" />
                   </div>
-                  <span className="text-white font-medium">{goals.filter(g => g.status === 'APPROVED').length}</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-[#252832] rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-amber-500/10 p-2 rounded-lg">
-                      <BsClock className="w-4 h-4 text-amber-400" />
-                    </div>
-                    <span className="text-gray-400">In Progress</span>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Goal Statistics</h3>
+                    <p className="text-sm text-gray-400">Track your progress</p>
                   </div>
-                  <span className="text-white font-medium">{goals.filter(g => g.status === 'PENDING').length}</span>
                 </div>
               </div>
-            </div>
 
-            {/* Tips Section */}
-            <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800">
-              <h3 className="text-lg font-semibold text-white mb-4">Goal Setting Tips</h3>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="bg-blue-500/10 p-2 rounded-lg">
-                    <BsLightbulb className="w-4 h-4 text-blue-400" />
+              {/* Stats Content */}
+              <div className="p-6 space-y-4">
+                {/* Total Goals */}
+                <div className="bg-[#252832] rounded-lg p-4 border border-gray-800">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-400 text-sm">Total Goals</span>
+                    <span className="text-2xl font-semibold text-white">{goals.length}</span>
                   </div>
-                  <div>
-                    <h4 className="text-white font-medium">Be Specific</h4>
-                    <p className="text-sm text-gray-400">Define clear, measurable objectives</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="bg-purple-500/10 p-2 rounded-lg">
-                    <BsCalendar className="w-4 h-4 text-purple-400" />
-                  </div>
-                  <div>
-                    <h4 className="text-white font-medium">Set Deadlines</h4>
-                    <p className="text-sm text-gray-400">Include realistic timeframes</p>
+                  <div className="w-full bg-gray-700 rounded-full h-1.5">
+                    <div className="bg-indigo-500 h-1.5 rounded-full" style={{ width: '100%' }}></div>
                   </div>
                 </div>
-                <div className="flex items-start gap-3">
-                  <div className="bg-emerald-500/10 p-2 rounded-lg">
-                    <BsGraphUp className="w-4 h-4 text-emerald-400" />
+
+                {/* Status Breakdown */}
+                <div className="grid gap-3">
+                  <div className="flex items-center justify-between p-3 bg-[#252832] rounded-lg border border-gray-800/50 hover:border-emerald-500/20 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-emerald-500/10 p-2 rounded-lg">
+                        <BsCheckCircle className="w-4 h-4 text-emerald-400" />
+                      </div>
+                      <div>
+                        <span className="text-gray-400 text-sm">Completed</span>
+                        <div className="text-xs text-emerald-400/70">Approved goals</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-lg font-medium text-white">{goals.filter(g => g.status === 'APPROVED').length}</span>
+                      <div className="text-xs text-gray-500">{Math.round((goals.filter(g => g.status === 'APPROVED').length / goals.length) * 100) || 0}%</div>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-white font-medium">Track Progress</h4>
-                    <p className="text-sm text-gray-400">Regularly update your goals</p>
+
+                  <div className="flex items-center justify-between p-3 bg-[#252832] rounded-lg border border-gray-800/50 hover:border-amber-500/20 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-amber-500/10 p-2 rounded-lg">
+                        <BsClock className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <div>
+                        <span className="text-gray-400 text-sm">In Progress</span>
+                        <div className="text-xs text-amber-400/70">Pending approval</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-lg font-medium text-white">{goals.filter(g => g.status === 'PENDING').length}</span>
+                      <div className="text-xs text-gray-500">{Math.round((goals.filter(g => g.status === 'PENDING').length / goals.length) * 100) || 0}%</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-[#252832] rounded-lg border border-gray-800/50 hover:border-red-500/20 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-red-500/10 p-2 rounded-lg">
+                        <BsXCircle className="w-4 h-4 text-red-400" />
+                      </div>
+                      <div>
+                        <span className="text-gray-400 text-sm">Rejected</span>
+                        <div className="text-xs text-red-400/70">Needs revision</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-lg font-medium text-white">{goals.filter(g => g.status === 'REJECTED').length}</span>
+                      <div className="text-xs text-gray-500">{Math.round((goals.filter(g => g.status === 'REJECTED').length / goals.length) * 100) || 0}%</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Category Distribution */}
+                <div className="mt-6">
+                  <h4 className="text-sm font-medium text-gray-400 mb-3">Category Distribution</h4>
+                  <div className="space-y-2">
+                    {CATEGORIES.map(category => {
+                      const count = goals.filter(g => g.category === category.value).length;
+                      const percentage = Math.round((count / goals.length) * 100) || 0;
+                      return (
+                        <div key={category.value} className="bg-[#252832] rounded-lg p-3 border border-gray-800/50">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm text-gray-400">{category.label}</span>
+                            <span className="text-sm text-white">{count}</span>
+                          </div>
+                          <div className="w-full bg-gray-700 rounded-full h-1.5">
+                            <div 
+                              className="bg-indigo-500 h-1.5 rounded-full transition-all duration-500" 
+                              style={{ width: `${percentage}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Goal Details Modal */}
-        {showDetailsModal && selectedGoal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-            <div className="bg-[#1a1c23] rounded-lg p-6 w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className={`px-3 py-1 rounded-full text-sm ${getStatusColor(selectedGoal.status)} bg-opacity-20`}>
-                      {selectedGoal.status}
-                    </span>
-                    <span className="text-gray-400">
-                      Created on {formatDate(selectedGoal.createdAt)}
-                    </span>
-                  </div>
-                  <h2 className="text-2xl font-bold text-white">{selectedGoal.title}</h2>
-                </div>
-                <button
-                  onClick={() => setShowDetailsModal(false)}
-                  className="text-gray-400 hover:text-white"
-                >
-                  ×
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-medium text-white mb-2">Description</h3>
-                  <p className="text-gray-400">{selectedGoal.description}</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="text-lg font-medium text-white mb-2">Category</h3>
-                    <div className="flex items-center gap-2 text-gray-400">
-                      <BsTag />
-                      <span>{selectedGoal.category}</span>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-medium text-white mb-2">Due Date</h3>
-                    <div className="flex items-center gap-2 text-gray-400">
-                      <BsCalendar />
-                      <span>{formatDate(selectedGoal.dueDate)}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {selectedGoal.managerComments && (
-                  <div>
-                    <h3 className="text-lg font-medium text-white mb-2">Manager Comments</h3>
-                    <div className="bg-[#2d2f36] rounded-lg p-4 text-gray-300">
-                      {selectedGoal.managerComments}
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <h3 className="text-lg font-medium text-white mb-2">Progress</h3>
-                  <div className="w-full h-2 bg-gray-700 rounded-full">
-                    <div 
-                      className={`h-full rounded-full ${getProgressColor(selectedGoal.status)}`}
-                      style={{ 
-                        width: selectedGoal.status === 'APPROVED' ? '100%' : 
-                               selectedGoal.status === 'PENDING' ? '50%' : '0%' 
-                      }}
-                    />
-                  </div>
-                  <div className="flex justify-between mt-2 text-sm text-gray-400">
-                    <span>Start</span>
-                    <span>In Progress</span>
-                    <span>Completed</span>
-                  </div>
-                </div>
-
-                <div className="flex justify-end pt-6">
-                  <button
-                    onClick={() => setShowDetailsModal(false)}
-                    className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Create Goal Modal */}
         {isCreateModalOpen && (
