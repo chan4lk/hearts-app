@@ -22,17 +22,31 @@ import {
   BsEye,
   BsThreeDotsVertical,
   BsChevronRight,
-  BsFilter
+  BsFilter,
+  BsChat,
+  BsShield
 } from 'react-icons/bs';
+import { GoalStatus } from '@prisma/client';
 
 interface Goal {
   id: string;
   title: string;
   description: string;
   dueDate: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  submittedDate: string;
+  status: GoalStatus;
+  createdAt: string;
+  updatedAt: string;
   managerComments?: string;
+  employee: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  manager?: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 export default function EmployeeDashboard() {
@@ -48,13 +62,13 @@ export default function EmployeeDashboard() {
   useEffect(() => {
     const fetchGoals = async () => {
       try {
-        const response = await fetch('/api/goals/employee');
+        const response = await fetch('/api/goals');
         if (!response.ok) {
           throw new Error('Failed to fetch goals');
         }
         const data = await response.json();
         console.log('Fetched goals:', data); // Debug log
-        setGoals(data);
+        setGoals(data.goals || []);
       } catch (error) {
         console.error('Error fetching goals:', error);
       } finally {
@@ -73,14 +87,26 @@ export default function EmployeeDashboard() {
 
   const getGoalStats = () => {
     const total = goals.length;
-    const approved = goals.filter(g => g.status === 'APPROVED').length;
+    const completed = goals.filter(g => g.status === 'COMPLETED').length;
+    const modified = goals.filter(g => g.status === 'MODIFIED').length;
     const pending = goals.filter(g => g.status === 'PENDING').length;
+    const approved = goals.filter(g => g.status === 'APPROVED').length;
     const rejected = goals.filter(g => g.status === 'REJECTED').length;
     
-    const approvalRate = total ? Math.round((approved / total) * 100) : 0;
-    const pendingRate = total ? Math.round((pending / total) * 100) : 0;
+    // Calculate achievement score based on completed and approved goals
+    const achievementScore = total > 0 
+      ? Math.round(((completed + approved) / total) * 100) 
+      : 0;
     
-    return { total, approved, pending, rejected, approvalRate, pendingRate };
+    return { 
+      total, 
+      completed, 
+      modified, 
+      pending, 
+      approved, 
+      rejected, 
+      achievementScore 
+    };
   };
 
   if (loading) {
@@ -138,8 +164,8 @@ export default function EmployeeDashboard() {
                 </div>
               </div>
               <div className="mt-4 flex items-center gap-1 text-sm">
-                <span className="text-emerald-400">{getGoalStats().approvalRate}%</span>
-                <span className="text-gray-400">approval rate</span>
+                <span className="text-emerald-400">{getGoalStats().achievementScore}%</span>
+                <span className="text-gray-400">achievement score</span>
               </div>
             </div>
 
@@ -155,8 +181,8 @@ export default function EmployeeDashboard() {
                 </div>
               </div>
               <div className="mt-4 flex items-center gap-1 text-sm">
-                <span className="text-amber-400">{getGoalStats().pendingRate}%</span>
-                <span className="text-gray-400">awaiting approval</span>
+                <span className="text-amber-400">{getGoalStats().achievementScore}%</span>
+                <span className="text-gray-400">achievement score</span>
               </div>
             </div>
 
@@ -165,7 +191,7 @@ export default function EmployeeDashboard() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-gray-400 text-sm">Achievement Score</p>
-                  <h3 className="text-2xl font-bold text-white mt-1">{getGoalStats().approvalRate}%</h3>
+                  <h3 className="text-2xl font-bold text-white mt-1">{getGoalStats().achievementScore}%</h3>
                 </div>
                 <div className="bg-purple-500/10 p-2 rounded-lg group-hover:scale-110 transition-transform">
                   <BsTrophy className="w-6 h-6 text-purple-400" />
@@ -215,6 +241,8 @@ export default function EmployeeDashboard() {
                   <option value="PENDING">Pending</option>
                   <option value="APPROVED">Approved</option>
                   <option value="REJECTED">Rejected</option>
+                  <option value="MODIFIED">Modified</option>
+                  <option value="COMPLETED">Completed</option>
                 </select>
               </div>
 
@@ -241,10 +269,14 @@ export default function EmployeeDashboard() {
                     <span className={`px-3 py-1 rounded-full text-xs flex items-center gap-2 ${
                       goal.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' :
                       goal.status === 'REJECTED' ? 'bg-rose-500/10 text-rose-400' :
+                      goal.status === 'COMPLETED' ? 'bg-blue-500/10 text-blue-400' :
+                      goal.status === 'MODIFIED' ? 'bg-amber-500/10 text-amber-400' :
                       'bg-amber-500/10 text-amber-400'
                     }`}>
                       {goal.status === 'APPROVED' && <BsCheckCircle className="w-3 h-3" />}
                       {goal.status === 'REJECTED' && <BsXCircle className="w-3 h-3" />}
+                      {goal.status === 'COMPLETED' && <BsCheckCircle className="w-3 h-3" />}
+                      {goal.status === 'MODIFIED' && <BsClock className="w-3 h-3" />}
                       {goal.status === 'PENDING' && <BsClock className="w-3 h-3" />}
                       {goal.status.charAt(0) + goal.status.slice(1).toLowerCase()}
                     </span>
@@ -305,10 +337,14 @@ export default function EmployeeDashboard() {
                   <span className={`px-3 py-1 rounded-full text-xs inline-flex items-center gap-2 mb-3 ${
                     selectedGoal.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' :
                     selectedGoal.status === 'REJECTED' ? 'bg-rose-500/10 text-rose-400' :
+                    selectedGoal.status === 'COMPLETED' ? 'bg-blue-500/10 text-blue-400' :
+                    selectedGoal.status === 'MODIFIED' ? 'bg-amber-500/10 text-amber-400' :
                     'bg-amber-500/10 text-amber-400'
                   }`}>
                     {selectedGoal.status === 'APPROVED' && <BsCheckCircle className="w-3 h-3" />}
                     {selectedGoal.status === 'REJECTED' && <BsXCircle className="w-3 h-3" />}
+                    {selectedGoal.status === 'COMPLETED' && <BsCheckCircle className="w-3 h-3" />}
+                    {selectedGoal.status === 'MODIFIED' && <BsClock className="w-3 h-3" />}
                     {selectedGoal.status === 'PENDING' && <BsClock className="w-3 h-3" />}
                     {selectedGoal.status.charAt(0) + selectedGoal.status.slice(1).toLowerCase()}
                   </span>
@@ -349,7 +385,7 @@ export default function EmployeeDashboard() {
                       <span className="text-sm font-medium">Submitted Date</span>
                     </div>
                     <p className="text-white">
-                      {new Date(selectedGoal.submittedDate).toLocaleDateString('en-US', {
+                      {new Date(selectedGoal.updatedAt).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
@@ -358,24 +394,48 @@ export default function EmployeeDashboard() {
                   </div>
                 </div>
 
-                {selectedGoal.status === 'REJECTED' && selectedGoal.managerComments && (
-                  <div className="bg-rose-500/10 rounded-lg p-4 border border-rose-500/20">
-                    <h4 className="text-rose-400 font-medium mb-2 flex items-center gap-2">
-                      <BsXCircle className="w-4 h-4" />
-                      Manager Feedback
-                    </h4>
-                    <p className="text-gray-400">{selectedGoal.managerComments}</p>
+                {/* Manager Feedback Section */}
+                {(selectedGoal.status === 'APPROVED' || selectedGoal.status === 'REJECTED') && selectedGoal.managerComments && (
+                  <div className="bg-[#252832] rounded-lg p-4 border border-gray-700">
+                    <div className="flex items-center gap-2 text-gray-400 mb-2">
+                      <BsChat className="w-4 h-4" />
+                      <span className="text-sm font-medium">Manager Comments</span>
+                    </div>
+                    <p className="text-gray-300">{selectedGoal.managerComments}</p>
                   </div>
                 )}
 
-                <div className="flex justify-end pt-4">
-                  <button
-                    onClick={() => setShowDetailModal(false)}
-                    className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
-                  >
-                    Close
-                  </button>
+                {/* Approval Status Section */}
+                <div className="bg-[#252832] rounded-lg p-4 border border-gray-700">
+                  <div className="flex items-center gap-2 text-gray-400 mb-2">
+                    <BsShield className="w-4 h-4" />
+                    <span className="text-sm font-medium">Approval Status</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      selectedGoal.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' :
+                      selectedGoal.status === 'REJECTED' ? 'bg-rose-500/10 text-rose-400' :
+                      selectedGoal.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' :
+                      'bg-gray-500/10 text-gray-400'
+                    }`}>
+                      {selectedGoal.status.charAt(0) + selectedGoal.status.slice(1).toLowerCase()}
+                    </span>
+                    {selectedGoal.status === 'APPROVED' && (
+                      <span className="text-sm text-gray-400">
+                        Approved on {new Date(selectedGoal.updatedAt).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
                 </div>
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <button
+                  onClick={() => setShowDetailModal(false)}
+                  className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>

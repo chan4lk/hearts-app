@@ -106,9 +106,21 @@ export default function ApproveGoalsPage() {
   const fetchGoals = async () => {
     try {
       setIsLoading(true);
+      setError(null);
       const response = await fetch('/api/goals/pending');
-      if (!response.ok) throw new Error('Failed to fetch goals');
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to fetch goals');
+      }
+      
       const data = await response.json();
+      console.log('Fetched goals:', data); // Debug log
+      
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid response format: expected an array of goals');
+      }
+      
       setGoals(data);
       
       // Calculate employee statistics
@@ -126,8 +138,12 @@ export default function ApproveGoalsPage() {
       });
       setEmployeeStats(Array.from(statsMap.values()));
     } catch (err) {
-      setError('Failed to load goals');
-      toast.error('Failed to load goals');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load goals';
+      console.error('Error fetching goals:', err);
+      setError(errorMessage);
+      toast.error(errorMessage);
+      setGoals([]);
+      setEmployeeStats([]);
     } finally {
       setIsLoading(false);
     }

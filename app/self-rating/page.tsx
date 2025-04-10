@@ -103,15 +103,33 @@ export default function SelfRatingPage() {
   const fetchGoals = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/goals/employee");
+      const response = await fetch("/api/goals");
       if (!response.ok) throw new Error("Failed to fetch goals");
       const data = await response.json();
       
-      if (!Array.isArray(data)) {
+      if (!data.goals || !Array.isArray(data.goals)) {
         throw new Error("Invalid response format");
       }
       
-      setGoals(data);
+      // Transform goals to include ratings
+      const goalsWithRatings = await Promise.all(data.goals.map(async (goal) => {
+        try {
+          const ratingResponse = await fetch(`/api/goals/${goal.id}/ratings`);
+          if (ratingResponse.ok) {
+            const ratingData = await ratingResponse.json();
+            return {
+              ...goal,
+              rating: ratingData.ratings?.find((r: any) => r.selfRatedById === session?.user?.id)
+            };
+          }
+          return goal;
+        } catch (error) {
+          console.error(`Error fetching rating for goal ${goal.id}:`, error);
+          return goal;
+        }
+      }));
+      
+      setGoals(goalsWithRatings);
       toast.success("Goals loaded successfully");
     } catch (error) {
       console.error("Error fetching goals:", error);
@@ -126,7 +144,7 @@ export default function SelfRatingPage() {
     if (isNaN(value)) return;
 
     try {
-      const response = await fetch(`/api/goals/${goalId}/self-rating`, {
+      const response = await fetch(`/api/goals/${goalId}/ratings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -146,7 +164,8 @@ export default function SelfRatingPage() {
               rating: { 
                 id: updatedRating.id, 
                 score: value,
-                comments: updatedRating.comments
+                comments: updatedRating.comments,
+                updatedAt: updatedRating.updatedAt
               } 
             } 
           : goal

@@ -1,41 +1,64 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
-import { Role, Prisma, GoalStatus } from '@prisma/client';
-
-// Define types for the goal data
-type GoalData = {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  dueDate: Date;
-  employeeId: string;
-  managerId: string;
-  managerComments: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  userName?: string;
-  userEmail?: string;
-  managerName?: string;
-  managerEmail?: string;
-};
+import { prisma } from '@/lib/prisma';
+import { Goal, GoalStatus, User } from '@prisma/client';
 
 export async function GET() {
   try {
-    // Fetch all goals that are not in draft status
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: { manager: true }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Get goals based on user role
     const goals = await prisma.goal.findMany({
       where: {
-        status: {
-          in: [GoalStatus.PENDING, GoalStatus.APPROVED, GoalStatus.REJECTED]
-        }
+        OR: [
+          { employeeId: user.id },
+          { managerId: user.id }
+        ]
       },
       include: {
-        User_Goal_employeeIdToUser: {
+        employee: {
           select: {
+            id: true,
             name: true,
             email: true
+          }
+        },
+        manager: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        ratings: {
+          include: {
+            selfRatedBy: {
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
+            },
+            managerRatedBy: {
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
+            }
           }
         }
       },
@@ -44,20 +67,35 @@ export async function GET() {
       }
     });
 
-    // Transform the data to match the expected format
-    const formattedGoals = goals.map(goal => ({
+    // Transform goals to match frontend expectations
+    const transformedGoals = goals.map(goal => ({
       id: goal.id,
-      employeeName: goal.User_Goal_employeeIdToUser.name,
-      employeeEmail: goal.User_Goal_employeeIdToUser.email,
       title: goal.title,
       description: goal.description,
       dueDate: goal.dueDate.toISOString(),
       status: goal.status,
-      submittedDate: goal.createdAt.toISOString(),
-      feedback: goal.managerComments
+      createdAt: goal.createdAt.toISOString(),
+      updatedAt: goal.updatedAt.toISOString(),
+      managerComments: goal.managerComments,
+      employee: goal.employee,
+      manager: goal.manager
     }));
 
-    return NextResponse.json(formattedGoals);
+    // Calculate stats
+    const totalGoals = goals.length;
+    const completedGoals = goals.filter(goal => goal.status === GoalStatus.COMPLETED).length;
+    const inProgressGoals = goals.filter(goal => goal.status === GoalStatus.MODIFIED).length;
+    const pendingGoals = goals.filter(goal => goal.status === GoalStatus.PENDING).length;
+
+    return NextResponse.json({
+      goals: transformedGoals,
+      stats: {
+        total: totalGoals,
+        completed: completedGoals,
+        inProgress: inProgressGoals,
+        pending: pendingGoals
+      }
+    });
   } catch (error) {
     console.error('Error fetching goals:', error);
     return NextResponse.json(
@@ -68,95 +106,138 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
-
-  if (!session) {
-    return new NextResponse('Unauthorized', { status: 401 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
-    console.log('Received goal creation request:', body);
-    
-    const { title, description, dueDate } = body;
-    
+    const { title, description, dueDate, status = GoalStatus.PENDING } = body;
+
     if (!title || !description || !dueDate) {
-      console.error('Missing required fields:', { title, description, dueDate });
-      return new NextResponse('Missing required fields', { status: 400 });
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
     }
 
-    // Validate date format
-    const parsedDate = new Date(dueDate);
-    if (isNaN(parsedDate.getTime())) {
-      console.error('Invalid date format:', dueDate);
-      return new NextResponse('Invalid date format', { status: 400 });
-    }
-
-    // Find the employee's assigned manager
+    // Get the employee's manager
     const employee = await prisma.user.findUnique({
-      where: {
-        id: session.user.id,
-      },
+      where: { id: session.user.id },
+      include: { manager: true }
     });
 
-    if (!employee?.managerId) {
-      console.error('Employee has no assigned manager');
-      return new NextResponse('Employee has no assigned manager', { status: 400 });
+    if (!employee) {
+      return NextResponse.json({ error: 'Employee not found' }, { status: 404 });
     }
 
-    console.log('Found manager:', employee.managerId);
-    console.log('Creating goal for user:', session.user.id);
-
-    // Create the goal with type assertion to fix linter errors
-    const goalData = {
-      title,
-      description,
-      dueDate: parsedDate,
-      status: GoalStatus.PENDING,
-      employeeId: session.user.id,
-      managerId: employee.managerId
-    } as any;
+    if (!employee.manager) {
+      return NextResponse.json(
+        { error: 'Employee has no assigned manager' },
+        { status: 400 }
+      );
+    }
 
     const goal = await prisma.goal.create({
-      data: goalData
+      data: {
+        title,
+        description,
+        dueDate: new Date(dueDate),
+        status,
+        employeeId: session.user.id,
+        managerId: employee.manager.id
+      },
+      include: {
+        employee: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        manager: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      }
     });
 
-    console.log('Goal created successfully:', goal);
     return NextResponse.json(goal);
   } catch (error) {
-    console.error('Error in goal creation route:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    console.error('Error creating goal:', error);
+    return NextResponse.json(
+      { error: 'Failed to create goal' },
+      { status: 500 }
+    );
   }
 }
 
-export async function PUT(request: Request) {
-  const session = await getServerSession(authOptions);
-
-  if (!session || session.user.role !== Role.MANAGER) {
-    return new NextResponse('Unauthorized', { status: 401 });
-  }
-
+export async function PATCH(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
-    const { id, status, comments } = body;
+    const { id, status, managerComments } = body;
 
-    // Use type assertion to fix linter errors
-    const updateData = {
-      status,
-      managerComments: comments,
-    } as any;
+    if (!id || !status) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
 
-    const goal = await prisma.goal.update({
-      where: {
-        id: id,
-        managerId: session.user.id,
-      },
-      data: updateData,
+    // Check if user is authorized to update the goal
+    const goal = await prisma.goal.findUnique({
+      where: { id },
+      include: { manager: true }
     });
 
-    return NextResponse.json(goal);
+    if (!goal) {
+      return NextResponse.json({ error: 'Goal not found' }, { status: 404 });
+    }
+
+    if (goal.managerId !== session.user.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
+    const updatedGoal = await prisma.goal.update({
+      where: { id },
+      data: {
+        status,
+        managerComments,
+        updatedAt: new Date()
+      },
+      include: {
+        employee: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        manager: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    return NextResponse.json(updatedGoal);
   } catch (error) {
     console.error('Error updating goal:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to update goal' },
+      { status: 500 }
+    );
   }
 } 

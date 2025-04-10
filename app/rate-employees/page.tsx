@@ -125,18 +125,25 @@ export default function RateEmployeesPage() {
     try {
       setLoading(true);
       const response = await fetch("/api/goals/manager");
-      if (!response.ok) throw new Error("Failed to fetch goals");
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to fetch goals");
+      }
+      
       const data = await response.json();
+      console.log('Fetched goals:', data); // Debug log
       
       if (!Array.isArray(data)) {
-        throw new Error("Invalid response format");
+        throw new Error("Invalid response format: expected an array of goals");
       }
       
       setGoals(data);
       toast.success("Goals loaded successfully");
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to load goals";
       console.error("Error fetching goals:", error);
-      toast.error("Failed to load goals. Please try again.");
+      toast.error(errorMessage);
       setGoals([]);
     } finally {
       setLoading(false);
@@ -147,6 +154,7 @@ export default function RateEmployeesPage() {
     if (isNaN(value)) return;
 
     try {
+      setSubmitting(true);
       const response = await fetch(`/api/goals/${goalId}/manager-rating`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -156,27 +164,34 @@ export default function RateEmployeesPage() {
         })
       });
 
-      if (!response.ok) throw new Error('Failed to update rating');
+      const data = await response.json();
 
-      const updatedRating = await response.json();
-      
-      setGoals(goals.map(goal => 
-        goal.id === goalId 
-          ? { 
-              ...goal, 
-              rating: { 
-                id: updatedRating.id, 
-                score: value,
-                comments: updatedRating.comments
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update rating');
+      }
+
+      // Update the goals state with the new rating
+      setGoals(prevGoals => 
+        prevGoals.map(goal => 
+          goal.id === goalId 
+            ? { 
+                ...goal, 
+                rating: { 
+                  id: data.id, 
+                  score: value,
+                  comments: data.comments || ''
+                } 
               } 
-            } 
-          : goal
-      ));
+            : goal
+        )
+      );
 
       toast.success('Rating updated successfully');
     } catch (error) {
       console.error('Error updating rating:', error);
-      toast.error('Failed to update rating');
+      toast.error(error instanceof Error ? error.message : 'Failed to update rating');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -198,6 +213,27 @@ export default function RateEmployeesPage() {
             <div>
               <h1 className="text-2xl font-bold text-white mb-1">Rate Employee Goals</h1>
               <p className="text-gray-400">Evaluate and provide feedback on employee performance</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-400">View:</span>
+            <div className="flex items-center gap-1 bg-[#252832] p-1 rounded-lg">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setViewMode('list')}
+                className={`w-8 h-8 ${viewMode === 'list' ? 'bg-indigo-500/10 text-indigo-400' : 'text-gray-400 hover:text-white'}`}
+              >
+                <BsList className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setViewMode('grid')}
+                className={`w-8 h-8 ${viewMode === 'grid' ? 'bg-indigo-500/10 text-indigo-400' : 'text-gray-400 hover:text-white'}`}
+              >
+                <BsGrid className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </div>

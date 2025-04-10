@@ -9,8 +9,12 @@ export async function GET(req: Request) {
     const session = await getServerSession(authOptions);
     console.log('Session:', session); // Debug log
 
-    if (!session?.user || session.user.role !== 'MANAGER') {
+    if (!session?.user) {
       return new NextResponse('Unauthorized', { status: 401 });
+    }
+
+    if (session.user.role !== 'MANAGER') {
+      return new NextResponse('Forbidden', { status: 403 });
     }
 
     // Get all employees managed by this manager
@@ -33,7 +37,7 @@ export async function GET(req: Request) {
         status: GoalStatus.APPROVED,
       },
       include: {
-        User_Goal_employeeIdToUser: {
+        employee: {
           select: {
             id: true,
             name: true,
@@ -64,17 +68,23 @@ export async function GET(req: Request) {
       title: goal.title,
       description: goal.description,
       status: goal.status,
-      dueDate: goal.dueDate,
-      employee: goal.User_Goal_employeeIdToUser,
+      dueDate: goal.dueDate.toISOString(),
+      employee: goal.employee,
       rating: goal.ratings[0] || null,
-      createdAt: goal.createdAt,
-      updatedAt: goal.updatedAt,
+      createdAt: goal.createdAt.toISOString(),
+      updatedAt: goal.updatedAt.toISOString(),
     }));
 
     console.log('Transformed goals:', goalsWithRatings); // Debug log
     return NextResponse.json(goalsWithRatings);
   } catch (error) {
     console.error('Error fetching goals:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return NextResponse.json(
+      { 
+        error: 'Failed to fetch goals',
+        message: error instanceof Error ? error.message : 'Unknown error occurred'
+      },
+      { status: 500 }
+    );
   }
 } 

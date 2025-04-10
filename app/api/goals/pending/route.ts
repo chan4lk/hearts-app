@@ -29,6 +29,7 @@ export async function GET() {
     });
 
     const employeeIds = employees.map(emp => emp.id);
+    console.log('Found employee IDs:', employeeIds); // Debug log
 
     // Then fetch pending goals for these employees
     const goals = await prisma.goal.findMany({
@@ -39,7 +40,7 @@ export async function GET() {
         },
       },
       include: {
-        User_Goal_employeeIdToUser: {
+        employee: {
           select: {
             id: true,
             name: true,
@@ -52,9 +53,38 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(goals);
+    console.log('Found goals:', goals); // Debug log
+
+    // Transform the data to match the frontend interface
+    const transformedGoals = goals.map(goal => ({
+      id: goal.id,
+      title: goal.title,
+      description: goal.description,
+      status: goal.status,
+      createdAt: goal.createdAt.toISOString(),
+      dueDate: goal.dueDate.toISOString(),
+      managerComments: goal.managerComments,
+      User_Goal_employeeIdToUser: {
+        id: goal.employee.id,
+        name: goal.employee.name,
+        email: goal.employee.email,
+      },
+    }));
+
+    return NextResponse.json(transformedGoals);
   } catch (error) {
     console.error('Error fetching pending goals:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return new NextResponse(
+      JSON.stringify({ 
+        error: 'Internal Server Error',
+        message: error instanceof Error ? error.message : 'Unknown error occurred'
+      }), 
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
   }
 } 

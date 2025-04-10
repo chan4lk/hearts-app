@@ -143,7 +143,7 @@ function GoalsPageContent() {
       const response = await fetch('/api/goals');
       if (response.ok) {
         const data = await response.json();
-        setGoals(data);
+        setGoals(data.goals || []);
       }
     } catch (error) {
       console.error('Error fetching goals:', error);

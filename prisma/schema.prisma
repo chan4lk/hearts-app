@@ -17,13 +17,13 @@ model User {
   updatedAt                          DateTime   @updatedAt
   managerId                          String?
   feedbackGiven                      Feedback[] @relation("FeedbackGiven")
-  Feedback_Feedback_receiverIdToUser Feedback[] @relation("Feedback_receiverIdToUser")
-  Goal_Goal_employeeIdToUser         Goal[]     @relation("Goal_employeeIdToUser")
+  feedbackReceived                   Feedback[] @relation("FeedbackReceived")
+  goals                              Goal[]     @relation("EmployeeGoals")
   managerGoals                       Goal[]     @relation("ManagerGoals")
   managerRatings                     Rating[]   @relation("ManagerRatings")
   selfRatings                        Rating[]   @relation("SelfRatings")
-  User                               User?      @relation("UserToUser", fields: [managerId], references: [id])
-  other_User                         User[]     @relation("UserToUser")
+  manager                            User?      @relation("UserToUser", fields: [managerId], references: [id])
+  employees                          User[]     @relation("UserToUser")
   notifications                      Notification[]
 
   @@index([managerId])
@@ -44,8 +44,7 @@ model Goal {
   rejectedBy                 String?
   status                     GoalStatus @default(PENDING)
   managerComments            String?
-  feedback                   Feedback[]
-  User_Goal_employeeIdToUser User       @relation("Goal_employeeIdToUser", fields: [employeeId], references: [id])
+  employee                   User       @relation("EmployeeGoals", fields: [employeeId], references: [id])
   manager                    User?      @relation("ManagerGoals", fields: [managerId], references: [id])
   ratings                    Rating[]
   notifications              Notification[]
@@ -74,19 +73,17 @@ model Rating {
 
 model Feedback {
   id                             String   @id @default(cuid())
-  goalId                         String
   content                        String
-  givenById                      String
+  status                         String
+  fromId                         String
+  toId                           String
   createdAt                      DateTime @default(now())
   updatedAt                      DateTime @updatedAt
-  receiverId                     String
-  givenBy                        User     @relation("FeedbackGiven", fields: [givenById], references: [id])
-  goal                           Goal     @relation(fields: [goalId], references: [id])
-  User_Feedback_receiverIdToUser User     @relation("Feedback_receiverIdToUser", fields: [receiverId], references: [id])
+  givenBy                        User     @relation("FeedbackGiven", fields: [fromId], references: [id])
+  receivedBy                     User     @relation("FeedbackReceived", fields: [toId], references: [id])
 
-  @@index([goalId])
-  @@index([givenById])
-  @@index([receiverId])
+  @@index([fromId])
+  @@index([toId])
 }
 
 model Notification {

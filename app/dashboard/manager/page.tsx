@@ -84,11 +84,12 @@ export default function ManagerDashboard() {
           throw new Error('Failed to fetch goals');
         }
         const data = await response.json();
-        setGoals(data);
+        console.log('Fetched goals:', data); // Debug log
+        setGoals(data.goals || []);
 
         // Process employee statistics
         const employeeMap = new Map<string, EmployeeStats>();
-        data.forEach((goal: Goal) => {
+        (data.goals || []).forEach((goal: Goal) => {
           const existing = employeeMap.get(goal.employeeEmail) || {
             id: goal.employeeEmail,
             name: goal.employeeName,
@@ -101,6 +102,8 @@ export default function ManagerDashboard() {
         setEmployees(Array.from(employeeMap.values()));
       } catch (error) {
         console.error('Error fetching goals:', error);
+        setGoals([]);
+        setEmployees([]);
       } finally {
         setLoading(false);
       }
