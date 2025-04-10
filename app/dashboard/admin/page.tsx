@@ -1,10 +1,11 @@
 'use client';
 
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import { BsPeople, BsLightning, BsClock, BsShieldExclamation, BsGraphUp } from 'react-icons/bs';
+import { BsPeople, BsLightning, BsClock, BsShieldExclamation, BsGraphUp, BsPersonPlus } from 'react-icons/bs';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface DashboardStats {
   totalUsers: number;
@@ -158,7 +159,16 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Role Distribution */}
         <div className="bg-[#1a1c23] rounded-lg p-6">
-          <h3 className="text-xl font-bold text-white mb-6">Role Distribution</h3>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-bold text-white">Role Distribution</h3>
+            <Link
+              href="/dashboard/admin/users"
+              className="bg-indigo-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-indigo-700"
+            >
+              <BsPersonPlus className="text-xl" />
+              Manage Users
+            </Link>
+          </div>
           <div className="space-y-4">
             {stats.roleDistribution.map((role) => (
               <div key={role.role} className="flex items-center justify-between">

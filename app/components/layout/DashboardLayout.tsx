@@ -70,10 +70,10 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       case 'admin':
         return [
           { href: '/dashboard/admin', icon: BsGrid, label: 'Dashboard' },
-          { href: '/user-management', icon: BsPeople, label: 'User Management' },
-          { href: '/system-settings', icon: BsGear, label: 'System Settings' },
-          { href: '/security', icon: BsShield, label: 'Security' },
-          { href: '/analytics', icon: BsGraphUp, label: 'Analytics' },
+          { href: '/dashboard/admin/users', icon: BsPeople, label: 'User Management' },
+          { href: '/dashboard/admin/system-settings', icon: BsGear, label: 'System Settings' },
+          { href: '/dashboard/admin/security', icon: BsShield, label: 'Security' },
+          { href: '/dashboard/admin/analytics', icon: BsGraphUp, label: 'Analytics' },
           { href: '/audit-logs', icon: BsClipboardData, label: 'Audit Logs' },
         ];
       default:
