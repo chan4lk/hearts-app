@@ -84,6 +84,9 @@ export default function ApproveGoalsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<string>('all');
   const [employeeStats, setEmployeeStats] = useState<EmployeeStats[]>([]);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertType, setAlertType] = useState<'success' | 'error'>('success');
+  const [alertMessage, setAlertMessage] = useState('');
 
   useEffect(() => {
     if (!session) {
@@ -170,11 +173,20 @@ export default function ApproveGoalsPage() {
 
       if (!response.ok) throw new Error('Failed to approve goal');
 
-      toast.success('Goal approved successfully');
+      setAlertType('success');
+      setAlertMessage('Goal approved successfully!');
+      setShowAlert(true);
       fetchGoals();
       closeActionModal();
+      
+      setTimeout(() => {
+        setShowAlert(false);
+      }, 3000);
     } catch (err) {
-      toast.error('Failed to approve goal');
+      console.error('Error approving goal:', err);
+      setAlertType('error');
+      setAlertMessage('Failed to approve goal');
+      setShowAlert(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -195,11 +207,20 @@ export default function ApproveGoalsPage() {
 
       if (!response.ok) throw new Error('Failed to reject goal');
 
-      toast.success('Goal rejected successfully');
+      setAlertType('success');
+      setAlertMessage('Goal rejected successfully!');
+      setShowAlert(true);
       fetchGoals();
       closeActionModal();
+      
+      setTimeout(() => {
+        setShowAlert(false);
+      }, 3000);
     } catch (err) {
-      toast.error('Failed to reject goal');
+      console.error('Error rejecting goal:', err);
+      setAlertType('error');
+      setAlertMessage('Failed to reject goal');
+      setShowAlert(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -565,6 +586,31 @@ export default function ApproveGoalsPage() {
                       )}
                     </Button>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Alert Message */}
+          {showAlert && (
+            <div className="fixed inset-0 flex items-center justify-center z-50">
+              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+              <div className={`relative p-6 rounded-xl ${
+                alertType === 'success' 
+                  ? 'bg-green-500/90 border border-green-400' 
+                  : 'bg-red-500/90 border border-red-400'
+              } backdrop-blur-sm transform transition-all duration-300`}>
+                <div className="flex items-center space-x-3">
+                  {alertType === 'success' ? (
+                    <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  )}
+                  <p className="text-white font-medium">{alertMessage}</p>
                 </div>
               </div>
             </div>

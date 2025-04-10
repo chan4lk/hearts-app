@@ -164,13 +164,20 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
     <div className="min-h-screen bg-[#0f1117]">
       {/* Sidebar */}
       <div className={`fixed left-0 top-0 h-full w-64 bg-[#1a1c23] transform transition-transform duration-200 ease-in-out ${
-        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-0'
       } md:translate-x-0 z-30`}>
         <div className="p-6">
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-xl font-bold text-white">
-              {portalTitle}
-            </h1>
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+                <BsPerson className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-white">
+                  {portalTitle}
+                </h1>
+              </div>
+            </div>
             <button
               onClick={() => setIsMobileMenuOpen(false)}
               className="md:hidden text-gray-400 hover:text-white"
@@ -222,14 +229,23 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
               <BsList className="w-6 h-6" />
             </button>
             <div className="hidden md:flex items-center space-x-4">
-              <h1 className="text-lg font-semibold text-white">
-                {settings.systemName}
-              </h1>
-              <ClientTimeDisplay />
+              <div className="flex items-center">
+                <img 
+                  src="/logo.png" 
+                  alt="Bistec Logo" 
+                  className="h-8 w-auto mr-2"
+                />
+                <h1 className="text-lg font-semibold text-white">
+                  {settings.systemName}
+                </h1>
+              </div>
             </div>
           </div>
           <div className="flex items-center space-x-4">
+          <ClientTimeDisplay />
+
             <button className="text-gray-400 hover:text-white">
+              
               <BsBell className="w-6 h-6" />
             </button>
             <div className="relative" ref={userMenuRef}>
@@ -242,15 +258,25 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                     {session?.user?.email?.[0].toUpperCase()}
                   </span>
                 </div>
-                <div className="hidden md:flex items-center">
-                  <span className="text-sm text-white mr-1">{session?.user?.email}</span>
-                  <BsChevronDown className={`w-4 h-4 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
-                </div>
+                <BsChevronDown className={`w-4 h-4 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
               </button>
               
               {/* User Dropdown Menu */}
               {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-[#1a1c23] rounded-lg shadow-lg py-1 z-50 border border-gray-700">
+                <div className="absolute right-0 mt-2 w-64 bg-[#1a1c23] rounded-lg shadow-lg py-1 z-50 border border-gray-700">
+                  <div className="px-4 py-3 border-b border-gray-700">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+                        <span className="text-white text-sm font-medium">
+                          {session?.user?.email?.[0].toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-white">{session?.user?.email}</p>
+                        <p className="text-xs text-gray-400">{session?.user?.role}</p>
+                      </div>
+                    </div>
+                  </div>
                   <Link 
                     href="/settings" 
                     className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-[#2d2f36] hover:text-white"

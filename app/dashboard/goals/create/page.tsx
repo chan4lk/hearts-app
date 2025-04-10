@@ -130,7 +130,7 @@ function GoalsPageContent() {
     title: '',
     description: '',
     category: 'PROFESSIONAL',
-    dueDate: ''
+    dueDate: new Date().toISOString().split('T')[0]
   });
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -182,7 +182,7 @@ function GoalsPageContent() {
         title: '',
         description: '',
         category: 'PROFESSIONAL',
-        dueDate: ''
+        dueDate: new Date().toISOString().split('T')[0]
       });
     } catch (error) {
       console.error('Error creating goal:', error);
@@ -245,7 +245,7 @@ function GoalsPageContent() {
       <div className="space-y-6">
         {/* Notification Toast */}
         {showNotification && (
-          <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg flex items-center gap-2 ${
+          <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 p-4 rounded-lg shadow-lg flex items-center gap-2 ${
             notificationType === 'success' ? 'bg-emerald-500' : 'bg-rose-500'
           } text-white`}>
             {notificationType === 'success' ? 

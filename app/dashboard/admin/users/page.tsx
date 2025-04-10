@@ -285,23 +285,7 @@ export default function UserManagement() {
                   <option value="EMPLOYEE">Employee</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Manager</label>
-                <select
-                  value={filters.manager}
-                  onChange={(e) => handleFilterChange('manager', e.target.value)}
-                  className="w-full px-4 py-2 bg-[#252832] border border-gray-700 rounded-md text-white focus:outline-none focus:border-indigo-500"
-                >
-                  <option value="">All Managers</option>
-                  {users
-                    .filter(user => user.role === 'MANAGER')
-                    .map(manager => (
-                      <option key={manager.id} value={manager.id}>
-                        {manager.name}
-                      </option>
-                    ))}
-                </select>
-              </div>
+              
             </div>
           </div>
         </div>
