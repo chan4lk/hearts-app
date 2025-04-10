@@ -18,7 +18,8 @@ import {
   BsBell,
   BsPeople,
   BsChevronDown,
-  BsBoxArrowRight
+  BsBoxArrowRight,
+  BsBuilding
 } from 'react-icons/bs';
 
 interface DashboardLayoutProps {
@@ -69,9 +70,9 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
         ];
       case 'admin':
         return [
-          { href: '/dashboard/admin', icon: BsGrid, label: 'Dashboard' },
-          { href: '/dashboard/admin/users', icon: BsPeople, label: 'User Management' },
-          { href: '/dashboard/admin/system-settings', icon: BsGear, label: 'System Settings' },
+          { href: '/dashboard/admin/users', label: 'Users', icon: BsPeople },
+          { href: '/dashboard/admin/departments', label: 'Departments', icon: BsBuilding },
+          { href: '/dashboard/admin/settings', label: 'Settings', icon: BsGear },
           { href: '/dashboard/admin/security', icon: BsShield, label: 'Security' },
           { href: '/dashboard/admin/analytics', icon: BsGraphUp, label: 'Analytics' },
           { href: '/audit-logs', icon: BsClipboardData, label: 'Audit Logs' },
