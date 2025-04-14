@@ -179,7 +179,7 @@ export default function UserManagement() {
           email: formData.email,
           password: formData.password,
           role: formData.role,
-          managerId: formData.managerId || null,
+          managerId: formData.role === 'EMPLOYEE' ? formData.managerId : null,
           isActive: formData.status === 'ACTIVE'
         }),
       });
@@ -199,7 +199,7 @@ export default function UserManagement() {
         name: newUser.name,
         email: newUser.email,
         role: newUser.role,
-        manager: null, // Will be populated when we fetch users
+        manager: newUser.manager,
         createdAt: newUser.createdAt,
         status: newUser.isActive ? 'ACTIVE' : 'INACTIVE' as 'ACTIVE' | 'INACTIVE'
       };
@@ -267,7 +267,7 @@ export default function UserManagement() {
         name: formData.name,
         email: formData.email,
         role: formData.role,
-        managerId: formData.managerId || null,
+        managerId: formData.role === 'EMPLOYEE' ? formData.managerId : null,
         isActive: formData.status === 'ACTIVE'
       });
       
@@ -281,7 +281,7 @@ export default function UserManagement() {
           name: formData.name,
           email: formData.email,
           role: formData.role,
-          managerId: formData.managerId || null,
+          managerId: formData.role === 'EMPLOYEE' ? formData.managerId : null,
           isActive: formData.status === 'ACTIVE'
         }),
       });
@@ -301,7 +301,7 @@ export default function UserManagement() {
         name: updatedUser.name,
         email: updatedUser.email,
         role: updatedUser.role,
-        manager: null, // Will be populated when we fetch users
+        manager: updatedUser.manager,
         createdAt: updatedUser.createdAt,
         status: updatedUser.isActive ? 'ACTIVE' : 'INACTIVE' as 'ACTIVE' | 'INACTIVE'
       };

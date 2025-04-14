@@ -100,7 +100,7 @@ export async function POST(req: Request) {
         email,
         password: hashedPassword,
         role,
-        managerId: managerId || null,
+        managerId: role === 'EMPLOYEE' ? managerId : null,
         isActive: isActive ?? true,
       },
       include: {
@@ -122,6 +122,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+    console.error('Error creating user:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -180,7 +181,7 @@ export async function PUT(req: Request) {
       name,
       email,
       role,
-      managerId: managerId || null,
+      managerId: role === 'EMPLOYEE' ? managerId : null,
       isActive,
     };
 
@@ -210,6 +211,7 @@ export async function PUT(req: Request) {
         { status: 400 }
       );
     }
+    console.error('Error updating user:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
