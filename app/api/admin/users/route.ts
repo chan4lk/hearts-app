@@ -72,6 +72,14 @@ export async function POST(req: Request) {
       );
     }
 
+    // Require manager for employees
+    if (role === 'EMPLOYEE' && !managerId) {
+      return NextResponse.json(
+        { error: 'Manager is required for employees' },
+        { status: 400 }
+      );
+    }
+
     // Check if manager exists if managerId is provided
     if (managerId) {
       const manager = await prisma.user.findUnique({
@@ -95,6 +103,15 @@ export async function POST(req: Request) {
         managerId: managerId || null,
         isActive: isActive ?? true,
       },
+      include: {
+        manager: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      }
     });
 
     return NextResponse.json(user);
@@ -126,6 +143,14 @@ export async function PUT(req: Request) {
     if (!id || !name || !email || !role) {
       return NextResponse.json(
         { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    // Require manager for employees
+    if (role === 'EMPLOYEE' && !managerId) {
+      return NextResponse.json(
+        { error: 'Manager is required for employees' },
         { status: 400 }
       );
     }
@@ -166,6 +191,15 @@ export async function PUT(req: Request) {
     const user = await prisma.user.update({
       where: { id },
       data: updateData,
+      include: {
+        manager: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      }
     });
 
     return NextResponse.json(user);

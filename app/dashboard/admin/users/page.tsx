@@ -132,6 +132,11 @@ export default function UserManagement() {
     if (!formData.role) {
       errors.role = 'Role is required';
     }
+
+    // Add validation for manager assignment
+    if (formData.role === 'EMPLOYEE' && !formData.managerId) {
+      errors.managerId = 'Manager is required for employees';
+    }
     
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -606,7 +611,7 @@ export default function UserManagement() {
                       onChange={(e) => setFormData({ ...formData, managerId: e.target.value })}
                       className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
-                      <option value="">No Manager</option>
+                      <option value="">Select a manager</option>
                       {users
                         .filter(user => user.role === 'MANAGER')
                         .map(manager => (
@@ -615,6 +620,7 @@ export default function UserManagement() {
                           </option>
                         ))}
                     </select>
+                    {formErrors.managerId && <p className="mt-1 text-sm text-red-500">{formErrors.managerId}</p>}
                   </div>
                 )}
                 <div>
@@ -713,7 +719,7 @@ export default function UserManagement() {
                       onChange={(e) => setFormData({ ...formData, managerId: e.target.value })}
                       className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
-                      <option value="">No Manager</option>
+                      <option value="">Select a manager</option>
                       {users
                         .filter(user => user.role === 'MANAGER' && user.id !== selectedUser?.id)
                         .map(manager => (
@@ -722,6 +728,7 @@ export default function UserManagement() {
                           </option>
                         ))}
                     </select>
+                    {formErrors.managerId && <p className="mt-1 text-sm text-red-500">{formErrors.managerId}</p>}
                   </div>
                 )}
                 <div>
