@@ -200,21 +200,7 @@ export default function ManagerDashboard() {
           </div>
 
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <BsPerson className="text-gray-400 group-hover:text-indigo-400 transition-colors" />
-            </div>
-            <select 
-              value={selectedEmployee}
-              onChange={(e) => setSelectedEmployee(e.target.value)}
-              className="pl-10 pr-4 py-3 bg-[#1E2028] text-white rounded-xl border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:bg-[#252832] hover:border-gray-600 transition-all appearance-none cursor-pointer min-w-[200px]"
-            >
-              <option value="all">All Employees</option>
-              {employees.map(emp => (
-                <option key={emp.id} value={emp.email}>
-                  {emp.name} ({emp.goalsCount} goals)
-                </option>
-              ))}
-            </select>
+            
           </div>
         </div>
 

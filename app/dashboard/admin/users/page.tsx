@@ -559,7 +559,15 @@ export default function UserManagement() {
                   <label className="block text-sm font-medium text-gray-400 mb-1">Role</label>
                   <select
                     value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value as Role })}
+                    onChange={(e) => {
+                      const newRole = e.target.value as Role;
+                      setFormData({ 
+                        ...formData, 
+                        role: newRole,
+                        // Clear managerId if role is not EMPLOYEE
+                        managerId: newRole === 'EMPLOYEE' ? formData.managerId : ''
+                      });
+                    }}
                     className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     {Object.keys(ROLES).map((role) => (
@@ -568,23 +576,25 @@ export default function UserManagement() {
                   </select>
                   {formErrors.role && <p className="mt-1 text-sm text-red-500">{formErrors.role}</p>}
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Manager</label>
-                  <select
-                    value={formData.managerId}
-                    onChange={(e) => setFormData({ ...formData, managerId: e.target.value })}
-                    className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <option value="">No Manager</option>
-                    {users
-                      .filter(user => user.role === 'MANAGER')
-                      .map(manager => (
-                        <option key={manager.id} value={manager.id}>
-                          {manager.name}
-                        </option>
-                      ))}
-                  </select>
-                </div>
+                {formData.role === 'EMPLOYEE' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Manager</label>
+                    <select
+                      value={formData.managerId}
+                      onChange={(e) => setFormData({ ...formData, managerId: e.target.value })}
+                      className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="">No Manager</option>
+                      {users
+                        .filter(user => user.role === 'MANAGER')
+                        .map(manager => (
+                          <option key={manager.id} value={manager.id}>
+                            {manager.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Status</label>
                   <select
@@ -656,7 +666,15 @@ export default function UserManagement() {
                   <label className="block text-sm font-medium text-gray-400 mb-1">Role</label>
                   <select
                     value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value as Role })}
+                    onChange={(e) => {
+                      const newRole = e.target.value as Role;
+                      setFormData({ 
+                        ...formData, 
+                        role: newRole,
+                        // Clear managerId if role is not EMPLOYEE
+                        managerId: newRole === 'EMPLOYEE' ? formData.managerId : ''
+                      });
+                    }}
                     className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     {Object.keys(ROLES).map((role) => (
@@ -665,23 +683,25 @@ export default function UserManagement() {
                   </select>
                   {formErrors.role && <p className="mt-1 text-sm text-red-500">{formErrors.role}</p>}
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Manager</label>
-                  <select
-                    value={formData.managerId}
-                    onChange={(e) => setFormData({ ...formData, managerId: e.target.value })}
-                    className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <option value="">No Manager</option>
-                    {users
-                      .filter(user => user.role === 'MANAGER' && user.id !== selectedUser?.id)
-                      .map(manager => (
-                        <option key={manager.id} value={manager.id}>
-                          {manager.name}
-                        </option>
-                      ))}
-                  </select>
-                </div>
+                {formData.role === 'EMPLOYEE' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Manager</label>
+                    <select
+                      value={formData.managerId}
+                      onChange={(e) => setFormData({ ...formData, managerId: e.target.value })}
+                      className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="">No Manager</option>
+                      {users
+                        .filter(user => user.role === 'MANAGER' && user.id !== selectedUser?.id)
+                        .map(manager => (
+                          <option key={manager.id} value={manager.id}>
+                            {manager.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Status</label>
                   <select
