@@ -373,6 +373,19 @@ export default function UserManagement() {
     setShowDetailModal(true);
   };
 
+  // Add a function to reset form data
+  const resetFormData = () => {
+    setFormData({
+      name: '',
+      email: '',
+      password: '',
+      role: '' as Role,
+      managerId: '',
+      status: 'ACTIVE' as 'ACTIVE' | 'INACTIVE'
+    });
+    setFormErrors({});
+  };
+
   if (loading) {
     return (
       <DashboardLayout type="admin">
@@ -399,7 +412,10 @@ export default function UserManagement() {
               </div>
             </div>
             <button
-              onClick={() => setShowCreateModal(true)}
+              onClick={() => {
+                resetFormData();
+                setShowCreateModal(true);
+              }}
               className="flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"
             >
               <BsPlus className="w-5 h-5" />
@@ -532,6 +548,8 @@ export default function UserManagement() {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Enter name"
+                    autoComplete="off"
                   />
                   {formErrors.name && <p className="mt-1 text-sm text-red-500">{formErrors.name}</p>}
                 </div>
@@ -542,6 +560,8 @@ export default function UserManagement() {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Enter email"
+                    autoComplete="off"
                   />
                   {formErrors.email && <p className="mt-1 text-sm text-red-500">{formErrors.email}</p>}
                 </div>
@@ -552,6 +572,8 @@ export default function UserManagement() {
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Enter password"
+                    autoComplete="new-password"
                   />
                   {formErrors.password && <p className="mt-1 text-sm text-red-500">{formErrors.password}</p>}
                 </div>
