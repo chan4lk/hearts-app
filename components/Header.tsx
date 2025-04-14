@@ -58,7 +58,7 @@ const Header: React.FC<HeaderProps> = ({ userName, children }) => {
                 className="h-12 w-auto object-contain"
               />
             </Link>
-            <Link href="/" className="group">
+            <Link href="/" className="group hidden sm:block">
               <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 group-hover:from-indigo-300 group-hover:via-purple-300 group-hover:to-pink-300 transition-all duration-300">
                 Performance Management
               </span>
@@ -66,32 +66,20 @@ const Header: React.FC<HeaderProps> = ({ userName, children }) => {
           </div>
 
           {/* Desktop Navigation */}
-          
-             
+          <div className="hidden md:flex items-center space-x-4">
             <Link
-              href="/register"
+              href="/login"
               className="text-white bg-indigo-500 hover:bg-indigo-600 text-sm px-4 py-2 rounded-md transition-colors duration-300 flex items-center space-x-2"
             >
-              <span>Register</span>
-              <svg 
-                className="w-4 h-4" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" 
-                />
-              </svg>
+              <span>Log in</span>
+              
             </Link>
-          
+          </div>
 
           {/* Mobile Menu Button */}
           <div className="md:hidden">
             <button
+              id="menu-button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="text-gray-400 hover:text-indigo-400 transition-colors duration-300 p-2 rounded-lg hover:bg-indigo-500/10"
             >
@@ -106,15 +94,13 @@ const Header: React.FC<HeaderProps> = ({ userName, children }) => {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-indigo-500/20">
-            <nav className="flex flex-col space-y-4">
+          <div id="mobile-menu" className="md:hidden py-4 border-t border-indigo-500/20 absolute right-0 left-0 bg-[#0f172a]/90 backdrop-blur-sm">
+            <nav className="flex flex-col space-y-4 px-4">
               {[
-                { href: '/dashboard', label: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-                { href: '/goals', label: 'Goals', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
-                { href: '/feedback', label: 'Feedback', icon: 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z' },
-                { href: '/register', label: 'Register', icon: 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' }
+                { href: '/', label: 'Home', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+                { href: '/login', label: 'Sign in', icon: 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' }
               ].map((link, index) => (
                 <Link
                   key={index}

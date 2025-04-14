@@ -143,12 +143,7 @@ export default function LoginPage() {
                     Remember me
                   </label>
                 </div>
-                <Link 
-                  href="/forgot-password" 
-                  className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors duration-300"
-                >
-                  Forgot password?
-                </Link>
+                
               </div>
             </div>
 
@@ -175,15 +170,8 @@ export default function LoginPage() {
               )}
             </button>
 
-            <p className="mt-4 text-center text-xs text-gray-400">
-              Don't have an account?{' '}
-              <Link 
-                href="/register" 
-                className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors duration-300"
-              >
-                Sign up
-              </Link>
-            </p>
+            
+            
           </form>
         </div>
       </main>
