@@ -114,7 +114,7 @@ export default function ManagerDashboard() {
 
   const filteredGoals = goals.filter(goal => {
     const matchesSearch = goal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      goal.employeeName.toLowerCase().includes(searchQuery.toLowerCase());
+      (goal.employeeName ? goal.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) : false);
     const matchesStatus = !selectedStatus || goal.status === selectedStatus;
     const matchesEmployee = selectedEmployee === 'all' || goal.employeeEmail === selectedEmployee;
     return matchesSearch && matchesStatus && matchesEmployee;
