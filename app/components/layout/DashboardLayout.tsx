@@ -136,15 +136,12 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
           { href: '/', icon: BsStar, label: 'Self Rating' },
           { href: '/performance-reviews', icon: BsBarChart, label: 'Performance Reviews' },
           { href: '/feedback', icon: BsChat, label: 'Feedback' },
-          { href: '/team-management', icon: BsPeople, label: 'Team Management' },
         ];
       case 'admin':
         return [
+          { href: '/dashboard/admin', label: 'Dashboard', icon: BsGrid },
           { href: '/dashboard/admin/users', label: 'Users', icon: BsPeople },
-          { href: '/dashboard/admin/departments', label: 'Departments', icon: BsBuilding },
           { href: '/dashboard/admin/settings', label: 'Settings', icon: BsGear },
-          { href: '/dashboard/admin/security', icon: BsShield, label: 'Security' },
-          { href: '/dashboard/admin/analytics', icon: BsGraphUp, label: 'Analytics' },
           { href: '/audit-logs', icon: BsClipboardData, label: 'Audit Logs' },
         ];
       default:
