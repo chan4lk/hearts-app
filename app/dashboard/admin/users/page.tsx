@@ -26,7 +26,6 @@ const ROLES = {
   ADMIN: 'ADMIN',
   MANAGER: 'MANAGER',
   EMPLOYEE: 'EMPLOYEE',
-  HR: 'HR'
 } as const;
 
 type Role = keyof typeof ROLES;
@@ -453,7 +452,6 @@ export default function UserManagement() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Email</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Role</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Manager</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
@@ -479,9 +477,7 @@ export default function UserManagement() {
                         {user.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-white">
-                      {user.manager?.name || '-'}
-                    </td>
+                    
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <button
