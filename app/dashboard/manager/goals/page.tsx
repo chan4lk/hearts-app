@@ -44,6 +44,7 @@ interface Goal {
     comments: string;
     updatedAt?: Date;
   };
+  createdBy: string;
 }
 
 const CATEGORIES = [
@@ -149,7 +150,9 @@ export default function ManagerGoalsPage() {
       const response = await fetch('/api/goals');
       if (!response.ok) throw new Error('Failed to fetch goals');
       const data = await response.json();
-      setGoals(data.goals || []);
+      // Filter goals to only show those created by the manager
+      const managerGoals = (data.goals || []).filter((goal: Goal) => goal.createdBy === session?.user?.id);
+      setGoals(managerGoals);
     } catch (error) {
       console.error('Error fetching goals:', error);
       toast.error('Failed to load goals');
@@ -185,27 +188,14 @@ export default function ManagerGoalsPage() {
     }
   };
 
-  const handleSelfRating = async (goalId: string, score: number) => {
-    try {
-      const response = await fetch(`/api/goals/${goalId}/ratings`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ score })
-      });
-
-      if (!response.ok) throw new Error('Failed to submit rating');
-
-      const updatedGoal = await response.json();
-      setGoals(goals.map(goal => 
-        goal.id === goalId 
-          ? { ...goal, rating: updatedGoal }
-          : goal
-      ));
-      toast.success('Rating submitted successfully');
-    } catch (error) {
-      console.error('Error submitting rating:', error);
-      toast.error('Failed to submit rating');
-    }
+  // Calculate goal statistics
+  const goalStats = {
+    total: goals.length,
+    byCategory: goals.reduce((acc, goal) => {
+      acc[goal.category] = (acc[goal.category] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>),
+    recent: goals.slice(0, 5) // Get 5 most recent goals
   };
 
   return (
@@ -235,7 +225,7 @@ export default function ManagerGoalsPage() {
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Templates Section */}
+          {/* Goal Templates */}
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800">
               <div className="flex items-center justify-between mb-6">
@@ -280,69 +270,67 @@ export default function ManagerGoalsPage() {
             </div>
           </div>
 
-          {/* Goals List */}
+          {/* Goal Statistics and Recent Goals */}
           <div className="space-y-6">
+            {/* Goal Statistics */}
             <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="bg-indigo-500/10 p-2 rounded-lg">
-                    <BsListTask className="w-5 h-5 text-indigo-400" />
+                    <BsBarChart className="w-5 h-5 text-indigo-400" />
                   </div>
-                  <h2 className="text-xl font-semibold text-white">Your Goals</h2>
+                  <h2 className="text-xl font-semibold text-white">Goal Statistics</h2>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-[#252832] p-4 rounded-lg border border-gray-700">
+                  <div className="text-sm text-gray-400 mb-1">Total Goals</div>
+                  <div className="text-2xl font-bold text-white">{goalStats.total}</div>
+                </div>
+
+                {Object.entries(goalStats.byCategory).map(([category, count]) => (
+                  <div key={category} className="bg-[#252832] p-4 rounded-lg border border-gray-700">
+                    <div className="text-sm text-gray-400 mb-1">{category}</div>
+                    <div className="text-2xl font-bold text-white">{count}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Recent Goals */}
+            <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="bg-emerald-500/10 p-2 rounded-lg">
+                    <BsClock className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-white">Recent Goals</h2>
                 </div>
               </div>
 
               <div className="space-y-4">
-                {goals.map((goal) => (
-                  <Card key={goal.id} className="bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700">
-                    <CardHeader className="p-6 pb-3">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="space-y-1">
-                          <h4 className="text-lg font-semibold text-white">{goal.title}</h4>
-                          <p className="text-sm text-gray-400">{goal.description}</p>
-                        </div>
-                        <div className="flex items-center gap-2 text-gray-400">
-                          <BsCalendar className="w-4 h-4" />
-                          <span className="text-sm">
-                            {new Date(goal.dueDate).toLocaleDateString()}
-                          </span>
-                        </div>
+                {goalStats.recent.map((goal) => (
+                  <div key={goal.id} className="bg-[#252832] p-4 rounded-lg border border-gray-700">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">{goal.title}</h3>
+                        <p className="text-sm text-gray-400 mt-1">{goal.description}</p>
                       </div>
-                    </CardHeader>
-                    <CardContent className="p-6 pt-3">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <Label className="text-sm font-medium text-gray-300">Self Rating</Label>
-                          {goal.rating?.score && (
-                            <span className={`text-sm font-medium px-3 py-1 rounded-full ${RATING_COLORS[goal.rating.score as keyof typeof RATING_COLORS]}`}>
-                              {RATING_LABELS[goal.rating.score as keyof typeof RATING_LABELS]}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-center gap-2">
-                          {[1, 2, 3, 4, 5].map((rating) => (
-                            <Button
-                              key={rating}
-                              variant="outline"
-                              size="icon"
-                              onClick={() => handleSelfRating(goal.id, rating)}
-                              className={`w-12 h-12 ${
-                                goal.rating?.score === rating
-                                  ? RATING_COLORS[rating as keyof typeof RATING_COLORS]
-                                  : 'bg-gray-800/50 text-gray-400 border-gray-700 hover:bg-gray-700/50'
-                              }`}
-                            >
-                              <div className="flex flex-col items-center">
-                                <span className="text-xs mb-0.5">{rating}</span>
-                                <BsStarFill className="w-4 h-4" />
-                              </div>
-                            </Button>
-                          ))}
-                        </div>
+                      <div className="flex items-center gap-2 text-gray-400">
+                        <BsCalendar className="w-4 h-4" />
+                        <span className="text-sm">
+                          {new Date(goal.dueDate).toLocaleDateString()}
+                        </span>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 ))}
+                {goalStats.recent.length === 0 && (
+                  <div className="text-center py-8 text-gray-400">
+                    No recent goals found
+                  </div>
+                )}
               </div>
             </div>
           </div>
