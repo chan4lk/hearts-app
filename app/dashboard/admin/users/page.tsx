@@ -452,6 +452,7 @@ export default function UserManagement() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Email</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Role</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Manager</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
@@ -477,7 +478,9 @@ export default function UserManagement() {
                         {user.status}
                       </span>
                     </td>
-                    
+                    <td className="px-6 py-4 whitespace-nowrap text-white">
+                      {user.manager?.name || '-'}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <button
@@ -566,6 +569,23 @@ export default function UserManagement() {
                   {formErrors.role && <p className="mt-1 text-sm text-red-500">{formErrors.role}</p>}
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Manager</label>
+                  <select
+                    value={formData.managerId}
+                    onChange={(e) => setFormData({ ...formData, managerId: e.target.value })}
+                    className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="">No Manager</option>
+                    {users
+                      .filter(user => user.role === 'MANAGER')
+                      .map(manager => (
+                        <option key={manager.id} value={manager.id}>
+                          {manager.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Status</label>
                   <select
                     value={formData.status}
@@ -644,6 +664,23 @@ export default function UserManagement() {
                     ))}
                   </select>
                   {formErrors.role && <p className="mt-1 text-sm text-red-500">{formErrors.role}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Manager</label>
+                  <select
+                    value={formData.managerId}
+                    onChange={(e) => setFormData({ ...formData, managerId: e.target.value })}
+                    className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="">No Manager</option>
+                    {users
+                      .filter(user => user.role === 'MANAGER' && user.id !== selectedUser?.id)
+                      .map(manager => (
+                        <option key={manager.id} value={manager.id}>
+                          {manager.name}
+                        </option>
+                      ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Status</label>

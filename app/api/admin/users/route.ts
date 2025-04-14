@@ -55,18 +55,16 @@ export async function GET() {
 }
 
 // Create new user
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    
     if (!session?.user || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { name, email, password, role, department, position, managerId } = body;
+    const body = await req.json();
+    const { name, email, password, role, managerId, isActive } = body;
 
-    // Validate required fields
     if (!name || !email || !password || !role) {
       return NextResponse.json(
         { error: 'Missing required fields' },
@@ -74,49 +72,39 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email }
-    });
-
-    if (existingUser) {
-      return NextResponse.json(
-        { error: 'User with this email already exists' },
-        { status: 400 }
-      );
+    // Check if manager exists if managerId is provided
+    if (managerId) {
+      const manager = await prisma.user.findUnique({
+        where: { id: managerId },
+      });
+      if (!manager || manager.role !== 'MANAGER') {
+        return NextResponse.json(
+          { error: 'Invalid manager selected' },
+          { status: 400 }
+        );
+      }
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create user
     const user = await prisma.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
         role,
-        department,
-        position,
-        managerId,
-        isActive: true
+        managerId: managerId || null,
+        isActive: isActive ?? true,
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        department: true,
-        position: true,
-        createdAt: true,
-        updatedAt: true,
-        isActive: true
-      }
     });
 
     return NextResponse.json(user);
-  } catch (error) {
-    console.error('Error creating user:', error);
+  } catch (error: any) {
+    if (error.code === 'P2002') {
+      return NextResponse.json(
+        { error: 'Email already exists' },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -125,78 +113,69 @@ export async function POST(request: Request) {
 }
 
 // Update user
-export async function PUT(request: Request) {
+export async function PUT(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    
     if (!session?.user || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { id, name, email, role, department, position, managerId, isActive } = body;
+    const body = await req.json();
+    const { id, name, email, password, role, managerId, isActive } = body;
 
-    if (!id) {
+    if (!id || !name || !email || !role) {
       return NextResponse.json(
-        { error: 'User ID is required' },
+        { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    // Check if user exists
-    const existingUser = await prisma.user.findUnique({
-      where: { id }
-    });
-
-    if (!existingUser) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
-    }
-
-    // Check if email is being changed and if it's already taken
-    if (email && email !== existingUser.email) {
-      const emailExists = await prisma.user.findUnique({
-        where: { email }
+    // Check if manager exists if managerId is provided
+    if (managerId) {
+      const manager = await prisma.user.findUnique({
+        where: { id: managerId },
       });
-
-      if (emailExists) {
+      if (!manager || manager.role !== 'MANAGER') {
         return NextResponse.json(
-          { error: 'Email already in use' },
+          { error: 'Invalid manager selected' },
           { status: 400 }
         );
       }
     }
 
-    // Update user
-    const updatedUser = await prisma.user.update({
+    // Prevent circular manager relationships
+    if (managerId === id) {
+      return NextResponse.json(
+        { error: 'User cannot be their own manager' },
+        { status: 400 }
+      );
+    }
+
+    const updateData: any = {
+      name,
+      email,
+      role,
+      managerId: managerId || null,
+      isActive,
+    };
+
+    if (password) {
+      updateData.password = await bcrypt.hash(password, 10);
+    }
+
+    const user = await prisma.user.update({
       where: { id },
-      data: {
-        name,
-        email,
-        role,
-        department,
-        position,
-        managerId,
-        isActive
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        department: true,
-        position: true,
-        createdAt: true,
-        updatedAt: true,
-        isActive: true
-      }
+      data: updateData,
     });
 
-    return NextResponse.json(updatedUser);
-  } catch (error) {
-    console.error('Error updating user:', error);
+    return NextResponse.json(user);
+  } catch (error: any) {
+    if (error.code === 'P2002') {
+      return NextResponse.json(
+        { error: 'Email already exists' },
+        { status: 400 }
+      );
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
