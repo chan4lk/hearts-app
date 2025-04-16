@@ -433,20 +433,20 @@ export default function UserManagement() {
         <div className="bg-[#1E2028] p-4 rounded-xl shadow-lg">
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[200px]">
-              <input
-                type="text"
+                <input
+                  type="text"
                 placeholder="Search users..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
+                />
             </div>
-            <select
-              value={filters.role}
-              onChange={(e) => handleFilterChange('role', e.target.value)}
+                <select
+                  value={filters.role}
+                  onChange={(e) => handleFilterChange('role', e.target.value)}
               className="px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="">All Roles</option>
+                >
+                  <option value="">All Roles</option>
               {Object.keys(ROLES).map((role) => (
                 <option key={role} value={role}>{role}</option>
               ))}
@@ -459,7 +459,7 @@ export default function UserManagement() {
               <option value="">All Status</option>
               <option value="ACTIVE">Active</option>
               <option value="INACTIVE">Inactive</option>
-            </select>
+                </select>
           </div>
         </div>
 
