@@ -138,10 +138,31 @@ export default function ManagerDashboard() {
   }, []);
 
   const filteredGoals = goals.filter(goal => {
-    const matchesSearch = goal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (goal.employee?.name ? goal.employee.name.toLowerCase().includes(searchQuery.toLowerCase()) : false);
+    // Convert search query to lowercase for case-insensitive search
+    const query = searchQuery.toLowerCase().trim();
+    
+    // Check if search query matches goal title
+    const titleMatch = goal.title.toLowerCase().includes(query);
+    
+    // Check if search query matches employee name
+    const employeeNameMatch = goal.employee?.name 
+      ? goal.employee.name.toLowerCase().includes(query)
+      : false;
+    
+    // Check if search query matches employee email
+    const employeeEmailMatch = goal.employee?.email
+      ? goal.employee.email.toLowerCase().includes(query)
+      : false;
+    
+    // A goal matches if any of these conditions are true
+    const matchesSearch = titleMatch || employeeNameMatch || employeeEmailMatch;
+    
+    // Apply status filter
     const matchesStatus = !selectedStatus || goal.status === selectedStatus;
+    
+    // Apply employee filter
     const matchesEmployee = selectedEmployee === 'all' || goal.employee?.email === selectedEmployee;
+    
     return matchesSearch && matchesStatus && matchesEmployee;
   });
 
@@ -224,6 +245,7 @@ export default function ManagerDashboard() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 bg-[#1E2028] text-white rounded-xl border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all hover:bg-[#252832] hover:border-gray-600"
+                aria-label="Search goals"
               />
             </div>
           </div>
