@@ -85,6 +85,29 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
     timeFormat: '12h'
   });
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+        setIsMobileMenuOpen(false);
+      }
+    }
+
+    if (isMobileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMobileMenuOpen]);
 
   useEffect(() => {
     // Fetch system settings
@@ -162,27 +185,83 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
   return (
     <div className="min-h-screen bg-[#0f1117]">
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 h-full w-64 bg-[#1a1c23] transform transition-transform duration-200 ease-in-out ${
-        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-0'
-      } md:translate-x-0 z-30`}>
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
-                <BsPerson className="w-6 h-6 text-white" />
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            ref={sidebarRef}
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="fixed left-0 top-0 h-full w-64 bg-[#1a1c23] z-30 md:hidden"
+          >
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+                    <BsPerson className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-bold text-white">
+                      {portalTitle}
+                    </h1>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="text-gray-400 hover:text-white"
+                  aria-label="Close menu"
+                >
+                  <BsX className="w-6 h-6" />
+                </button>
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-white">
-                  {portalTitle}
-                </h1>
-              </div>
+              <nav className="space-y-1">
+                {navItems.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                        isActive
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-400 hover:bg-[#2d2f36] hover:text-white'
+                      }`}
+                    >
+                      <item.icon className="text-xl" />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+
+                {/* Sign Out Button */}
+                <div className="pt-6 mt-6 border-t border-gray-800">
+                  <button
+                    onClick={handleSignOut}
+                    className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors text-gray-400 hover:bg-[#2d2f36] hover:text-white w-full"
+                  >
+                    <BsBoxArrowRight className="text-xl" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </nav>
             </div>
-            <button
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="md:hidden text-gray-400 hover:text-white"
-            >
-              <BsX className="w-6 h-6" />
-            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Desktop Sidebar */}
+      <div className="fixed left-0 top-0 h-full w-64 bg-[#1a1c23] hidden md:block z-30">
+        <div className="p-6">
+          <div className="flex items-center space-x-3 mb-8">
+            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+              <BsPerson className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-white">
+                {portalTitle}
+              </h1>
+            </div>
           </div>
           <nav className="space-y-1">
             {navItems.map((item) => {
@@ -224,6 +303,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="md:hidden text-gray-400 hover:text-white"
+              aria-label="Open menu"
             >
               <BsList className="w-6 h-6" />
             </button>
@@ -305,12 +385,18 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       </main>
 
       {/* Mobile menu backdrop */}
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 } 
