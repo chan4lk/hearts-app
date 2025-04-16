@@ -79,6 +79,7 @@ export default function SelfRatingPage() {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterRating, setFilterRating] = useState<string>('all');
+  const [ratingStatus, setRatingStatus] = useState<string>('all');
   const [ratingComments, setRatingComments] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -189,17 +190,26 @@ export default function SelfRatingPage() {
   };
 
   const filteredGoals = goals.filter(goal => {
-    if (filterStatus === 'rated') return goal.rating?.score;
-    if (filterStatus === 'unrated') return !goal.rating?.score;
+    if (filterStatus === 'all' && filterRating === 'all' && ratingStatus === 'all') return true;
+    if (filterStatus !== 'all' && goal.status !== filterStatus) return false;
+    if (filterRating !== 'all' && goal.rating?.score !== parseInt(filterRating)) return false;
+    if (ratingStatus === 'rated' && !goal.rating) return false;
+    if (ratingStatus === 'unrated' && goal.rating) return false;
     return true;
-  }).filter(goal => {
-    if (filterRating === 'all') return true;
-    return goal.rating?.score === parseInt(filterRating);
   });
+
+  const getLayoutType = (role?: string): "manager" | "employee" | "admin" => {
+    if (!role) return "employee";
+    const roleLower = role.toLowerCase();
+    if (roleLower === "manager" || roleLower === "employee" || roleLower === "admin") {
+      return roleLower as "manager" | "employee" | "admin";
+    }
+    return "employee";
+  };
 
   if (loading) {
     return (
-      <DashboardLayout type={session?.user?.role?.toLowerCase() || 'employee'}>
+      <DashboardLayout type={getLayoutType(session?.user?.role)}>
         <div className="flex items-center justify-center h-64">
           <div className="text-gray-400">Loading goals...</div>
         </div>
@@ -208,7 +218,7 @@ export default function SelfRatingPage() {
   }
 
   return (
-    <DashboardLayout type={session?.user?.role?.toLowerCase() || 'employee'}>
+    <DashboardLayout type={getLayoutType(session?.user?.role)}>
       <div className="space-y-6 p-6">
         {/* Header Section */}
         <div className="flex items-center justify-between">
@@ -331,6 +341,20 @@ export default function SelfRatingPage() {
               <SelectItem value="3" className="text-yellow-400 hover:bg-gray-700">Average</SelectItem>
               <SelectItem value="4" className="text-blue-400 hover:bg-gray-700">Above Average</SelectItem>
               <SelectItem value="5" className="text-green-400 hover:bg-gray-700">Excellent</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={ratingStatus}
+            onValueChange={setRatingStatus}
+          >
+            <SelectTrigger className="w-[180px] bg-gray-800 border-gray-700 text-white">
+              <SelectValue placeholder="Filter by rating status" />
+            </SelectTrigger>
+            <SelectContent className="bg-gray-800 border-gray-700 text-white">
+              <SelectItem value="all" className="text-white hover:bg-gray-700">All Goals</SelectItem>
+              <SelectItem value="rated" className="text-emerald-400 hover:bg-gray-700">Rated Goals</SelectItem>
+              <SelectItem value="unrated" className="text-amber-400 hover:bg-gray-700">Unrated Goals</SelectItem>
             </SelectContent>
           </Select>
         </div>
