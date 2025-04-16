@@ -283,30 +283,29 @@ export default function RateEmployeesPage() {
         <div className="flex justify-end">
           <div className="relative group min-w-[280px]">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <BsFilter className="w-5 h-5 text-gray-400 group-hover:text-indigo-400 transition-colors" />
+              <BsPersonLinesFill className="w-5 h-5 text-indigo-400 group-hover:text-indigo-300 transition-colors" />
             </div>
             <Select value={filterEmployee} onValueChange={setFilterEmployee}>
-              <SelectTrigger className="pl-10 pr-4 py-3 bg-[#252832] text-white rounded-xl border border-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:border-gray-700 transition-all">
+              <SelectTrigger className="pl-10 pr-4 py-3 bg-[#252832] text-white rounded-xl border border-indigo-500/30 focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:border-indigo-400 transition-all shadow-md">
                 <div className="flex items-center gap-2">
-                  <BsPersonLinesFill className="w-4 h-4 text-gray-400" />
-                  <SelectValue placeholder="Filter by employee..." />
+                  <SelectValue placeholder="Filter by employee..." className="text-indigo-100" />
                 </div>
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">
+              <SelectContent className="bg-[#1E2028] border-indigo-500/30">
+                <SelectItem value="all" className="hover:bg-indigo-500/10 focus:bg-indigo-500/10">
                   <div className="flex items-center gap-2">
-                    <BsPersonLinesFill className="w-4 h-4" />
-                    <span>All Employees</span>
+                    <BsPersonLinesFill className="w-4 h-4 text-indigo-400" />
+                    <span className="text-indigo-100 font-medium">All Employees</span>
                   </div>
                 </SelectItem>
                 {employeeStats.map(emp => (
-                  <SelectItem key={emp.id} value={emp.id}>
+                  <SelectItem key={emp.id} value={emp.id} className="hover:bg-indigo-500/10 focus:bg-indigo-500/10">
                     <div className="flex items-center justify-between w-full gap-3">
                       <div className="flex items-center gap-2">
-                        <BsPersonLinesFill className="w-4 h-4" />
-                        <span>{emp.name}</span>
+                        <BsPersonLinesFill className="w-4 h-4 text-indigo-400" />
+                        <span className="text-indigo-100">{emp.name}</span>
                       </div>
-                      <span className="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-full">
+                      <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-1 rounded-full font-medium">
                         {emp.ratedGoals}/{emp.totalGoals} rated
                       </span>
                     </div>
