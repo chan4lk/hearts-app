@@ -77,6 +77,8 @@ export default function ManagerSelfRatingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [filterRating, setFilterRating] = useState<string>('all');
+  const [ratingStatus, setRatingStatus] = useState<string>('all');
 
   useEffect(() => {
     if (!session) {
@@ -135,8 +137,12 @@ export default function ManagerSelfRatingPage() {
   };
 
   const filteredGoals = goals.filter(goal => {
-    if (selectedStatus === 'all') return true;
-    return goal.status === selectedStatus;
+    if (selectedStatus === 'all' && filterRating === 'all' && ratingStatus === 'all') return true;
+    if (selectedStatus !== 'all' && goal.status !== selectedStatus) return false;
+    if (filterRating !== 'all' && goal.rating?.score !== parseInt(filterRating)) return false;
+    if (ratingStatus === 'rated' && !goal.rating) return false;
+    if (ratingStatus === 'unrated' && goal.rating) return false;
+    return true;
   });
 
   if (loading) {
@@ -236,22 +242,56 @@ export default function ManagerSelfRatingPage() {
         </div>
 
         {/* Filter Section */}
-        <div className="flex items-center gap-4">
-          <Select
-            value={selectedStatus}
-            onValueChange={setSelectedStatus}
-          >
-            <SelectTrigger className="w-[180px] bg-gray-800 border-gray-700 text-white">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="PENDING">Pending</SelectItem>
-              <SelectItem value="APPROVED">Approved</SelectItem>
-              <SelectItem value="REJECTED">Rejected</SelectItem>
-              <SelectItem value="COMPLETED">Completed</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="bg-[#1E2028] rounded-xl p-4 border border-gray-800 mb-4">
+          <div className="flex items-center gap-4">
+            
+            <Select
+              value={selectedStatus}
+              onValueChange={setSelectedStatus}
+            >
+              <SelectTrigger className="w-[180px] bg-gray-800 border-gray-700 text-white">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                <SelectItem value="all" className="text-white hover:bg-gray-700">All Statuses</SelectItem>
+                <SelectItem value="PENDING" className="text-amber-400 hover:bg-gray-700">Pending</SelectItem>
+                <SelectItem value="APPROVED" className="text-emerald-400 hover:bg-gray-700">Approved</SelectItem>
+                <SelectItem value="REJECTED" className="text-rose-400 hover:bg-gray-700">Rejected</SelectItem>
+                <SelectItem value="COMPLETED" className="text-blue-400 hover:bg-gray-700">Completed</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={filterRating}
+              onValueChange={setFilterRating}
+            >
+              <SelectTrigger className="w-[180px] bg-gray-800 border-gray-700 text-white">
+                <SelectValue placeholder="Filter by rating" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                <SelectItem value="all" className="text-white hover:bg-gray-700">All Ratings</SelectItem>
+                <SelectItem value="1" className="text-red-400 hover:bg-gray-700">Needs Improvement</SelectItem>
+                <SelectItem value="2" className="text-orange-400 hover:bg-gray-700">Below Average</SelectItem>
+                <SelectItem value="3" className="text-yellow-400 hover:bg-gray-700">Average</SelectItem>
+                <SelectItem value="4" className="text-blue-400 hover:bg-gray-700">Above Average</SelectItem>
+                <SelectItem value="5" className="text-green-400 hover:bg-gray-700">Excellent</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={ratingStatus}
+              onValueChange={setRatingStatus}
+            >
+              <SelectTrigger className="w-[180px] bg-gray-800 border-gray-700 text-white">
+                <SelectValue placeholder="Filter by rating status" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                <SelectItem value="all" className="text-white hover:bg-gray-700">All Goals</SelectItem>
+                <SelectItem value="rated" className="text-emerald-400 hover:bg-gray-700">Rated Goals</SelectItem>
+                <SelectItem value="unrated" className="text-amber-400 hover:bg-gray-700">Unrated Goals</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Goals Grid/List */}

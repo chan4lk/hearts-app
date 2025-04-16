@@ -308,10 +308,12 @@ export default function SelfRatingPage() {
             <SelectTrigger className="w-[180px] bg-gray-800 border-gray-700 text-white">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Goals</SelectItem>
-              <SelectItem value="rated">Rated Goals</SelectItem>
-              <SelectItem value="unrated">Unrated Goals</SelectItem>
+            <SelectContent className="bg-gray-800 border-gray-700 text-white">
+              <SelectItem value="all" className="text-white hover:bg-gray-700">All Statuses</SelectItem>
+              <SelectItem value="PENDING" className="text-amber-400 hover:bg-gray-700">Pending</SelectItem>
+              <SelectItem value="APPROVED" className="text-emerald-400 hover:bg-gray-700">Approved</SelectItem>
+              <SelectItem value="REJECTED" className="text-rose-400 hover:bg-gray-700">Rejected</SelectItem>
+              <SelectItem value="COMPLETED" className="text-blue-400 hover:bg-gray-700">Completed</SelectItem>
             </SelectContent>
           </Select>
 
@@ -322,13 +324,13 @@ export default function SelfRatingPage() {
             <SelectTrigger className="w-[180px] bg-gray-800 border-gray-700 text-white">
               <SelectValue placeholder="Filter by rating" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Ratings</SelectItem>
-              <SelectItem value="1">Needs Improvement</SelectItem>
-              <SelectItem value="2">Below Average</SelectItem>
-              <SelectItem value="3">Average</SelectItem>
-              <SelectItem value="4">Above Average</SelectItem>
-              <SelectItem value="5">Excellent</SelectItem>
+            <SelectContent className="bg-gray-800 border-gray-700 text-white">
+              <SelectItem value="all" className="text-white hover:bg-gray-700">All Ratings</SelectItem>
+              <SelectItem value="1" className="text-red-400 hover:bg-gray-700">Needs Improvement</SelectItem>
+              <SelectItem value="2" className="text-orange-400 hover:bg-gray-700">Below Average</SelectItem>
+              <SelectItem value="3" className="text-yellow-400 hover:bg-gray-700">Average</SelectItem>
+              <SelectItem value="4" className="text-blue-400 hover:bg-gray-700">Above Average</SelectItem>
+              <SelectItem value="5" className="text-green-400 hover:bg-gray-700">Excellent</SelectItem>
             </SelectContent>
           </Select>
         </div>
