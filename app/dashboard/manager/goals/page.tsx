@@ -133,6 +133,7 @@ export default function ManagerGoalsPage() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [submitting, setSubmitting] = useState<{ [key: string]: boolean }>({});
   const [newGoal, setNewGoal] = useState({
     title: '',
     description: '',
@@ -188,9 +189,54 @@ export default function ManagerGoalsPage() {
     }
   };
 
+  const handleSelfRating = async (goalId: string, score: number) => {
+    if (isNaN(score)) return;
+
+    try {
+      setSubmitting(prev => ({ ...prev, [goalId]: true }));
+      const response = await fetch(`/api/goals/${goalId}/ratings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          score,
+          comments: ''
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to submit rating');
+
+      // Update the goals state with the new rating
+      setGoals(prevGoals => 
+        prevGoals.map(goal => 
+          goal.id === goalId 
+            ? { 
+                ...goal, 
+                rating: { 
+                  id: goalId,
+                  score,
+                  comments: ''
+                } 
+              } 
+            : goal
+        )
+      );
+
+      toast.success('Rating submitted successfully');
+    } catch (error) {
+      console.error('Error submitting rating:', error);
+      toast.error('Failed to submit rating');
+    } finally {
+      setSubmitting(prev => ({ ...prev, [goalId]: false }));
+    }
+  };
+
   // Calculate goal statistics
   const goalStats = {
     total: goals.length,
+    rated: goals.filter(g => g.rating?.score).length,
+    averageRating: goals.length > 0
+      ? (goals.reduce((acc, goal) => acc + (goal.rating?.score || 0), 0) / goals.length).toFixed(1)
+      : '0.0',
     byCategory: goals.reduce((acc, goal) => {
       acc[goal.category] = (acc[goal.category] || 0) + 1;
       return acc;
@@ -198,28 +244,38 @@ export default function ManagerGoalsPage() {
     recent: goals.slice(0, 5) // Get 5 most recent goals
   };
 
+  if (loading) {
+    return (
+      <DashboardLayout type="manager">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout type="manager">
       <div className="space-y-6">
         {/* Header Section */}
         <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800 shadow-lg">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                Manager Goals
-                <span className="bg-indigo-500/10 p-1 rounded text-indigo-400 text-sm font-normal">
-                  Manager Portal
-                </span>
-              </h1>
-              <p className="text-gray-400 mt-1">Create and manage your performance goals</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-indigo-500/10 rounded-xl">
+                <BsStar className="w-6 h-6 text-indigo-400" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-white">Manager Goals</h1>
+                <p className="text-gray-400 mt-1">Create and manage your goals</p>
+              </div>
             </div>
-            <button 
+            <Button
               onClick={() => setShowCreateModal(true)}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+              className="bg-indigo-500 hover:bg-indigo-600 text-white"
             >
-              <BsPlus className="w-5 h-5" />
-              Quick Create
-            </button>
+              <BsPlus className="w-5 h-5 mr-2" />
+              Create Goal
+            </Button>
           </div>
         </div>
 
@@ -270,9 +326,8 @@ export default function ManagerGoalsPage() {
             </div>
           </div>
 
-          {/* Goal Statistics and Recent Goals */}
+          {/* Goal Statistics */}
           <div className="space-y-6">
-            {/* Goal Statistics */}
             <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
@@ -291,7 +346,9 @@ export default function ManagerGoalsPage() {
 
                 {Object.entries(goalStats.byCategory).map(([category, count]) => (
                   <div key={category} className="bg-[#252832] p-4 rounded-lg border border-gray-700">
-                    <div className="text-sm text-gray-400 mb-1">{category}</div>
+                    <div className="text-sm text-gray-400 mb-1">
+                      {CATEGORIES.find(c => c.value === category)?.label}
+                    </div>
                     <div className="text-2xl font-bold text-white">{count}</div>
                   </div>
                 ))}
@@ -299,7 +356,11 @@ export default function ManagerGoalsPage() {
             </div>
 
             {/* Recent Goals */}
-            <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800">
+           
+          </div>
+        </div>
+
+        <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="bg-emerald-500/10 p-2 rounded-lg">
@@ -333,133 +394,91 @@ export default function ManagerGoalsPage() {
                 )}
               </div>
             </div>
-          </div>
-        </div>
 
         {/* Create Goal Modal */}
         {showCreateModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-            <div className="bg-[#1a1c23] rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-6">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-[#1E2028] rounded-xl p-6 w-full max-w-lg border border-gray-800">
+              <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-white">Create New Goal</h2>
                 <button
                   onClick={() => setShowCreateModal(false)}
                   className="text-gray-400 hover:text-white"
                 >
-                  ×
+                  <BsXCircle className="w-6 h-6" />
                 </button>
               </div>
 
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-t from-[#1a1c23] to-transparent h-8 -top-8"></div>
-                <form onSubmit={handleCreateGoal} className="space-y-6">
-                  <div>
-                    <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
-                      Goal Title
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <BsListTask className="text-gray-400" />
-                      </div>
-                      <input
-                        type="text"
-                        id="title"
-                        value={newGoal.title}
-                        onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
-                        className="w-full pl-10 pr-4 py-2 bg-[#2d2f36] text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        placeholder="Enter goal title"
-                        required
-                      />
-                    </div>
-                  </div>
+              <form onSubmit={handleCreateGoal} className="space-y-4">
+                <div>
+                  <Label htmlFor="title" className="text-gray-300">Title</Label>
+                  <input
+                    id="title"
+                    type="text"
+                    value={newGoal.title}
+                    onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
+                    className="w-full mt-1 bg-[#252832] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  />
+                </div>
 
-                  <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-2">
-                      Description
-                    </label>
-                    <textarea
-                      id="description"
-                      value={newGoal.description}
-                      onChange={(e) => setNewGoal({ ...newGoal, description: e.target.value })}
-                      className="w-full px-4 py-2 bg-[#2d2f36] text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                      placeholder="Describe your goal in detail"
-                      rows={4}
-                      required
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="description" className="text-gray-300">Description</Label>
+                  <textarea
+                    id="description"
+                    value={newGoal.description}
+                    onChange={(e) => setNewGoal({ ...newGoal, description: e.target.value })}
+                    className="w-full mt-1 bg-[#252832] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    rows={3}
+                    required
+                  />
+                </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="category" className="block text-sm font-medium text-gray-300 mb-2">
-                        Category
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <BsTag className="text-gray-400" />
-                        </div>
-                        <select
-                          id="category"
-                          value={newGoal.category}
-                          onChange={(e) => setNewGoal({ ...newGoal, category: e.target.value })}
-                          className="w-full pl-10 pr-4 py-2 bg-[#2d2f36] text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                          required
-                        >
-                          {CATEGORIES.map(category => (
-                            <option key={category.value} value={category.value}>
-                              {category.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
+                <div>
+                  <Label htmlFor="category" className="text-gray-300">Category</Label>
+                  <select
+                    id="category"
+                    value={newGoal.category}
+                    onChange={(e) => setNewGoal({ ...newGoal, category: e.target.value })}
+                    className="w-full mt-1 bg-[#252832] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  >
+                    {CATEGORIES.map((category) => (
+                      <option key={category.value} value={category.value}>
+                        {category.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                    <div>
-                      <label htmlFor="dueDate" className="block text-sm font-medium text-gray-300 mb-2">
-                        Due Date
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <BsCalendar className="text-gray-400" />
-                        </div>
-                        <input
-                          type="date"
-                          id="dueDate"
-                          value={newGoal.dueDate}
-                          onChange={(e) => setNewGoal({ ...newGoal, dueDate: e.target.value })}
-                          className="w-full pl-10 pr-4 py-2 bg-[#2d2f36] text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
+                <div>
+                  <Label htmlFor="dueDate" className="text-gray-300">Due Date</Label>
+                  <input
+                    id="dueDate"
+                    type="date"
+                    value={newGoal.dueDate}
+                    onChange={(e) => setNewGoal({ ...newGoal, dueDate: e.target.value })}
+                    className="w-full mt-1 bg-[#252832] border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    required
+                  />
+                </div>
 
-                  <div className="flex justify-end space-x-4 pt-6">
-                    <button
-                      type="button"
-                      onClick={() => setShowCreateModal(false)}
-                      className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className={`px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center space-x-2 ${
-                        loading ? 'opacity-50 cursor-not-allowed' : ''
-                      }`}
-                    >
-                      {loading ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          <span>Creating...</span>
-                        </>
-                      ) : (
-                        <span>Create Goal</span>
-                      )}
-                    </button>
-                  </div>
-                </form>
-              </div>
+                <div className="flex justify-end gap-4 mt-6">
+                  <Button
+                    type="button"
+                    onClick={() => setShowCreateModal(false)}
+                    className="bg-gray-700 hover:bg-gray-600 text-white"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="bg-indigo-500 hover:bg-indigo-600 text-white"
+                  >
+                    Create Goal
+                  </Button>
+                </div>
+              </form>
             </div>
           </div>
         )}
