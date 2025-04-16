@@ -30,6 +30,17 @@ const ROLES = {
 
 type Role = keyof typeof ROLES;
 
+interface FormData {
+  name: string;
+  email: string;
+  password: string;
+  newPassword: string;
+  confirmPassword: string;
+  role: Role;
+  managerId: string;
+  status: 'ACTIVE' | 'INACTIVE';
+}
+
 export default function UserManagement() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -40,13 +51,15 @@ export default function UserManagement() {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
     password: '',
-    role: 'EMPLOYEE' as Role,
+    newPassword: '',
+    confirmPassword: '',
+    role: 'EMPLOYEE',
     managerId: '',
-    status: 'ACTIVE' as 'ACTIVE' | 'INACTIVE'
+    status: 'ACTIVE'
   });
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -62,6 +75,11 @@ export default function UserManagement() {
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showNewPasswordFields, setShowNewPasswordFields] = useState(false);
+  const [showEditPassword, setShowEditPassword] = useState(false);
 
   useEffect(() => {
     if (!session?.user || session.user.role !== 'ADMIN') {
@@ -127,6 +145,16 @@ export default function UserManagement() {
       errors.password = 'Password is required';
     } else if (formData.password && formData.password.length < 8) {
       errors.password = 'Password must be at least 8 characters long';
+    }
+
+    // Add validation for new password if provided
+    if (formData.newPassword) {
+      if (formData.newPassword.length < 8) {
+        errors.newPassword = 'New password must be at least 8 characters long';
+      }
+      if (formData.newPassword !== formData.confirmPassword) {
+        errors.confirmPassword = 'Passwords do not match';
+      }
     }
     
     if (!formData.role) {
@@ -210,6 +238,8 @@ export default function UserManagement() {
         name: '',
         email: '',
         password: '',
+        newPassword: '',
+        confirmPassword: '',
         role: 'EMPLOYEE',
         managerId: '',
         status: 'ACTIVE'
@@ -268,7 +298,8 @@ export default function UserManagement() {
         email: formData.email,
         role: formData.role,
         managerId: formData.role === 'EMPLOYEE' ? formData.managerId : null,
-        isActive: formData.status === 'ACTIVE'
+        isActive: formData.status === 'ACTIVE',
+        password: formData.newPassword || undefined // Only include if new password is provided
       });
       
       const response = await fetch('/api/admin/users', {
@@ -282,7 +313,8 @@ export default function UserManagement() {
           email: formData.email,
           role: formData.role,
           managerId: formData.role === 'EMPLOYEE' ? formData.managerId : null,
-          isActive: formData.status === 'ACTIVE'
+          isActive: formData.status === 'ACTIVE',
+          password: formData.newPassword || undefined // Only include if new password is provided
         }),
       });
 
@@ -351,6 +383,8 @@ export default function UserManagement() {
       name: user.name,
       email: user.email,
       password: '',
+      newPassword: '',
+      confirmPassword: '',
       role: user.role as Role,
       managerId: user.manager?.id || '',
       status: user.status
@@ -384,11 +418,26 @@ export default function UserManagement() {
       name: '',
       email: '',
       password: '',
+      newPassword: '',
+      confirmPassword: '',
       role: '' as Role,
       managerId: '',
       status: 'ACTIVE' as 'ACTIVE' | 'INACTIVE'
     });
     setFormErrors({});
+  };
+
+  const handlePasswordModalOpen = (user: User) => {
+    setSelectedUser(user);
+    // Set the actual password for the current user (this would be retrieved from the backend in a real app)
+    setPasswordData({
+      currentPassword: '', // This would be the actual password in a real implementation
+      newPassword: '',
+      confirmPassword: ''
+    });
+    setShowPassword(true); // Set to true by default to show the password
+    setShowPasswordModal(true);
+    setShowNewPasswordFields(false); // Hide the new password fields initially
   };
 
   if (loading) {
@@ -516,15 +565,7 @@ export default function UserManagement() {
                         >
                           <BsPencil className="w-5 h-5" />
                         </button>
-                        <button
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setShowPasswordModal(true);
-                          }}
-                          className="p-2 text-green-400 hover:bg-green-500/10 rounded-lg transition-colors"
-                        >
-                          <BsShield className="w-5 h-5" />
-                        </button>
+                       
                         <button
                           onClick={() => confirmDelete(user.id)}
                           className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
@@ -681,14 +722,61 @@ export default function UserManagement() {
                   {formErrors.email && <p className="mt-1 text-sm text-red-500">{formErrors.email}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Password (leave blank to keep current)</label>
-                  <input
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Current Password</label>
+                  <div className="relative">
+                    <input
+                      type={showEditPassword ? "text" : "password"}
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowEditPassword(!showEditPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-indigo-400 transition-colors"
+                    >
+                      {showEditPassword ? <BsEyeSlash className="w-5 h-5" /> : <BsEye className="w-5 h-5" />}
+                    </button>
+                  </div>
                   {formErrors.password && <p className="mt-1 text-sm text-red-500">{formErrors.password}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">New Password</label>
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      value={formData.newPassword}
+                      onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+                      className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-indigo-400 transition-colors"
+                    >
+                      {showNewPassword ? <BsEyeSlash className="w-5 h-5" /> : <BsEye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                  {formErrors.newPassword && <p className="mt-1 text-sm text-red-500">{formErrors.newPassword}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">Confirm New Password</label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={formData.confirmPassword}
+                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                      className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-indigo-400 transition-colors"
+                    >
+                      {showConfirmPassword ? <BsEyeSlash className="w-5 h-5" /> : <BsEye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                  {formErrors.confirmPassword && <p className="mt-1 text-sm text-red-500">{formErrors.confirmPassword}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-1">Role</label>
@@ -699,7 +787,6 @@ export default function UserManagement() {
                       setFormData({ 
                         ...formData, 
                         role: newRole,
-                        // Clear managerId if role is not EMPLOYEE
                         managerId: newRole === 'EMPLOYEE' ? formData.managerId : ''
                       });
                     }}
@@ -762,61 +849,9 @@ export default function UserManagement() {
           </div>
         )}
 
-        {/* Change Password Modal */}
-        {showPasswordModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-[#1E2028] p-6 rounded-xl w-full max-w-md">
-              <h2 className="text-xl font-bold text-white mb-4">Change Password</h2>
-              <form onSubmit={handlePasswordChange} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Current Password</label>
-                  <input
-                    type="password"
-                    value={passwordData.currentPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                    className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                  {formErrors.currentPassword && <p className="mt-1 text-sm text-red-500">{formErrors.currentPassword}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">New Password</label>
-                  <input
-                    type="password"
-                    value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                    className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                  {formErrors.newPassword && <p className="mt-1 text-sm text-red-500">{formErrors.newPassword}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-1">Confirm New Password</label>
-                  <input
-                    type="password"
-                    value={passwordData.confirmPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                    className="w-full px-4 py-2 bg-[#2D3748] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                  {formErrors.confirmPassword && <p className="mt-1 text-sm text-red-500">{formErrors.confirmPassword}</p>}
-                </div>
-                <div className="flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowPasswordModal(false)}
-                    className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"
-                  >
-                    Change Password
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+       
+
+      
 
         {/* Delete Confirmation Modal */}
         {showDeleteModal && (
