@@ -32,13 +32,15 @@ export async function POST(
       return NextResponse.json({ error: 'Goal not found' }, { status: 404 });
     }
 
-    if (goal.employeeId !== session.user.id) {
+    // Check if the user is either the employee or the manager of this goal
+    if (goal.employeeId !== session.user.id && goal.managerId !== session.user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const existingRating = await prisma.rating.findFirst({
       where: {
         goalId: params.id,
+        selfRatedById: session.user.id,
       },
     });
 

@@ -87,4 +87,70 @@ export async function GET(req: Request) {
       { status: 500 }
     );
   }
+}
+
+export async function POST(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (session.user.role !== 'MANAGER') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const { title, description, dueDate, category = 'PROFESSIONAL' } = body;
+
+    if (!title || !description || !dueDate) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    const goal = await prisma.goal.create({
+      data: {
+        title,
+        description,
+        dueDate: new Date(dueDate),
+        status: GoalStatus.APPROVED, // Manager's own goals are auto-approved
+        employeeId: session.user.id, // Manager is both employee and manager
+        managerId: session.user.id,
+        approvedAt: new Date(),
+        approvedBy: session.user.id
+      },
+      include: {
+        employee: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        manager: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    // Add category to the response for frontend compatibility
+    const goalWithCategory = {
+      ...goal,
+      category
+    };
+
+    return NextResponse.json(goalWithCategory);
+  } catch (error) {
+    console.error('Error creating manager goal:', error);
+    return NextResponse.json(
+      { error: 'Failed to create goal' },
+      { status: 500 }
+    );
+  }
 } 
