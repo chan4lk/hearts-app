@@ -276,13 +276,22 @@ export default function ManagerDashboard() {
               className="pl-10 pr-4 py-3 bg-[#1E2028] text-white rounded-xl border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:bg-[#252832] hover:border-gray-600 transition-all appearance-none cursor-pointer min-w-[180px]"
               aria-label="Filter by employee"
             >
-              <option value="all">All Employees</option>
+              <option value="all" className="bg-[#1E2028] text-white py-2">All Employees</option>
               {employees.map((employee) => (
-                <option key={employee.id} value={employee.email}>
+                <option 
+                  key={employee.id} 
+                  value={employee.email}
+                  className="bg-[#1E2028] text-white py-2"
+                >
                   {employee.name}
                 </option>
               ))}
             </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </div>
           </div>
         </div>
 
