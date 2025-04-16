@@ -166,7 +166,13 @@ export async function POST(request: Request) {
       }
     });
 
-    return NextResponse.json(goal);
+    // Add category to the response for frontend compatibility
+    const goalWithCategory = {
+      ...goal,
+      category: body.category || 'PROFESSIONAL'
+    };
+
+    return NextResponse.json(goalWithCategory);
   } catch (error) {
     console.error('Error creating goal:', error);
     return NextResponse.json(

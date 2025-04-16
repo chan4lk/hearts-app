@@ -44,7 +44,16 @@ interface Goal {
     comments: string;
     updatedAt?: Date;
   };
-  createdBy: string;
+  manager?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  employee?: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 const CATEGORIES = [
@@ -133,6 +142,7 @@ export default function ManagerGoalsPage() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [submitting, setSubmitting] = useState<{ [key: string]: boolean }>({});
   const [newGoal, setNewGoal] = useState({
     title: '',
@@ -151,8 +161,16 @@ export default function ManagerGoalsPage() {
       const response = await fetch('/api/goals');
       if (!response.ok) throw new Error('Failed to fetch goals');
       const data = await response.json();
+      
       // Filter goals to only show those created by the manager
-      const managerGoals = (data.goals || []).filter((goal: Goal) => goal.createdBy === session?.user?.id);
+      const managerGoals = (data.goals || []).filter((goal: Goal) => 
+        goal.manager?.id === session?.user?.id && goal.employee?.id === session?.user?.id
+      );
+      
+      console.log('Session user ID:', session?.user?.id);
+      console.log('Fetched goals:', data.goals);
+      console.log('Filtered manager goals:', managerGoals);
+      
       setGoals(managerGoals);
     } catch (error) {
       console.error('Error fetching goals:', error);
@@ -165,15 +183,26 @@ export default function ManagerGoalsPage() {
   const handleCreateGoal = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/goals', {
+      setLoading(true);
+      console.log('Submitting goal:', newGoal);
+      
+      const response = await fetch('/api/goals/manager', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newGoal)
       });
 
-      if (!response.ok) throw new Error('Failed to create goal');
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+        throw new Error(errorData.error || 'Failed to create goal');
+      }
 
       const createdGoal = await response.json();
+      console.log('Created goal:', createdGoal);
+      
       setGoals([createdGoal, ...goals]);
       setShowCreateModal(false);
       setNewGoal({
@@ -182,10 +211,20 @@ export default function ManagerGoalsPage() {
         category: 'PROFESSIONAL',
         dueDate: new Date().toISOString().split('T')[0]
       });
-      toast.success('Goal created successfully');
+      
+      // Show success modal instead of toast
+      setShowSuccessModal(true);
+      
+      // Auto-hide success modal after 3 seconds
+      setTimeout(() => {
+        setShowSuccessModal(false);
+      }, 3000);
+      
     } catch (error) {
       console.error('Error creating goal:', error);
-      toast.error('Failed to create goal');
+      toast.error(error instanceof Error ? error.message : 'Failed to create goal');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -269,13 +308,22 @@ export default function ManagerGoalsPage() {
                 <p className="text-gray-400 mt-1">Create and manage your goals</p>
               </div>
             </div>
-            <Button
-              onClick={() => setShowCreateModal(true)}
-              className="bg-indigo-500 hover:bg-indigo-600 text-white"
-            >
-              <BsPlus className="w-5 h-5 mr-2" />
-              Create Goal
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => window.location.href = '/dashboard/manager/goals/self-ratings'}
+                className="bg-gray-700 hover:bg-gray-600 text-white"
+              >
+                <BsStar className="w-5 h-5 mr-2" />
+                Self Ratings
+              </Button>
+              <Button
+                onClick={() => setShowCreateModal(true)}
+                className="bg-indigo-500 hover:bg-indigo-600 text-white"
+              >
+                <BsPlus className="w-5 h-5 mr-2" />
+                Create Goal
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -474,11 +522,40 @@ export default function ManagerGoalsPage() {
                   <Button
                     type="submit"
                     className="bg-indigo-500 hover:bg-indigo-600 text-white"
+                    disabled={loading}
                   >
-                    Create Goal
+                    {loading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                        Creating...
+                      </>
+                    ) : (
+                      'Create Goal'
+                    )}
                   </Button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Success Modal */}
+        {showSuccessModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-[#1E2028] rounded-xl p-6 w-full max-w-md border border-gray-800 shadow-lg transform transition-all duration-300 scale-100">
+              <div className="flex flex-col items-center justify-center text-center">
+                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
+                  <BsCheckCircle className="w-8 h-8 text-green-400" />
+                </div>
+                <h2 className="text-xl font-bold text-white mb-2">Goal Created Successfully!</h2>
+                <p className="text-gray-400 mb-4">Your new goal has been added to your list.</p>
+                <Button
+                  onClick={() => setShowSuccessModal(false)}
+                  className="bg-indigo-500 hover:bg-indigo-600 text-white"
+                >
+                  Continue
+                </Button>
+              </div>
             </div>
           </div>
         )}
