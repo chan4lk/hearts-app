@@ -115,11 +115,9 @@ export async function POST(request: Request) {
         title,
         description,
         dueDate: new Date(dueDate),
-        status: GoalStatus.APPROVED, // Manager's own goals are auto-approved
+        status: GoalStatus.PENDING, // Set to PENDING instead of auto-approving
         employeeId: session.user.id, // Manager is both employee and manager
         managerId: session.user.id,
-        approvedAt: new Date(),
-        approvedBy: session.user.id
       },
       include: {
         employee: {

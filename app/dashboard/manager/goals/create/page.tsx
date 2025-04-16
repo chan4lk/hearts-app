@@ -141,11 +141,23 @@ function ManagerGoalsPageContent() {
 
   const fetchGoals = async () => {
     try {
-      const response = await fetch('/api/goals/manager');
-      if (response.ok) {
-        const data = await response.json();
-        setGoals(data.goals || []);
-      }
+      // Fetch manager's own goals
+      const selfResponse = await fetch('/api/goals/manager/self');
+      const selfData = await selfResponse.json();
+      const selfGoals = selfData || [];
+
+      // Fetch employee goals
+      const employeeResponse = await fetch('/api/goals/manager');
+      const employeeData = await employeeResponse.json();
+      const employeeGoals = employeeData.goals || [];
+
+      // Combine both sets of goals
+      const allGoals = [...selfGoals, ...employeeGoals];
+      
+      // Sort by creation date, most recent first
+      allGoals.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
+      setGoals(allGoals);
     } catch (error) {
       console.error('Error fetching goals:', error);
     }
@@ -163,7 +175,8 @@ function ManagerGoalsPageContent() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/goals/manager', {
+      // Use the manager/self endpoint for creating manager's own goals
+      const response = await fetch('/api/goals/manager/self', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -177,7 +190,7 @@ function ManagerGoalsPageContent() {
 
       setIsCreateModalOpen(false);
       showNotificationWithTimeout('Goal created successfully!', 'success');
-      fetchGoals();
+      fetchGoals(); // This will now fetch both self and employee goals
       setNewGoal({
         title: '',
         description: '',
