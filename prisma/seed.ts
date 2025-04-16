@@ -1,4 +1,4 @@
-import { PrismaClient, Role, GoalStatus } from '@prisma/client';
+import { PrismaClient, Role } from '@prisma/client';
 import { hash } from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -49,31 +49,6 @@ async function main() {
       },
     });
     console.log('Created employee:', employee);
-
-    // Create some approved goals for the employee
-    const goals = await Promise.all([
-      prisma.goal.create({
-        data: {
-          title: "Complete Project A",
-          description: "Implement core features for Project A",
-          dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-          status: GoalStatus.APPROVED,
-          employeeId: employee.id,
-          managerId: manager.id,
-        },
-      }),
-      prisma.goal.create({
-        data: {
-          title: "Learn New Technology",
-          description: "Master React and Next.js framework",
-          dueDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-          status: GoalStatus.APPROVED,
-          employeeId: employee.id,
-          managerId: manager.id,
-        },
-      }),
-    ]);
-    console.log('Created goals:', goals);
 
     console.log('Database seeded successfully!');
   } catch (error) {
