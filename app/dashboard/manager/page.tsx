@@ -16,6 +16,7 @@ import {
   BsShield,
   BsStars
 } from 'react-icons/bs';
+import { useSession } from 'next-auth/react';
 
 interface Goal {
   id: string;
@@ -29,6 +30,7 @@ interface Goal {
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   createdAt: string;
   feedback?: string;
+  isManagerGoal?: boolean;
 }
 
 interface EmployeeStats {
@@ -68,13 +70,23 @@ export default function ManagerDashboard() {
   const [employees, setEmployees] = useState<EmployeeStats[]>([]);
   const [employeeCounts, setEmployeeCounts] = useState({ total: 0, active: 0 });
   const [selectedGoalDetails, setSelectedGoalDetails] = useState<Goal | null>(null);
+  const [activeTab, setActiveTab] = useState<'employee' | 'personal'>('employee');
+  const { data: session } = useSession();
 
-  // Calculate statistics
+  // Calculate statistics for both employee goals and personal goals
   const stats = {
-    total: goals.length,
-    pending: goals.filter(g => g.status === 'PENDING').length,
-    approved: goals.filter(g => g.status === 'APPROVED').length,
-    rejected: goals.filter(g => g.status === 'REJECTED').length,
+    employeeGoals: {
+      total: goals.filter(g => g.employee.email !== session?.user?.email).length,
+      pending: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'PENDING').length,
+      approved: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'APPROVED').length,
+      rejected: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'REJECTED').length,
+    },
+    personalGoals: {
+      total: goals.filter(g => g.employee.email === session?.user?.email).length,
+      pending: goals.filter(g => g.employee.email === session?.user?.email && g.status === 'PENDING').length,
+      approved: goals.filter(g => g.employee.email === session?.user?.email && g.status === 'APPROVED').length,
+      rejected: goals.filter(g => g.employee.email === session?.user?.email && g.status === 'REJECTED').length,
+    },
     employeeCount: employeeCounts.total,
     activeEmployees: employeeCounts.active
   };
@@ -135,35 +147,25 @@ export default function ManagerDashboard() {
     };
 
     fetchData();
-  }, []);
+  }, [session?.user?.email]);
 
   const filteredGoals = goals.filter(goal => {
-    // Convert search query to lowercase for case-insensitive search
     const query = searchQuery.toLowerCase().trim();
-    
-    // Check if search query matches goal title
     const titleMatch = goal.title.toLowerCase().includes(query);
-    
-    // Check if search query matches employee name
     const employeeNameMatch = goal.employee?.name 
       ? goal.employee.name.toLowerCase().includes(query)
       : false;
-    
-    // Check if search query matches employee email
     const employeeEmailMatch = goal.employee?.email
       ? goal.employee.email.toLowerCase().includes(query)
       : false;
-    
-    // A goal matches if any of these conditions are true
     const matchesSearch = titleMatch || employeeNameMatch || employeeEmailMatch;
-    
-    // Apply status filter
     const matchesStatus = !selectedStatus || goal.status === selectedStatus;
-    
-    // Apply employee filter
     const matchesEmployee = selectedEmployee === 'all' || goal.employee?.email === selectedEmployee;
+    const matchesTab = activeTab === 'employee' 
+      ? goal.employee.email !== session?.user?.email 
+      : goal.employee.email === session?.user?.email;
     
-    return matchesSearch && matchesStatus && matchesEmployee;
+    return matchesSearch && matchesStatus && matchesEmployee && matchesTab;
   });
 
   if (loading) {
@@ -179,60 +181,101 @@ export default function ManagerDashboard() {
   return (
     <DashboardLayout type="manager">
       <div className="space-y-6">
+        {/* Header Section */}
         <div className="bg-[#1E2028] p-6 rounded-xl shadow-lg space-y-6">
           <div>
             <h1 className="text-2xl font-bold text-white flex items-center gap-3">
               <BsStars className="w-8 h-8 text-indigo-400" />
-              Employee Goals Overview
+              Goals Dashboard
             </h1>
-            <p className="text-gray-400 mt-1">View and track employee goals progress</p>
+            <p className="text-gray-400 mt-1">Manage your goals and track employee progress</p>
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="flex space-x-4 border-b border-gray-700">
+            <button
+              onClick={() => setActiveTab('employee')}
+              className={`pb-4 px-4 font-medium transition-colors ${
+                activeTab === 'employee'
+                  ? 'text-indigo-400 border-b-2 border-indigo-400'
+                  : 'text-gray-400 hover:text-gray-300'
+              }`}
+            >
+              Employee Goals
+            </button>
+            <button
+              onClick={() => setActiveTab('personal')}
+              className={`pb-4 px-4 font-medium transition-colors ${
+                activeTab === 'personal'
+                  ? 'text-indigo-400 border-b-2 border-indigo-400'
+                  : 'text-gray-400 hover:text-gray-300'
+              }`}
+            >
+              My Goals
+            </button>
           </div>
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-            <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
-              <div className="text-sm text-gray-400 mb-1">Total Goals</div>
-              <div className="text-2xl font-bold text-white">{stats.total}</div>
-            </div>
-            <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
-              <div className="text-sm text-amber-400 mb-1">Pending</div>
-              <div className="text-2xl font-bold text-white">{stats.pending}</div>
-            </div>
-            <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
-              <div className="text-sm text-emerald-400 mb-1">Approved</div>
-              <div className="text-2xl font-bold text-white">{stats.approved}</div>
-            </div>
-            <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
-              <div className="text-sm text-rose-400 mb-1">Rejected</div>
-              <div className="text-2xl font-bold text-white">{stats.rejected}</div>
-            </div>
-            <div className="bg-[#252832] p-4 rounded-xl border border-gray-800 relative group">
-              <div className="text-sm text-indigo-400 mb-1 flex items-center gap-2">
-                <BsPerson className="w-4 h-4" />
-                Total Employees
-              </div>
-              <div className="text-2xl font-bold text-white flex items-center gap-2">
-                {stats.employeeCount}
-                <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs rounded-lg py-1 px-2 -right-2 top-0 mt-8">
-                  All assigned employees
+            {activeTab === 'employee' ? (
+              <>
+                <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                  <div className="text-sm text-gray-400 mb-1">Total Employee Goals</div>
+                  <div className="text-2xl font-bold text-white">{stats.employeeGoals.total}</div>
                 </div>
-              </div>
-            </div>
-            <div className="bg-[#252832] p-4 rounded-xl border border-gray-800 relative group">
-              <div className="text-sm text-emerald-400 mb-1 flex items-center gap-2">
-                <BsPerson className="w-4 h-4" />
-                Active Employees
-              </div>
-              <div className="text-2xl font-bold text-white flex items-center gap-2">
-                {stats.activeEmployees}
-                <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity bg-gray-900 text-white text-xs rounded-lg py-1 px-2 -right-2 top-0 mt-8">
-                  Currently active employees
+                <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                  <div className="text-sm text-amber-400 mb-1">Pending</div>
+                  <div className="text-2xl font-bold text-white">{stats.employeeGoals.pending}</div>
                 </div>
-              </div>
-            </div>
+                <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                  <div className="text-sm text-emerald-400 mb-1">Approved</div>
+                  <div className="text-2xl font-bold text-white">{stats.employeeGoals.approved}</div>
+                </div>
+                <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                  <div className="text-sm text-rose-400 mb-1">Rejected</div>
+                  <div className="text-2xl font-bold text-white">{stats.employeeGoals.rejected}</div>
+                </div>
+                <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                  <div className="text-sm text-indigo-400 mb-1">Total Employees</div>
+                  <div className="text-2xl font-bold text-white">{stats.employeeCount}</div>
+                </div>
+                <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                  <div className="text-sm text-emerald-400 mb-1">Active Employees</div>
+                  <div className="text-2xl font-bold text-white">{stats.activeEmployees}</div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                  <div className="text-sm text-gray-400 mb-1">My Total Goals</div>
+                  <div className="text-2xl font-bold text-white">{stats.personalGoals.total}</div>
+                </div>
+                <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                  <div className="text-sm text-amber-400 mb-1">Pending</div>
+                  <div className="text-2xl font-bold text-white">{stats.personalGoals.pending}</div>
+                </div>
+                <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                  <div className="text-sm text-emerald-400 mb-1">Approved</div>
+                  <div className="text-2xl font-bold text-white">{stats.personalGoals.approved}</div>
+                </div>
+                <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+                  <div className="text-sm text-rose-400 mb-1">Rejected</div>
+                  <div className="text-2xl font-bold text-white">{stats.personalGoals.rejected}</div>
+                </div>
+                <div className="bg-[#252832] p-4 rounded-xl border border-gray-800 col-span-2">
+                  <div className="text-sm text-indigo-400 mb-1">Completion Rate</div>
+                  <div className="text-2xl font-bold text-white">
+                    {stats.personalGoals.total > 0
+                      ? `${Math.round((stats.personalGoals.approved / stats.personalGoals.total) * 100)}%`
+                      : '0%'}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
+        {/* Filters Section */}
         <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
           <div className="flex-1">
             <div className="relative group">
@@ -241,11 +284,10 @@ export default function ManagerDashboard() {
               </div>
               <input
                 type="text"
-                placeholder="Search by goal title or employee name..."
+                placeholder={`Search ${activeTab === 'employee' ? 'employee' : 'personal'} goals...`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 bg-[#1E2028] text-white rounded-xl border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all hover:bg-[#252832] hover:border-gray-600"
-                aria-label="Search goals"
               />
             </div>
           </div>
@@ -266,35 +308,28 @@ export default function ManagerDashboard() {
             </select>
           </div>
 
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <BsPerson className="text-gray-400 group-hover:text-indigo-400 transition-colors" />
+          {activeTab === 'employee' && (
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <BsPerson className="text-gray-400 group-hover:text-indigo-400 transition-colors" />
+              </div>
+              <select
+                value={selectedEmployee}
+                onChange={(e) => setSelectedEmployee(e.target.value)}
+                className="pl-10 pr-4 py-3 bg-[#1E2028] text-white rounded-xl border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:bg-[#252832] hover:border-gray-600 transition-all appearance-none cursor-pointer min-w-[180px]"
+              >
+                <option value="all">All Employees</option>
+                {employees.map((employee) => (
+                  <option key={employee.id} value={employee.email}>
+                    {employee.name}
+                  </option>
+                ))}
+              </select>
             </div>
-            <select
-              value={selectedEmployee}
-              onChange={(e) => setSelectedEmployee(e.target.value)}
-              className="pl-10 pr-4 py-3 bg-[#1E2028] text-white rounded-xl border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:bg-[#252832] hover:border-gray-600 transition-all appearance-none cursor-pointer min-w-[180px]"
-              aria-label="Filter by employee"
-            >
-              <option value="all" className="bg-[#1E2028] text-white py-2">All Employees</option>
-              {employees.map((employee) => (
-                <option 
-                  key={employee.id} 
-                  value={employee.email}
-                  className="bg-[#1E2028] text-white py-2"
-                >
-                  {employee.name}
-                </option>
-              ))}
-            </select>
-            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
-            </div>
-          </div>
+          )}
         </div>
 
+        {/* Goals Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {filteredGoals.length > 0 ? (
             filteredGoals.map((goal) => (
@@ -303,7 +338,6 @@ export default function ManagerDashboard() {
                 onClick={() => setSelectedGoalDetails(goal)}
                 className="bg-[#1E2028] rounded-xl p-6 hover:shadow-xl transition-all duration-300 border border-gray-800 hover:border-gray-700 cursor-pointer"
               >
-                {/* Header with Title and Status */}
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-2">
                     <BsLightningCharge className="w-5 h-5 text-indigo-400" />
@@ -311,27 +345,30 @@ export default function ManagerDashboard() {
                       {goal.title}
                     </h3>
                   </div>
-                  <span className="px-3 py-1 rounded-lg text-amber-400 text-sm bg-amber-400/10">
+                  <span className={`px-3 py-1 rounded-lg text-sm ${
+                    goal.status === 'APPROVED' ? 'text-emerald-400 bg-emerald-400/10' :
+                    goal.status === 'REJECTED' ? 'text-rose-400 bg-rose-400/10' :
+                    'text-amber-400 bg-amber-400/10'
+                  }`}>
                     {goal.status.charAt(0) + goal.status.slice(1).toLowerCase()}
                   </span>
                 </div>
 
-                {/* Employee Name */}
-                <div className="mb-4">
-                  <div className="bg-[#252832] p-1.5 rounded-lg flex items-center gap-2">
-                    <BsPerson className="w-4 h-4 text-gray-400" />
-                    <span className="text-gray-300">
-                      {goal.employee?.name}
-                    </span>
+                {activeTab === 'employee' && (
+                  <div className="mb-4">
+                    <div className="bg-[#252832] p-1.5 rounded-lg flex items-center gap-2">
+                      <BsPerson className="w-4 h-4 text-gray-400" />
+                      <span className="text-gray-300">
+                        {goal.employee?.name}
+                      </span>
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {/* Description */}
                 <p className="text-gray-400 mb-4">
                   {goal.description}
                 </p>
 
-                {/* Dates */}
                 <div className="flex items-center justify-between text-sm text-gray-400">
                   <div className="flex items-center gap-2">
                     <BsCalendar className="w-4 h-4" />
@@ -352,8 +389,8 @@ export default function ManagerDashboard() {
               <h3 className="text-xl font-medium text-white mb-2">No goals found</h3>
               <p className="text-gray-400">
                 {selectedStatus 
-                  ? `No goals with status "${selectedStatus.toLowerCase()}" found.`
-                  : 'There are no employee goals to review at this time.'}
+                  ? `No ${activeTab === 'employee' ? 'employee' : 'personal'} goals with status "${selectedStatus.toLowerCase()}" found.`
+                  : `There are no ${activeTab === 'employee' ? 'employee' : 'personal'} goals to review at this time.`}
               </p>
             </div>
           )}
@@ -364,45 +401,47 @@ export default function ManagerDashboard() {
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-[#1E2028] rounded-xl w-full max-w-2xl border border-gray-800 shadow-2xl">
               <div className="p-6">
-                {/* Header with Title and Status */}
                 <div className="flex justify-between items-start mb-6">
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
                       <BsLightningCharge className="w-6 h-6 text-indigo-400" />
                       <h2 className="text-xl font-medium text-indigo-400">
-                        {selectedGoalDetails?.title}
+                        {selectedGoalDetails.title}
                       </h2>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <BsPerson className="w-5 h-5 text-indigo-400" />
-                      <span className="text-indigo-400 text-lg">
-                        {selectedGoalDetails?.employee?.name}
-                      </span>
-                    </div>
+                    {activeTab === 'employee' && (
+                      <div className="flex items-center gap-2">
+                        <BsPerson className="w-5 h-5 text-indigo-400" />
+                        <span className="text-indigo-400 text-lg">
+                          {selectedGoalDetails.employee?.name}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  <span className="px-3 py-1 rounded-lg text-amber-400 text-sm bg-amber-400/10">
-                    {selectedGoalDetails?.status.charAt(0) + selectedGoalDetails?.status.slice(1).toLowerCase()}
+                  <span className={`px-3 py-1 rounded-lg text-sm ${
+                    selectedGoalDetails.status === 'APPROVED' ? 'text-emerald-400 bg-emerald-400/10' :
+                    selectedGoalDetails.status === 'REJECTED' ? 'text-rose-400 bg-rose-400/10' :
+                    'text-amber-400 bg-amber-400/10'
+                  }`}>
+                    {selectedGoalDetails.status.charAt(0) + selectedGoalDetails.status.slice(1).toLowerCase()}
                   </span>
                 </div>
 
-                {/* Description */}
                 <p className="text-gray-400 mb-6">
-                  {selectedGoalDetails?.description || 'No description provided'}
+                  {selectedGoalDetails.description || 'No description provided'}
                 </p>
 
-                {/* Dates */}
                 <div className="flex items-center justify-between text-sm text-gray-400">
                   <div className="flex items-center gap-2">
                     <BsCalendar className="w-4 h-4" />
-                    <span>Due: {selectedGoalDetails?.dueDate ? new Date(selectedGoalDetails.dueDate).toLocaleDateString() : 'N/A'}</span>
+                    <span>Due: {selectedGoalDetails.dueDate ? new Date(selectedGoalDetails.dueDate).toLocaleDateString() : 'N/A'}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <BsClock className="w-4 h-4" />
-                    <span>Submitted: {selectedGoalDetails?.createdAt ? new Date(selectedGoalDetails.createdAt).toLocaleDateString() : 'N/A'}</span>
+                    <span>Submitted: {selectedGoalDetails.createdAt ? new Date(selectedGoalDetails.createdAt).toLocaleDateString() : 'N/A'}</span>
                   </div>
                 </div>
 
-                {/* Close Button */}
                 <div className="mt-6 flex justify-end">
                   <button
                     onClick={() => setSelectedGoalDetails(null)}

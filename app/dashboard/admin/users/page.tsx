@@ -82,7 +82,9 @@ export default function UserManagement() {
   const [showEditPassword, setShowEditPassword] = useState(false);
 
   useEffect(() => {
+    console.log('Current session:', session);
     if (!session?.user || session.user.role !== 'ADMIN') {
+      console.log('Not authorized as admin, redirecting...');
       router.push('/dashboard');
       return;
     }
@@ -197,6 +199,14 @@ export default function UserManagement() {
 
     try {
       console.log('Creating user with data:', formData);
+      console.log('Current session:', session);
+      
+      if (!session?.user || session.user.role !== 'ADMIN') {
+        console.error('Not authorized as admin');
+        toast.error('You are not authorized to create users');
+        return;
+      }
+
       const response = await fetch('/api/admin/users', {
         method: 'POST',
         headers: {
@@ -212,13 +222,15 @@ export default function UserManagement() {
         }),
       });
 
+      console.log('Create user response status:', response.status);
+      const data = await response.json();
+      console.log('Create user response data:', data);
+
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Error response:', errorData);
-        throw new Error(errorData.error || 'Failed to create user');
+        throw new Error(data.error || 'Failed to create user');
       }
 
-      const newUser = await response.json();
+      const newUser = data;
       console.log('User created successfully:', newUser);
       
       // Transform the new user to match our User interface
@@ -352,13 +364,28 @@ export default function UserManagement() {
 
   const handleDeleteUser = async (userId: string) => {
     try {
+      console.log('Attempting to delete user:', userId);
+      console.log('Current session:', session);
+      
+      if (!session?.user || session.user.role !== 'ADMIN') {
+        console.error('Not authorized as admin');
+        toast.error('You are not authorized to delete users');
+        return;
+      }
+
       const response = await fetch(`/api/admin/users?id=${userId}`, {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
+      console.log('Delete response status:', response.status);
+      const data = await response.json();
+      console.log('Delete response data:', data);
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to delete user');
+        throw new Error(data.error || 'Failed to delete user');
       }
 
       setUsers(users.filter(user => user.id !== userId));
