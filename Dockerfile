@@ -32,6 +32,7 @@ RUN npm run build
 
 # 3. Production image, copy all the files and run next
 FROM base AS runner
+RUN apt-get update -y && apt-get install -y openssl
 WORKDIR /app
 
 ENV NODE_ENV=production
