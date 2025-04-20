@@ -16,43 +16,57 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
+    console.log('[Login] Form submitted');
 
     const formData = new FormData(e.currentTarget);
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
+    console.log('[Login] Email:', email);
 
     try {
+      console.log('[Login] Attempting signIn...');
       const result = await signIn('credentials', {
         email,
         password,
         redirect: false,
       });
+      console.log('[Login] signIn result:', result);
 
       if (result?.error) {
+        console.log('[Login] Invalid credentials:', result.error);
         toast.error('Invalid credentials');
         return;
       }
 
       // Get the user's role from the session
+      console.log('[Login] Fetching session...');
       const response = await fetch('/api/auth/session');
       const session = await response.json();
+      console.log('[Login] Session data:', session);
       
       // Redirect based on role
       if (session?.user?.role === 'ADMIN') {
+        console.log('[Login] Redirecting to /dashboard/admin');
         router.push('/dashboard/admin');
       } else if (session?.user?.role === 'MANAGER') {
+        console.log('[Login] Redirecting to /dashboard/manager');
         router.push('/dashboard/manager');
       } else {
+        console.log('[Login] Redirecting to /dashboard/employee');
         router.push('/dashboard/employee');
       }
       
       router.refresh();
+      console.log('[Login] Router refreshed.');
     } catch (error) {
+      console.error('[Login] Error during login:', error);
       toast.error('An error occurred during login');
     } finally {
       setIsLoading(false);
+      console.log('[Login] Login process ended. isLoading set to false.');
     }
   };
+
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#0f172a] to-[#1e1b4b]">
