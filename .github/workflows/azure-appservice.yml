@@ -3,6 +3,7 @@ name: Deploy Next.js App to Azure App Service
 permissions:
   id-token: write
   contents: read
+  packages: write
 
 on:
   push:
