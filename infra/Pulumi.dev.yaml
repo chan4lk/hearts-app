@@ -1,0 +1,3 @@
+config:
+  hearts-app-infra:dbPassword:
+    secure: AAABAC9G3lCyTHI5czD+zPMwQyT91ZposwSOQ2RUSdeSFCBs0wn43hp+tLJ5

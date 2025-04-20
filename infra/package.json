@@ -1,0 +1,11 @@
+{
+  "name": "hearts-app-infra",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {
+    "@pulumi/pulumi": "^3.0.0",
+    "@pulumi/azure-native": "^2.0.0"
+  }
+}
