@@ -107,7 +107,7 @@ export const authOptions: NextAuthOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NODE_ENV === 'development' ? 'localhost' : '.azurewebsites.net' 
+        domain: process.env.NODE_ENV === 'development' ? 'localhost' : process.env.NEXTAUTH_DOMAIN
       }
     }
   },
