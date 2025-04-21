@@ -1,5 +1,5 @@
 # dependencies
-node_modules
+/node_modules
 /.pnp
 .pnp.js
 
@@ -36,3 +36,10 @@ next-env.d.ts
 # IDE
 .idea/
 .vscode/
+
+# Database
+/prisma/*.db
+/prisma/migrations/
+
+# Docker
+.docker/
