@@ -10,7 +10,19 @@ const nextConfig = {
     };
     return config;
   },
-  output: 'standalone'
+  output: 'standalone',
+  experimental: {
+    serverActions: true,
+  },
+  pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
+  async rewrites() {
+    return [
+      {
+        source: '/login',
+        destination: '/login',
+      },
+    ];
+  }
 }
 
 module.exports = nextConfig 

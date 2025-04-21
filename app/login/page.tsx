@@ -2,12 +2,17 @@
 
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import dynamic from 'next/dynamic';
+
+// Add dynamic import for client-side components
+const DynamicHeader = dynamic(() => import('@/components/Header'), { ssr: false });
+const DynamicFooter = dynamic(() => import('@/components/Footer'), { ssr: false });
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,9 +20,16 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({ email: '', password: '' });
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!mounted) return;
+    
     setIsLoading(true);
     setErrors({ email: '', password: '' });
     console.log('[Login] Form submitted');
@@ -70,6 +82,9 @@ export default function LoginPage() {
     }
   };
 
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#0f172a] to-[#1e1b4b]">
@@ -85,7 +100,7 @@ export default function LoginPage() {
         pauseOnHover
         theme="dark"
       />
-      <Header />
+      <DynamicHeader />
       
       <main className="flex-grow flex items-center justify-center ">
         <div className="w-full max-w-sm">
@@ -215,7 +230,7 @@ export default function LoginPage() {
         </div>
       </main>
 
-      <Footer />
+      <DynamicFooter />
     </div>
   );
 } 
