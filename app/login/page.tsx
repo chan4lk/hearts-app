@@ -3,7 +3,8 @@
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -13,10 +14,12 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({ email: '', password: '' });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrors({ email: '', password: '' });
     console.log('[Login] Form submitted');
 
     const formData = new FormData(e.currentTarget);
@@ -36,7 +39,10 @@ export default function LoginPage() {
 
       if (result?.error) {
         console.log('[Login] Invalid credentials:', result.error);
-        toast.error('Invalid credentials');
+        setErrors({
+          email: 'Please enter a valid email address',
+          password: 'Please enter a valid password'
+        });
         return;
       }
 
@@ -67,6 +73,18 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-[#0f172a] to-[#1e1b4b]">
+      <ToastContainer 
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
       <Header />
       
       <main className="flex-grow flex items-center justify-center ">
@@ -98,9 +116,14 @@ export default function LoginPage() {
                     type="email"
                     autoComplete="email"
                     required
-                    className="block w-full pl-8 pr-3 py-2 text-sm rounded-lg bg-[#1e1b4b]/50 border border-indigo-500/20 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                    className={`block w-full pl-8 pr-3 py-2 text-sm rounded-lg bg-[#1e1b4b]/50 border ${
+                      errors.email ? 'border-red-500' : 'border-indigo-500/20'
+                    } text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all duration-300`}
                     placeholder="Enter your email"
                   />
+                  {errors.email && (
+                    <p className="mt-1 text-xs text-red-500">{errors.email}</p>
+                  )}
                 </div>
               </div>
 
@@ -120,9 +143,14 @@ export default function LoginPage() {
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     required
-                    className="block w-full pl-8 pr-8 py-2 text-sm rounded-lg bg-[#1e1b4b]/50 border border-indigo-500/20 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all duration-300"
+                    className={`block w-full pl-8 pr-8 py-2 text-sm rounded-lg bg-[#1e1b4b]/50 border ${
+                      errors.password ? 'border-red-500' : 'border-indigo-500/20'
+                    } text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-transparent transition-all duration-300`}
                     placeholder="Enter your password"
                   />
+                  {errors.password && (
+                    <p className="mt-1 text-xs text-red-500">{errors.password}</p>
+                  )}
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
