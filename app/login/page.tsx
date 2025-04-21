@@ -56,7 +56,7 @@ export default function LoginPage() {
         router.push('/dashboard/employee');
       }
       
-      // router.refresh();
+      router.refresh();
       console.log('[Login] Router refreshed.');
     } catch (error) {
       console.error('[Login] Error during login:', error);
