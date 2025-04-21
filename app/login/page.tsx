@@ -1,7 +1,7 @@
 "use client";
 
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
@@ -10,6 +10,7 @@ import Footer from '@/components/Footer';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -21,7 +22,7 @@ export default function LoginPage() {
     const formData = new FormData(e.currentTarget);
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
-    console.log('[Login] Email:', email);
+    const callbackUrl = searchParams.get('callbackUrl') || '/dashboard/employee';
 
     try {
       console.log('[Login] Attempting signIn...');
@@ -29,6 +30,7 @@ export default function LoginPage() {
         email,
         password,
         redirect: false,
+        callbackUrl,
       });
       console.log('[Login] signIn result:', result);
 
@@ -46,24 +48,19 @@ export default function LoginPage() {
       
       // Redirect based on role
       if (session?.user?.role === 'ADMIN') {
-        console.log('[Login] Redirecting to /dashboard/admin');
         router.push('/dashboard/admin');
       } else if (session?.user?.role === 'MANAGER') {
-        console.log('[Login] Redirecting to /dashboard/manager');
         router.push('/dashboard/manager');
       } else {
-        console.log('[Login] Redirecting to /dashboard/employee');
         router.push('/dashboard/employee');
       }
       
       router.refresh();
-      console.log('[Login] Router refreshed.');
     } catch (error) {
       console.error('[Login] Error during login:', error);
       toast.error('An error occurred during login');
     } finally {
       setIsLoading(false);
-      console.log('[Login] Login process ended. isLoading set to false.');
     }
   };
 

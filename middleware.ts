@@ -13,7 +13,9 @@ export default withAuth(
 
     // Redirect to login if no token
     if (!token) {
-      return NextResponse.redirect(new URL("/login", req.url));
+      const url = new URL("/login", req.url);
+      url.searchParams.set("callbackUrl", req.nextUrl.pathname);
+      return NextResponse.redirect(url);
     }
 
     // Role-based access control
