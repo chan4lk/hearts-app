@@ -11,9 +11,6 @@ const nextConfig = {
     return config;
   },
   output: 'standalone',
-  experimental: {
-    serverActions: true,
-  },
   pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
   async rewrites() {
     return [

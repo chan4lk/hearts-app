@@ -2,7 +2,7 @@
 
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Link from 'next/link';
@@ -14,7 +14,7 @@ import dynamic from 'next/dynamic';
 const DynamicHeader = dynamic(() => import('@/components/Header'), { ssr: false });
 const DynamicFooter = dynamic(() => import('@/components/Footer'), { ssr: false });
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
@@ -223,14 +223,19 @@ export default function LoginPage() {
                 </span>
               )}
             </button>
-
-            
-            
           </form>
         </div>
       </main>
 
       <DynamicFooter />
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 } 
