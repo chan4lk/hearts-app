@@ -33,6 +33,8 @@ function LoginForm() {
     setIsLoading(true);
     setErrors({ email: '', password: '' });
     console.log('[Login] Form submitted');
+    console.log('[Login] NEXTAUTH_URL:', process.env.NEXTAUTH_URL);
+    console.log('[Login] NEXTAUTH_DOMAIN:', process.env.NEXTAUTH_DOMAIN);
 
     const formData = new FormData(e.currentTarget);
     const email = formData.get('email') as string;
@@ -63,6 +65,8 @@ function LoginForm() {
       const response = await fetch('/api/auth/session');
       const session = await response.json();
       console.log('[Login] Session data:', session);
+      console.log('[Login] Response status:', response.status);
+      console.log('[Login] Response headers:', Object.fromEntries(response.headers.entries()));
       
       // Redirect based on role
       if (session?.user?.role === 'ADMIN') {
