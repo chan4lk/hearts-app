@@ -107,12 +107,12 @@ export const authOptions: NextAuthOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NODE_ENV === 'development' ? 'localhost' : process.env.NEXTAUTH_DOMAIN
+        domain: process.env.NODE_ENV === 'production' ? process.env.NEXTAUTH_DOMAIN : undefined
       }
     }
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: true,
+  debug: process.env.NODE_ENV === 'development',
 };
 
 export interface AuthUser {
