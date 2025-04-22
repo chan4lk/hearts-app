@@ -70,14 +70,12 @@ function LoginForm() {
       
       // Redirect based on role
       if (session?.user?.role === 'ADMIN') {
-        router.push('/dashboard/admin');
+        window.location.href = '/dashboard/admin';
       } else if (session?.user?.role === 'MANAGER') {
-        router.push('/dashboard/manager');
+        window.location.href = '/dashboard/manager';
       } else {
-        router.push('/dashboard/employee');
+        window.location.href = '/dashboard/employee';
       }
-      
-      router.refresh();
     } catch (error) {
       console.error('[Login] Error during login:', error);
       toast.error('An error occurred during login');
