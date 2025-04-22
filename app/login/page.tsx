@@ -33,8 +33,8 @@ function LoginForm() {
     setIsLoading(true);
     setErrors({ email: '', password: '' });
     console.log('[Login] Form submitted');
-    console.log('[Login] NEXTAUTH_URL:', process.env.NEXTAUTH_URL);
-    console.log('[Login] NEXTAUTH_DOMAIN:', process.env.NEXTAUTH_DOMAIN);
+    console.log('[Login] NEXTAUTH_URL:', process.env.NEXT_PUBLIC_NEXTAUTH_URL);
+    console.log('[Login] NEXTAUTH_DOMAIN:', process.env.NEXT_PUBLIC_NEXTAUTH_DOMAIN);
 
     const formData = new FormData(e.currentTarget);
     const email = formData.get('email') as string;
