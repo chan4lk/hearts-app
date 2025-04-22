@@ -9,6 +9,7 @@ import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import dynamic from 'next/dynamic';
+import { SVGProps } from 'react';
 
 // Add dynamic import for client-side components
 const DynamicHeader = dynamic(() => import('@/components/Header'), { ssr: false });
@@ -33,8 +34,8 @@ function LoginForm() {
     setIsLoading(true);
     setErrors({ email: '', password: '' });
     console.log('[Login] Form submitted');
-    console.log('[Login] NEXTAUTH_URL:', process.env.NEXT_PUBLIC_NEXTAUTH_URL);
-    console.log('[Login] NEXTAUTH_DOMAIN:', process.env.NEXT_PUBLIC_NEXTAUTH_DOMAIN);
+    console.log('[Login] NEXTAUTH_URL:', process.env.NEXTAUTH_URL);
+    console.log('[Login] NEXTAUTH_DOMAIN:', process.env.NEXTAUTH_DOMAIN);
 
     const formData = new FormData(e.currentTarget);
     const email = formData.get('email') as string;
@@ -70,12 +71,14 @@ function LoginForm() {
       
       // Redirect based on role
       if (session?.user?.role === 'ADMIN') {
-        window.location.href = '/dashboard/admin';
+        router.push('/dashboard/admin');
       } else if (session?.user?.role === 'MANAGER') {
-        window.location.href = '/dashboard/manager';
+        router.push('/dashboard/manager');
       } else {
-        window.location.href = '/dashboard/employee';
+        router.push('/dashboard/employee');
       }
+      
+      router.refresh();
     } catch (error) {
       console.error('[Login] Error during login:', error);
       toast.error('An error occurred during login');
