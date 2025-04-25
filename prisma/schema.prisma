@@ -1,7 +1,7 @@
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-1.1.x", "linux-arm64-openssl-1.1.x"]
   output        = "../node_modules/.prisma/client"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "linux-arm64-openssl-1.1.x"]
 }
 
 datasource db {
@@ -24,14 +24,10 @@ model User {
   department          String?
   isActive            Boolean        @default(true)
   position            String?
-  deletedAt           DateTime?
   feedbackGiven       Feedback[]     @relation("FeedbackGiven")
   feedbackReceived    Feedback[]     @relation("FeedbackReceived")
-  createdGoals        Goal[]         @relation("CreatedGoals")
-  deletedGoals        Goal[]         @relation("DeletedGoals")
   goals               Goal[]         @relation("EmployeeGoals")
   managerGoals        Goal[]         @relation("ManagerGoals")
-  updatedGoals        Goal[]         @relation("UpdatedGoals")
   notifications       Notification[]
   managerRatings      Rating[]       @relation("ManagerRatings")
   selfRatings         Rating[]       @relation("SelfRatings")
@@ -46,7 +42,7 @@ model User {
 model Goal {
   id              String         @id @default(cuid())
   title           String
-  description     String?
+  description     String
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   dueDate         DateTime
@@ -57,25 +53,15 @@ model Goal {
   rejectedAt      DateTime?
   rejectedBy      String?
   managerComments String?
-  status          String         @default("draft")
+  status          String         @default("PENDING")
   category        GoalCategory   @default(PROFESSIONAL)
-  createdById     String?
-  deletedAt       DateTime?
-  deletedById     String?
-  updatedById     String?
-  createdBy       User?          @relation("CreatedGoals", fields: [createdById], references: [id])
-  deletedBy       User?          @relation("DeletedGoals", fields: [deletedById], references: [id])
   employee        User           @relation("EmployeeGoals", fields: [employeeId], references: [id])
   manager         User?          @relation("ManagerGoals", fields: [managerId], references: [id])
-  updatedBy       User?          @relation("UpdatedGoals", fields: [updatedById], references: [id])
   notifications   Notification[]
   ratings         Rating[]
 
   @@index([managerId])
   @@index([employeeId])
-  @@index([createdById])
-  @@index([updatedById])
-  @@index([deletedById])
 }
 
 model Rating {
@@ -147,7 +133,6 @@ enum GoalStatus {
   REJECTED
   MODIFIED
   COMPLETED
-  DRAFT
 }
 
 enum NotificationType {

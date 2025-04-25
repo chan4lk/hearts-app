@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  migration:
+    image: node:18
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - DATABASE_URL=postgresql://pgadmin:heartsAppDB@1@postgresb5506c87.postgres.database.azure.com:5432/postgres?sslmode=require
+    command: >
+      sh -c "npm install &&
+             npx prisma migrate deploy" 
