@@ -88,12 +88,16 @@ export async function POST(req: Request) {
     // Check if user is admin or manager
     const isAdminOrManager = session.user.role === 'ADMIN' || session.user.role === 'MANAGER';
     
-    if (!isAdminOrManager && !employeeId) {
+    // For admin/manager, employeeId is required
+    if (isAdminOrManager && !employeeId) {
       return NextResponse.json(
         { error: 'Employee ID is required for admin/manager goal creation' },
         { status: 400 }
       );
     }
+
+    // For employees creating their own goals
+    const isSelfGoal = !isAdminOrManager && (!employeeId || employeeId === session.user.id);
 
     const goal = await prisma.goal.create({
       data: {
@@ -102,8 +106,8 @@ export async function POST(req: Request) {
         category,
         dueDate: new Date(dueDate),
         status: isAdminOrManager ? 'DRAFT' : 'PENDING', // Start as DRAFT for admin/manager, PENDING for employees
-        employeeId: employeeId || session.user.id,
-        managerId: isAdminOrManager ? session.user.id : null,
+        employeeId: isSelfGoal ? session.user.id : employeeId,
+        managerId: isAdminOrManager ? session.user.id : null, // Set managerId for admin/manager, null for self-created goals
         createdById: session.user.id,
         updatedById: session.user.id
       },

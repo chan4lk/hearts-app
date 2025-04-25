@@ -156,7 +156,7 @@ function GoalsPageContent() {
 
   const fetchGoals = async () => {
     try {
-      const response = await fetch('/api/goals', {
+      const response = await fetch('/api/goals/self', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -389,19 +389,19 @@ function GoalsPageContent() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-                Create New Goal
+                My Created Goals
                 <span className="bg-indigo-500/10 p-1 rounded text-indigo-400 text-sm font-normal">
                   Employee Portal
                 </span>
               </h1>
-              <p className="text-gray-400 mt-1">Define your performance goals and track your progress</p>
+              <p className="text-gray-400 mt-1">View and manage goals you have created</p>
             </div>
             <button 
               onClick={() => setIsCreateModalOpen(true)}
               className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
             >
               <BsPlus className="w-5 h-5" />
-              Quick Create
+              Create New Goal
             </button>
           </div>
         </div>
