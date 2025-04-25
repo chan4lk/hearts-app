@@ -34,9 +34,11 @@ interface Goal {
   description: string;
   dueDate: string;
   status: GoalStatus;
+  category: string;
   createdAt: string;
   updatedAt: string;
   managerComments?: string;
+  employeeComment?: string;
   employee: {
     id: string;
     name: string;
@@ -57,6 +59,8 @@ export default function EmployeeDashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [submissionComment, setSubmissionComment] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Load goals from the database
   useEffect(() => {
@@ -107,6 +111,45 @@ export default function EmployeeDashboard() {
       rejected, 
       achievementScore 
     };
+  };
+
+  // Add submit goal function
+  const handleSubmitGoal = async (goalId: string) => {
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`/api/goals/${goalId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: selectedGoal?.title,
+          description: selectedGoal?.description,
+          dueDate: selectedGoal?.dueDate,
+          employeeId: selectedGoal?.employee.id,
+          category: selectedGoal?.category || 'PROFESSIONAL',
+          status: 'PENDING',
+          employeeComment: submissionComment
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to submit goal');
+      }
+
+      // Refresh goals list
+      const updatedResponse = await fetch('/api/goals');
+      const updatedData = await updatedResponse.json();
+      setGoals(updatedData.goals || []);
+      setShowDetailModal(false);
+      setSubmissionComment('');
+    } catch (error) {
+      console.error('Error submitting goal:', error);
+      alert(error instanceof Error ? error.message : 'Failed to submit goal');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (loading) {
@@ -371,71 +414,78 @@ export default function EmployeeDashboard() {
                       <span className="text-sm font-medium">Due Date</span>
                     </div>
                     <p className="text-white">
-                      {new Date(selectedGoal.dueDate).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+                      {new Date(selectedGoal.dueDate).toLocaleDateString()}
                     </p>
                   </div>
 
                   <div className="bg-[#252832] rounded-lg p-4">
                     <div className="flex items-center gap-2 text-gray-400 mb-1">
-                      <BsClock className="w-4 h-4" />
-                      <span className="text-sm font-medium">Submitted Date</span>
+                      <BsShield className="w-4 h-4" />
+                      <span className="text-sm font-medium">Assigned Manager</span>
                     </div>
-                    <p className="text-white">
-                      {new Date(selectedGoal.updatedAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </p>
+                    <p className="text-white">{selectedGoal.manager?.name || 'Not assigned'}</p>
                   </div>
                 </div>
+
+                {/* Submission Section - Show for goals that can be submitted */}
+                {(selectedGoal.status === 'DRAFT' || selectedGoal.status === 'MODIFIED') && (
+                  <div className="bg-[#252832] rounded-lg p-4 border border-gray-700">
+                    <div className="flex items-center gap-2 text-gray-400 mb-2">
+                      <BsChat className="w-4 h-4" />
+                      <span className="text-sm font-medium">Submit for Approval</span>
+                    </div>
+                    <textarea
+                      value={submissionComment}
+                      onChange={(e) => setSubmissionComment(e.target.value)}
+                      placeholder="Add any comments for your manager (optional)"
+                      className="w-full bg-[#1E2028] text-white rounded-lg p-3 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent mt-2 mb-3"
+                      rows={3}
+                    />
+                    <button
+                      onClick={() => handleSubmitGoal(selectedGoal.id)}
+                      disabled={isSubmitting}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        <>
+                          <BsCheckCircle className="w-4 h-4" />
+                          Submit for Approval
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
 
                 {/* Manager Feedback Section */}
                 {(selectedGoal.status === 'APPROVED' || selectedGoal.status === 'REJECTED') && selectedGoal.managerComments && (
                   <div className="bg-[#252832] rounded-lg p-4 border border-gray-700">
                     <div className="flex items-center gap-2 text-gray-400 mb-2">
                       <BsChat className="w-4 h-4" />
-                      <span className="text-sm font-medium">Manager Comments</span>
+                      <span className="text-sm font-medium">Manager Feedback</span>
                     </div>
                     <p className="text-gray-300">{selectedGoal.managerComments}</p>
                   </div>
                 )}
 
-                {/* Approval Status Section */}
-                <div className="bg-[#252832] rounded-lg p-4 border border-gray-700">
-                  <div className="flex items-center gap-2 text-gray-400 mb-2">
-                    <BsShield className="w-4 h-4" />
-                    <span className="text-sm font-medium">Approval Status</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      selectedGoal.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' :
-                      selectedGoal.status === 'REJECTED' ? 'bg-rose-500/10 text-rose-400' :
-                      selectedGoal.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' :
-                      'bg-gray-500/10 text-gray-400'
-                    }`}>
-                      {selectedGoal.status.charAt(0) + selectedGoal.status.slice(1).toLowerCase()}
-                    </span>
-                    {selectedGoal.status === 'APPROVED' && (
-                      <span className="text-sm text-gray-400">
-                        Approved on {new Date(selectedGoal.updatedAt).toLocaleDateString()}
-                      </span>
-                    )}
-                  </div>
+                <div className="flex justify-end gap-3 pt-4">
+                  {selectedGoal.status === 'PENDING' && (
+                    <div className="flex-1 text-amber-400 flex items-center">
+                      <BsClock className="w-4 h-4 mr-2" />
+                      Awaiting manager approval
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setShowDetailModal(false)}
+                    className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                  >
+                    Close
+                  </button>
                 </div>
-              </div>
-
-              <div className="flex justify-end pt-4">
-                <button
-                  onClick={() => setShowDetailModal(false)}
-                  className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
-                >
-                  Close
-                </button>
               </div>
             </div>
           </div>

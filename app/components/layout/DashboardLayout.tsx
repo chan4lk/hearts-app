@@ -144,7 +144,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       case 'employee':
         return [
           { href: '/dashboard/employee', icon: BsGrid, label: 'Dashboard' },
-          { href: '/dashboard/goals/create', icon: BsBullseye, label: 'Goal Setting' },
+          { href: '/dashboard/employee/goals/create', icon: BsBullseye, label: 'Goals Create' },
           { href: '/self-rating', icon: BsStar, label: 'Self Rating' },
           { href: '/feedback', icon: BsChat, label: 'Feedback' },
           { href: '/reports', icon: BsBarChart, label: 'Reports' },
@@ -157,7 +157,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
           { href: '/dashboard/manager/goals/', icon: BsBullseye, label: 'Set Goals ' },
 
           { href: '/rate-employees', icon: BsStar, label: 'Manager Ratings' },
-          { href: '/dashboard/manager/goals/create', icon: BsBullseye, label: 'Goal Setting' },
+          { href: '/dashboard/manager/goals/create', icon: BsBullseye, label: 'Goals Create' },
           { href: '/dashboard/manager/goals/self-ratings', icon: BsStar, label: 'Self Rating' },
           { href: '/performance-reviews', icon: BsBarChart, label: 'Performance Reviews' },
           { href: '/feedback', icon: BsChat, label: 'Feedback' },

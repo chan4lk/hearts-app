@@ -18,19 +18,29 @@ import {
 } from 'react-icons/bs';
 import { useSession } from 'next-auth/react';
 
+type GoalStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'COMPLETED' | 'DELETED';
+
 interface Goal {
   id: string;
   employee: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  manager?: {
+    id: string;
     name: string;
     email: string;
   };
   title: string;
   description: string;
   dueDate: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  status: GoalStatus;
+  category: string;
   createdAt: string;
-  feedback?: string;
-  isManagerGoal?: boolean;
+  updatedAt: string;
+  managerComments?: string;
+  employeeComment?: string;
 }
 
 interface EmployeeStats {
@@ -40,7 +50,14 @@ interface EmployeeStats {
   goalsCount: number;
 }
 
-const STATUS_STYLES = {
+interface StatusStyle {
+  bg: string;
+  text: string;
+  icon: JSX.Element;
+  gradient?: string;
+}
+
+const STATUS_STYLES: Record<Exclude<GoalStatus, 'DELETED'>, StatusStyle> = {
   APPROVED: {
     bg: 'bg-emerald-500/10',
     text: 'text-emerald-400',
@@ -58,7 +75,37 @@ const STATUS_STYLES = {
     text: 'text-rose-400',
     icon: <BsXCircle className="w-4 h-4" />,
     gradient: 'from-rose-500/10'
+  },
+  MODIFIED: {
+    bg: 'bg-blue-500/10',
+    text: 'text-blue-400',
+    icon: <BsArrowRight className="w-4 h-4" />,
+    gradient: 'from-blue-500/10'
+  },
+  COMPLETED: {
+    bg: 'bg-purple-500/10',
+    text: 'text-purple-400',
+    icon: <BsCheckCircle className="w-4 h-4" />,
+    gradient: 'from-purple-500/10'
+  },
+  DRAFT: {
+    bg: 'bg-gray-500/10',
+    text: 'text-gray-400',
+    icon: <BsChat className="w-4 h-4" />,
+    gradient: 'from-gray-500/10'
   }
+};
+
+const getStatusStyle = (status: GoalStatus): StatusStyle => {
+  if (status === 'DELETED') {
+    return {
+      bg: 'bg-gray-500/10',
+      text: 'text-gray-400',
+      icon: <BsXCircle className="w-4 h-4" />,
+      gradient: 'from-gray-500/10'
+    };
+  }
+  return STATUS_STYLES[status as keyof typeof STATUS_STYLES];
 };
 
 export default function ManagerDashboard() {
@@ -77,15 +124,21 @@ export default function ManagerDashboard() {
   const stats = {
     employeeGoals: {
       total: goals.filter(g => g.employee.email !== session?.user?.email).length,
+      draft: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'DRAFT').length,
       pending: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'PENDING').length,
       approved: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'APPROVED').length,
       rejected: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'REJECTED').length,
+      modified: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'MODIFIED').length,
+      completed: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'COMPLETED').length,
     },
     personalGoals: {
       total: goals.filter(g => g.employee.email === session?.user?.email).length,
+      draft: goals.filter(g => g.employee.email === session?.user?.email && g.status === 'DRAFT').length,
       pending: goals.filter(g => g.employee.email === session?.user?.email && g.status === 'PENDING').length,
       approved: goals.filter(g => g.employee.email === session?.user?.email && g.status === 'APPROVED').length,
       rejected: goals.filter(g => g.employee.email === session?.user?.email && g.status === 'REJECTED').length,
+      modified: goals.filter(g => g.employee.email === session?.user?.email && g.status === 'MODIFIED').length,
+      completed: goals.filter(g => g.employee.email === session?.user?.email && g.status === 'COMPLETED').length,
     },
     employeeCount: employeeCounts.total,
     activeEmployees: employeeCounts.active
@@ -108,7 +161,7 @@ export default function ManagerDashboard() {
         });
 
         // Then fetch goals
-        const goalResponse = await fetch('/api/goals');
+        const goalResponse = await fetch('/api/goals/managed');
         if (!goalResponse.ok) {
           throw new Error('Failed to fetch goals');
         }
@@ -302,9 +355,12 @@ export default function ManagerDashboard() {
               className="pl-10 pr-4 py-3 bg-[#1E2028] text-white rounded-xl border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:bg-[#252832] hover:border-gray-600 transition-all appearance-none cursor-pointer min-w-[180px]"
             >
               <option value="">All Statuses</option>
+              <option value="DRAFT">Draft</option>
               <option value="PENDING">Pending</option>
               <option value="APPROVED">Approved</option>
               <option value="REJECTED">Rejected</option>
+              <option value="MODIFIED">Modified</option>
+              <option value="COMPLETED">Completed</option>
             </select>
           </div>
 
@@ -346,11 +402,12 @@ export default function ManagerDashboard() {
                     </h3>
                   </div>
                   <span className={`px-3 py-1 rounded-lg text-sm ${
-                    goal.status === 'APPROVED' ? 'text-emerald-400 bg-emerald-400/10' :
-                    goal.status === 'REJECTED' ? 'text-rose-400 bg-rose-400/10' :
-                    'text-amber-400 bg-amber-400/10'
-                  }`}>
-                    {goal.status.charAt(0) + goal.status.slice(1).toLowerCase()}
+                    getStatusStyle(goal.status).bg
+                  } ${getStatusStyle(goal.status).text}`}>
+                    {getStatusStyle(goal.status).icon}
+                    <span className="ml-1">
+                      {goal.status.charAt(0) + goal.status.slice(1).toLowerCase()}
+                    </span>
                   </span>
                 </div>
 
@@ -419,11 +476,12 @@ export default function ManagerDashboard() {
                     )}
                   </div>
                   <span className={`px-3 py-1 rounded-lg text-sm ${
-                    selectedGoalDetails.status === 'APPROVED' ? 'text-emerald-400 bg-emerald-400/10' :
-                    selectedGoalDetails.status === 'REJECTED' ? 'text-rose-400 bg-rose-400/10' :
-                    'text-amber-400 bg-amber-400/10'
-                  }`}>
-                    {selectedGoalDetails.status.charAt(0) + selectedGoalDetails.status.slice(1).toLowerCase()}
+                    getStatusStyle(selectedGoalDetails.status).bg
+                  } ${getStatusStyle(selectedGoalDetails.status).text}`}>
+                    {getStatusStyle(selectedGoalDetails.status).icon}
+                    <span className="ml-1">
+                      {selectedGoalDetails.status.charAt(0) + selectedGoalDetails.status.slice(1).toLowerCase()}
+                    </span>
                   </span>
                 </div>
 
