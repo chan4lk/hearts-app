@@ -154,6 +154,8 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
         return [
           { href: '/dashboard/manager', icon: BsGrid, label: 'Dashboard' },
           { href: '/approve-goals', icon: BsBullseye, label: 'Goal Approvals' },
+          { href: '/dashboard/manager/goals/', icon: BsBullseye, label: 'Set Goals ' },
+
           { href: '/rate-employees', icon: BsStar, label: 'Manager Ratings' },
           { href: '/dashboard/manager/goals/create', icon: BsBullseye, label: 'Goal Setting' },
           { href: '/dashboard/manager/goals/self-ratings', icon: BsStar, label: 'Self Rating' },
@@ -164,7 +166,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
         return [
           { href: '/dashboard/admin', label: 'Dashboard', icon: BsGrid },
           { href: '/dashboard/admin/users', label: 'Users', icon: BsPeople },
-          { href: '/dashboard/admin/goals/', icon: BsBullseye, label: 'Goals Create' },
+          { href: '/dashboard/admin/goals/', icon: BsBullseye, label: 'Set Goals ' },
           { href: '/dashboard/admin/settings', label: 'Settings', icon: BsGear },
           { href: '/audit-logs', icon: BsClipboardData, label: 'Audit Logs' },
         ];
