@@ -6,7 +6,7 @@ import { NotificationType, Prisma } from '@prisma/client';
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { goalId: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -23,7 +23,7 @@ export async function PUT(
 
     // Get the goal to check ownership
     const goal = await prisma.goal.findUnique({
-      where: { id: params.id },
+      where: { id: params.goalId },
       select: { employeeId: true, managerId: true },
     });
 
@@ -37,7 +37,7 @@ export async function PUT(
 
     // Update the goal progress
     const updatedGoal = await prisma.goal.update({
-      where: { id: params.id },
+      where: { id: params.goalId },
       data: {
         progress: progress,
         progressNotes: notes,

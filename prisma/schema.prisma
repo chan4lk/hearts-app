@@ -1,6 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
- binaryTargets = ["native", "debian-openssl-1.1.x", "linux-arm64-openssl-1.1.x"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "linux-arm64-openssl-1.1.x"]
 }
 
 datasource db {
@@ -9,29 +9,33 @@ datasource db {
 }
 
 model User {
-  id                                 String     @id @default(cuid())
-  email                              String     @unique
-  name                               String
-  role                               Role       @default(EMPLOYEE)
-  password                           String
-  department                         String?
-  position                         String?
-  isActive                           Boolean    @default(true)
-  createdAt                          DateTime   @default(now())
-  updatedAt                          DateTime   @updatedAt
-  managerId                          String?
-  failedLoginAttempts                Int        @default(0)
-  lastLoginAttempt                   DateTime?
-  lastLoginAt                        DateTime?
-  feedbackGiven                      Feedback[] @relation("FeedbackGiven")
-  feedbackReceived                   Feedback[] @relation("FeedbackReceived")
-  goals                              Goal[]     @relation("EmployeeGoals")
-  managerGoals                       Goal[]     @relation("ManagerGoals")
-  managerRatings                     Rating[]   @relation("ManagerRatings")
-  selfRatings                        Rating[]   @relation("SelfRatings")
-  manager                            User?      @relation("UserToUser", fields: [managerId], references: [id])
-  employees                          User[]     @relation("UserToUser")
-  notifications                      Notification[]
+  id                  String         @id @default(cuid())
+  email               String         @unique
+  name                String
+  role                Role           @default(EMPLOYEE)
+  password            String
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  managerId           String?
+  failedLoginAttempts Int            @default(0)
+  lastLoginAt         DateTime?
+  lastLoginAttempt    DateTime?
+  department          String?
+  isActive            Boolean        @default(true)
+  position            String?
+  deletedAt           DateTime?
+  feedbackGiven       Feedback[]     @relation("FeedbackGiven")
+  feedbackReceived    Feedback[]     @relation("FeedbackReceived")
+  createdGoals        Goal[]         @relation("CreatedGoals")
+  deletedGoals        Goal[]         @relation("DeletedGoals")
+  goals               Goal[]         @relation("EmployeeGoals")
+  managerGoals        Goal[]         @relation("ManagerGoals")
+  updatedGoals        Goal[]         @relation("UpdatedGoals")
+  notifications       Notification[]
+  managerRatings      Rating[]       @relation("ManagerRatings")
+  selfRatings         Rating[]       @relation("SelfRatings")
+  manager             User?          @relation("UserToUser", fields: [managerId], references: [id])
+  employees           User[]         @relation("UserToUser")
 
   @@index([managerId])
   @@index([lastLoginAt])
@@ -39,28 +43,38 @@ model User {
 }
 
 model Goal {
-  id              String   @id @default(cuid())
+  id              String         @id @default(cuid())
   title           String
-  description     String
-  status          String   @default("PENDING")
+  description     String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
   dueDate         DateTime
-  category        GoalCategory @default(PROFESSIONAL)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  employeeId      String
   managerId       String?
-  managerComments String?
-  employee        User     @relation("EmployeeGoals", fields: [employeeId], references: [id])
-  manager         User?    @relation("ManagerGoals", fields: [managerId], references: [id])
-  ratings         Rating[]
+  employeeId      String
   approvedAt      DateTime?
   approvedBy      String?
   rejectedAt      DateTime?
   rejectedBy      String?
+  managerComments String?
+  status          String         @default("draft")
+  category        GoalCategory   @default(PROFESSIONAL)
+  createdById     String?
+  deletedAt       DateTime?
+  deletedById     String?
+  updatedById     String?
+  createdBy       User?          @relation("CreatedGoals", fields: [createdById], references: [id])
+  deletedBy       User?          @relation("DeletedGoals", fields: [deletedById], references: [id])
+  employee        User           @relation("EmployeeGoals", fields: [employeeId], references: [id])
+  manager         User?          @relation("ManagerGoals", fields: [managerId], references: [id])
+  updatedBy       User?          @relation("UpdatedGoals", fields: [updatedById], references: [id])
   notifications   Notification[]
+  ratings         Rating[]
 
   @@index([managerId])
   @@index([employeeId])
+  @@index([createdById])
+  @@index([updatedById])
+  @@index([deletedById])
 }
 
 model Rating {
@@ -82,42 +96,42 @@ model Rating {
 }
 
 model Feedback {
-  id                             String   @id @default(cuid())
-  content                        String
-  status                         String
-  fromId                         String
-  toId                           String
-  createdAt                      DateTime @default(now())
-  updatedAt                      DateTime @updatedAt
-  givenBy                        User     @relation("FeedbackGiven", fields: [fromId], references: [id])
-  receivedBy                     User     @relation("FeedbackReceived", fields: [toId], references: [id])
+  id         String   @id @default(cuid())
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  fromId     String
+  status     String
+  toId       String
+  givenBy    User     @relation("FeedbackGiven", fields: [fromId], references: [id])
+  receivedBy User     @relation("FeedbackReceived", fields: [toId], references: [id])
 
   @@index([fromId])
   @@index([toId])
 }
 
 model Notification {
-  id          String         @id @default(cuid())
-  type        NotificationType
-  message     String
-  isRead      Boolean        @default(false)
-  createdAt   DateTime       @default(now())
-  userId      String
-  goalId      String?
-  user        User           @relation(fields: [userId], references: [id])
-  goal        Goal?          @relation(fields: [goalId], references: [id])
+  id        String           @id @default(cuid())
+  type      NotificationType
+  message   String
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  userId    String
+  goalId    String?
+  goal      Goal?            @relation(fields: [goalId], references: [id])
+  user      User             @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([goalId])
 }
 
 model SystemSettings {
-  id                  Int      @id @default(1)
+  id                   Int      @id @default(1)
   notificationSettings Json
-  reviewSettings      Json
-  securitySettings    Json
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  reviewSettings       Json
+  securitySettings     Json
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 
 enum Role {
@@ -128,10 +142,10 @@ enum Role {
 
 enum GoalStatus {
   PENDING
-  COMPLETED
   APPROVED
   REJECTED
   MODIFIED
+  COMPLETED
   DRAFT
 }
 

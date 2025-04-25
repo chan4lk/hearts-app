@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { goalId: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -13,7 +13,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const goalId = params.id;
+    const goalId = params.goalId;
 
     // Get all ratings for the goal
     const ratings = await prisma.rating.findMany({
@@ -53,7 +53,7 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { goalId: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -61,7 +61,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const goalId = params.id;
+    const goalId = params.goalId;
     const body = await request.json();
     const { score, comments } = body;
 

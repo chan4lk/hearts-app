@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth';
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { goalId: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -30,7 +30,7 @@ export async function POST(
 
     const goal = await prisma.goal.findUnique({
       where: {
-        id: params.id,
+        id: params.goalId,
       },
       include: {
         employee: true,
@@ -60,7 +60,7 @@ export async function POST(
 
     const existingRating = await prisma.rating.findFirst({
       where: {
-        goalId: params.id,
+        goalId: params.goalId,
         managerRatedById: session.user.id,
       },
     });
@@ -89,7 +89,7 @@ export async function POST(
     } else {
       rating = await prisma.rating.create({
         data: {
-          goalId: params.id,
+          goalId: params.goalId,
           score,
           comments,
           selfRatedById: goal.employeeId,
