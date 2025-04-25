@@ -56,6 +56,27 @@ export async function GET() {
             email: true,
           },
         },
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        updatedBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        deletedBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
       },
       orderBy: {
         createdAt: 'desc',
@@ -78,6 +99,26 @@ export async function GET() {
         name: goal.employee.name,
         email: goal.employee.email,
       },
+      auditInfo: {
+        createdBy: goal.createdBy ? {
+          id: goal.createdBy.id,
+          name: goal.createdBy.name,
+          email: goal.createdBy.email,
+          at: goal.createdAt.toISOString()
+        } : null,
+        updatedBy: goal.updatedBy ? {
+          id: goal.updatedBy.id,
+          name: goal.updatedBy.name,
+          email: goal.updatedBy.email,
+          at: goal.updatedAt.toISOString()
+        } : null,
+        deletedBy: goal.deletedBy ? {
+          id: goal.deletedBy.id,
+          name: goal.deletedBy.name,
+          email: goal.deletedBy.email,
+          at: goal.deletedAt?.toISOString() || null
+        } : null
+      }
     }));
 
     return NextResponse.json(transformedGoals);

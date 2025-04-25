@@ -45,6 +45,27 @@ export async function GET() {
             name: true,
             email: true
           }
+        },
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        updatedBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        deletedBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
         }
       },
       orderBy: {
@@ -53,7 +74,29 @@ export async function GET() {
     });
 
     return NextResponse.json({ 
-      goals,
+      goals: goals.map(goal => ({
+        ...goal,
+        auditInfo: {
+          createdBy: goal.createdBy ? {
+            id: goal.createdBy.id,
+            name: goal.createdBy.name,
+            email: goal.createdBy.email,
+            at: goal.createdAt.toISOString()
+          } : null,
+          updatedBy: goal.updatedBy ? {
+            id: goal.updatedBy.id,
+            name: goal.updatedBy.name,
+            email: goal.updatedBy.email,
+            at: goal.updatedAt.toISOString()
+          } : null,
+          deletedBy: goal.deletedBy ? {
+            id: goal.deletedBy.id,
+            name: goal.deletedBy.name,
+            email: goal.deletedBy.email,
+            at: goal.deletedAt?.toISOString() || null
+          } : null
+        }
+      })),
       stats: {
         total: goals.length,
         completed: goals.filter(goal => goal.status === 'COMPLETED').length,
