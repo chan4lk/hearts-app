@@ -369,7 +369,7 @@ function ManagerGoalSettingPageContent() {
     if (!goalToDelete) return;
 
     try {
-      const response = await fetch(`/api/goals/${goalToDelete}`, {
+      const response = await fetch(`/api/goals?id=${goalToDelete}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -473,6 +473,7 @@ function ManagerGoalSettingPageContent() {
 
     try {
       const goalData = {
+        id: selectedGoal.id,
         title: formData.title.trim(),
         description: formData.description.trim(),
         employeeId: formData.employeeId,
@@ -480,8 +481,8 @@ function ManagerGoalSettingPageContent() {
         category: formData.category
       };
 
-      const response = await fetch(`/api/goals/${selectedGoal.id}`, {
-        method: 'PUT',
+      const response = await fetch(`/api/goals`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -493,8 +494,12 @@ function ManagerGoalSettingPageContent() {
         throw new Error(errorData.error || 'Failed to update goal');
       }
 
-      const { goal: updatedGoal } = await response.json();
+      const updatedGoal = await response.json();
       
+      if (!updatedGoal || !updatedGoal.id) {
+        throw new Error('Invalid goal data received from server');
+      }
+
       // Update goals state with the updated goal
       setGoals(prevGoals => prevGoals.map(goal => 
         goal.id === updatedGoal.id ? updatedGoal : goal
