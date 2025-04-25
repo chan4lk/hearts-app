@@ -156,10 +156,21 @@ export async function DELETE(
       return NextResponse.json({ error: 'You are not authorized to delete this goal' }, { status: 403 });
     }
 
-    // Delete the goal
-    await prisma.goal.delete({
-      where: { id: params.goalId }
+    // Soft delete the goal
+    const deletedGoal = await prisma.goal.update({
+      where: { id: params.goalId },
+      data: {
+        status: 'DELETED',
+        deletedAt: new Date(),
+        deletedById: session.user.id,
+        updatedAt: new Date(),
+        updatedById: session.user.id
+      }
     });
+
+    if (!deletedGoal) {
+      return NextResponse.json({ error: 'Failed to delete goal' }, { status: 500 });
+    }
 
     return NextResponse.json({ 
       success: true,

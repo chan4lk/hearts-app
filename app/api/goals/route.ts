@@ -38,10 +38,19 @@ export async function GET() {
 
     // Get goals based on user role
     const goals = await prisma.goal.findMany({
-      where: user.role === 'ADMIN' ? {} : {
-        OR: [
-          { employeeId: user.id },
-          { managerId: user.id }
+      where: {
+        AND: [
+          user.role === 'ADMIN' ? {} : {
+            OR: [
+              { employeeId: user.id },
+              { managerId: user.id }
+            ]
+          },
+          {
+            NOT: {
+              status: 'DELETED'
+            }
+          }
         ]
       },
       include: {
@@ -147,12 +156,10 @@ export async function POST(req: Request) {
         dueDate: new Date(dueDate),
         category,
         status,
-        employee: {
-          connect: { id: employeeId }
-        },
-        manager: isAdmin ? undefined : {
-          connect: { id: session.user.id }
-        }
+        employeeId,
+        managerId: isAdmin ? null : session.user.id,
+        createdAt: new Date(),
+        updatedAt: new Date()
       },
       include: {
         employee: {
@@ -172,7 +179,11 @@ export async function POST(req: Request) {
       }
     });
 
-    return NextResponse.json({ goal });
+    return NextResponse.json({ 
+      success: true,
+      message: 'Goal created successfully',
+      goal 
+    });
   } catch (error) {
     console.error('Error creating goal:', error);
     return NextResponse.json(
@@ -213,6 +224,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
+    // Update the goal
     const updatedGoal = await prisma.goal.update({
       where: { id },
       data: {

@@ -15,9 +15,18 @@ export async function GET() {
     // Fetch goals where the user is either the employee or the manager
     const goals = await prisma.goal.findMany({
       where: {
-        OR: [
-          { employeeId: session.user.id },
-          { managerId: session.user.id }
+        AND: [
+          {
+            OR: [
+              { employeeId: session.user.id },
+              { managerId: session.user.id }
+            ]
+          },
+          {
+            NOT: {
+              status: 'DELETED'
+            }
+          }
         ]
       },
       orderBy: {
