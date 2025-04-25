@@ -500,21 +500,6 @@ function ManagerGoalSettingPageContent() {
         goal.id === updatedGoal.id ? updatedGoal : goal
       ));
       
-      // Show success message
-      toast.success('Goal updated successfully!', {
-        position: 'top-center',
-        duration: 3000,
-        style: {
-          background: '#1E2028',
-          color: 'white',
-          border: '1px solid #2d2f36',
-          padding: '16px',
-          borderRadius: '8px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        },
-        icon: <BsCheckCircle className="w-5 h-5 text-emerald-400" />,
-      });
-
       // Reset form and close modal
       setSelectedGoal(null);
       setFormData({
@@ -525,11 +510,33 @@ function ManagerGoalSettingPageContent() {
         category: 'PROFESSIONAL'
       });
       setIsEditModalOpen(false);
+
+      // Show success message after modal is closed
+      setTimeout(() => {
+        toast.success('Goal updated successfully!', {
+          position: 'top-center',
+          duration: 4000,
+          style: {
+            background: '#1E2028',
+            color: 'white',
+            border: '1px solid #2d2f36',
+            padding: '16px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          },
+          icon: <BsCheckCircle className="w-5 h-5 text-emerald-400" />,
+          description: (
+            <div className="mt-1 text-sm text-gray-400">
+              The goal "{updatedGoal.title}" has been successfully updated.
+            </div>
+          ),
+        });
+      }, 100);
       
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to update goal', {
         position: 'top-center',
-        duration: 3000,
+        duration: 4000,
         style: {
           background: '#1E2028',
           color: 'white',
@@ -539,6 +546,11 @@ function ManagerGoalSettingPageContent() {
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
         },
         icon: <BsXCircle className="w-5 h-5 text-rose-400" />,
+        description: (
+          <div className="mt-1 text-sm text-gray-400">
+            Please try again or contact support if the problem persists.
+          </div>
+        ),
       });
     } finally {
       setLoading(false);
@@ -918,14 +930,18 @@ function ManagerGoalSettingPageContent() {
 
       {/* View Modal */}
       {isViewModalOpen && viewedGoal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-          <div className="bg-[#1E2028] rounded-lg p-6 w-full max-w-2xl mx-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setIsViewModalOpen(false)}
+          />
+          <div className="relative z-10 bg-[#1E2028] border border-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4">
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-3">
                 <div className="bg-blue-500/10 p-2 rounded-lg">
                   <BsEye className="w-5 h-5 text-blue-400" />
                 </div>
-                <h2 className="text-xl font-bold text-white">Goal Details</h2>
+                <h2 className="text-xl font-bold text-white">View Goal Details</h2>
               </div>
               <button
                 onClick={() => setIsViewModalOpen(false)}
@@ -937,14 +953,20 @@ function ManagerGoalSettingPageContent() {
 
             <div className="space-y-6">
               <div className="bg-[#2d2f36] rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-white">{viewedGoal.title}</h3>
-                <div className="flex gap-2 mt-2">
+                <h3 className="text-lg font-semibold text-white mb-2">{viewedGoal.title}</h3>
+                <div className="flex flex-wrap gap-2">
                   <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20">
-                    {viewedGoal.category}
+                    {CATEGORIES.find(c => c.value === viewedGoal.category)?.label || viewedGoal.category}
                   </Badge>
                   <Badge 
-                    variant={viewedGoal.status === 'DRAFT' ? 'outline' : 'default'}
-                    className={viewedGoal.status === 'DRAFT' ? 'bg-gray-500/10 text-gray-400 border-gray-500/20' : ''}
+                    variant="outline"
+                    className={`
+                      ${viewedGoal.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : ''}
+                      ${viewedGoal.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : ''}
+                      ${viewedGoal.status === 'DRAFT' ? 'bg-gray-500/10 text-gray-400 border-gray-500/20' : ''}
+                      ${viewedGoal.status === 'APPROVED' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : ''}
+                      ${viewedGoal.status === 'REJECTED' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : ''}
+                    `}
                   >
                     {viewedGoal.status}
                   </Badge>
@@ -953,35 +975,62 @@ function ManagerGoalSettingPageContent() {
 
               <div className="bg-[#2d2f36] rounded-lg p-4">
                 <h4 className="text-sm font-medium text-gray-400 mb-2">Description</h4>
-                <p className="text-gray-300">{viewedGoal.description}</p>
+                <p className="text-gray-300 whitespace-pre-wrap">{viewedGoal.description}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-[#2d2f36] rounded-lg p-4">
                   <h4 className="text-sm font-medium text-gray-400 mb-2">Assigned To</h4>
                   <div className="flex items-center gap-2">
-                    <BsPeople className="w-4 h-4 text-blue-400" />
-                    <p className="text-gray-300">{viewedGoal.employee?.name}</p>
+                    <User className="w-4 h-4 text-blue-400" />
+                    <div>
+                      <p className="text-gray-300">{viewedGoal.employee?.name}</p>
+                      <p className="text-sm text-gray-500">{viewedGoal.employee?.email}</p>
+                    </div>
                   </div>
                 </div>
+
                 <div className="bg-[#2d2f36] rounded-lg p-4">
                   <h4 className="text-sm font-medium text-gray-400 mb-2">Due Date</h4>
                   <div className="flex items-center gap-2">
-                    <BsCalendar className="w-4 h-4 text-amber-400" />
+                    <Calendar className="w-4 h-4 text-amber-400" />
                     <p className="text-gray-300">
-                      {new Date(viewedGoal.dueDate).toLocaleDateString()}
+                      {new Date(viewedGoal.dueDate).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-4">
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
                 <Button
                   variant="outline"
                   onClick={() => setIsViewModalOpen(false)}
-                  className="bg-transparent border-gray-700 hover:bg-gray-700/50"
+                  className="bg-transparent hover:bg-gray-800 border-gray-700 text-gray-300"
                 >
                   Close
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsViewModalOpen(false);
+                    setSelectedGoal(viewedGoal);
+                    setFormData({
+                      title: viewedGoal.title,
+                      description: viewedGoal.description,
+                      dueDate: new Date(viewedGoal.dueDate).toISOString().split('T')[0],
+                      employeeId: viewedGoal.employee?.id || '',
+                      category: viewedGoal.category
+                    });
+                    setIsEditModalOpen(true);
+                  }}
+                  className="bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/30 text-blue-400"
+                >
+                  <BsPencil className="w-4 h-4 mr-2" />
+                  Edit Goal
                 </Button>
               </div>
             </div>
