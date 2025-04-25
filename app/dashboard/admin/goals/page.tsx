@@ -43,6 +43,7 @@ import {
 } from 'react-icons/bs';
 import { Badge } from '@/components/ui/badge';
 import { User, Calendar } from 'lucide-react';
+import { Toaster } from 'sonner';
 
 interface User {
   id: string;
@@ -184,6 +185,8 @@ function AdminGoalSettingPageContent() {
   const [notificationType, setNotificationType] = useState<'success' | 'error'>('success');
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewedGoal, setViewedGoal] = useState<Goal | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -334,11 +337,51 @@ function AdminGoalSettingPageContent() {
 
       // Close modal and show success message
       setIsCreateModalOpen(false);
-      toast.success('Goal created successfully');
+      toast.success('Goal created successfully', {
+        duration: 3000,
+        icon: <BsCheckCircle className="w-5 h-5 text-emerald-400" />,
+        style: {
+          background: '#1E2028',
+          color: '#fff',
+          border: '1px solid #374151',
+          borderRadius: '0.75rem',
+          padding: '1rem 1.5rem',
+          fontSize: '0.875rem',
+          fontWeight: '500',
+          textAlign: 'center',
+          width: 'auto',
+          maxWidth: '400px',
+          margin: '0 auto',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem'
+        }
+      });
 
     } catch (error) {
       console.error('Error creating goal:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create goal');
+      toast.error(error instanceof Error ? error.message : 'Failed to create goal', {
+        duration: 3000,
+        icon: <BsXCircle className="w-5 h-5 text-rose-400" />,
+        style: {
+          background: '#1E2028',
+          color: '#fff',
+          border: '1px solid #374151',
+          borderRadius: '0.75rem',
+          padding: '1rem 1.5rem',
+          fontSize: '0.875rem',
+          fontWeight: '500',
+          textAlign: 'center',
+          width: 'auto',
+          maxWidth: '400px',
+          margin: '0 auto',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem'
+        }
+      });
     } finally {
       setLoading(false);
     }
@@ -359,30 +402,81 @@ function AdminGoalSettingPageContent() {
   };
 
   const handleDelete = async (goalId: string) => {
-    if (!confirm('Are you sure you want to delete this goal?')) return;
+    const goal = goals.find(g => g.id === goalId);
+    if (!goal) return;
+    
+    setGoalToDelete(goal);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!goalToDelete) return;
     
     try {
-      const response = await fetch(`/api/goals/${goalId}`, {
+      const response = await fetch(`/api/goals/${goalToDelete.id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          // Add session token if available
-          ...(session?.user?.email && { 'Authorization': `Bearer ${session.user.email}` })
         },
-        credentials: 'include'
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete goal');
+        throw new Error(errorData.error || 'Failed to delete goal');
       }
+
+      // Remove the goal from the state
+      setGoals(goals.filter(goal => goal.id !== goalToDelete.id));
       
-      setGoals(prevGoals => prevGoals.filter(g => g.id !== goalId));
-      toast.success('Goal deleted successfully');
-      router.refresh();
+      // Show success message
+      toast.success('Goal deleted successfully', {
+        duration: 3000,
+        icon: <BsCheckCircle className="w-5 h-5 text-emerald-400" />,
+        style: {
+          background: '#1E2028',
+          color: '#fff',
+          border: '1px solid #374151',
+          borderRadius: '0.75rem',
+          padding: '1rem 1.5rem',
+          fontSize: '0.875rem',
+          fontWeight: '500',
+          textAlign: 'center',
+          width: 'auto',
+          maxWidth: '400px',
+          margin: '0 auto',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem'
+        }
+      });
     } catch (error) {
       console.error('Error deleting goal:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to delete goal');
+      toast.error(error instanceof Error ? error.message : 'Failed to delete goal', {
+        duration: 3000,
+        icon: <BsXCircle className="w-5 h-5 text-rose-400" />,
+        style: {
+          background: '#1E2028',
+          color: '#fff',
+          border: '1px solid #374151',
+          borderRadius: '0.75rem',
+          padding: '1rem 1.5rem',
+          fontSize: '0.875rem',
+          fontWeight: '500',
+          textAlign: 'center',
+          width: 'auto',
+          maxWidth: '400px',
+          margin: '0 auto',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem'
+        }
+      });
+    } finally {
+      // Close the modal and reset state
+      setIsDeleteModalOpen(false);
+      setGoalToDelete(null);
     }
   };
 
@@ -465,11 +559,51 @@ function AdminGoalSettingPageContent() {
 
       // Close modal and show success message
       setIsEditModalOpen(false);
-      toast.success('Goal updated successfully');
+      toast.success('Goal updated successfully', {
+        duration: 3000,
+        icon: <BsCheckCircle className="w-5 h-5 text-emerald-400" />,
+        style: {
+          background: '#1E2028',
+          color: '#fff',
+          border: '1px solid #374151',
+          borderRadius: '0.75rem',
+          padding: '1rem 1.5rem',
+          fontSize: '0.875rem',
+          fontWeight: '500',
+          textAlign: 'center',
+          width: 'auto',
+          maxWidth: '400px',
+          margin: '0 auto',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem'
+        }
+      });
 
     } catch (error) {
       console.error('Error updating goal:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to update goal');
+      toast.error(error instanceof Error ? error.message : 'Failed to update goal', {
+        duration: 3000,
+        icon: <BsXCircle className="w-5 h-5 text-rose-400" />,
+        style: {
+          background: '#1E2028',
+          color: '#fff',
+          border: '1px solid #374151',
+          borderRadius: '0.75rem',
+          padding: '1rem 1.5rem',
+          fontSize: '0.875rem',
+          fontWeight: '500',
+          textAlign: 'center',
+          width: 'auto',
+          maxWidth: '400px',
+          margin: '0 auto',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem'
+        }
+      });
     } finally {
       setLoading(false);
     }
@@ -888,97 +1022,99 @@ function AdminGoalSettingPageContent() {
       )}
 
       {isViewModalOpen && viewedGoal && (
-        <div className="bg-[#1E2028] rounded-lg p-6 w-full max-w-2xl mx-4 border border-gray-800 shadow-xl">
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-3">
-              {viewedGoal.category === 'PROFESSIONAL' && <BsRocket className="h-7 w-7 text-blue-400" />}
-              {viewedGoal.category === 'TECHNICAL' && <BsLightbulb className="h-7 w-7 text-amber-400" />}
-              {viewedGoal.category === 'LEADERSHIP' && <BsAward className="h-7 w-7 text-purple-400" />}
-              {viewedGoal.category === 'PERSONAL' && <BsGraphUp className="h-7 w-7 text-emerald-400" />}
-              {viewedGoal.category === 'TRAINING' && <BsBriefcase className="h-7 w-7 text-rose-400" />}
-              <h2 className="text-2xl font-bold text-white">{viewedGoal.title}</h2>
-            </div>
-            <button
-              onClick={() => setIsViewModalOpen(false)}
-              className="text-gray-400 hover:text-white transition-colors p-1 hover:bg-gray-800 rounded-lg"
-            >
-              <BsX className="h-6 w-6" />
-            </button>
-          </div>
-          
-          <div className="space-y-6">
-            <div className="flex items-center gap-2">
-              <Badge 
-                variant="outline" 
-                className="border-gray-700 text-gray-300 bg-gray-800/50 text-sm"
-              >
-                {viewedGoal.category}
-              </Badge>
-              <Badge 
-                variant={getStatusBadge(viewedGoal.status)}
-                className={`text-sm ${
-                  viewedGoal.status === 'PENDING' ? 'bg-yellow-500/10 text-yellow-400' :
-                  viewedGoal.status === 'COMPLETED' ? 'bg-green-500/10 text-green-400' :
-                  viewedGoal.status === 'APPROVED' ? 'bg-blue-500/10 text-blue-400' :
-                  viewedGoal.status === 'REJECTED' ? 'bg-red-500/10 text-red-400' :
-                  'bg-gray-500/10 text-gray-400'
-                }`}
-              >
-                {viewedGoal.status}
-              </Badge>
-            </div>
-
-            <div className="bg-gray-900/30 p-4 rounded-lg">
-              <h3 className="text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
-                <BsListTask className="h-4 w-4 text-gray-400" />
-                Description
-              </h3>
-              <p className="text-gray-100 leading-relaxed">{viewedGoal.description}</p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-900/30 p-4 rounded-lg">
-                <div className="flex items-center gap-2 mb-3">
-                  <User className="h-4 w-4 text-gray-400" />
-                  <h3 className="text-sm font-medium text-gray-300">Assigned To</h3>
-                </div>
-                <p className="text-white font-medium">{viewedGoal.employee?.name}</p>
-                <p className="text-sm text-gray-400">{viewedGoal.employee?.email}</p>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-[#1E2028] rounded-lg p-6 w-full max-w-2xl mx-4 border border-gray-800 shadow-xl">
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-3">
+                {viewedGoal.category === 'PROFESSIONAL' && <BsRocket className="h-7 w-7 text-blue-400" />}
+                {viewedGoal.category === 'TECHNICAL' && <BsLightbulb className="h-7 w-7 text-amber-400" />}
+                {viewedGoal.category === 'LEADERSHIP' && <BsAward className="h-7 w-7 text-purple-400" />}
+                {viewedGoal.category === 'PERSONAL' && <BsGraphUp className="h-7 w-7 text-emerald-400" />}
+                {viewedGoal.category === 'TRAINING' && <BsBriefcase className="h-7 w-7 text-rose-400" />}
+                <h2 className="text-2xl font-bold text-white">{viewedGoal.title}</h2>
               </div>
-              <div className="bg-gray-900/30 p-4 rounded-lg">
-                <div className="flex items-center gap-2 mb-3">
-                  <Calendar className="h-4 w-4 text-gray-400" />
-                  <h3 className="text-sm font-medium text-gray-300">Due Date</h3>
-                </div>
-                <p className="text-white font-medium">
-                  {new Date(viewedGoal.dueDate).toLocaleDateString()}
-                </p>
-              </div>
+              <button
+                onClick={() => setIsViewModalOpen(false)}
+                className="text-gray-400 hover:text-white transition-colors p-1 hover:bg-gray-800 rounded-lg"
+              >
+                <BsX className="h-6 w-6" />
+              </button>
             </div>
+            
+            <div className="space-y-6">
+              <div className="flex items-center gap-2">
+                <Badge 
+                  variant="outline" 
+                  className="border-gray-700 text-gray-300 bg-gray-800/50 text-sm"
+                >
+                  {viewedGoal.category}
+                </Badge>
+                <Badge 
+                  variant={getStatusBadge(viewedGoal.status)}
+                  className={`text-sm ${
+                    viewedGoal.status === 'PENDING' ? 'bg-yellow-500/10 text-yellow-400' :
+                    viewedGoal.status === 'COMPLETED' ? 'bg-green-500/10 text-green-400' :
+                    viewedGoal.status === 'APPROVED' ? 'bg-blue-500/10 text-blue-400' :
+                    viewedGoal.status === 'REJECTED' ? 'bg-red-500/10 text-red-400' :
+                    'bg-gray-500/10 text-gray-400'
+                  }`}
+                >
+                  {viewedGoal.status}
+                </Badge>
+              </div>
 
-            <div className="flex justify-end space-x-4 pt-6">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsViewModalOpen(false);
-                  handleEdit(viewedGoal);
-                }}
-                className="bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
-              >
-                <BsPencil className="h-4 w-4 mr-2" />
-                Edit Goal
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  setIsViewModalOpen(false);
-                  handleDelete(viewedGoal.id);
-                }}
-                className="bg-red-900/20 text-red-400 hover:bg-red-900/40"
-              >
-                <BsTrash className="h-4 w-4 mr-2" />
-                Delete Goal
-              </Button>
+              <div className="bg-gray-900/30 p-4 rounded-lg">
+                <h3 className="text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+                  <BsListTask className="h-4 w-4 text-gray-400" />
+                  Description
+                </h3>
+                <p className="text-gray-100 leading-relaxed">{viewedGoal.description}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-900/30 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 mb-3">
+                    <User className="h-4 w-4 text-gray-400" />
+                    <h3 className="text-sm font-medium text-gray-300">Assigned To</h3>
+                  </div>
+                  <p className="text-white font-medium">{viewedGoal.employee?.name}</p>
+                  <p className="text-sm text-gray-400">{viewedGoal.employee?.email}</p>
+                </div>
+                <div className="bg-gray-900/30 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Calendar className="h-4 w-4 text-gray-400" />
+                    <h3 className="text-sm font-medium text-gray-300">Due Date</h3>
+                  </div>
+                  <p className="text-white font-medium">
+                    {new Date(viewedGoal.dueDate).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-4 pt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsViewModalOpen(false);
+                    handleEdit(viewedGoal);
+                  }}
+                  className="bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
+                >
+                  <BsPencil className="h-4 w-4 mr-2" />
+                  Edit Goal
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    setIsViewModalOpen(false);
+                    handleDelete(viewedGoal.id);
+                  }}
+                  className="bg-red-900/20 text-red-400 hover:bg-red-900/40"
+                >
+                  <BsTrash className="h-4 w-4 mr-2" />
+                  Delete Goal
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -1155,6 +1291,43 @@ function AdminGoalSettingPageContent() {
           </div>
         </div>
       )}
+
+      {isDeleteModalOpen && goalToDelete && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-[#1E2028] rounded-lg p-6 w-full max-w-md mx-4 border border-gray-800 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-rose-500/10">
+                <BsXCircle className="w-6 h-6 text-rose-400" />
+              </div>
+              <h2 className="text-xl font-semibold text-white">Delete Goal</h2>
+            </div>
+            
+            <p className="text-gray-300 mb-6">
+              Are you sure you want to delete the goal "{goalToDelete.title}"? This action cannot be undone.
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setGoalToDelete(null);
+                }}
+                className="bg-transparent border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleConfirmDelete}
+                className="bg-rose-500/10 text-rose-400 hover:bg-rose-500/20"
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1163,6 +1336,33 @@ export default function AdminGoalSettingPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <DashboardLayout type="admin">
+        <Toaster 
+          position="top-center"
+          richColors
+          closeButton
+          theme="dark"
+          toastOptions={{
+            style: {
+              background: '#1E2028',
+              color: '#fff',
+              border: '1px solid #374151',
+              borderRadius: '0.75rem',
+              padding: '1rem 1.5rem',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              textAlign: 'center',
+              width: 'auto',
+              maxWidth: '400px',
+              margin: '0 auto',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem'
+            },
+            duration: 3000,
+            className: 'toast-message'
+          }}
+        />
         <AdminGoalSettingPageContent />
       </DashboardLayout>
     </Suspense>
