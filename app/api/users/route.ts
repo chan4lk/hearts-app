@@ -8,34 +8,40 @@ import bcrypt from 'bcryptjs';
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || session.user.role !== Role.ADMIN) {
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const currentUser = await prisma.user.findUnique({
+      where: { id: session.user.id }
+    });
+
+    if (!currentUser || currentUser.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
     const users = await prisma.user.findMany({
+      where: {
+        isActive: true
+      },
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
-        manager: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
+        department: true,
+        position: true
       },
       orderBy: {
-        createdAt: 'desc',
-      },
+        name: 'asc'
+      }
     });
 
-    return NextResponse.json(users);
+    return NextResponse.json({ users });
   } catch (error) {
     console.error('Error fetching users:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to fetch users' },
       { status: 500 }
     );
   }

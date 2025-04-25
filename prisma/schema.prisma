@@ -39,24 +39,25 @@ model User {
 }
 
 model Goal {
-  id                         String     @id @default(cuid())
-  title                      String
-  description                String
-  createdAt                  DateTime   @default(now())
-  updatedAt                  DateTime   @updatedAt
-  dueDate                    DateTime
-  managerId                  String?
-  employeeId                 String
-  approvedAt                 DateTime?
-  approvedBy                 String?
-  rejectedAt                 DateTime?
-  rejectedBy                 String?
-  status                     GoalStatus @default(PENDING)
-  managerComments            String?
-  employee                   User       @relation("EmployeeGoals", fields: [employeeId], references: [id])
-  manager                    User?      @relation("ManagerGoals", fields: [managerId], references: [id])
-  ratings                    Rating[]
-  notifications              Notification[]
+  id              String   @id @default(cuid())
+  title           String
+  description     String
+  status          String   @default("PENDING")
+  dueDate         DateTime
+  category        GoalCategory @default(PROFESSIONAL)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  employeeId      String
+  managerId       String?
+  managerComments String?
+  employee        User     @relation("EmployeeGoals", fields: [employeeId], references: [id])
+  manager         User?    @relation("ManagerGoals", fields: [managerId], references: [id])
+  ratings         Rating[]
+  approvedAt      DateTime?
+  approvedBy      String?
+  rejectedAt      DateTime?
+  rejectedBy      String?
+  notifications   Notification[]
 
   @@index([managerId])
   @@index([employeeId])
@@ -127,10 +128,10 @@ enum Role {
 
 enum GoalStatus {
   PENDING
+  COMPLETED
   APPROVED
   REJECTED
   MODIFIED
-  COMPLETED
 }
 
 enum NotificationType {
@@ -142,4 +143,12 @@ enum NotificationType {
   GOAL_COMPLETED
   FEEDBACK_RECEIVED
   RATING_RECEIVED
+}
+
+enum GoalCategory {
+  PROFESSIONAL
+  TECHNICAL
+  LEADERSHIP
+  PERSONAL
+  TRAINING
 }
