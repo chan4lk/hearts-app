@@ -82,11 +82,12 @@ export async function GET() {
 
     // Calculate stats
     const totalGoals = goals.length;
-    const completedGoals = goals.filter(goal => goal.status === GoalStatus.COMPLETED).length;
-    const inProgressGoals = goals.filter(goal => goal.status === GoalStatus.MODIFIED).length;
-    const pendingGoals = goals.filter(goal => goal.status === GoalStatus.PENDING).length;
-    const approvedGoals = goals.filter(goal => goal.status === GoalStatus.APPROVED).length;
-    const rejectedGoals = goals.filter(goal => goal.status === GoalStatus.REJECTED).length;
+    const completedGoals = goals.filter(goal => goal.status === 'COMPLETED').length;
+    const inProgressGoals = goals.filter(goal => goal.status === 'MODIFIED').length;
+    const pendingGoals = goals.filter(goal => goal.status === 'PENDING').length;
+    const approvedGoals = goals.filter(goal => goal.status === 'APPROVED').length;
+    const rejectedGoals = goals.filter(goal => goal.status === 'REJECTED').length;
+    const draftGoals = goals.filter(goal => goal.status === 'DRAFT').length;
 
     // Calculate category stats
     const categoryStats = goals.reduce((acc: Record<string, number>, goal) => {
@@ -104,6 +105,7 @@ export async function GET() {
         pending: pendingGoals,
         approved: approvedGoals,
         rejected: rejectedGoals,
+        draft: draftGoals,
         categories: categoryStats
       }
     });
@@ -116,84 +118,42 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { title, description, dueDate, employeeId, category } = body;
+    const body = await req.json();
+    const { title, description, employeeId, dueDate, category, status = 'DRAFT' } = body;
 
     // Validate required fields
-    if (!title || !description || !dueDate || !employeeId) {
+    if (!title || !description || !employeeId || !dueDate || !category) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    // Get the current user with role
-    const currentUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        id: true,
-        role: true,
-        employees: {
-          select: {
-            id: true
-          }
-        }
-      }
-    });
+    // Check if user is admin
+    const isAdmin = session.user.role === 'ADMIN';
 
-    if (!currentUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Get the target employee with their manager info
-    const employee = await prisma.user.findUnique({
-      where: { id: employeeId },
-      include: {
-        manager: {
-          select: {
-            id: true,
-            role: true
-          }
-        }
-      }
-    });
-
-    if (!employee) {
-      return NextResponse.json({ error: 'Target employee not found' }, { status: 404 });
-    }
-
-    // Check authorization
-    const isAdmin = currentUser.role === 'ADMIN';
-    const isManager = currentUser.role === 'MANAGER';
-    const managesEmployee = currentUser.employees.some(emp => emp.id === employeeId);
-
-    if (!isAdmin && (!isManager || !managesEmployee)) {
-      return NextResponse.json(
-        { error: 'You are not authorized to create goals for this employee' },
-        { status: 403 }
-      );
-    }
-
-    // Create the goal with proper type casting
-    const goalData: Prisma.GoalCreateInput = {
-      title: title.trim(),
-      description: description.trim(),
-      dueDate: new Date(dueDate),
-      status: GoalStatus.PENDING,
-      category: category || 'PROFESSIONAL',
-      employee: { connect: { id: employeeId } },
-      manager: { connect: { id: employee.manager?.id || (isAdmin ? employee.manager?.id : session.user.id) } }
-    };
-
+    // Create the goal
     const goal = await prisma.goal.create({
-      data: goalData,
+      data: {
+        title,
+        description,
+        dueDate: new Date(dueDate),
+        category,
+        status,
+        employee: {
+          connect: { id: employeeId }
+        },
+        manager: isAdmin ? undefined : {
+          connect: { id: session.user.id }
+        }
+      },
       include: {
         employee: {
           select: {
@@ -212,34 +172,11 @@ export async function POST(request: Request) {
       }
     });
 
-    // Transform the goal to match frontend expectations
-    const transformedGoal = {
-      id: goal.id,
-      title: goal.title,
-      description: goal.description,
-      dueDate: goal.dueDate.toISOString(),
-      status: goal.status,
-      category: goal.category,
-      createdAt: goal.createdAt.toISOString(),
-      updatedAt: goal.updatedAt.toISOString(),
-      managerComments: goal.managerComments,
-      employee: goal.employee,
-      manager: goal.manager
-    };
-
-    return NextResponse.json({
-      success: true,
-      message: 'Goal created successfully',
-      goal: transformedGoal
-    });
-
+    return NextResponse.json({ goal });
   } catch (error) {
     console.error('Error creating goal:', error);
     return NextResponse.json(
-      { 
-        error: 'Failed to create goal',
-        message: error instanceof Error ? error.message : 'Unknown error occurred'
-      },
+      { error: 'Failed to create goal' },
       { status: 500 }
     );
   }

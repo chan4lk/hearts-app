@@ -39,7 +39,8 @@ import {
   BsEye,
   BsPencil,
   BsTrash,
-  BsX
+  BsX,
+  BsArrowCounterclockwise
 } from 'react-icons/bs';
 import { Badge } from '@/components/ui/badge';
 import { User, Calendar } from 'lucide-react';
@@ -58,7 +59,7 @@ interface Goal {
   id: string;
   title: string;
   description: string;
-  status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED';
+  status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'DRAFT';
   dueDate: string;
   category: string;
   employee: {
@@ -87,7 +88,8 @@ const getStatusBadge = (status: string) => {
     COMPLETED: 'default',
     APPROVED: 'default',
     REJECTED: 'destructive',
-    MODIFIED: 'outline'
+    MODIFIED: 'outline',
+    DRAFT: 'outline'
   } as const;
 
   return statusVariants[status as keyof typeof statusVariants] || 'secondary';
@@ -171,6 +173,7 @@ function AdminGoalSettingPageContent() {
     totalGoals: 0,
     completedGoals: 0,
     pendingGoals: 0,
+    draftGoals: 0,
     categoryStats: {}
   });
   const [formData, setFormData] = useState({
@@ -220,6 +223,7 @@ function AdminGoalSettingPageContent() {
           totalGoals: data.stats.total,
           completedGoals: data.stats.completed,
           pendingGoals: data.stats.pending,
+          draftGoals: data.stats.draft || 0,
           inProgressGoals: data.stats.inProgress
         }));
 
@@ -291,7 +295,8 @@ function AdminGoalSettingPageContent() {
         description: formData.description.trim(),
         employeeId: formData.employeeId,
         dueDate: new Date(formData.dueDate).toISOString(),
-        category: formData.category
+        category: formData.category,
+        status: 'DRAFT' // Set initial status as DRAFT
       };
 
       const response = await fetch('/api/goals', {
@@ -337,7 +342,7 @@ function AdminGoalSettingPageContent() {
 
       // Close modal and show success message
       setIsCreateModalOpen(false);
-      toast.success('Goal created successfully', {
+      toast.success('Goal created successfully as draft', {
         duration: 3000,
         icon: <BsCheckCircle className="w-5 h-5 text-emerald-400" />,
         style: {
@@ -395,10 +400,6 @@ function AdminGoalSettingPageContent() {
       category: template.category
     });
     setIsCreateModalOpen(true);
-  };
-
-  const filteredUsers = (role: string) => {
-    return users.filter(user => user.role === role);
   };
 
   const handleDelete = async (goalId: string) => {
@@ -739,8 +740,8 @@ function AdminGoalSettingPageContent() {
               <BsClock className="w-6 h-6 text-amber-400" />
             </div>
             <div>
-              <p className="text-gray-400 text-sm">Pending Goals</p>
-              <h3 className="text-2xl font-bold text-white">{stats.pendingGoals}</h3>
+              <p className="text-gray-400 text-sm">Draft Goals</p>
+              <h3 className="text-2xl font-bold text-white">{stats.draftGoals}</h3>
             </div>
           </div>
         </div>
@@ -824,6 +825,7 @@ function AdminGoalSettingPageContent() {
                         goal.status === 'COMPLETED' ? 'bg-green-500/10 text-green-400' :
                         goal.status === 'APPROVED' ? 'bg-blue-500/10 text-blue-400' :
                         goal.status === 'REJECTED' ? 'bg-red-500/10 text-red-400' :
+                        goal.status === 'DRAFT' ? 'bg-gray-500/10 text-gray-400 border border-gray-700' :
                         'bg-gray-500/10 text-gray-400'
                       }`}
                     >
@@ -851,7 +853,14 @@ function AdminGoalSettingPageContent() {
       </div>
 
       {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsCreateModalOpen(false);
+            }
+          }}
+        >
           <div className="bg-[#1a1c23] rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-white">Create New Goal</h2>
@@ -946,48 +955,37 @@ function AdminGoalSettingPageContent() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Assign to
+                  Assign to User
                 </label>
-                <Tabs defaultValue="employees" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="employees">Employees</TabsTrigger>
-                    <TabsTrigger value="managers">Managers</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="employees">
-                    <Select
-                      value={formData.employeeId}
-                      onValueChange={(value) => setFormData({ ...formData, employeeId: value })}
-                    >
-                      <SelectTrigger className="w-full bg-[#2d2f36] text-white border-gray-700">
-                        <SelectValue placeholder="Select an employee" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {filteredUsers('EMPLOYEE').map((user) => (
-                          <SelectItem key={user.id} value={user.id}>
-                            {user.name} ({user.email})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TabsContent>
-                  <TabsContent value="managers">
-                    <Select
-                      value={formData.employeeId}
-                      onValueChange={(value) => setFormData({ ...formData, employeeId: value })}
-                    >
-                      <SelectTrigger className="w-full bg-[#2d2f36] text-white border-gray-700">
-                        <SelectValue placeholder="Select a manager" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {filteredUsers('MANAGER').map((user) => (
-                          <SelectItem key={user.id} value={user.id}>
-                            {user.name} ({user.email})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TabsContent>
-                </Tabs>
+                <Select
+                  value={formData.employeeId}
+                  onValueChange={(value) => setFormData({ ...formData, employeeId: value })}
+                >
+                  <SelectTrigger className="w-full bg-[#2d2f36] text-white border-gray-700">
+                    <SelectValue placeholder="Select a user" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1E2028] border-gray-700">
+                    {users
+                      .filter(user => user.role !== 'ADMIN')
+                      .map((user) => (
+                        <SelectItem 
+                          key={user.id} 
+                          value={user.id} 
+                          className="text-gray-300 hover:bg-gray-800"
+                        >
+                          <div className="flex items-center gap-2">
+                            {user.role === 'EMPLOYEE' && <BsPeople className="h-4 w-4 text-blue-400" />}
+                            {user.role === 'MANAGER' && <BsStars className="h-4 w-4 text-purple-400" />}
+                            <div>
+                              <span className="font-medium">{user.name}</span>
+                              <span className="text-xs text-gray-400 ml-2">({user.email})</span>
+                              <span className="text-xs text-gray-500 ml-2 capitalize">{user.role.toLowerCase()}</span>
+                            </div>
+                          </div>
+                        </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex justify-end space-x-4 pt-6">
@@ -998,6 +996,21 @@ function AdminGoalSettingPageContent() {
                   disabled={loading}
                 >
                   Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({
+                    title: '',
+                    description: '',
+                    dueDate: new Date().toISOString().split('T')[0],
+                    employeeId: '',
+                    category: 'PROFESSIONAL'
+                  })}
+                  className="px-4 py-2 text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-2 border border-amber-500/20 hover:border-amber-500/40 rounded-lg"
+                  disabled={loading}
+                >
+                  <BsArrowCounterclockwise className="w-4 h-4" />
+                  Reset
                 </button>
                 <button
                   type="submit"
@@ -1056,6 +1069,7 @@ function AdminGoalSettingPageContent() {
                     viewedGoal.status === 'COMPLETED' ? 'bg-green-500/10 text-green-400' :
                     viewedGoal.status === 'APPROVED' ? 'bg-blue-500/10 text-blue-400' :
                     viewedGoal.status === 'REJECTED' ? 'bg-red-500/10 text-red-400' :
+                    viewedGoal.status === 'DRAFT' ? 'bg-gray-500/10 text-gray-400' :
                     'bg-gray-500/10 text-gray-400'
                   }`}
                 >
@@ -1209,54 +1223,37 @@ function AdminGoalSettingPageContent() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Assign to
+                  Assign to User
                 </label>
-                <Tabs defaultValue="employees" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 bg-gray-900/50">
-                    <TabsTrigger value="employees" className="data-[state=active]:bg-gray-800">
-                      <BsPeople className="h-4 w-4 mr-2" />
-                      Employees
-                    </TabsTrigger>
-                    <TabsTrigger value="managers" className="data-[state=active]:bg-gray-800">
-                      <BsStars className="h-4 w-4 mr-2" />
-                      Managers
-                    </TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="employees">
-                    <Select
-                      value={formData.employeeId}
-                      onValueChange={(value) => setFormData({ ...formData, employeeId: value })}
-                    >
-                      <SelectTrigger className="bg-gray-900/50 border-gray-700 text-white">
-                        <SelectValue placeholder="Select an employee" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#1E2028] border-gray-700">
-                        {filteredUsers('EMPLOYEE').map((user) => (
-                          <SelectItem key={user.id} value={user.id} className="text-gray-300">
-                            {user.name} ({user.email})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TabsContent>
-                  <TabsContent value="managers">
-                    <Select
-                      value={formData.employeeId}
-                      onValueChange={(value) => setFormData({ ...formData, employeeId: value })}
-                    >
-                      <SelectTrigger className="bg-gray-900/50 border-gray-700 text-white">
-                        <SelectValue placeholder="Select a manager" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#1E2028] border-gray-700">
-                        {filteredUsers('MANAGER').map((user) => (
-                          <SelectItem key={user.id} value={user.id} className="text-gray-300">
-                            {user.name} ({user.email})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TabsContent>
-                </Tabs>
+                <Select
+                  value={formData.employeeId}
+                  onValueChange={(value) => setFormData({ ...formData, employeeId: value })}
+                >
+                  <SelectTrigger className="w-full bg-[#2d2f36] text-white border-gray-700">
+                    <SelectValue placeholder="Select a user" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1E2028] border-gray-700">
+                    {users
+                      .filter(user => user.role !== 'ADMIN')
+                      .map((user) => (
+                        <SelectItem 
+                          key={user.id} 
+                          value={user.id} 
+                          className="text-gray-300 hover:bg-gray-800"
+                        >
+                          <div className="flex items-center gap-2">
+                            {user.role === 'EMPLOYEE' && <BsPeople className="h-4 w-4 text-blue-400" />}
+                            {user.role === 'MANAGER' && <BsStars className="h-4 w-4 text-purple-400" />}
+                            <div>
+                              <span className="font-medium">{user.name}</span>
+                              <span className="text-xs text-gray-400 ml-2">({user.email})</span>
+                              <span className="text-xs text-gray-500 ml-2 capitalize">{user.role.toLowerCase()}</span>
+                            </div>
+                          </div>
+                        </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex justify-end space-x-4 pt-6">
