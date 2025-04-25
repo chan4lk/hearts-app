@@ -39,6 +39,21 @@ interface Goal {
   status: string;
   createdAt: string;
   managerComments?: string;
+  employee?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  createdBy?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  updatedBy?: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 const CATEGORIES = [
@@ -141,13 +156,24 @@ function GoalsPageContent() {
 
   const fetchGoals = async () => {
     try {
-      const response = await fetch('/api/goals');
+      const response = await fetch('/api/goals', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
       if (response.ok) {
         const data = await response.json();
-        setGoals(data.goals || []);
+        // Sort goals by creation date, most recent first
+        const sortedGoals = data.goals.sort((a: Goal, b: Goal) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setGoals(sortedGoals);
       }
     } catch (error) {
       console.error('Error fetching goals:', error);
+      showNotificationWithTimeout('Failed to load goals', 'error');
     }
   };
 
@@ -158,13 +184,55 @@ function GoalsPageContent() {
     setTimeout(() => setShowNotification(false), 3000);
   };
 
+  const handleEditGoal = async (goal: Goal) => {
+    setSelectedGoal(goal);
+    setNewGoal({
+      title: goal.title,
+      description: goal.description,
+      category: goal.category,
+      dueDate: new Date(goal.dueDate).toISOString().split('T')[0]
+    });
+    setIsCreateModalOpen(true);
+  };
+
+  const handleDeleteGoal = async (goalId: string) => {
+    if (!confirm('Are you sure you want to delete this goal?')) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/goals/${goalId}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete goal');
+      }
+
+      showNotificationWithTimeout('Goal deleted successfully!', 'success');
+      fetchGoals();
+    } catch (error) {
+      console.error('Error deleting goal:', error);
+      showNotificationWithTimeout('Failed to delete goal', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const response = await fetch('/api/goals', {
-        method: 'POST',
+      const url = selectedGoal 
+        ? `/api/goals/${selectedGoal.id}`
+        : '/api/goals';
+      
+      const method = selectedGoal ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json'
         },
@@ -172,11 +240,14 @@ function GoalsPageContent() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create goal');
+        throw new Error(`Failed to ${selectedGoal ? 'update' : 'create'} goal`);
       }
 
       setIsCreateModalOpen(false);
-      showNotificationWithTimeout('Goal created successfully!', 'success');
+      showNotificationWithTimeout(
+        `Goal ${selectedGoal ? 'updated' : 'created'} successfully!`,
+        'success'
+      );
       fetchGoals();
       setNewGoal({
         title: '',
@@ -184,9 +255,13 @@ function GoalsPageContent() {
         category: 'PROFESSIONAL',
         dueDate: new Date().toISOString().split('T')[0]
       });
+      setSelectedGoal(null);
     } catch (error) {
-      console.error('Error creating goal:', error);
-      showNotificationWithTimeout('Failed to create goal. Please try again.', 'error');
+      console.error('Error submitting goal:', error);
+      showNotificationWithTimeout(
+        `Failed to ${selectedGoal ? 'update' : 'create'} goal`,
+        'error'
+      );
     } finally {
       setLoading(false);
     }
@@ -238,6 +313,59 @@ function GoalsPageContent() {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  const renderGoalCard = (goal: Goal) => (
+    <div
+      key={goal.id}
+      className="bg-[#252832] rounded-lg p-4 border border-gray-800 hover:border-indigo-500/50 transition-all"
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(goal.status)} bg-opacity-20`}>
+          {goal.status}
+        </span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 text-xs text-gray-500">
+            <BsCalendar className="w-3 h-3" />
+            <span>{formatDate(goal.dueDate)}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => handleEditGoal(goal)}
+              className="p-1 text-gray-400 hover:text-white transition-colors"
+            >
+              <BsGear className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => handleDeleteGoal(goal.id)}
+              className="p-1 text-gray-400 hover:text-red-400 transition-colors"
+            >
+              <BsXCircle className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+      <h3 className="text-white font-medium mb-1">{goal.title}</h3>
+      <p className="text-sm text-gray-400 mb-2">{goal.description}</p>
+      <div className="flex items-center gap-2 text-xs text-gray-500">
+        <BsTag className="w-3 h-3" />
+        <span>{goal.category}</span>
+      </div>
+    </div>
+  );
+
+  const getGoalStats = () => {
+    const totalGoals = goals.length;
+    const approvedGoals = goals.filter(g => g.status === 'APPROVED').length;
+    const pendingGoals = goals.filter(g => g.status === 'PENDING').length;
+    const rejectedGoals = goals.filter(g => g.status === 'REJECTED').length;
+
+    return {
+      total: totalGoals,
+      approved: approvedGoals,
+      pending: pendingGoals,
+      rejected: rejectedGoals
+    };
   };
 
   return (
@@ -330,44 +458,58 @@ function GoalsPageContent() {
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="bg-purple-500/10 p-2 rounded-lg">
-                    <BsClock className="w-5 h-5 text-purple-400" />
+                    <BsListTask className="w-5 h-5 text-purple-400" />
                   </div>
-                  <h2 className="text-xl font-semibold text-white">Recent Goals</h2>
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">My Created Goals</h2>
+                    <p className="text-sm text-gray-400">Goals you have created and submitted</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    className="bg-[#252832] text-white text-sm rounded-lg border border-gray-700 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    {STATUSES.map(status => (
+                      <option key={status.value} value={status.value}>
+                        {status.label}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="bg-[#252832] text-white text-sm rounded-lg border border-gray-700 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="all">All Categories</option>
+                    {CATEGORIES.map(category => (
+                      <option key={category.value} value={category.value}>
+                        {category.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
               {goals.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4">
-                  {goals.slice(0, 6).map((goal) => (
-                    <div
-                      key={goal.id}
-                      className="bg-[#252832] rounded-lg p-4 border border-gray-800 hover:border-indigo-500/50 transition-all"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(goal.status)} bg-opacity-20`}>
-                          {goal.status}
-                        </span>
-                        <div className="flex items-center gap-1 text-xs text-gray-500">
-                          <BsCalendar className="w-3 h-3" />
-                          <span>{formatDate(goal.dueDate)}</span>
-                        </div>
-                      </div>
-                      <h3 className="text-white font-medium mb-1">{goal.title}</h3>
-                      <p className="text-sm text-gray-400 mb-2">{goal.description}</p>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <BsTag className="w-3 h-3" />
-                        <span>{goal.category}</span>
-                      </div>
-                    </div>
-                  ))}
+                  {filteredGoals.map(renderGoalCard)}
                 </div>
               ) : (
                 <div className="text-center py-8">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#252832] mb-4">
                     <BsListTask className="w-8 h-8 text-gray-400" />
                   </div>
-                  <h3 className="text-lg font-medium text-white mb-2">No goals yet</h3>
-                  <p className="text-gray-400">Create your first goal to get started</p>
+                  <h3 className="text-lg font-medium text-white mb-2">No goals created yet</h3>
+                  <p className="text-gray-400">Start creating and tracking your goals</p>
+                  <button
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 mx-auto"
+                  >
+                    <BsPlus className="w-5 h-5" />
+                    Create New Goal
+                  </button>
                 </div>
               )}
             </div>
@@ -385,13 +527,13 @@ function GoalsPageContent() {
                       <BsBarChartLine className="w-5 h-5 text-indigo-400" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-white">Goal Statistics</h3>
-                      <p className="text-sm text-gray-400">Performance Overview</p>
+                      <h3 className="text-lg font-semibold text-white">Created Goals Overview</h3>
+                      <p className="text-sm text-gray-400">Status of goals you've created</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-white">{goals.length}</div>
-                    <div className="text-sm text-gray-400">Total Goals</div>
+                    <div className="text-2xl font-bold text-white">{getGoalStats().total}</div>
+                    <div className="text-sm text-gray-400">Total Created</div>
                   </div>
                 </div>
               </div>
@@ -416,8 +558,8 @@ function GoalsPageContent() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="text-lg font-medium text-white">{goals.filter(g => g.status === 'APPROVED').length}</span>
-                        <div className="text-xs text-gray-500">{Math.round((goals.filter(g => g.status === 'APPROVED').length / goals.length) * 100) || 0}%</div>
+                        <span className="text-lg font-medium text-white">{getGoalStats().approved}</span>
+                        <div className="text-xs text-gray-500">{Math.round((getGoalStats().approved / getGoalStats().total) * 100) || 0}%</div>
                       </div>
                     </div>
 
@@ -432,8 +574,8 @@ function GoalsPageContent() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="text-lg font-medium text-white">{goals.filter(g => g.status === 'PENDING').length}</span>
-                        <div className="text-xs text-gray-500">{Math.round((goals.filter(g => g.status === 'PENDING').length / goals.length) * 100) || 0}%</div>
+                        <span className="text-lg font-medium text-white">{getGoalStats().pending}</span>
+                        <div className="text-xs text-gray-500">{Math.round((getGoalStats().pending / getGoalStats().total) * 100) || 0}%</div>
                       </div>
                     </div>
 
@@ -448,8 +590,8 @@ function GoalsPageContent() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="text-lg font-medium text-white">{goals.filter(g => g.status === 'REJECTED').length}</span>
-                        <div className="text-xs text-gray-500">{Math.round((goals.filter(g => g.status === 'REJECTED').length / goals.length) * 100) || 0}%</div>
+                        <span className="text-lg font-medium text-white">{getGoalStats().rejected}</span>
+                        <div className="text-xs text-gray-500">{Math.round((getGoalStats().rejected / getGoalStats().total) * 100) || 0}%</div>
                       </div>
                     </div>
                   </div>

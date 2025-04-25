@@ -20,38 +20,17 @@ type GoalWithRelations = Goal & {
   } | null;
 };
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: { manager: true }
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    // Get goals based on user role
     const goals = await prisma.goal.findMany({
       where: {
-        AND: [
-          user.role === 'ADMIN' ? {} : {
-            OR: [
-              { employeeId: user.id },
-              { managerId: user.id }
-            ]
-          },
-          {
-            NOT: {
-              status: 'DELETED'
-            }
-          }
-        ]
+        createdById: session.user.id,
+        status: { not: 'DELETED' }
       },
       include: {
         employee: {
@@ -61,7 +40,14 @@ export async function GET() {
             email: true
           }
         },
-        manager: {
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        updatedBy: {
           select: {
             id: true,
             name: true,
@@ -74,56 +60,10 @@ export async function GET() {
       }
     });
 
-    // Transform goals to match frontend expectations
-    const transformedGoals = goals.map((goal: GoalWithRelations) => ({
-      id: goal.id,
-      title: goal.title,
-      description: goal.description,
-      dueDate: goal.dueDate.toISOString(),
-      status: goal.status,
-      category: goal.category,
-      createdAt: goal.createdAt.toISOString(),
-      updatedAt: goal.updatedAt.toISOString(),
-      managerComments: goal.managerComments,
-      employee: goal.employee,
-      manager: goal.manager
-    }));
-
-    // Calculate stats
-    const totalGoals = goals.length;
-    const completedGoals = goals.filter(goal => goal.status === 'COMPLETED').length;
-    const inProgressGoals = goals.filter(goal => goal.status === 'MODIFIED').length;
-    const pendingGoals = goals.filter(goal => goal.status === 'PENDING').length;
-    const approvedGoals = goals.filter(goal => goal.status === 'APPROVED').length;
-    const rejectedGoals = goals.filter(goal => goal.status === 'REJECTED').length;
-    const draftGoals = goals.filter(goal => goal.status === 'DRAFT').length;
-
-    // Calculate category stats
-    const categoryStats = goals.reduce((acc: Record<string, number>, goal) => {
-      const category = goal.category;
-      acc[category] = (acc[category] || 0) + 1;
-      return acc;
-    }, {});
-
-    return NextResponse.json({
-      goals: transformedGoals,
-      stats: {
-        total: totalGoals,
-        completed: completedGoals,
-        inProgress: inProgressGoals,
-        pending: pendingGoals,
-        approved: approvedGoals,
-        rejected: rejectedGoals,
-        draft: draftGoals,
-        categories: categoryStats
-      }
-    });
+    return NextResponse.json({ goals });
   } catch (error) {
     console.error('Error fetching goals:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch goals' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch goals' }, { status: 500 });
   }
 }
 
@@ -134,62 +74,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { title, description, employeeId, dueDate, category, status = 'DRAFT' } = body;
+    const { title, description, category, dueDate } = await req.json();
 
-    // Validate required fields
-    if (!title || !description || !employeeId || !dueDate || !category) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
-
-    // Check if user is admin
-    const isAdmin = session.user.role === 'ADMIN';
-
-    // Create the goal
     const goal = await prisma.goal.create({
       data: {
         title,
         description,
-        dueDate: new Date(dueDate),
         category,
-        status,
-        employeeId,
-        managerId: isAdmin ? null : session.user.id,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        dueDate: new Date(dueDate),
+        status: 'PENDING',
+        employeeId: session.user.id,
+        createdById: session.user.id,
+        updatedById: session.user.id
       },
       include: {
-        employee: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        },
-        manager: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
+        employee: true,
+        createdBy: true,
+        updatedBy: true
       }
     });
 
-    return NextResponse.json({ 
-      success: true,
-      message: 'Goal created successfully',
-      goal 
-    });
+    return NextResponse.json({ goal }, { status: 201 });
   } catch (error) {
     console.error('Error creating goal:', error);
-    return NextResponse.json(
-      { error: 'Failed to create goal' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create goal' }, { status: 500 });
   }
 }
 
