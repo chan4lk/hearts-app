@@ -18,9 +18,18 @@ export async function GET() {
     // Fetch goals for employees managed by the current manager
     const goals = await prisma.goal.findMany({
       where: {
-        employee: {
-          managerId: session.user.id
-        }
+        AND: [
+          {
+            employee: {
+              managerId: session.user.id
+            }
+          },
+          {
+            NOT: {
+              status: 'DELETED'
+            }
+          }
+        ]
       },
       include: {
         employee: {

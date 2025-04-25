@@ -34,10 +34,19 @@ export async function GET() {
     // Then fetch pending goals for these employees
     const goals = await prisma.goal.findMany({
       where: {
-        status: GoalStatus.PENDING,
-        employeeId: {
-          in: employeeIds,
-        },
+        AND: [
+          {
+            status: GoalStatus.PENDING,
+            employeeId: {
+              in: employeeIds,
+            }
+          },
+          {
+            NOT: {
+              status: 'DELETED'
+            }
+          }
+        ]
       },
       include: {
         employee: {
