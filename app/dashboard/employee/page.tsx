@@ -66,13 +66,24 @@ export default function EmployeeDashboard() {
   useEffect(() => {
     const fetchGoals = async () => {
       try {
-        const response = await fetch('/api/goals');
-        if (!response.ok) {
-          throw new Error('Failed to fetch goals');
+        // Fetch assigned goals
+        const assignedResponse = await fetch('/api/goals');
+        if (!assignedResponse.ok) {
+          throw new Error('Failed to fetch assigned goals');
         }
-        const data = await response.json();
-        console.log('Fetched goals:', data); // Debug log
-        setGoals(data.goals || []);
+        const assignedData = await assignedResponse.json();
+        
+        // Fetch self-created goals
+        const selfResponse = await fetch('/api/goals/self');
+        if (!selfResponse.ok) {
+          throw new Error('Failed to fetch self-created goals');
+        }
+        const selfData = await selfResponse.json();
+        
+        // Combine both sets of goals
+        const allGoals = [...(assignedData.goals || []), ...(selfData.goals || [])];
+        console.log('Fetched goals:', allGoals); // Debug log
+        setGoals(allGoals);
       } catch (error) {
         console.error('Error fetching goals:', error);
       } finally {
@@ -88,6 +99,10 @@ export default function EmployeeDashboard() {
     const matchesStatus = !selectedStatus || goal.status === selectedStatus;
     return matchesSearch && matchesStatus;
   });
+
+  // Separate assigned and self-created goals
+  const assignedGoals = filteredGoals.filter(goal => goal.manager && goal.manager.id !== goal.employee.id);
+  const selfCreatedGoals = filteredGoals.filter(goal => !goal.manager || goal.manager.id === goal.employee.id);
 
   const getGoalStats = () => {
     const total = goals.length;
@@ -288,86 +303,160 @@ export default function EmployeeDashboard() {
                   <option value="COMPLETED">Completed</option>
                 </select>
               </div>
-
-
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {filteredGoals.length > 0 ? (
-              filteredGoals.map((goal) => (
-                <div
-                  key={goal.id}
-                  className="bg-[#252832] rounded-xl p-5 border border-gray-800 hover:border-indigo-500/50 transition-all group cursor-pointer"
-                  onClick={() => {
-                    setSelectedGoal(goal);
-                    setShowDetailModal(true);
-                  }}
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-lg font-medium text-white group-hover:text-indigo-400 transition-colors flex items-center gap-2">
-                      {goal.title}
-                      <BsChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transform translate-x-0 group-hover:translate-x-1 transition-all" />
-                    </h3>
-                    <span className={`px-3 py-1 rounded-full text-xs flex items-center gap-2 ${
-                      goal.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' :
-                      goal.status === 'REJECTED' ? 'bg-rose-500/10 text-rose-400' :
-                      goal.status === 'COMPLETED' ? 'bg-blue-500/10 text-blue-400' :
-                      goal.status === 'MODIFIED' ? 'bg-amber-500/10 text-amber-400' :
-                      'bg-amber-500/10 text-amber-400'
-                    }`}>
-                      {goal.status === 'APPROVED' && <BsCheckCircle className="w-3 h-3" />}
-                      {goal.status === 'REJECTED' && <BsXCircle className="w-3 h-3" />}
-                      {goal.status === 'COMPLETED' && <BsCheckCircle className="w-3 h-3" />}
-                      {goal.status === 'MODIFIED' && <BsClock className="w-3 h-3" />}
-                      {goal.status === 'PENDING' && <BsClock className="w-3 h-3" />}
-                      {goal.status.charAt(0) + goal.status.slice(1).toLowerCase()}
-                    </span>
-                  </div>
-
-                  <p className="text-gray-400 text-sm mb-4 line-clamp-2 group-hover:text-gray-300 transition-colors">
-                    {goal.description}
-                  </p>
-
-                  <div className="flex items-center justify-between text-sm text-gray-400">
-                    <div className="flex items-center gap-2 bg-[#1E2028] px-3 py-1.5 rounded-lg">
-                      <BsCalendar className="w-4 h-4" />
-                      <span>Due: {new Date(goal.dueDate).toLocaleDateString()}</span>
+          {/* Assigned Goals Section */}
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <BsShield className="w-5 h-5 text-blue-400" />
+              <h3 className="text-lg font-medium text-white">Assigned Goals</h3>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {assignedGoals.length > 0 ? (
+                assignedGoals.map((goal) => (
+                  <div
+                    key={goal.id}
+                    className="bg-[#252832] rounded-xl p-5 border border-gray-800 hover:border-indigo-500/50 transition-all group cursor-pointer"
+                    onClick={() => {
+                      setSelectedGoal(goal);
+                      setShowDetailModal(true);
+                    }}
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="text-lg font-medium text-white group-hover:text-indigo-400 transition-colors flex items-center gap-2">
+                        {goal.title}
+                        <BsChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transform translate-x-0 group-hover:translate-x-1 transition-all" />
+                      </h3>
+                      <span className={`px-3 py-1 rounded-full text-xs flex items-center gap-2 ${
+                        goal.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' :
+                        goal.status === 'REJECTED' ? 'bg-rose-500/10 text-rose-400' :
+                        goal.status === 'COMPLETED' ? 'bg-blue-500/10 text-blue-400' :
+                        goal.status === 'MODIFIED' ? 'bg-amber-500/10 text-amber-400' :
+                        'bg-amber-500/10 text-amber-400'
+                      }`}>
+                        {goal.status === 'APPROVED' && <BsCheckCircle className="w-3 h-3" />}
+                        {goal.status === 'REJECTED' && <BsXCircle className="w-3 h-3" />}
+                        {goal.status === 'COMPLETED' && <BsCheckCircle className="w-3 h-3" />}
+                        {goal.status === 'MODIFIED' && <BsClock className="w-3 h-3" />}
+                        {goal.status === 'PENDING' && <BsClock className="w-3 h-3" />}
+                        {goal.status.charAt(0) + goal.status.slice(1).toLowerCase()}
+                      </span>
                     </div>
-                    <button
-                      className="flex items-center gap-2 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedGoal(goal);
-                        setShowDetailModal(true);
-                      }}
-                    >
-                      <BsEye className="w-4 h-4" />
-                      <span>View Details</span>
-                    </button>
+
+                    <p className="text-gray-400 text-sm mb-4 line-clamp-2 group-hover:text-gray-300 transition-colors">
+                      {goal.description}
+                    </p>
+
+                    <div className="flex items-center justify-between text-sm text-gray-400">
+                      <div className="flex items-center gap-2 bg-[#1E2028] px-3 py-1.5 rounded-lg">
+                        <BsCalendar className="w-4 h-4" />
+                        <span>Due: {new Date(goal.dueDate).toLocaleDateString()}</span>
+                      </div>
+                      <button
+                        className="flex items-center gap-2 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedGoal(goal);
+                          setShowDetailModal(true);
+                        }}
+                      >
+                        <BsEye className="w-4 h-4" />
+                        <span>View Details</span>
+                      </button>
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="col-span-full bg-[#252832] rounded-xl p-8 text-center border border-gray-800">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#1E2028] mb-4">
+                    <BsFlag className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-medium text-white mb-2">No assigned goals</h3>
+                  <p className="text-gray-400">You don't have any goals assigned by your manager yet.</p>
                 </div>
-              ))
-            ) : (
-              <div className="col-span-full bg-[#252832] rounded-xl p-8 text-center border border-gray-800">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#1E2028] mb-4">
-                  <BsFlag className="w-8 h-8 text-gray-400" />
+              )}
+            </div>
+          </div>
+
+          {/* Self-Created Goals Section */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <BsStars className="w-5 h-5 text-purple-400" />
+              <h3 className="text-lg font-medium text-white">My Created Goals</h3>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {selfCreatedGoals.length > 0 ? (
+                selfCreatedGoals.map((goal) => (
+                  <div
+                    key={goal.id}
+                    className="bg-[#252832] rounded-xl p-5 border border-gray-800 hover:border-indigo-500/50 transition-all group cursor-pointer"
+                    onClick={() => {
+                      setSelectedGoal(goal);
+                      setShowDetailModal(true);
+                    }}
+                  >
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="text-lg font-medium text-white group-hover:text-indigo-400 transition-colors flex items-center gap-2">
+                        {goal.title}
+                        <BsChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transform translate-x-0 group-hover:translate-x-1 transition-all" />
+                      </h3>
+                      <span className={`px-3 py-1 rounded-full text-xs flex items-center gap-2 ${
+                        goal.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' :
+                        goal.status === 'REJECTED' ? 'bg-rose-500/10 text-rose-400' :
+                        goal.status === 'COMPLETED' ? 'bg-blue-500/10 text-blue-400' :
+                        goal.status === 'MODIFIED' ? 'bg-amber-500/10 text-amber-400' :
+                        'bg-amber-500/10 text-amber-400'
+                      }`}>
+                        {goal.status === 'APPROVED' && <BsCheckCircle className="w-3 h-3" />}
+                        {goal.status === 'REJECTED' && <BsXCircle className="w-3 h-3" />}
+                        {goal.status === 'COMPLETED' && <BsCheckCircle className="w-3 h-3" />}
+                        {goal.status === 'MODIFIED' && <BsClock className="w-3 h-3" />}
+                        {goal.status === 'PENDING' && <BsClock className="w-3 h-3" />}
+                        {goal.status.charAt(0) + goal.status.slice(1).toLowerCase()}
+                      </span>
+                    </div>
+
+                    <p className="text-gray-400 text-sm mb-4 line-clamp-2 group-hover:text-gray-300 transition-colors">
+                      {goal.description}
+                    </p>
+
+                    <div className="flex items-center justify-between text-sm text-gray-400">
+                      <div className="flex items-center gap-2 bg-[#1E2028] px-3 py-1.5 rounded-lg">
+                        <BsCalendar className="w-4 h-4" />
+                        <span>Due: {new Date(goal.dueDate).toLocaleDateString()}</span>
+                      </div>
+                      <button
+                        className="flex items-center gap-2 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedGoal(goal);
+                          setShowDetailModal(true);
+                        }}
+                      >
+                        <BsEye className="w-4 h-4" />
+                        <span>View Details</span>
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-full bg-[#252832] rounded-xl p-8 text-center border border-gray-800">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#1E2028] mb-4">
+                    <BsFlag className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-medium text-white mb-2">No self-created goals</h3>
+                  <p className="text-gray-400 mb-6">You haven't created any goals yet.</p>
+                  <button
+                    onClick={() => router.push('/dashboard/goals/create')}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-all group"
+                  >
+                    <BsPlus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+                    <span>Create your first goal</span>
+                  </button>
                 </div>
-                <h3 className="text-xl font-medium text-white mb-2">No goals found</h3>
-                <p className="text-gray-400 mb-6">
-                  {selectedStatus 
-                    ? `No goals with status "${selectedStatus.toLowerCase()}" found.`
-                    : "You haven't created any goals yet."}
-                </p>
-                <button
-                  onClick={() => router.push('/dashboard/goals/create')}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-all group"
-                >
-                  <BsPlus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-                  <span>Create your first goal</span>
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 

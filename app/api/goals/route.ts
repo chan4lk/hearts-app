@@ -27,9 +27,11 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // For employees, fetch goals assigned to them by managers
     const goals = await prisma.goal.findMany({
       where: {
-        createdById: session.user.id,
+        employeeId: session.user.id,
+        managerId: { not: session.user.id }, // Exclude self-created goals
         status: { not: 'DELETED' }
       },
       include: {
@@ -40,14 +42,7 @@ export async function GET(req: Request) {
             email: true
           }
         },
-        createdBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        },
-        updatedBy: {
+        manager: {
           select: {
             id: true,
             name: true,
