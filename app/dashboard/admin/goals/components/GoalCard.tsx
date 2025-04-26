@@ -19,15 +19,15 @@ export function GoalCard({ goal, onView, onEdit, onDelete }: GoalCardProps) {
       <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg" />
       <CardHeader className="relative">
         <CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-white">
-          <div className="flex items-center gap-2">
-            {goal.category === 'PROFESSIONAL' && <BsRocket className="h-5 w-5 text-blue-400" />}
-            {goal.category === 'TECHNICAL' && <BsLightbulb className="h-5 w-5 text-amber-400" />}
-            {goal.category === 'LEADERSHIP' && <BsAward className="h-5 w-5 text-purple-400" />}
-            {goal.category === 'PERSONAL' && <BsGraphUp className="h-5 w-5 text-emerald-400" />}
-            {goal.category === 'TRAINING' && <BsBriefcase className="h-5 w-5 text-rose-400" />}
-            <span className="font-semibold text-base sm:text-lg">{goal.title}</span>
+          <div className="flex items-center gap-3">
+            {goal.category === 'PROFESSIONAL' && <BsRocket className="h-5 w-5 text-blue-400 flex-shrink-0" />}
+            {goal.category === 'TECHNICAL' && <BsLightbulb className="h-5 w-5 text-amber-400 flex-shrink-0" />}
+            {goal.category === 'LEADERSHIP' && <BsAward className="h-5 w-5 text-purple-400 flex-shrink-0" />}
+            {goal.category === 'PERSONAL' && <BsGraphUp className="h-5 w-5 text-emerald-400 flex-shrink-0" />}
+            {goal.category === 'TRAINING' && <BsBriefcase className="h-5 w-5 text-rose-400 flex-shrink-0" />}
+            <span className="font-semibold text-lg leading-tight">{goal.title}</span>
           </div>
-          <div className="flex items-center gap-1 justify-end">
+          <div className="flex items-center gap-2 justify-end">
             <Button
               variant="ghost"
               size="icon"
@@ -38,7 +38,7 @@ export function GoalCard({ goal, onView, onEdit, onDelete }: GoalCardProps) {
               className="text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors"
               title="View Goal"
             >
-              <BsEye className="h-4 w-4" />
+              <BsEye className="h-5 w-5" />
             </Button>
             <Button
               variant="ghost"
@@ -50,7 +50,7 @@ export function GoalCard({ goal, onView, onEdit, onDelete }: GoalCardProps) {
               className="text-gray-400 hover:text-white hover:bg-gray-800/50 transition-colors"
               title="Edit Goal"
             >
-              <BsPencil className="h-4 w-4" />
+              <BsPencil className="h-5 w-5" />
             </Button>
             <Button
               variant="ghost"
@@ -62,7 +62,7 @@ export function GoalCard({ goal, onView, onEdit, onDelete }: GoalCardProps) {
               className="text-gray-400 hover:text-red-400 hover:bg-red-900/30 transition-colors"
               title="Delete Goal"
             >
-              <BsTrash className="h-4 w-4" />
+              <BsTrash className="h-5 w-5" />
             </Button>
           </div>
         </CardTitle>
@@ -94,12 +94,12 @@ export function GoalCard({ goal, onView, onEdit, onDelete }: GoalCardProps) {
         <p className="text-sm text-gray-300 line-clamp-2 mb-4">{goal.description}</p>
         <div className="space-y-2 bg-gray-900/30 p-3 rounded-lg">
           <div className="flex items-center gap-2 text-sm text-gray-300">
-            <User className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <span className="truncate">Assigned to: <span className="text-white">{goal.employee?.name}</span></span>
+            <User className="h-5 w-5 text-gray-400 flex-shrink-0" />
+            <span className="truncate">Assigned to: <span className="text-white font-medium">{goal.employee?.name}</span></span>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-300">
-            <Calendar className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <span>Due: <span className="text-white">{new Date(goal.dueDate).toLocaleDateString()}</span></span>
+            <Calendar className="h-5 w-5 text-gray-400 flex-shrink-0" />
+            <span>Due: <span className="text-white font-medium">{new Date(goal.dueDate).toLocaleDateString()}</span></span>
           </div>
         </div>
       </CardContent>
