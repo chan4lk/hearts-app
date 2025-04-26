@@ -156,6 +156,7 @@ function ManagerGoalSettingPageContent() {
   const [viewedGoal, setViewedGoal] = useState<Goal | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<string>('all');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -190,23 +191,39 @@ function ManagerGoalSettingPageContent() {
     fetchAssignedEmployees();
   }, []);
 
+  const getFilteredGoals = (goals: Goal[]) => {
+    if (selectedEmployee === 'all') return goals;
+    return goals.filter(goal => goal.employee?.id === selectedEmployee);
+  };
+
   useEffect(() => {
     const fetchGoals = async () => {
       try {
         const response = await fetch('/api/goals/managed');
         if (!response.ok) throw new Error('Failed to fetch goals');
         const data = await response.json();
-        setGoals(data.goals);
         
-        // Update stats
+        // Filter goals to only show those assigned by the manager to employees
+        const assignedGoals = data.goals.filter((goal: Goal) => 
+          goal.manager?.id === session?.user?.id && 
+          goal.employee?.id !== session?.user?.id
+        );
+        
+        setGoals(assignedGoals);
+        
+        // Update stats based on filtered goals
+        const filteredGoals = getFilteredGoals(assignedGoals);
         setStats(prevStats => ({
           ...prevStats,
           totalEmployees: assignedEmployees.length,
-          totalGoals: data.stats.total,
-          completedGoals: data.stats.completed,
-          pendingGoals: data.stats.pending,
-          draftGoals: data.stats.draft,
-          categoryStats: data.stats.categories
+          totalGoals: filteredGoals.length,
+          completedGoals: filteredGoals.filter((g: Goal) => g.status === 'COMPLETED').length,
+          pendingGoals: filteredGoals.filter((g: Goal) => g.status === 'PENDING').length,
+          draftGoals: filteredGoals.filter((g: Goal) => g.status === 'DRAFT').length,
+          categoryStats: filteredGoals.reduce((acc: { [key: string]: number }, goal: Goal) => {
+            acc[goal.category] = (acc[goal.category] || 0) + 1;
+            return acc;
+          }, {})
         }));
         
         setLoading(false);
@@ -220,7 +237,7 @@ function ManagerGoalSettingPageContent() {
     if (assignedEmployees.length > 0) {
       fetchGoals();
     }
-  }, [assignedEmployees]);
+  }, [assignedEmployees, session?.user?.id, selectedEmployee]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -678,15 +695,50 @@ function ManagerGoalSettingPageContent() {
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               Goal Management
               <span className="bg-blue-500/10 p-1 rounded text-blue-400 text-sm font-normal">
-                {goals.length} Goals
+                {getFilteredGoals(goals).length} Goals
               </span>
             </h2>
             <p className="text-gray-400 mt-1">Manage and track all assigned goals</p>
           </div>
+          <div className="flex items-center gap-4">
+            <Select
+              value={selectedEmployee}
+              onValueChange={setSelectedEmployee}
+            >
+              <SelectTrigger className="w-[200px] bg-[#25262b] border-0 focus:ring-1 focus:ring-gray-500 text-white">
+                <SelectValue>
+                  <div className="flex items-center gap-2 text-white">
+                    <BsPeople className="h-4 w-4 text-gray-400" />
+                    <span className="text-white">{selectedEmployee === 'all' ? 'All Employees' : assignedEmployees.find(e => e.id === selectedEmployee)?.name}</span>
+                  </div>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="bg-[#25262b] border border-gray-700">
+                <SelectItem value="all" className="focus:bg-gray-700">
+                  <div className="flex items-center gap-2 text-white">
+                    <BsPeople className="h-4 w-4 text-gray-400" />
+                    <span className="text-white">All Employees</span>
+                  </div>
+                </SelectItem>
+                {assignedEmployees.map((employee) => (
+                  <SelectItem 
+                    key={employee.id} 
+                    value={employee.id}
+                    className="focus:bg-gray-700"
+                  >
+                    <div className="flex items-center gap-2 text-white">
+                      <BsPeople className="h-4 w-4 text-gray-400" />
+                      <span className="text-white">{employee.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {goals.map((goal) => (
+          {getFilteredGoals(goals).map((goal) => (
             <Card 
               key={goal.id} 
               className="bg-[#1E2028] border-gray-800 hover:shadow-lg transition-shadow group"
@@ -1123,7 +1175,6 @@ function ManagerGoalSettingPageContent() {
                           <div className="flex items-center gap-2">
                             <BsPeople className="h-4 w-4 text-gray-400" />
                             <span>{employee.name}</span>
-                            <span className="text-gray-500 text-sm ml-2">({employee.email})</span>
                           </div>
                         </SelectItem>
                       ))}
