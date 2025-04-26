@@ -43,47 +43,56 @@ export async function PATCH(request: Request, { params }: { params: { goalId: st
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { status, managerComments } = await request.json();
+    const { status } = await request.json();
 
-    // Check if user is authorized to update the goal
+    // Check if the goal exists
     const goal = await prisma.goal.findUnique({
       where: { id: params.goalId },
-      include: { manager: true }
+      include: { 
+        manager: true,
+        employee: true
+      }
     });
 
     if (!goal) {
       return NextResponse.json({ error: 'Goal not found' }, { status: 404 });
     }
 
-    if (goal.managerId !== session.user.id) {
+    // Check if the user is the employee of this goal
+    if (goal.employeeId !== session.user.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    // Update the goal
+    // Update the goal status
     const updatedGoal = await prisma.goal.update({
       where: { id: params.goalId },
       data: {
         status,
-        managerComments,
         updatedAt: new Date(),
         updatedById: session.user.id
       },
       include: {
-        employee: true,
-        manager: true,
-        createdBy: true,
-        updatedBy: true
+        employee: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        manager: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
       }
     });
 
-    return NextResponse.json({
-      success: true,
-      message: 'Goal status updated successfully',
-      goal: updatedGoal
-    });
+    return NextResponse.json(updatedGoal);
   } catch (error) {
-    console.error('Error updating goal status:', error);
-    return NextResponse.json({ error: 'Failed to update goal status' }, { status: 500 });
+    console.error('Error updating goal:', error);
+    return NextResponse.json({ error: 'Failed to update goal' }, { status: 500 });
   }
 }
 

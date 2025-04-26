@@ -1,22 +1,20 @@
 import { useState } from 'react';
-import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat } from 'react-icons/bs';
+import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield } from 'react-icons/bs';
 import { Goal } from './types';
 
 interface GoalDetailModalProps {
   goal: Goal;
   onClose: () => void;
-  onSubmitGoal: (goalId: string, comment: string) => Promise<void>;
+  onSubmitGoal: (goalId: string) => Promise<void>;
 }
 
 export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDetailModalProps) {
-  const [submissionComment, setSubmissionComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      await onSubmitGoal(goal.id, submissionComment);
-      setSubmissionComment('');
+      await onSubmitGoal(goal.id);
       onClose();
     } catch (error) {
       console.error('Error submitting goal:', error);
@@ -82,21 +80,10 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDet
 
           {(goal.status === 'DRAFT' || goal.status === 'MODIFIED') && (
             <div className="bg-[#252832] rounded-lg p-4 border border-gray-700">
-              <div className="flex items-center gap-2 text-gray-400 mb-2">
-                <BsChat className="w-4 h-4" />
-                <span className="text-sm font-medium">Submit for Approval</span>
-              </div>
-              <textarea
-                value={submissionComment}
-                onChange={(e) => setSubmissionComment(e.target.value)}
-                placeholder="Add any comments for your manager (optional)"
-                className="w-full bg-[#1E2028] text-white rounded-lg p-3 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent mt-2 mb-3"
-                rows={3}
-              />
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <>
@@ -116,7 +103,6 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDet
           {(goal.status === 'APPROVED' || goal.status === 'REJECTED') && goal.managerComments && (
             <div className="bg-[#252832] rounded-lg p-4 border border-gray-700">
               <div className="flex items-center gap-2 text-gray-400 mb-2">
-                <BsChat className="w-4 h-4" />
                 <span className="text-sm font-medium">Manager Feedback</span>
               </div>
               <p className="text-gray-300">{goal.managerComments}</p>

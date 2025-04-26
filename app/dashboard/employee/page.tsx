@@ -76,16 +76,16 @@ export default function EmployeeDashboard() {
     };
   };
 
-  const handleSubmitGoal = async (goalId: string, comment: string) => {
+  const handleSubmitGoal = async (goalId: string) => {
     try {
       const response = await fetch(`/api/goals/${goalId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
-          status: 'PENDING',
-          employeeComment: comment
+          status: 'PENDING'
         }),
       });
 
@@ -95,7 +95,9 @@ export default function EmployeeDashboard() {
       }
 
       // Refresh goals list
-      const updatedResponse = await fetch('/api/goals');
+      const updatedResponse = await fetch('/api/goals', {
+        credentials: 'include'
+      });
       const updatedData = await updatedResponse.json();
       setGoals(updatedData.goals || []);
     } catch (error) {
