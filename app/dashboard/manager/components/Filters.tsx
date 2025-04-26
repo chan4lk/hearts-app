@@ -9,7 +9,7 @@ interface FiltersProps {
   selectedEmployee: string;
   setSelectedEmployee: (employee: string) => void;
   employees: EmployeeStats[];
-  activeTab: 'employee' | 'personal';
+  activeTab: 'employee' | 'personal' | 'assigned';
 }
 
 export default function Filters({
@@ -31,7 +31,7 @@ export default function Filters({
           </div>
           <input
             type="text"
-            placeholder={`Search ${activeTab === 'employee' ? 'employee' : 'personal'} goals...`}
+            placeholder={`Search ${activeTab === 'employee' ? 'employee' : activeTab === 'personal' ? 'personal' : 'assigned'} goals...`}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-3 bg-[#1E2028] text-white rounded-xl border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all hover:bg-[#252832] hover:border-gray-600"

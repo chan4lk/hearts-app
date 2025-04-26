@@ -1,40 +1,45 @@
 export type GoalStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'COMPLETED' | 'DELETED';
 
+export interface Employee {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Goal {
   id: string;
-  employee: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  manager?: {
-    id: string;
-    name: string;
-    email: string;
-  };
+  employee: Employee;
   title: string;
   description: string;
   dueDate: string;
   status: GoalStatus;
-  category: string;
   createdAt: string;
   updatedAt: string;
-  managerComments?: string;
-  employeeComment?: string;
+  isApprovalProcess: boolean;
+  approvalProcessId?: string;
+  managerId?: string;
 }
 
 export interface EmployeeStats {
   id: string;
   name: string;
   email: string;
-  goalsCount: number;
+  totalGoals: number;
+  pendingGoals: number;
+  approvedGoals: number;
+  rejectedGoals: number;
+  isActive: boolean;
 }
 
 export interface StatusStyle {
   bg: string;
   text: string;
-  icon: JSX.Element;
-  gradient?: string;
+  icon: React.ReactNode;
+  gradient: string;
 }
 
 export interface DashboardStats {
@@ -58,4 +63,5 @@ export interface DashboardStats {
   };
   employeeCount: number;
   activeEmployees: number;
+  approvalProcessGoals: number;
 } 

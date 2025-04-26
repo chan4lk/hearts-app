@@ -3,7 +3,7 @@ import { DashboardStats } from '../types';
 
 interface StatsDisplayProps {
   stats: DashboardStats;
-  activeTab: 'employee' | 'personal';
+  activeTab: 'employee' | 'personal' | 'assigned';
 }
 
 export default function StatsDisplay({ stats, activeTab }: StatsDisplayProps) {
@@ -45,7 +45,7 @@ export default function StatsDisplay({ stats, activeTab }: StatsDisplayProps) {
               <div className="text-2xl font-bold text-white">{stats.activeEmployees}</div>
             </div>
           </>
-        ) : (
+        ) : activeTab === 'personal' ? (
           <>
             <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
               <div className="text-sm text-gray-400 mb-1">My Total Goals</div>
@@ -68,6 +68,33 @@ export default function StatsDisplay({ stats, activeTab }: StatsDisplayProps) {
               <div className="text-2xl font-bold text-white">
                 {stats.personalGoals.total > 0
                   ? `${Math.round((stats.personalGoals.approved / stats.personalGoals.total) * 100)}%`
+                  : '0%'}
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+              <div className="text-sm text-gray-400 mb-1">Total Assigned Goals</div>
+              <div className="text-2xl font-bold text-white">{stats.approvalProcessGoals}</div>
+            </div>
+            <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+              <div className="text-sm text-amber-400 mb-1">Pending</div>
+              <div className="text-2xl font-bold text-white">{stats.employeeGoals.pending}</div>
+            </div>
+            <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+              <div className="text-sm text-emerald-400 mb-1">Approved</div>
+              <div className="text-2xl font-bold text-white">{stats.employeeGoals.approved}</div>
+            </div>
+            <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
+              <div className="text-sm text-rose-400 mb-1">Rejected</div>
+              <div className="text-2xl font-bold text-white">{stats.employeeGoals.rejected}</div>
+            </div>
+            <div className="bg-[#252832] p-4 rounded-xl border border-gray-800 col-span-2">
+              <div className="text-sm text-indigo-400 mb-1">Completion Rate</div>
+              <div className="text-2xl font-bold text-white">
+                {stats.approvalProcessGoals > 0
+                  ? `${Math.round((stats.employeeGoals.approved / stats.approvalProcessGoals) * 100)}%`
                   : '0%'}
               </div>
             </div>

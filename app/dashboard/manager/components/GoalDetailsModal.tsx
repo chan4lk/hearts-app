@@ -5,7 +5,7 @@ import { getStatusStyle } from '../utils';
 interface GoalDetailsModalProps {
   goal: Goal | null;
   onClose: () => void;
-  activeTab: 'employee' | 'personal';
+  activeTab: 'employee' | 'personal' | 'assigned';
 }
 
 export default function GoalDetailsModal({ goal, onClose, activeTab }: GoalDetailsModalProps) {

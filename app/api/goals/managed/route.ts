@@ -20,9 +20,22 @@ export async function GET() {
       where: {
         AND: [
           {
-            employee: {
-              managerId: session.user.id
-            }
+            OR: [
+              // Goals for employees managed by the current manager
+              {
+                employee: {
+                  managerId: session.user.id
+                }
+              },
+              // Personal goals of the manager
+              {
+                employeeId: session.user.id
+              },
+              // Goals assigned by the manager
+              {
+                managerId: session.user.id
+              }
+            ]
           },
           {
             NOT: {
@@ -76,6 +89,7 @@ export async function GET() {
     return NextResponse.json({ 
       goals: goals.map(goal => ({
         ...goal,
+        isApprovalProcess: goal.managerId === null,
         auditInfo: {
           createdBy: goal.createdBy ? {
             id: goal.createdBy.id,

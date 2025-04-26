@@ -8,6 +8,7 @@ import Filters from './components/Filters';
 import GoalsGrid from './components/GoalsGrid';
 import GoalDetailsModal from './components/GoalDetailsModal';
 import { Goal, EmployeeStats, DashboardStats } from './types';
+import { useRouter } from 'next/navigation';
 
 export default function ManagerDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,19 +19,20 @@ export default function ManagerDashboard() {
   const [employees, setEmployees] = useState<EmployeeStats[]>([]);
   const [employeeCounts, setEmployeeCounts] = useState({ total: 0, active: 0 });
   const [selectedGoalDetails, setSelectedGoalDetails] = useState<Goal | null>(null);
-  const [activeTab, setActiveTab] = useState<'employee' | 'personal'>('employee');
+  const [activeTab, setActiveTab] = useState<'employee' | 'personal' | 'assigned'>('employee');
   const { data: session } = useSession();
+  const router = useRouter();
 
   // Calculate statistics for both employee goals and personal goals
   const stats: DashboardStats = {
     employeeGoals: {
-      total: goals.filter(g => g.employee.email !== session?.user?.email).length,
-      draft: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'DRAFT').length,
-      pending: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'PENDING').length,
-      approved: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'APPROVED').length,
-      rejected: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'REJECTED').length,
-      modified: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'MODIFIED').length,
-      completed: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'COMPLETED').length,
+      total: goals.filter(g => g.employee.email !== session?.user?.email && !g.isApprovalProcess).length,
+      draft: goals.filter(g => g.employee.email !== session?.user?.email && !g.isApprovalProcess && g.status === 'DRAFT').length,
+      pending: goals.filter(g => g.employee.email !== session?.user?.email && !g.isApprovalProcess && g.status === 'PENDING').length,
+      approved: goals.filter(g => g.employee.email !== session?.user?.email && !g.isApprovalProcess && g.status === 'APPROVED').length,
+      rejected: goals.filter(g => g.employee.email !== session?.user?.email && !g.isApprovalProcess && g.status === 'REJECTED').length,
+      modified: goals.filter(g => g.employee.email !== session?.user?.email && !g.isApprovalProcess && g.status === 'MODIFIED').length,
+      completed: goals.filter(g => g.employee.email !== session?.user?.email && !g.isApprovalProcess && g.status === 'COMPLETED').length,
     },
     personalGoals: {
       total: goals.filter(g => g.employee.email === session?.user?.email).length,
@@ -42,7 +44,8 @@ export default function ManagerDashboard() {
       completed: goals.filter(g => g.employee.email === session?.user?.email && g.status === 'COMPLETED').length,
     },
     employeeCount: employeeCounts.total,
-    activeEmployees: employeeCounts.active
+    activeEmployees: employeeCounts.active,
+    approvalProcessGoals: goals.filter(g => g.managerId === session?.user?.id).length
   };
 
   // Load goals and employees from the database
@@ -103,6 +106,16 @@ export default function ManagerDashboard() {
     fetchData();
   }, [session?.user?.email]);
 
+  const handleGoalClick = (goal: Goal) => {
+    if (goal.isApprovalProcess) {
+      // Navigate to the approval page for approval process goals
+      router.push(`/approval/${goal.id}`);
+    } else {
+      // Show goal details for non-assigned goals
+      setSelectedGoalDetails(goal);
+    }
+  };
+
   const filteredGoals = goals.filter(goal => {
     const query = searchQuery.toLowerCase().trim();
     const titleMatch = goal.title.toLowerCase().includes(query);
@@ -116,11 +129,16 @@ export default function ManagerDashboard() {
     const matchesStatus = !selectedStatus || goal.status === selectedStatus;
     const matchesEmployee = selectedEmployee === 'all' || goal.employee?.email === selectedEmployee;
     
-    const matchesTab = activeTab === 'employee' 
-      ? goal.employee.email !== session?.user?.email
-      : goal.employee.email === session?.user?.email;
-    
-    return matchesSearch && matchesStatus && matchesEmployee && matchesTab;
+    // Filter based on active tab
+    if (activeTab === 'assigned') {
+      return matchesSearch && matchesStatus && goal.managerId === session?.user?.id;
+    } else if (activeTab === 'personal') {
+      return matchesSearch && matchesStatus && goal.employee.email === session?.user?.email;
+    } else {
+      // Employee goals tab
+      return matchesSearch && matchesStatus && matchesEmployee && 
+             goal.employee.email !== session?.user?.email && goal.managerId !== session?.user?.id;
+    }
   });
 
   if (loading) {
@@ -161,6 +179,16 @@ export default function ManagerDashboard() {
           >
             My Goals
           </button>
+          <button
+            onClick={() => setActiveTab('assigned')}
+            className={`pb-4 px-4 font-medium transition-colors ${
+              activeTab === 'assigned'
+                ? 'text-indigo-400 border-b-2 border-indigo-400'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            Assigned Goals
+          </button>
         </div>
 
         {/* Filters Section */}
@@ -179,15 +207,17 @@ export default function ManagerDashboard() {
         <GoalsGrid
           goals={filteredGoals}
           activeTab={activeTab}
-          onGoalClick={setSelectedGoalDetails}
+          onGoalClick={handleGoalClick}
         />
 
         {/* Goal Details Modal */}
-        <GoalDetailsModal
-          goal={selectedGoalDetails}
-          onClose={() => setSelectedGoalDetails(null)}
-          activeTab={activeTab}
-        />
+        {selectedGoalDetails && !selectedGoalDetails.isApprovalProcess && (
+          <GoalDetailsModal
+            goal={selectedGoalDetails}
+            onClose={() => setSelectedGoalDetails(null)}
+            activeTab={activeTab}
+          />
+        )}
       </div>
     </DashboardLayout>
   );
