@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { BsStars } from 'react-icons/bs';
 
 interface AIGoalSuggestionsProps {
   category: string;
@@ -47,8 +48,8 @@ export function AIGoalSuggestions({
       <Button
         onClick={generateSuggestions}
         disabled={loading}
-        variant="outline"
-        className="w-full"
+        variant="default"
+        className="w-full font-semibold flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white text-base shadow"
       >
         {loading ? (
           <>
@@ -56,21 +57,24 @@ export function AIGoalSuggestions({
             Generating Suggestions...
           </>
         ) : (
-          'Generate AI Suggestions'
+          <>
+            <BsStars className="h-5 w-5 text-yellow-300" />
+            Generate AI Suggestions
+          </>
         )}
       </Button>
 
       {suggestions.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-medium">AI Suggestions</h3>
+          <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">AI Suggestions</h3>
           {suggestions.map((suggestion, index) => (
             <div
               key={index}
-              className="p-3 border rounded-lg hover:bg-accent cursor-pointer transition-colors"
+              className="p-4 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors shadow-sm"
               onClick={() => onSuggestionSelect(suggestion)}
             >
-              <h4 className="font-medium">{suggestion.title}</h4>
-              <p className="text-sm text-muted-foreground mt-1">
+              <h4 className="font-semibold text-gray-900 dark:text-white mb-1">{suggestion.title}</h4>
+              <p className="text-sm text-gray-700 dark:text-gray-300">
                 {suggestion.description}
               </p>
             </div>

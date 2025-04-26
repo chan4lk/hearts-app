@@ -324,7 +324,7 @@ export function GoalForm({
           variant="outline"
           onClick={handleReset}
           disabled={loading}
-          className="flex items-center gap-2 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-800"
+          className="flex items-center gap-2 border-yellow-500 text-yellow-700 dark:border-yellow-400 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-900/20 hover:bg-yellow-100 dark:hover:bg-yellow-800 font-semibold shadow-sm"
         >
           <BsArrowCounterclockwise className="h-4 w-4" />
           Reset
