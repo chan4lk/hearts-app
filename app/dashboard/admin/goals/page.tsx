@@ -74,6 +74,23 @@ interface Goal {
   } | null;
 }
 
+interface GoalStats {
+  total: number;
+  completed: number;
+  pending: number;
+  inProgress: number;
+}
+
+interface StatsData {
+  stats: GoalStats;
+  recentActivity: Array<{
+    id: string;
+    type: string;
+    description: string;
+    timestamp: string;
+  }>;
+}
+
 const CATEGORIES = [
   { value: 'PROFESSIONAL', label: 'Professional Development' },
   { value: 'TECHNICAL', label: 'Technical Skills' },
@@ -167,14 +184,11 @@ function AdminGoalSettingPageContent() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
-  const [stats, setStats] = useState({
-    totalEmployees: 0,
-    totalManagers: 0,
+  const [stats, setStats] = useState<GoalStats>({
     totalGoals: 0,
     completedGoals: 0,
     pendingGoals: 0,
-    draftGoals: 0,
-    categoryStats: {}
+    inProgressGoals: 0
   });
   const [formData, setFormData] = useState({
     title: '',
@@ -220,11 +234,11 @@ function AdminGoalSettingPageContent() {
         // Update stats with the data from API
         setStats(prevStats => ({
           ...prevStats,
-          totalGoals: data.stats.total,
-          completedGoals: data.stats.completed,
-          pendingGoals: data.stats.pending,
-          draftGoals: data.stats.draft || 0,
-          inProgressGoals: data.stats.inProgress
+          totalGoals: data.stats?.total || 0,
+          completedGoals: data.stats?.completed || 0,
+          pendingGoals: data.stats?.pending || 0,
+          draftGoals: data.stats?.draft || 0,
+          inProgressGoals: data.stats?.inProgress || 0
         }));
 
         // Update employee and manager counts
@@ -258,6 +272,29 @@ function AdminGoalSettingPageContent() {
       fetchGoalsAndStats();
     }
   }, [users]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('/api/admin/goals/stats');
+        if (response.ok) {
+          const statsData: StatsData = await response.json();
+          setStats(prevStats => ({
+            ...prevStats,
+            totalGoals: statsData?.stats?.total ?? 0,
+            completedGoals: statsData?.stats?.completed ?? 0,
+            pendingGoals: statsData?.stats?.pending ?? 0,
+            inProgressGoals: statsData?.stats?.inProgress ?? 0
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+        toast.error('Failed to load goal statistics');
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
