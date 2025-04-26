@@ -153,7 +153,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       case 'manager':
         return [
           { href: '/dashboard/manager', icon: BsGrid, label: 'Dashboard' },
-          { href: '/approve-goals', icon: BsBullseye, label: 'Goal Approvals' },
+          { href: '/dashboard/manager/goals/approve-goals', icon: BsBullseye, label: 'Goal Approvals' },
           { href: '/dashboard/manager/goals/', icon: BsBullseye, label: 'Set Goals ' },
 
           { href: '/dashboard/manager/rate-employees', icon: BsStar, label: 'Manager Ratings' },

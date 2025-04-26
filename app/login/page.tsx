@@ -5,15 +5,20 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Link from 'next/link';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import dynamic from 'next/dynamic';
-import { SVGProps } from 'react';
 
 // Add dynamic import for client-side components
-const DynamicHeader = dynamic(() => import('@/components/Header'), { ssr: false });
-const DynamicFooter = dynamic(() => import('@/components/Footer'), { ssr: false });
+const DynamicHeader = dynamic(() => import('@/components/Header'), { 
+  ssr: false,
+  loading: () => <div className="h-16 bg-[#0f172a]/50 backdrop-blur-sm border-b border-indigo-500/20" />,
+  suspense: true
+});
+
+const DynamicFooter = dynamic(() => import('@/components/Footer'), { 
+  ssr: false,
+  loading: () => <div className="h-16 bg-[#0f172a]/50 backdrop-blur-sm border-t border-indigo-500/20" />,
+  suspense: true
+});
 
 function LoginForm() {
   const router = useRouter();
