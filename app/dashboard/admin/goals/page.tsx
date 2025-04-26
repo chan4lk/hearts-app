@@ -62,6 +62,7 @@ interface Goal {
   status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'DRAFT';
   dueDate: string;
   category: string;
+  createdAt: string;
   employee: {
     id: string;
     name: string;
@@ -75,14 +76,22 @@ interface Goal {
 }
 
 interface GoalStats {
-  total: number;
-  completed: number;
-  pending: number;
-  inProgress: number;
+  totalGoals: number;
+  completedGoals: number;
+  pendingGoals: number;
+  inProgressGoals: number;
+  totalEmployees: number;
+  totalManagers: number;
+  draftGoals: number;
 }
 
 interface StatsData {
-  stats: GoalStats;
+  stats: {
+    total: number;
+    completed: number;
+    pending: number;
+    inProgress: number;
+  };
   recentActivity: Array<{
     id: string;
     type: string;
@@ -188,7 +197,10 @@ function AdminGoalSettingPageContent() {
     totalGoals: 0,
     completedGoals: 0,
     pendingGoals: 0,
-    inProgressGoals: 0
+    inProgressGoals: 0,
+    totalEmployees: 0,
+    totalManagers: 0,
+    draftGoals: 0
   });
   const [formData, setFormData] = useState({
     title: '',
@@ -226,19 +238,49 @@ function AdminGoalSettingPageContent() {
   useEffect(() => {
     const fetchGoalsAndStats = async () => {
       try {
-        const response = await fetch('/api/goals');
-        if (!response.ok) throw new Error('Failed to fetch goals');
+        console.log('Starting to fetch goals...');
+        const response = await fetch('/api/goals', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          cache: 'no-store' // Prevent caching
+        });
+
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
+          throw new Error(`Failed to fetch goals: ${response.status} ${response.statusText}\n${errorText}`);
+        }
+
         const data = await response.json();
-        setGoals(data.goals);
+        console.log('Received data:', data);
+        
+        if (!data.goals || !Array.isArray(data.goals)) {
+          console.error('Invalid goals data structure:', data);
+          throw new Error('Invalid goals data received from server');
+        }
+
+        // Sort goals by creation date, most recent first
+        const sortedGoals = data.goals.sort((a: Goal, b: Goal) => {
+          const dateA = new Date(a.createdAt).getTime();
+          const dateB = new Date(b.createdAt).getTime();
+          return dateB - dateA;
+        });
+        
+        console.log('Sorted goals:', sortedGoals);
+        setGoals(sortedGoals);
         
         // Update stats with the data from API
         setStats(prevStats => ({
           ...prevStats,
-          totalGoals: data.stats?.total || 0,
-          completedGoals: data.stats?.completed || 0,
-          pendingGoals: data.stats?.pending || 0,
-          draftGoals: data.stats?.draft || 0,
-          inProgressGoals: data.stats?.inProgress || 0
+          totalGoals: data?.stats?.total ?? 0,
+          completedGoals: data?.stats?.completed ?? 0,
+          pendingGoals: data?.stats?.pending ?? 0,
+          draftGoals: data?.stats?.draft ?? 0,
+          inProgressGoals: data?.stats?.inProgress ?? 0
         }));
 
         // Update employee and manager counts
@@ -263,14 +305,19 @@ function AdminGoalSettingPageContent() {
         }));
 
       } catch (error) {
-        console.error('Error fetching goals:', error);
-        toast.error('Failed to load goals');
+        console.error('Error in fetchGoalsAndStats:', error);
+        toast.error(error instanceof Error ? error.message : 'Failed to load goals');
       }
     };
 
-    if (users.length > 0) {
-      fetchGoalsAndStats();
-    }
+    // Fetch goals immediately
+    fetchGoalsAndStats();
+
+    // Set up interval to refresh goals every 30 seconds
+    const intervalId = setInterval(fetchGoalsAndStats, 30000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
   }, [users]);
 
   useEffect(() => {
@@ -278,14 +325,20 @@ function AdminGoalSettingPageContent() {
       try {
         const response = await fetch('/api/admin/goals/stats');
         if (response.ok) {
-          const statsData: StatsData = await response.json();
+          const data = await response.json();
           setStats(prevStats => ({
             ...prevStats,
-            totalGoals: statsData?.stats?.total ?? 0,
-            completedGoals: statsData?.stats?.completed ?? 0,
-            pendingGoals: statsData?.stats?.pending ?? 0,
-            inProgressGoals: statsData?.stats?.inProgress ?? 0
+            totalGoals: data.stats.total,
+            completedGoals: data.stats.completed,
+            pendingGoals: data.stats.pending,
+            inProgressGoals: data.stats.inProgress,
+            draftGoals: data.stats.draft,
+            totalEmployees: data.userStats.totalEmployees,
+            totalManagers: data.userStats.totalManagers
           }));
+        } else {
+          console.error('Failed to fetch stats:', response.statusText);
+          toast.error('Failed to load goal statistics');
         }
       } catch (error) {
         console.error('Error fetching stats:', error);
@@ -360,11 +413,11 @@ function AdminGoalSettingPageContent() {
         const statsData = await statsResponse.json();
         setStats(prevStats => ({
           ...prevStats,
-          totalGoals: statsData.stats.total,
-          completedGoals: statsData.stats.completed,
-          pendingGoals: statsData.stats.pending,
-          inProgressGoals: statsData.stats.inProgress,
-          categoryStats: statsData.stats.categories
+          totalGoals: statsData?.stats?.total ?? 0,
+          completedGoals: statsData?.stats?.completed ?? 0,
+          pendingGoals: statsData?.stats?.pending ?? 0,
+          inProgressGoals: statsData?.stats?.inProgress ?? 0,
+          categoryStats: statsData?.stats?.categories ?? {}
         }));
       }
 
@@ -464,7 +517,7 @@ function AdminGoalSettingPageContent() {
       }
 
       // Remove the goal from the state
-      setGoals(goals.filter(goal => goal.id !== goalToDelete.id));
+      setGoals(prevGoals => prevGoals.filter(goal => goal.id !== goalToDelete.id));
       
       // Show success message
       toast.success('Goal deleted successfully', {
@@ -542,31 +595,6 @@ function AdminGoalSettingPageContent() {
     try {
       if (!selectedGoal) return;
 
-      // Validate required fields
-      const validationErrors = [];
-      if (!formData.title.trim()) validationErrors.push('Title is required');
-      if (!formData.description.trim()) validationErrors.push('Description is required');
-      if (!formData.dueDate) validationErrors.push('Due date is required');
-      if (!formData.employeeId) validationErrors.push('Please select an employee or manager');
-      if (!formData.category) validationErrors.push('Please select a category');
-
-      if (validationErrors.length > 0) {
-        toast.error(validationErrors.join('\n'));
-        setLoading(false);
-        return;
-      }
-
-      // Validate due date is not in the past
-      const selectedDate = new Date(formData.dueDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      if (selectedDate < today) {
-        toast.error('Due date cannot be in the past');
-        setLoading(false);
-        return;
-      }
-
       const goalData = {
         title: formData.title.trim(),
         description: formData.description.trim(),
@@ -597,6 +625,15 @@ function AdminGoalSettingPageContent() {
 
       // Close modal and show success message
       setIsEditModalOpen(false);
+      setSelectedGoal(null);
+      setFormData({
+        title: '',
+        description: '',
+        dueDate: new Date().toISOString().split('T')[0],
+        employeeId: '',
+        category: 'PROFESSIONAL'
+      });
+
       toast.success('Goal updated successfully', {
         duration: 3000,
         icon: <BsCheckCircle className="w-5 h-5 text-emerald-400" />,
@@ -1072,7 +1109,15 @@ function AdminGoalSettingPageContent() {
       )}
 
       {isViewModalOpen && viewedGoal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+        <div 
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsViewModalOpen(false);
+              setViewedGoal(null);
+            }
+          }}
+        >
           <div className="bg-[#1E2028] rounded-lg p-6 w-full max-w-2xl mx-4 border border-gray-800 shadow-xl">
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-3">
@@ -1084,7 +1129,10 @@ function AdminGoalSettingPageContent() {
                 <h2 className="text-2xl font-bold text-white">{viewedGoal.title}</h2>
               </div>
               <button
-                onClick={() => setIsViewModalOpen(false)}
+                onClick={() => {
+                  setIsViewModalOpen(false);
+                  setViewedGoal(null);
+                }}
                 className="text-gray-400 hover:text-white transition-colors p-1 hover:bg-gray-800 rounded-lg"
               >
                 <BsX className="h-6 w-6" />
@@ -1147,6 +1195,7 @@ function AdminGoalSettingPageContent() {
                   variant="outline"
                   onClick={() => {
                     setIsViewModalOpen(false);
+                    setViewedGoal(null);
                     handleEdit(viewedGoal);
                   }}
                   className="bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
@@ -1158,6 +1207,7 @@ function AdminGoalSettingPageContent() {
                   variant="destructive"
                   onClick={() => {
                     setIsViewModalOpen(false);
+                    setViewedGoal(null);
                     handleDelete(viewedGoal.id);
                   }}
                   className="bg-red-900/20 text-red-400 hover:bg-red-900/40"

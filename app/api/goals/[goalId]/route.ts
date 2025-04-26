@@ -146,17 +146,38 @@ export async function DELETE(req: Request, { params }: { params: { goalId: strin
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if the goal exists and belongs to the user
+    // Check if the goal exists
     const existingGoal = await prisma.goal.findUnique({
       where: {
         id: params.goalId,
-        employeeId: session.user.id,
         status: { not: 'DELETED' }
+      },
+      include: {
+        manager: true,
+        employee: true
       }
     });
 
     if (!existingGoal) {
       return NextResponse.json({ error: 'Goal not found' }, { status: 404 });
+    }
+
+    // Check authorization
+    const isAdminOrManager = session.user.role === 'ADMIN' || session.user.role === 'MANAGER';
+    const isGoalManager = existingGoal.managerId === session.user.id;
+    const isGoalEmployee = existingGoal.employeeId === session.user.id;
+
+    // Only allow deletion if:
+    // 1. User is admin/manager and goal is in DRAFT or PENDING state
+    // 2. User is the employee and goal is in DRAFT state
+    if (
+      !isAdminOrManager && 
+      !(isGoalEmployee && existingGoal.status === 'DRAFT')
+    ) {
+      return NextResponse.json(
+        { error: 'Unauthorized to delete this goal' },
+        { status: 403 }
+      );
     }
 
     const goal = await prisma.goal.update({
@@ -167,12 +188,29 @@ export async function DELETE(req: Request, { params }: { params: { goalId: strin
         deletedById: session.user.id,
         updatedAt: new Date(),
         updatedById: session.user.id
+      },
+      include: {
+        employee: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        manager: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
       }
     });
 
     return NextResponse.json({ 
       success: true,
-      message: 'Goal deleted successfully'
+      message: 'Goal deleted successfully',
+      goal
     });
   } catch (error) {
     console.error('Error deleting goal:', error);

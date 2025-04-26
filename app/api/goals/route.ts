@@ -41,6 +41,50 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // For admin users, fetch all goals
+    if (session.user.role === 'ADMIN') {
+      const goals = await prisma.goal.findMany({
+        where: {
+          status: { not: 'DELETED' }
+        },
+        include: {
+          employee: {
+            select: {
+              id: true,
+              name: true,
+              email: true
+            }
+          },
+          manager: {
+            select: {
+              id: true,
+              name: true,
+              email: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+
+      // Calculate statistics
+      const stats = {
+        total: goals.length,
+        completed: goals.filter(g => g.status === 'COMPLETED').length,
+        pending: goals.filter(g => g.status === 'PENDING').length,
+        inProgress: goals.filter(g => g.status === 'APPROVED').length,
+        draft: goals.filter(g => g.status === 'DRAFT').length,
+        rejected: goals.filter(g => g.status === 'REJECTED').length,
+        modified: goals.filter(g => g.status === 'MODIFIED').length
+      };
+
+      return NextResponse.json({ 
+        goals,
+        stats
+      });
+    }
+
     // For employees, fetch goals assigned to them by managers
     const goals = await prisma.goal.findMany({
       where: {
@@ -69,7 +113,21 @@ export async function GET(req: Request) {
       }
     });
 
-    return NextResponse.json({ goals });
+    // Calculate statistics
+    const stats = {
+      total: goals.length,
+      completed: goals.filter(g => g.status === 'COMPLETED').length,
+      pending: goals.filter(g => g.status === 'PENDING').length,
+      inProgress: goals.filter(g => g.status === 'APPROVED').length,
+      draft: goals.filter(g => g.status === 'DRAFT').length,
+      rejected: goals.filter(g => g.status === 'REJECTED').length,
+      modified: goals.filter(g => g.status === 'MODIFIED').length
+    };
+
+    return NextResponse.json({ 
+      goals,
+      stats
+    });
   } catch (error) {
     console.error('Error fetching goals:', error);
     return NextResponse.json({ error: 'Failed to fetch goals' }, { status: 500 });
@@ -143,10 +201,11 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    // Get the goal ID from the URL path
+    const url = new URL(request.url);
+    const goalId = url.pathname.split('/').pop();
 
-    if (!id) {
+    if (!goalId) {
       return NextResponse.json(
         { error: 'Goal ID is required' },
         { status: 400 }
@@ -155,7 +214,7 @@ export async function DELETE(request: Request) {
 
     // Check if user is authorized to delete the goal
     const goal = await prisma.goal.findUnique({
-      where: { id },
+      where: { id: goalId },
       include: { 
         manager: true,
         employee: true
@@ -186,7 +245,7 @@ export async function DELETE(request: Request) {
 
     // Soft delete by updating status to DELETED
     const deletedGoal = await prisma.goal.update({
-      where: { id },
+      where: { id: goalId },
       data: {
         status: 'DELETED',
         updatedAt: new Date(),
@@ -231,19 +290,23 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { id, status, managerComments, title, description, dueDate, category } = body;
+    // Get the goal ID from the URL path
+    const url = new URL(request.url);
+    const goalId = url.pathname.split('/').pop();
 
-    if (!id) {
+    if (!goalId) {
       return NextResponse.json(
         { error: 'Goal ID is required' },
         { status: 400 }
       );
     }
 
+    const body = await request.json();
+    const { status, managerComments, title, description, dueDate, category } = body;
+
     // Check if user is authorized to update the goal
     const goal = await prisma.goal.findUnique({
-      where: { id },
+      where: { id: goalId },
       include: { 
         manager: true,
         employee: true
@@ -323,7 +386,7 @@ export async function PATCH(request: Request) {
 
     // Update the goal
     const updatedGoal = await prisma.goal.update({
-      where: { id },
+      where: { id: goalId },
       data: updateData,
       include: {
         employee: {
