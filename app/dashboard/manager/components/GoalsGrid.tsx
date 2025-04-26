@@ -4,7 +4,7 @@ import { getStatusStyle } from '../utils';
 
 interface GoalsGridProps {
   goals: Goal[];
-  activeTab: 'employee' | 'personal';
+  activeTab: 'employee' | 'personal' | 'assigned';
   onGoalClick: (goal: Goal) => void;
 }
 
@@ -17,7 +17,7 @@ export default function GoalsGrid({ goals, activeTab, onGoalClick }: GoalsGridPr
         </div>
         <h3 className="text-xl font-medium text-white mb-2">No goals found</h3>
         <p className="text-gray-400">
-          There are no {activeTab === 'employee' ? 'employee' : 'personal'} goals to review at this time.
+          There are no {activeTab === 'employee' ? 'employee' : activeTab === 'personal' ? 'personal' : 'assigned'} goals to review at this time.
         </p>
       </div>
     );
