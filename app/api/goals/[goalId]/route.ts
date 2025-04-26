@@ -87,7 +87,7 @@ export async function PATCH(request: Request, { params }: { params: { goalId: st
   }
 }
 
-// PUT to update goal details (for employees)
+// PUT to update goal details
 export async function PUT(req: Request, { params }: { params: { goalId: string } }) {
   try {
     const session = await getServerSession(authOptions);
@@ -97,17 +97,38 @@ export async function PUT(req: Request, { params }: { params: { goalId: string }
 
     const { title, description, category, dueDate } = await req.json();
 
-    // Check if the goal exists and belongs to the user
+    // Check if the goal exists
     const existingGoal = await prisma.goal.findUnique({
       where: {
         id: params.goalId,
-        employeeId: session.user.id,
         status: { not: 'DELETED' }
+      },
+      include: {
+        manager: true,
+        employee: true
       }
     });
 
     if (!existingGoal) {
       return NextResponse.json({ error: 'Goal not found' }, { status: 404 });
+    }
+
+    // Check authorization
+    const isAdminOrManager = session.user.role === 'ADMIN' || session.user.role === 'MANAGER';
+    const isGoalManager = existingGoal.managerId === session.user.id;
+    const isGoalEmployee = existingGoal.employeeId === session.user.id;
+
+    // Only allow updates if:
+    // 1. User is admin/manager and goal is in DRAFT or PENDING state
+    // 2. User is the employee and goal is in DRAFT state
+    if (
+      !isAdminOrManager && 
+      !(isGoalEmployee && existingGoal.status === 'DRAFT')
+    ) {
+      return NextResponse.json(
+        { error: 'Unauthorized to update this goal' },
+        { status: 403 }
+      );
     }
 
     const goal = await prisma.goal.update({
@@ -117,13 +138,24 @@ export async function PUT(req: Request, { params }: { params: { goalId: string }
         description: description.trim(),
         category,
         dueDate: new Date(dueDate),
-        status: 'PENDING',
+        status: isAdminOrManager ? existingGoal.status : 'PENDING',
         updatedById: session.user.id
       },
       include: {
-        employee: true,
-        createdBy: true,
-        updatedBy: true
+        employee: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        manager: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
       }
     });
 
