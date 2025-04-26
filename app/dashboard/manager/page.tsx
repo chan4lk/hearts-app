@@ -177,7 +177,7 @@ export default function ManagerDashboard() {
                 : 'text-gray-400 hover:text-gray-300'
             }`}
           >
-            My Goals
+            My All Goals
           </button>
           <button
             onClick={() => setActiveTab('assigned')}
@@ -187,7 +187,7 @@ export default function ManagerDashboard() {
                 : 'text-gray-400 hover:text-gray-300'
             }`}
           >
-            Assigned Goals
+            I Assigned Goals
           </button>
         </div>
 
