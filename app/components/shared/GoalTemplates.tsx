@@ -1,53 +1,91 @@
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { BsRocket, BsLightbulb, BsAward, BsGraphUp, BsStars, BsBriefcase } from 'react-icons/bs';
 import { GOAL_TEMPLATES } from './constants';
-import { BsLightbulb } from 'react-icons/bs';
-import type { IconType } from 'react-icons';
 
-type Template = {
+type IconType = typeof BsRocket | typeof BsLightbulb | typeof BsAward | typeof BsGraphUp | typeof BsStars | typeof BsBriefcase;
+
+interface Template {
   id: string;
   title: string;
   category: string;
-  icon: IconType;
+  icon: string;
   iconColor: string;
   description: string;
   subtitle: string;
   bgGradient: string;
   bgColor: string;
-};
-
-interface GoalTemplatesProps {
-  onTemplateSelect: (template: Template) => void;
 }
 
-export function GoalTemplates({ onTemplateSelect }: GoalTemplatesProps) {
+interface GoalTemplatesProps {
+  onSelect: (template: Template) => void;
+}
+
+const iconMap: Record<string, IconType> = {
+  'BsRocket': BsRocket,
+  'BsLightbulb': BsLightbulb,
+  'BsAward': BsAward,
+  'BsGraphUp': BsGraphUp,
+  'BsStars': BsStars,
+  'BsBriefcase': BsBriefcase
+};
+
+export default function GoalTemplates({ onSelect }: GoalTemplatesProps) {
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  const filteredTemplates = selectedCategory === 'all'
+    ? GOAL_TEMPLATES
+    : GOAL_TEMPLATES.filter(template => template.category === selectedCategory);
+
   return (
-    <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="bg-amber-500/10 p-2 rounded-lg">
-          <BsLightbulb className="w-5 h-5 text-amber-400" />
-        </div>
-        <h2 className="text-xl font-semibold text-white">Goal Templates</h2>
+    <div className="space-y-6">
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => setSelectedCategory('all')}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors
+            ${selectedCategory === 'all' 
+              ? 'bg-blue-500 text-white' 
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+        >
+          All Templates
+        </button>
+        {Array.from(new Set(GOAL_TEMPLATES.map(t => t.category))).map(category => (
+          <button
+            key={category}
+            onClick={() => setSelectedCategory(category)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors
+              ${selectedCategory === category 
+                ? 'bg-blue-500 text-white' 
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+          >
+            {category}
+          </button>
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {GOAL_TEMPLATES.map((template) => {
-          const Icon = template.icon;
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredTemplates.map((template) => {
+          const Icon = iconMap[template.icon];
           return (
-            <div
+            <motion.button
               key={template.id}
-              onClick={() => onTemplateSelect(template)}
-              className={`${template.bgColor} hover:bg-opacity-80 border border-gray-800 hover:border-gray-700 rounded-lg p-4 cursor-pointer transition-all duration-200`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onSelect(template)}
+              className={`p-6 rounded-xl text-left transition-all hover:shadow-lg
+                ${template.bgColor} ${template.bgGradient}`}
             >
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg bg-[#1E2028] border border-gray-700">
-                  <Icon className={`w-6 h-6 ${template.iconColor}`} />
+              <div className="flex items-center gap-4 mb-4">
+                <div className={`p-3 rounded-lg ${template.iconColor}`}>
+                  <Icon className="w-6 h-6" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-white font-medium">{template.title}</h3>
-                  <p className="text-sm text-gray-400">{template.subtitle}</p>
-                  <p className="text-xs text-gray-500 mt-2">{template.description}</p>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">{template.title}</h3>
+                  <p className="text-sm text-gray-300">{template.subtitle}</p>
                 </div>
               </div>
-            </div>
+              <p className="text-gray-300 text-sm">{template.description}</p>
+            </motion.button>
           );
         })}
       </div>

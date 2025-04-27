@@ -18,7 +18,7 @@ import {
 
 import { User as UserType, Goal, GoalStats } from './types';
 import { StatsCard } from './components/StatsCard';
-import { GoalTemplates } from '@/app/components/shared/GoalTemplates';
+import GoalTemplates from '@/app/components/shared/GoalTemplates';
 import { GoalManagementSection } from './components/GoalManagementSection';
 import { GoalCreationSection } from './components/GoalCreationSection';
 import { GoalModals } from './components/GoalModals';
@@ -286,7 +286,7 @@ function AdminGoalSettingPageContent() {
       />
 
       <GoalCreationSection onCreate={() => setIsCreateModalOpen(true)} />
-      <GoalTemplates onTemplateSelect={handleTemplateSelect} />
+      <GoalTemplates onSelect={handleTemplateSelect} />
       <StatsCard stats={stats} />
 
       <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800 shadow-lg">

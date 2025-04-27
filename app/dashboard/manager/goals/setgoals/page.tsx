@@ -44,7 +44,7 @@ import { ViewGoalModal } from './components/modals/ViewGoalModal';
 import { DeleteGoalModal } from './components/modals/DeleteGoalModal';
 import { EditGoalModal } from './components/modals/EditGoalModal';
 import { GoalCard } from '@/app/components/shared/GoalCard';
-import { GoalTemplates } from '@/app/components/shared/GoalTemplates';
+import GoalTemplates from '@/app/components/shared/GoalTemplates';
 import { GoalStats } from './components/GoalStats';
 import { GoalFormData, GoalStats as GoalStatsType } from './components/types';
 import { CATEGORIES, GOAL_TEMPLATES } from '@/app/components/shared/constants';
@@ -82,7 +82,7 @@ type Template = {
   id: string;
   title: string;
   category: string;
-  icon: IconType;
+  icon: string;
   iconColor: string;
   description: string;
   subtitle: string;
@@ -411,7 +411,7 @@ function ManagerGoalSettingPageContent() {
       </div>
         </div>
 
-      <GoalTemplates onTemplateSelect={handleTemplateSelect} />
+      <GoalTemplates onSelect={handleTemplateSelect} />
       <GoalStats stats={stats} />
 
       <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800 shadow-lg">
