@@ -1,4 +1,4 @@
-import { Goal } from './types';
+import { Goal } from '../types';
 import { GoalForm } from './GoalForm';
 import { GoalModal } from './GoalModal';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';

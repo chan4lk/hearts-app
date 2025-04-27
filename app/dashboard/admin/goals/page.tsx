@@ -7,18 +7,26 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { toast } from 'sonner';
 import { Toaster } from 'sonner';
 import type { IconType } from 'react-icons';
+import { BsPeople, BsFilter } from 'react-icons/bs';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem
+} from '@/components/ui/select';
 
-import { User as UserType, Goal, GoalStats } from '@/app/components/goals/types';
-import { GoalCard } from '@/app/components/goals/GoalCard';
-import { GoalForm } from '@/app/components/goals/GoalForm';
-import { GoalModal } from '@/app/components/goals/GoalModal';
-import { DeleteConfirmationModal } from '@/app/components/goals/DeleteConfirmationModal';
-import { StatsCard } from '@/app/components/goals/StatsCard';
-import { GoalTemplates } from '@/app/components/goals/GoalTemplates';
-import { GoalManagementSection } from '@/app/components/goals/GoalManagementSection';
-import { GoalCreationSection } from '@/app/components/goals/GoalCreationSection';
-import { GoalModals } from '@/app/components/goals/GoalModals';
-import { Notification } from '@/app/components/goals/Notification';
+import { User as UserType, Goal, GoalStats } from './types';
+import { GoalCard } from './components/GoalCard';
+import { GoalForm } from './components/GoalForm';
+import { GoalModal } from './components/GoalModal';
+import { DeleteConfirmationModal } from './components/DeleteConfirmationModal';
+import { StatsCard } from './components/StatsCard';
+import { GoalTemplates } from './components/GoalTemplates';
+import { GoalManagementSection } from './components/GoalManagementSection';
+import { GoalCreationSection } from './components/GoalCreationSection';
+import { GoalModals } from './components/GoalModals';
+import { Notification } from './components/Notification';
 
 function AdminGoalSettingPageContent() {
   const { data: session } = useSession();
@@ -29,6 +37,8 @@ function AdminGoalSettingPageContent() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [stats, setStats] = useState<GoalStats>({
     totalGoals: 0,
     completedGoals: 0,
@@ -45,6 +55,21 @@ function AdminGoalSettingPageContent() {
   const [viewedGoal, setViewedGoal] = useState<Goal | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
+
+  const getFilteredGoals = (goals: Goal[]) => {
+    // First filter out self-created goals and admin users
+    const assignedGoals = goals.filter(goal => 
+      goal.manager?.id !== goal.employee?.id && 
+      goal.employee && users.find(u => u.id === goal.employee?.id)?.role !== 'ADMIN'
+    );
+    
+    // Then apply filters
+    return assignedGoals.filter(goal => {
+      const matchesEmployee = selectedEmployee === 'all' || goal.employee?.id === selectedEmployee;
+      const matchesStatus = selectedStatus === 'all' || goal.status === selectedStatus;
+      return matchesEmployee && matchesStatus;
+    });
+  };
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -94,13 +119,15 @@ function AdminGoalSettingPageContent() {
         
         setGoals(sortedGoals);
         
+        const filteredGoals = getFilteredGoals(sortedGoals);
+        
         setStats(prevStats => ({
           ...prevStats,
-          totalGoals: data?.stats?.total ?? 0,
-          completedGoals: data?.stats?.completed ?? 0,
-          pendingGoals: data?.stats?.pending ?? 0,
-          draftGoals: data?.stats?.draft ?? 0,
-          inProgressGoals: data?.stats?.inProgress ?? 0
+          totalGoals: filteredGoals.length,
+          completedGoals: filteredGoals.filter(g => g.status === 'COMPLETED').length,
+          pendingGoals: filteredGoals.filter(g => g.status === 'PENDING').length,
+          draftGoals: filteredGoals.filter(g => g.status === 'DRAFT').length,
+          inProgressGoals: filteredGoals.filter(g => g.status === 'APPROVED').length
         }));
 
         const employeeCount = users.filter(user => user.role === 'EMPLOYEE').length;
@@ -123,7 +150,7 @@ function AdminGoalSettingPageContent() {
     const intervalId = setInterval(fetchGoalsAndStats, 30000);
 
     return () => clearInterval(intervalId);
-  }, [users]);
+  }, [users, selectedEmployee, selectedStatus]);
 
   const handleCreate = async (formData: any) => {
     setLoading(true);
@@ -265,19 +292,106 @@ function AdminGoalSettingPageContent() {
       <GoalCreationSection onCreate={() => setIsCreateModalOpen(true)} />
       <GoalTemplates onTemplateSelect={handleTemplateSelect} />
       <StatsCard stats={stats} />
-      <GoalManagementSection
-        goals={goals}
-        stats={{
-          totalGoals: stats.totalGoals,
-          completedGoals: stats.completedGoals,
-          inProgressGoals: stats.inProgressGoals,
-          pendingGoals: stats.pendingGoals
-        }}
-        onView={handleView}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onCreate={() => setIsCreateModalOpen(true)}
-      />
+
+      <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800 shadow-lg">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              Goal Management
+              <span className="bg-blue-500/10 p-1 rounded text-blue-400 text-sm font-normal">
+                {getFilteredGoals(goals).length} Goals
+              </span>
+            </h2>
+            <p className="text-gray-400 mt-1">Manage and track all assigned goals</p>
+          </div>
+          <div className="flex items-center gap-4">
+            <Select
+              value={selectedEmployee}
+              onValueChange={setSelectedEmployee}
+            >
+              <SelectTrigger className="w-[180px] bg-[#25262b] border-0 focus:ring-1 focus:ring-gray-500 text-white">
+                <SelectValue>
+                  <div className="flex items-center gap-2 text-white">
+                    <BsPeople className="h-4 w-4 text-gray-400" />
+                    <span className="text-white">{selectedEmployee === 'all' ? 'All Users' : users.find(u => u.id === selectedEmployee)?.name}</span>
+                  </div>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="bg-[#25262b] border border-gray-700">
+                <SelectItem value="all" className="focus:bg-gray-700">
+                  <div className="flex items-center gap-2 text-white">
+                    <BsPeople className="h-4 w-4 text-gray-400" />
+                    <span className="text-white">All Users</span>
+                  </div>
+                </SelectItem>
+                {users
+                  .filter(user => user.role !== 'ADMIN')
+                  .map((user) => (
+                    <SelectItem 
+                      key={user.id} 
+                      value={user.id}
+                      className="focus:bg-gray-700"
+                    >
+                      <div className="flex items-center gap-2 text-white">
+                        <BsPeople className="h-4 w-4 text-gray-400" />
+                        <span className="text-white">{user.name}</span>
+                        <span className="text-xs text-gray-400">({user.role})</span>
+                      </div>
+                    </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={selectedStatus}
+              onValueChange={setSelectedStatus}
+            >
+              <SelectTrigger className="w-[180px] bg-[#25262b] border-0 focus:ring-1 focus:ring-gray-500 text-white">
+                <SelectValue>
+                  <div className="flex items-center gap-2 text-white">
+                    <BsFilter className="h-4 w-4 text-gray-400" />
+                    <span className="text-white">{selectedStatus === 'all' ? 'All Statuses' : selectedStatus}</span>
+                  </div>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent className="bg-[#25262b] border border-gray-700">
+                <SelectItem value="all" className="focus:bg-gray-700">
+                  <div className="flex items-center gap-2 text-white">
+                    <BsFilter className="h-4 w-4 text-gray-400" />
+                    <span className="text-white">All Statuses</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="DRAFT" className="focus:bg-gray-700">
+                  <span className="text-white">Draft</span>
+                </SelectItem>
+                <SelectItem value="PENDING" className="focus:bg-gray-700">
+                  <span className="text-white">Pending</span>
+                </SelectItem>
+                <SelectItem value="APPROVED" className="focus:bg-gray-700">
+                  <span className="text-white">Approved</span>
+                </SelectItem>
+                <SelectItem value="COMPLETED" className="focus:bg-gray-700">
+                  <span className="text-white">Completed</span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <GoalManagementSection
+          goals={getFilteredGoals(goals)}
+          stats={{
+            totalGoals: stats.totalGoals,
+            completedGoals: stats.completedGoals,
+            inProgressGoals: stats.inProgressGoals,
+            pendingGoals: stats.pendingGoals
+          }}
+          onView={handleView}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onCreate={() => setIsCreateModalOpen(true)}
+        />
+      </div>
 
       <GoalModals
         isCreateModalOpen={isCreateModalOpen}

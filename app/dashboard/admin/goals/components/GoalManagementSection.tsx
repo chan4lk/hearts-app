@@ -1,4 +1,4 @@
-import { Goal } from './types';
+import { Goal } from '../types';
 import { GoalCard } from './GoalCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BsListTask, BsCheckCircle, BsClock, BsXCircle } from 'react-icons/bs';

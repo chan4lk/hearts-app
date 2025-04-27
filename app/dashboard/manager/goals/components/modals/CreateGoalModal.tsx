@@ -9,7 +9,7 @@ import { BsListTask, BsPeople, BsCalendar, BsX, BsArrowCounterclockwise, BsPlus,
 import { toast } from 'sonner';
 import { User, GoalFormData } from '../types';
 import { CATEGORIES } from '../constants';
-import { AIGoalSuggestions } from '../../../../../components/goals/AIGoalSuggestions';
+import { AIGoalSuggestions } from '../AIGoalSuggestions';
 
 interface CreateGoalModalProps {
   isOpen: boolean;
