@@ -42,6 +42,7 @@ import type { IconType } from 'react-icons';
 import { CreateGoalModal } from './components/modals/CreateGoalModal';
 import { ViewGoalModal } from './components/modals/ViewGoalModal';
 import { DeleteGoalModal } from './components/modals/DeleteGoalModal';
+import { EditGoalModal } from './components/modals/EditGoalModal';
 import { GoalCard } from '@/app/components/shared/GoalCard';
 import { GoalTemplates } from '@/app/components/shared/GoalTemplates';
 import { GoalStats } from './components/GoalStats';
@@ -292,6 +293,7 @@ function ManagerGoalSettingPageContent() {
   const handleUpdateGoal = async (updatedData: GoalFormData) => {
     if (!selectedGoal) return;
     
+    setLoading(true);
     try {
       const response = await fetch(`/api/goals/${selectedGoal.id}`, {
         method: 'PUT',
@@ -306,14 +308,45 @@ function ManagerGoalSettingPageContent() {
       }
 
       const updatedGoal = await response.json();
+      
+      // Update the goals list with the new data
       setGoals(prevGoals => 
         prevGoals.map(goal => goal.id === selectedGoal.id ? updatedGoal : goal)
       );
+      
+      // Calculate filtered goals using the updated list
+      const filteredGoals = getFilteredGoals(goals.map(goal => 
+        goal.id === selectedGoal.id ? updatedGoal : goal
+      ));
+      
+      setStats(prevStats => ({
+        ...prevStats,
+        totalGoals: filteredGoals.length,
+        completedGoals: filteredGoals.filter((g: Goal) => g.status === 'COMPLETED').length,
+        pendingGoals: filteredGoals.filter((g: Goal) => g.status === 'PENDING').length,
+        draftGoals: filteredGoals.filter((g: Goal) => g.status === 'DRAFT').length,
+        categoryStats: filteredGoals.reduce((acc: { [key: string]: number }, goal: Goal) => {
+          acc[goal.category] = (acc[goal.category] || 0) + 1;
+          return acc;
+        }, {})
+      }));
+
       setIsEditModalOpen(false);
-      toast.success('Goal updated successfully! ✨');
+      setSelectedGoal(null);
+      setFormData({
+        title: '',
+        description: '',
+        dueDate: new Date().toISOString().split('T')[0],
+        employeeId: '',
+        category: 'PROFESSIONAL'
+      });
+
+      toast.success('Goal updated successfully! 🎯');
     } catch (error) {
       console.error('Error updating goal:', error);
       toast.error('Failed to update goal');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -450,6 +483,17 @@ function ManagerGoalSettingPageContent() {
         loading={loading}
         formData={formData}
         setFormData={setFormData}
+      />
+
+      <EditGoalModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSubmit={handleUpdateGoal}
+        assignedEmployees={assignedEmployees}
+        loading={loading}
+        formData={formData}
+        setFormData={setFormData}
+        goal={selectedGoal}
       />
 
       <ViewGoalModal
