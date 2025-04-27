@@ -4,9 +4,26 @@ export interface Goal {
   description: string;
   category: string;
   dueDate: string;
-  status: string;
+  status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'DRAFT';
   createdAt: string;
   managerComments?: string;
+  employee: {
+    id: string;
+    name: string;
+    email: string;
+  } | null;
+  manager: {
+    id: string;
+    name: string;
+    email: string;
+  } | null;
+}
+
+export interface GoalFormData {
+  title: string;
+  description: string;
+  dueDate: string;
+  category: string;
 }
 
 export interface GoalTemplate {
