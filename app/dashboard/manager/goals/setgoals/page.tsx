@@ -37,15 +37,16 @@ import {
   BsRobot
 } from 'react-icons/bs';
 import { User, Calendar } from 'lucide-react';
+import type { IconType } from 'react-icons';
 
 import { CreateGoalModal } from './components/modals/CreateGoalModal';
 import { ViewGoalModal } from './components/modals/ViewGoalModal';
 import { DeleteGoalModal } from './components/modals/DeleteGoalModal';
-import { GoalCard } from './components/GoalCard';
-import { GoalTemplates } from './components/GoalTemplates';
+import { GoalCard } from '@/app/components/shared/GoalCard';
+import { GoalTemplates } from '@/app/components/shared/GoalTemplates';
 import { GoalStats } from './components/GoalStats';
 import { GoalFormData, GoalStats as GoalStatsType } from './components/types';
-import { CATEGORIES, GOAL_TEMPLATES } from './components/constants';
+import { CATEGORIES, GOAL_TEMPLATES } from '@/app/components/shared/constants';
 
 interface User {
   id: string;
@@ -63,6 +64,7 @@ interface Goal {
   status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'DRAFT';
   dueDate: string;
   category: string;
+  createdAt: string;
   employee: {
     id: string;
     name: string;
@@ -74,6 +76,18 @@ interface Goal {
     email: string;
   } | null;
 }
+
+type Template = {
+  id: string;
+  title: string;
+  category: string;
+  icon: IconType;
+  iconColor: string;
+  description: string;
+  subtitle: string;
+  bgGradient: string;
+  bgColor: string;
+};
 
 function ManagerGoalSettingPageContent() {
   const { data: session } = useSession();
@@ -228,7 +242,7 @@ function ManagerGoalSettingPageContent() {
     }
   };
 
-  const handleTemplateSelect = (template: typeof GOAL_TEMPLATES[0]) => {
+  const handleTemplateSelect = (template: Template) => {
     setFormData({
       ...formData,
       title: template.title,

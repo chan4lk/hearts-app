@@ -176,7 +176,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
         return [
           { href: '/dashboard/manager', icon: BsGrid, label: 'Dashboard' },
           { href: '/dashboard/manager/goals/approve-goals', icon: BsBullseye, label: 'Goal Approvals' },
-          { href: '/dashboard/manager/goals/', icon: BsBullseye, label: 'Set Goals ' },
+          { href: '/dashboard/manager/goals/setgoals', icon: BsBullseye, label: 'Set Goals ' },
 
           { href: '/dashboard/manager/rate-employees', icon: BsStar, label: 'Manager Ratings' },
           { href: '/dashboard/manager/goals/create', icon: BsBullseye, label: 'Goals Create' },

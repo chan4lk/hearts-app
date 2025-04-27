@@ -1,5 +1,5 @@
-import { Goal } from '../types';
-import { getStatusBadge } from '../constants';
+import { Goal } from './types';
+import { getStatusBadge } from './constants';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';

@@ -1,4 +1,4 @@
-import { GOAL_TEMPLATES } from '../constants';
+import { GOAL_TEMPLATES } from './constants';
 import { BsLightbulb } from 'react-icons/bs';
 import type { IconType } from 'react-icons';
 

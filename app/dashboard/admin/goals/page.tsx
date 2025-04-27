@@ -17,12 +17,8 @@ import {
 } from '@/components/ui/select';
 
 import { User as UserType, Goal, GoalStats } from './types';
-import { GoalCard } from './components/GoalCard';
-import { GoalForm } from './components/GoalForm';
-import { GoalModal } from './components/GoalModal';
-import { DeleteConfirmationModal } from './components/DeleteConfirmationModal';
 import { StatsCard } from './components/StatsCard';
-import { GoalTemplates } from './components/GoalTemplates';
+import { GoalTemplates } from '@/app/components/shared/GoalTemplates';
 import { GoalManagementSection } from './components/GoalManagementSection';
 import { GoalCreationSection } from './components/GoalCreationSection';
 import { GoalModals } from './components/GoalModals';
