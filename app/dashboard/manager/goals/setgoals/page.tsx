@@ -331,6 +331,8 @@ function ManagerGoalSettingPageContent() {
         }, {})
       }));
 
+      toast.success('Goal updated successfully! 🎯');
+
       setIsEditModalOpen(false);
       setSelectedGoal(null);
       setFormData({
@@ -340,8 +342,6 @@ function ManagerGoalSettingPageContent() {
         employeeId: '',
         category: 'PROFESSIONAL'
       });
-
-      toast.success('Goal updated successfully! 🎯');
     } catch (error) {
       console.error('Error updating goal:', error);
       toast.error('Failed to update goal');
@@ -491,8 +491,6 @@ function ManagerGoalSettingPageContent() {
         onSubmit={handleUpdateGoal}
         assignedEmployees={assignedEmployees}
         loading={loading}
-        formData={formData}
-        setFormData={setFormData}
         goal={selectedGoal}
       />
 
