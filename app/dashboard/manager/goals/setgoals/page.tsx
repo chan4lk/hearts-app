@@ -202,7 +202,7 @@ function ManagerGoalSettingPageContent() {
       today.setHours(0, 0, 0, 0);
       
       if (selectedDate < today) {
-        toast.error('Due date cannot be in the past');
+        toast.warning('Due date cannot be in the past');
         setLoading(false);
         return;
       }
@@ -232,8 +232,28 @@ function ManagerGoalSettingPageContent() {
       const responseData = await response.json();
       setGoals(prevGoals => [responseData.goal, ...prevGoals]);
       setIsCreateModalOpen(false);
+      setFormData({
+        title: '',
+        description: '',
+        dueDate: new Date().toISOString().split('T')[0],
+        employeeId: '',
+        category: 'PROFESSIONAL'
+      });
       
-      toast.success('Goal created successfully');
+      setTimeout(() => {
+        toast.success('Goal created successfully! 🎯', {
+          duration: 3000,
+          position: 'top-center',
+          style: {
+            background: '#1E2028',
+            color: 'white',
+            border: '1px solid #2d2f36',
+            padding: '16px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          },
+        });
+      }, 100);
     } catch (error) {
       console.error('Error creating goal:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to create goal');
@@ -269,6 +289,34 @@ function ManagerGoalSettingPageContent() {
     setIsEditModalOpen(true);
   };
 
+  const handleUpdateGoal = async (updatedData: GoalFormData) => {
+    if (!selectedGoal) return;
+    
+    try {
+      const response = await fetch(`/api/goals/${selectedGoal.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update goal');
+      }
+
+      const updatedGoal = await response.json();
+      setGoals(prevGoals => 
+        prevGoals.map(goal => goal.id === selectedGoal.id ? updatedGoal : goal)
+      );
+      setIsEditModalOpen(false);
+      toast.success('Goal updated successfully! ✨');
+    } catch (error) {
+      console.error('Error updating goal:', error);
+      toast.error('Failed to update goal');
+    }
+  };
+
   const handleDelete = (goalId: string) => {
     setGoalToDelete(goalId);
     setIsDeleteModalOpen(true);
@@ -278,7 +326,7 @@ function ManagerGoalSettingPageContent() {
     if (!goalToDelete) return;
 
     try {
-      const response = await fetch(`/api/goals?id=${goalToDelete}`, {
+      const response = await fetch(`/api/goals/${goalToDelete}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -294,7 +342,7 @@ function ManagerGoalSettingPageContent() {
       setIsDeleteModalOpen(false);
       setGoalToDelete(null);
       
-      toast.success('Goal deleted successfully');
+      toast.success('Goal deleted successfully! 🗑️');
     } catch (error) {
       console.error('Error deleting goal:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to delete goal');
@@ -409,7 +457,7 @@ function ManagerGoalSettingPageContent() {
         onClose={() => setIsViewModalOpen(false)}
         goal={viewedGoal}
         onEdit={() => {
-                    setIsViewModalOpen(false);
+          setIsViewModalOpen(false);
           if (viewedGoal) handleEdit(viewedGoal);
         }}
       />
@@ -417,9 +465,9 @@ function ManagerGoalSettingPageContent() {
       <DeleteGoalModal
         isOpen={isDeleteModalOpen}
         onClose={() => {
-              setIsDeleteModalOpen(false);
-              setGoalToDelete(null);
-            }}
+          setIsDeleteModalOpen(false);
+          setGoalToDelete(null);
+        }}
         onConfirm={confirmDelete}
       />
 
