@@ -8,17 +8,17 @@ import { toast } from 'sonner';
 import { Toaster } from 'sonner';
 import type { IconType } from 'react-icons';
 
-import { User as UserType, Goal, GoalStats } from './types';
-import { GoalCard } from './components/GoalCard';
-import { GoalForm } from './components/GoalForm';
-import { GoalModal } from './components/GoalModal';
-import { DeleteConfirmationModal } from './components/DeleteConfirmationModal';
-import { StatsCard } from './components/StatsCard';
-import { GoalTemplates } from './components/GoalTemplates';
-import { GoalManagementSection } from './components/GoalManagementSection';
-import { GoalCreationSection } from './components/GoalCreationSection';
-import { GoalModals } from './components/GoalModals';
-import { Notification } from './components/Notification';
+import { User as UserType, Goal, GoalStats } from '@/app/components/goals/types';
+import { GoalCard } from '@/app/components/goals/GoalCard';
+import { GoalForm } from '@/app/components/goals/GoalForm';
+import { GoalModal } from '@/app/components/goals/GoalModal';
+import { DeleteConfirmationModal } from '@/app/components/goals/DeleteConfirmationModal';
+import { StatsCard } from '@/app/components/goals/StatsCard';
+import { GoalTemplates } from '@/app/components/goals/GoalTemplates';
+import { GoalManagementSection } from '@/app/components/goals/GoalManagementSection';
+import { GoalCreationSection } from '@/app/components/goals/GoalCreationSection';
+import { GoalModals } from '@/app/components/goals/GoalModals';
+import { Notification } from '@/app/components/goals/Notification';
 
 function AdminGoalSettingPageContent() {
   const { data: session } = useSession();

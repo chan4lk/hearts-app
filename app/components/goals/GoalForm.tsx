@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AIGoalSuggestions } from './components/AIGoalSuggestions';
+import { AIGoalSuggestions } from './AIGoalSuggestions';
 import { z } from 'zod';
 import { 
   BsListTask, 

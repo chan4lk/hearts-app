@@ -1,4 +1,4 @@
-import { GoalStats } from '../types';
+import { GoalStats } from './types';
 import { BsPeople, BsStars, BsCheckCircle, BsClock } from 'react-icons/bs';
 
 interface StatsCardProps {
