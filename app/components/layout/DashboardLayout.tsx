@@ -35,6 +35,13 @@ interface DashboardLayoutProps {
   type: 'employee' | 'manager' | 'admin';
 }
 
+interface Settings {
+  systemName: string;
+  timezone: string;
+  dateFormat: string;
+  timeFormat: string;
+}
+
 // Create a client-side only time display component
 const TimeDisplay = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -78,7 +85,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<Settings>({
     systemName: 'Performance Management System',
     timezone: 'UTC',
     dateFormat: 'MM/DD/YYYY',
@@ -110,20 +117,35 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
   }, [isMobileMenuOpen]);
 
   useEffect(() => {
-    // Fetch system settings
     const fetchSettings = async () => {
       try {
-        const response = await fetch('/api/admin/settings');
-        if (response.ok) {
+        // Only fetch admin settings if user is an admin
+        if (type === 'admin') {
+          const response = await fetch('/api/admin/settings');
+          if (!response.ok) {
+            if (response.status === 401) {
+              console.log('Not authorized to access admin settings');
+              return;
+            }
+            throw new Error('Failed to fetch settings');
+          }
           const data = await response.json();
-          setSettings(data);
+          if (data && typeof data === 'object') {
+            setSettings(prev => ({
+              ...prev,
+              ...data
+            }));
+          }
         }
       } catch (error) {
         console.error('Error fetching settings:', error);
       }
     };
-    fetchSettings();
-  }, []);
+
+    if (status === 'authenticated') {
+      fetchSettings();
+    }
+  }, [type, status]);
 
   // Close user menu when clicking outside
   useEffect(() => {
