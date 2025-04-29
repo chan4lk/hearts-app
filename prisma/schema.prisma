@@ -33,6 +33,9 @@ model User {
   selfRatings         Rating[]       @relation("SelfRatings")
   manager             User?          @relation("UserToUser", fields: [managerId], references: [id])
   employees           User[]         @relation("UserToUser")
+  createdGoals        Goal[]         @relation("CreatedGoals")
+  updatedGoals        Goal[]         @relation("UpdatedGoals")
+  deletedGoals        Goal[]         @relation("DeletedGoals")
 
   @@index([managerId])
   @@index([lastLoginAt])
@@ -59,9 +62,19 @@ model Goal {
   manager         User?          @relation("ManagerGoals", fields: [managerId], references: [id])
   notifications   Notification[]
   ratings         Rating[]
+  createdById     String?
+  updatedById     String?
+  deletedById     String?
+  deletedAt       DateTime?
+  createdBy       User?          @relation("CreatedGoals", fields: [createdById], references: [id])
+  updatedBy       User?          @relation("UpdatedGoals", fields: [updatedById], references: [id])
+  deletedBy       User?          @relation("DeletedGoals", fields: [deletedById], references: [id])
 
   @@index([managerId])
   @@index([employeeId])
+  @@index([createdById])
+  @@index([updatedById])
+  @@index([deletedById])
 }
 
 model Rating {
