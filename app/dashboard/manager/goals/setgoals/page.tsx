@@ -90,11 +90,25 @@ type Template = {
   bgColor: string;
 };
 
+function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center p-8 text-center">
+      <BsExclamationTriangle className="w-12 h-12 text-red-500 mb-4" />
+      <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
+      <p className="text-gray-600 mb-4">{error.message}</p>
+      <Button onClick={resetErrorBoundary} variant="outline">
+        Try again
+      </Button>
+    </div>
+  );
+}
+
 function ManagerGoalSettingPageContent() {
   const { data: session } = useSession();
   const [assignedEmployees, setAssignedEmployees] = useState<User[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewedGoal, setViewedGoal] = useState<Goal | null>(null);
@@ -119,15 +133,23 @@ function ManagerGoalSettingPageContent() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [goalToDelete, setGoalToDelete] = useState<string | null>(null);
 
+  const resetError = () => {
+    setError(null);
+    setLoading(true);
+  };
+
   useEffect(() => {
     const fetchAssignedEmployees = async () => {
       try {
         const response = await fetch('/api/employees/assigned');
-        if (!response.ok) throw new Error('Failed to fetch assigned employees');
+        if (!response.ok) {
+          throw new Error('Failed to fetch assigned employees');
+        }
         const data = await response.json();
         setAssignedEmployees(data.employees);
       } catch (error) {
         console.error('Error fetching assigned employees:', error);
+        setError(error instanceof Error ? error : new Error('Failed to load assigned employees'));
         toast.error('Failed to load assigned employees');
       }
     };
@@ -382,8 +404,16 @@ function ManagerGoalSettingPageContent() {
     }
   };
 
+  if (error) {
+    return <ErrorFallback error={error} resetErrorBoundary={resetError} />;
+  }
+
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   return (
@@ -533,10 +563,14 @@ function ManagerGoalSettingPageContent() {
 
 export default function ManagerGoalSettingPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <DashboardLayout type="manager">
+    <DashboardLayout type="manager">
+      <Suspense fallback={
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      }>
         <ManagerGoalSettingPageContent />
-      </DashboardLayout>
-    </Suspense>
+      </Suspense>
+    </DashboardLayout>
   );
 }
