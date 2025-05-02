@@ -26,16 +26,16 @@ model User {
   position            String?
   feedbackGiven       Feedback[]     @relation("FeedbackGiven")
   feedbackReceived    Feedback[]     @relation("FeedbackReceived")
+  createdGoals        Goal[]         @relation("CreatedGoals")
+  deletedGoals        Goal[]         @relation("DeletedGoals")
   goals               Goal[]         @relation("EmployeeGoals")
   managerGoals        Goal[]         @relation("ManagerGoals")
+  updatedGoals        Goal[]         @relation("UpdatedGoals")
   notifications       Notification[]
   managerRatings      Rating[]       @relation("ManagerRatings")
   selfRatings         Rating[]       @relation("SelfRatings")
   manager             User?          @relation("UserToUser", fields: [managerId], references: [id])
   employees           User[]         @relation("UserToUser")
-  createdGoals        Goal[]         @relation("CreatedGoals")
-  updatedGoals        Goal[]         @relation("UpdatedGoals")
-  deletedGoals        Goal[]         @relation("DeletedGoals")
 
   @@index([managerId])
   @@index([lastLoginAt])
@@ -56,19 +56,19 @@ model Goal {
   rejectedAt      DateTime?
   rejectedBy      String?
   managerComments String?
-  status          String         @default("PENDING")
   category        GoalCategory   @default(PROFESSIONAL)
+  createdById     String?
+  deletedAt       DateTime?
+  deletedById     String?
+  updatedById     String?
+  status          GoalStatus     @default(PENDING)
+  createdBy       User?          @relation("CreatedGoals", fields: [createdById], references: [id])
+  deletedBy       User?          @relation("DeletedGoals", fields: [deletedById], references: [id])
   employee        User           @relation("EmployeeGoals", fields: [employeeId], references: [id])
   manager         User?          @relation("ManagerGoals", fields: [managerId], references: [id])
+  updatedBy       User?          @relation("UpdatedGoals", fields: [updatedById], references: [id])
   notifications   Notification[]
   ratings         Rating[]
-  createdById     String?
-  updatedById     String?
-  deletedById     String?
-  deletedAt       DateTime?
-  createdBy       User?          @relation("CreatedGoals", fields: [createdById], references: [id])
-  updatedBy       User?          @relation("UpdatedGoals", fields: [updatedById], references: [id])
-  deletedBy       User?          @relation("DeletedGoals", fields: [deletedById], references: [id])
 
   @@index([managerId])
   @@index([employeeId])
@@ -146,6 +146,8 @@ enum GoalStatus {
   REJECTED
   MODIFIED
   COMPLETED
+  DRAFT
+  DELETED
 }
 
 enum NotificationType {
