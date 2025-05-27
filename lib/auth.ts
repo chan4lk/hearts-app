@@ -1,5 +1,6 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import AzureADProvider from 'next-auth/providers/azure-ad';
 import { prisma } from './prisma';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
@@ -26,6 +27,16 @@ declare module 'next-auth/jwt' {
 
 export const authOptions: NextAuthOptions = {
   providers: [
+    AzureADProvider({
+      clientId: process.env.AZURE_AD_CLIENT_ID!,
+      clientSecret: process.env.AZURE_AD_CLIENT_SECRET!,
+      tenantId: process.env.AZURE_AD_TENANT_ID,
+      authorization: {
+        params: {
+          scope: "openid profile email"
+        }
+      }
+    }),
     CredentialsProvider({
       name: 'credentials',
       credentials: {
@@ -71,7 +82,34 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === 'azure-ad') {
+        // Check if user exists in database
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email! },
+        });
+
+        if (!existingUser) {
+          // Create new user if doesn't exist
+          const newUser = await prisma.user.create({
+            data: {
+              email: user.email!,
+              name: user.name!,
+              role: 'EMPLOYEE', // Default role for Azure AD users
+              isActive: true,
+              password: await bcrypt.hash(Math.random().toString(36), 12), // Generate random password for Azure AD users
+            },
+          });
+          user.id = newUser.id;
+          user.role = newUser.role;
+        } else {
+          user.id = existingUser.id;
+          user.role = existingUser.role;
+        }
+      }
+      return true;
+    },
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
