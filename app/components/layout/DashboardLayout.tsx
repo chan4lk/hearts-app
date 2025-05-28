@@ -200,10 +200,16 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
   const portalTitle = type.charAt(0).toUpperCase() + type.slice(1) + ' Portal';
 
   const handleSignOut = async () => {
-    await signOut({
-      callbackUrl: '/login',
-      redirect: true
-    });
+    try {
+      await signOut({
+        callbackUrl: '/login',
+        redirect: true
+      });
+      router.push('/login');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      router.push('/login');
+    }
   };
 
   return (

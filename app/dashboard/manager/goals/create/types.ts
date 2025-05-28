@@ -1,3 +1,26 @@
+import { ReactNode } from 'react';
+
+export interface User {
+  id: string;
+  name: string;
+  position: string;
+  department: string;
+}
+
+export interface Category {
+  value: string;
+  label: string;
+  icon: ReactNode;
+}
+
+export interface GoalFormData {
+  title: string;
+  description: string;
+  dueDate: string;
+  employeeId: string;
+  category: string;
+}
+
 export interface Goal {
   id: string;
   title: string;
@@ -19,13 +42,6 @@ export interface Goal {
   } | null;
 }
 
-export interface GoalFormData {
-  title: string;
-  description: string;
-  dueDate: string;
-  category: string;
-}
-
 export interface GoalTemplate {
   id: string;
   title: string;
@@ -34,11 +50,6 @@ export interface GoalTemplate {
   description: string;
   subtitle: string;
   bgGradient: string;
-}
-
-export interface Category {
-  value: string;
-  label: string;
 }
 
 export interface Status {

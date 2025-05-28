@@ -1,6 +1,6 @@
-import { OpenAI } from "langchain/llms/openai";
-import { LLMChain } from "langchain/chains";
-import { PromptTemplate } from "langchain/prompts";
+import { OpenAI } from "@langchain/openai";
+import { PromptTemplate } from "@langchain/core/prompts";
+import { RunnableSequence } from "@langchain/core/runnables";
 
 const model = new OpenAI({
   openAIApiKey: process.env.OPENAI_API_KEY,
@@ -15,4 +15,7 @@ const prompt = PromptTemplate.fromTemplate(
 Feedback: {feedback}`
 );
 
-export const feedbackAnalysisChain = new LLMChain({ llm: model, prompt });
+export const feedbackAnalysisChain = RunnableSequence.from([
+  prompt,
+  model
+]);
