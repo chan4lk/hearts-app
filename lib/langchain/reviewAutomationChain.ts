@@ -1,8 +1,8 @@
-import { OpenAI } from "langchain/llms/openai";
-import { LLMChain } from "langchain/chains";
-import { PromptTemplate } from "langchain/prompts";
+import { ChatOpenAI } from "@langchain/openai";
+import { PromptTemplate } from "@langchain/core/prompts";
+import { RunnableSequence } from "@langchain/core/runnables";
 
-const model = new OpenAI({
+const model = new ChatOpenAI({
   openAIApiKey: process.env.OPENAI_API_KEY,
   modelName: "gpt-3.5-turbo",
   temperature: 0.5,
@@ -16,4 +16,7 @@ Ratings: {ratings}
 Feedback: {feedback}`
 );
 
-export const reviewAutomationChain = new LLMChain({ llm: model, prompt });
+export const reviewAutomationChain = RunnableSequence.from([
+  prompt,
+  model,
+]);

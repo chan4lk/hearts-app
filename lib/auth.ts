@@ -33,7 +33,17 @@ export const authOptions: NextAuthOptions = {
       tenantId: process.env.AZURE_AD_TENANT_ID,
       authorization: {
         params: {
-          scope: "openid profile email"
+          scope: "openid profile email offline_access",
+          response_type: "code",
+          prompt: "consent"
+        }
+      },
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          role: 'EMPLOYEE'
         }
       }
     }),
@@ -101,10 +111,10 @@ export const authOptions: NextAuthOptions = {
             },
           });
           user.id = newUser.id;
-          user.role = newUser.role;
+          user.role = 'EMPLOYEE'; // Force EMPLOYEE role for new Azure AD users
         } else {
           user.id = existingUser.id;
-          user.role = existingUser.role;
+          user.role = 'EMPLOYEE'; // Force EMPLOYEE role for existing Azure AD users
         }
       }
       return true;

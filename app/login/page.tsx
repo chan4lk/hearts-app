@@ -92,6 +92,30 @@ function LoginForm() {
     }
   };
 
+  const handleAzureLogin = async () => {
+    try {
+      setIsLoading(true);
+      const result = await signIn('azure-ad', {
+        redirect: false,
+        callbackUrl: '/dashboard/employee'
+      });
+
+      if (result?.error) {
+        toast.error('An error occurred during Azure login');
+        return;
+      }
+
+      // For Azure AD users, always redirect to employee dashboard
+      router.push('/dashboard/employee');
+      router.refresh();
+    } catch (error) {
+      console.error('[Login] Error during Azure login:', error);
+      toast.error('An error occurred during Azure login');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (!mounted) {
     return null;
   }
@@ -106,7 +130,7 @@ function LoginForm() {
           <h1 className="text-xl sm:text-2xl font-bold text-center mb-2">Sign In</h1>
           <p className="text-xs sm:text-sm text-gray-400 text-center mb-4">Access your performance dashboard</p>
           <button
-            onClick={() => signIn('azure-ad', { callbackUrl: '/dashboard/employee' })}
+            onClick={handleAzureLogin}
             className="w-full min-h-[44px] flex items-center justify-center gap-2 bg-white text-gray-800 hover:bg-gray-100 font-semibold py-2 rounded-lg transition mb-2 text-sm sm:text-base"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

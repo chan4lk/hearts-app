@@ -31,7 +31,8 @@ const validTransitions: StatusTransitions = {
   MODIFIED: ['PENDING'],
   APPROVED: ['COMPLETED'],
   REJECTED: ['DRAFT'],
-  COMPLETED: []
+  COMPLETED: [],
+  DELETED: []
 };
 
 export async function GET(req: Request) {
