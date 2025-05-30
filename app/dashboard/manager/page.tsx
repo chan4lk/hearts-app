@@ -153,62 +153,68 @@ export default function ManagerDashboard() {
 
   return (
     <DashboardLayout type="manager">
-      <div className="space-y-6">
+      <div className="space-y-4 md:space-y-6 px-3 sm:px-4 md:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Header Section */}
-        <StatsDisplay stats={stats} activeTab={activeTab} />
+        <div className="bg-gray-800/50 rounded-lg p-3 sm:p-4 md:p-6">
+          <StatsDisplay stats={stats} activeTab={activeTab} />
+        </div>
 
         {/* Tab Navigation */}
-        <div className="flex space-x-4 border-b border-gray-700">
+        <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-2 md:space-x-4 border-b border-gray-700">
           <button
             onClick={() => setActiveTab('employee')}
-            className={`pb-4 px-4 font-medium transition-colors ${
+            className={`py-2.5 sm:py-3 px-3 sm:px-4 w-full sm:w-auto font-medium transition-colors text-center sm:text-left rounded-t-lg sm:rounded-t-none ${
               activeTab === 'employee'
-                ? 'text-indigo-400 border-b-2 border-indigo-400'
-                : 'text-gray-400 hover:text-gray-300'
+                ? 'text-indigo-400 border-b-2 border-indigo-400 bg-gray-800/30'
+                : 'text-gray-400 hover:text-gray-300 hover:bg-gray-800/20'
             }`}
           >
             Employee Goals
           </button>
           <button
             onClick={() => setActiveTab('personal')}
-            className={`pb-4 px-4 font-medium transition-colors ${
+            className={`py-2.5 sm:py-3 px-3 sm:px-4 w-full sm:w-auto font-medium transition-colors text-center sm:text-left rounded-t-lg sm:rounded-t-none ${
               activeTab === 'personal'
-                ? 'text-indigo-400 border-b-2 border-indigo-400'
-                : 'text-gray-400 hover:text-gray-300'
+                ? 'text-indigo-400 border-b-2 border-indigo-400 bg-gray-800/30'
+                : 'text-gray-400 hover:text-gray-300 hover:bg-gray-800/20'
             }`}
           >
             My All Goals
           </button>
           <button
             onClick={() => setActiveTab('assigned')}
-            className={`pb-4 px-4 font-medium transition-colors ${
+            className={`py-2.5 sm:py-3 px-3 sm:px-4 w-full sm:w-auto font-medium transition-colors text-center sm:text-left rounded-t-lg sm:rounded-t-none ${
               activeTab === 'assigned'
-                ? 'text-indigo-400 border-b-2 border-indigo-400'
-                : 'text-gray-400 hover:text-gray-300'
+                ? 'text-indigo-400 border-b-2 border-indigo-400 bg-gray-800/30'
+                : 'text-gray-400 hover:text-gray-300 hover:bg-gray-800/20'
             }`}
           >
-            I Assigned Goals
+          Assigned Goals
           </button>
         </div>
 
         {/* Filters Section */}
-        <Filters
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          selectedStatus={selectedStatus}
-          setSelectedStatus={setSelectedStatus}
-          selectedEmployee={selectedEmployee}
-          setSelectedEmployee={setSelectedEmployee}
-          employees={employees}
-          activeTab={activeTab}
-        />
+        <div className="bg-gray-800/50 rounded-lg p-3 sm:p-4 md:p-6">
+          <Filters
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            selectedStatus={selectedStatus}
+            setSelectedStatus={setSelectedStatus}
+            selectedEmployee={selectedEmployee}
+            setSelectedEmployee={setSelectedEmployee}
+            employees={employees}
+            activeTab={activeTab}
+          />
+        </div>
 
         {/* Goals Grid */}
-        <GoalsGrid
-          goals={filteredGoals}
-          activeTab={activeTab}
-          onGoalClick={handleGoalClick}
-        />
+        <div className="bg-gray-800/50 rounded-lg p-3 sm:p-4 md:p-6">
+          <GoalsGrid
+            goals={filteredGoals}
+            activeTab={activeTab}
+            onGoalClick={handleGoalClick}
+          />
+        </div>
 
         {/* Goal Details Modal */}
         {selectedGoalDetails && !selectedGoalDetails.isApprovalProcess && (

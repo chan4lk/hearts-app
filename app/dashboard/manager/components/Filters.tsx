@@ -23,8 +23,8 @@ export default function Filters({
   activeTab
 }: FiltersProps) {
   return (
-    <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-      <div className="flex-1">
+    <div className="flex flex-col md:flex-row gap-4">
+      <div className="w-full md:w-auto md:flex-1">
         <div className="relative group">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <BsSearch className="text-gray-400 group-hover:text-indigo-400 transition-colors" />
@@ -39,7 +39,7 @@ export default function Filters({
         </div>
       </div>
       
-      <div className="relative group">
+      <div className="relative group w-full md:w-auto">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <BsFilter className="text-gray-400 group-hover:text-indigo-400 transition-colors" />
         </div>
@@ -59,7 +59,7 @@ export default function Filters({
       </div>
 
       {activeTab === 'employee' && (
-        <div className="relative group">
+        <div className="relative group w-full md:w-auto">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <BsPerson className="text-gray-400 group-hover:text-indigo-400 transition-colors" />
           </div>
