@@ -21,7 +21,6 @@ import {
   BsChevronDown,
   BsBoxArrowRight,
   BsBuilding,
-  BsClock,
   BsSun,
   BsMoon,
   BsSearch,
@@ -41,43 +40,6 @@ interface Settings {
   dateFormat: string;
   timeFormat: string;
 }
-
-// Create a client-side only time display component
-const TimeDisplay = () => {
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  const formatDate = (date: Date) => {
-    const options: Intl.DateTimeFormatOptions = {
-      hour: 'numeric',
-      minute: 'numeric',
-      second: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    };
-    return date.toLocaleString('en-US', options);
-  };
-
-  return (
-    <div className="flex items-center space-x-2 text-sm text-gray-400">
-      <BsClock className="h-4 w-4" />
-      <span>{formatDate(currentTime)}</span>
-    </div>
-  );
-};
-
-// Use dynamic import with ssr disabled for the time display
-const ClientTimeDisplay = dynamic(() => Promise.resolve(TimeDisplay), {
-  ssr: false
-});
 
 export default function DashboardLayout({ children, type }: DashboardLayoutProps) {
   const { data: session, status } = useSession();
@@ -329,34 +291,40 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       {/* Header */}
       <header className="fixed top-0 right-0 left-0 h-16 bg-[#1a1c23] md:pl-64 z-20">
         <div className="flex items-center justify-between h-full px-4">
+          {/* Left side: Mobile menu, Logo, and System Name */}
           <div className="flex items-center space-x-4">
+            {/* Mobile menu button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden text-gray-400 hover:text-white"
+              className="text-gray-400 hover:text-white md:hidden"
               aria-label="Open menu"
             >
               <BsList className="w-6 h-6" />
             </button>
-            <div className="hidden md:flex items-center space-x-4">
-              <div className="flex items-center">
-                <img 
-                  src="/logo.png" 
-                  alt="Bistec Logo" 
-                  className="h-8 w-auto mr-2"
-                />
-                <h1 className="text-lg font-semibold text-white">
-                  {settings.systemName}
+            {/* Logo and System Name */}
+            <div className="flex items-center space-x-2">
+              {/* Logo */}
+              <img
+                src="/logo.png"
+                alt="Bistec Global Logo"
+                className="h-8 w-auto"
+              />
+              {/* System Name */}
+              <div className="flex flex-col">
+                <h1 className="text-lg font-semibold text-gray-300">
+                  Performance
                 </h1>
+                <span className="text-xs text-gray-400">Management System</span>
               </div>
             </div>
           </div>
+          {/* Right side: Notification Bell and User Menu */}
           <div className="flex items-center space-x-4">
-          <ClientTimeDisplay />
-
+            {/* Notification Bell */}
             <button className="text-gray-400 hover:text-white">
-              
               <BsBell className="w-6 h-6" />
             </button>
+            {/* User Menu */}
             <div className="relative" ref={userMenuRef}>
               <button 
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
