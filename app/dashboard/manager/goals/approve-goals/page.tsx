@@ -339,65 +339,72 @@ export default function ApproveGoalsPage() {
                 <div
                   key={goal.id}
                   onClick={() => setSelectedGoalDetails(goal)}
-                  className={`bg-gradient-to-br ${STATUS_STYLES[goal.status]?.gradient || 'from-gray-500/10'} bg-[#1E2028] rounded-xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 border border-gray-800 hover:border-gray-700 group cursor-pointer transform hover:scale-[1.02]`}
+                  className="group relative bg-[#1E2028] rounded-xl border border-gray-800 hover:border-gray-700 transition-all duration-300 overflow-hidden cursor-pointer transform hover:scale-[1.02]"
                 >
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-4">
-                    <h3 className="text-lg font-medium text-white group-hover:text-indigo-400 transition-colors flex items-center gap-2">
-                      <BsLightningCharge className="w-5 h-5 text-indigo-400" />
-                      {goal.title}
-                    </h3>
-                    <span className={`px-3 py-1.5 rounded-full text-xs flex items-center gap-2 ${STATUS_STYLES[goal.status]?.bg || 'bg-gray-500/10'} ${STATUS_STYLES[goal.status]?.text || 'text-gray-300'}`}>
-                      {STATUS_STYLES[goal.status]?.icon || <BsClock className="w-4 h-4" />}
-                      {goal.status.charAt(0) + goal.status.slice(1).toLowerCase()}
-                    </span>
+                  {/* Status Badge */}
+                  <div className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs flex items-center gap-1 ${STATUS_STYLES[goal.status]?.bg || 'bg-gray-500/10'} ${STATUS_STYLES[goal.status]?.text || 'text-gray-300'}`}>
+                    {STATUS_STYLES[goal.status]?.icon || <BsClock className="w-3 h-3" />}
+                    <span className="hidden sm:inline">{goal.status.charAt(0) + goal.status.slice(1).toLowerCase()}</span>
+                    <span className="inline sm:hidden">{goal.status.charAt(0)}</span>
                   </div>
 
-                  <div className="flex items-center space-x-2 mb-4 text-gray-200">
-                    <div className="bg-[#252832] p-1.5 rounded-lg">
-                      <BsPerson className="w-4 h-4" />
+                  {/* Content */}
+                  <div className="p-4 space-y-3">
+                    {/* Title and Employee */}
+                    <div className="mb-3">
+                      <h3 className="text-base font-semibold text-white group-hover:text-indigo-400 transition-colors mb-1 line-clamp-1">
+                        {goal.title}
+                      </h3>
+                      <div className="flex items-center gap-1 text-gray-300 text-xs">
+                        <BsPerson className="w-3 h-3" />
+                        <span className="line-clamp-1">{goal.employee.name}</span>
+                      </div>
                     </div>
-                    <span className="group-hover:text-indigo-400 transition-colors">
-                      {goal.employee.name}
-                    </span>
-                  </div>
 
-                  <p className="text-gray-300 text-sm mb-4 line-clamp-2 group-hover:text-gray-200 transition-colors">
-                    {goal.description}
-                  </p>
+                    {/* Description */}
+                    <p className="text-gray-400 text-xs mb-3 line-clamp-2">
+                      {goal.description}
+                    </p>
 
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-gray-300">
-                    <div className="flex items-center space-x-2 bg-[#252832] px-3 py-1.5 rounded-lg">
-                      <BsCalendar className="w-4 h-4" />
-                      <span>Due: {new Date(goal.dueDate).toLocaleDateString()}</span>
+                    {/* Dates */}
+                    <div className="space-y-1 mb-4">
+                      <div className="flex items-center gap-1 text-xs text-gray-400">
+                        <BsCalendar className="w-3 h-3 text-amber-400" />
+                        <span>Due: {new Date(goal.dueDate).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-gray-400">
+                        <BsClock className="w-3 h-3 text-emerald-400" />
+                        <span>Submitted: {new Date(goal.createdAt).toLocaleDateString()}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2 bg-[#252832] px-3 py-1.5 rounded-lg">
-                      <BsClock className="w-4 h-4" />
-                      <span>Submitted: {new Date(goal.createdAt).toLocaleDateString()}</span>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openActionModal(goal, 'approve');
+                        }}
+                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-emerald-500/10 text-emerald-300 rounded-md hover:bg-emerald-500 hover:text-white transition-all group text-xs"
+                      >
+                        <BsCheckCircle className="w-3 h-3 transform group-hover:scale-110 transition-transform" />
+                        Approve
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openActionModal(goal, 'reject');
+                        }}
+                        className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-rose-500/10 text-rose-300 rounded-md hover:bg-rose-500 hover:text-white transition-all group text-xs"
+                      >
+                        <BsXCircle className="w-3 h-3 transform group-hover:scale-110 transition-transform" />
+                        Reject
+                      </button>
                     </div>
                   </div>
 
-                  <div className="flex gap-2 mt-6">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openActionModal(goal, 'approve');
-                      }}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-500/10 text-emerald-300 rounded-lg hover:bg-emerald-500 hover:text-white transition-all group"
-                    >
-                      <BsCheckCircle className="w-4 h-4 transform group-hover:scale-110 transition-transform" />
-                      Approve
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openActionModal(goal, 'reject');
-                      }}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-500/10 text-rose-300 rounded-lg hover:bg-rose-500 hover:text-white transition-all group"
-                    >
-                      <BsXCircle className="w-4 h-4 transform group-hover:scale-110 transition-transform" />
-                      Reject
-                    </button>
-                  </div>
+                  {/* Hover Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
               ))}
             </div>
@@ -408,19 +415,19 @@ export default function ApproveGoalsPage() {
             <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
               <div className="bg-[#1E2028] rounded-xl w-full max-w-3xl border border-gray-800 shadow-2xl overflow-hidden">
                 {/* Modal Header */}
-                <div className="p-4 sm:p-6 border-b border-gray-800 bg-[#252832]">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-                    <div>
-                      <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                <div className="p-6 border-b border-gray-800 bg-[#252832]">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div className="space-y-2">
+                      <h2 className="text-2xl font-bold text-white flex items-center gap-3">
                         <BsLightningCharge className="w-6 h-6 text-indigo-400" />
                         {selectedGoalDetails.title}
                       </h2>
-                      <p className="text-gray-300 mt-1 flex items-center gap-2">
-                        <BsPerson className="w-4 h-4" />
-                        {selectedGoalDetails.employee.name}
-                      </p>
+                      <div className="flex items-center gap-2 text-gray-300 text-sm sm:text-base">
+                        <BsPerson className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <span>{selectedGoalDetails.employee.name}</span>
+                      </div>
                     </div>
-                    <span className={`px-4 py-2 rounded-lg text-sm flex items-center gap-2 ${STATUS_STYLES[selectedGoalDetails.status]?.bg || 'bg-gray-500/10'} ${STATUS_STYLES[selectedGoalDetails.status]?.text || 'text-gray-300'}`}>
+                    <span className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm flex items-center gap-2 ${STATUS_STYLES[selectedGoalDetails.status]?.bg || 'bg-gray-500/10'} ${STATUS_STYLES[selectedGoalDetails.status]?.text || 'text-gray-300'}`}>
                       {STATUS_STYLES[selectedGoalDetails.status]?.icon || <BsClock className="w-4 h-4" />}
                       {selectedGoalDetails.status.charAt(0) + selectedGoalDetails.status.slice(1).toLowerCase()}
                     </span>
@@ -428,30 +435,30 @@ export default function ApproveGoalsPage() {
                 </div>
 
                 {/* Modal Content */}
-                <div className="p-4 sm:p-6 space-y-6">
+                <div className="p-6 space-y-6 overflow-y-auto max-h-[70vh]">
                   {/* Description Section */}
-                  <div>
-                    <h3 className="text-lg font-medium text-white mb-3 flex items-center gap-2">
+                  <div className="bg-[#252832] rounded-xl p-6 border border-gray-800">
+                    <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
                       <div className="p-1.5 bg-indigo-500/10 rounded-lg">
                         <BsLightningCharge className="w-4 h-4 text-indigo-400" />
                       </div>
                       Description
                     </h3>
-                    <p className="text-gray-200 leading-relaxed">
+                    <p className="text-gray-200 leading-relaxed text-sm sm:text-base">
                       {selectedGoalDetails.description}
                     </p>
                   </div>
 
                   {/* Dates Section */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="p-1.5 bg-amber-500/10 rounded-lg">
-                          <BsCalendar className="w-4 h-4 text-amber-300" />
+                    <div className="bg-[#252832] p-6 rounded-xl border border-gray-800">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-amber-500/10 rounded-lg">
+                          <BsCalendar className="w-5 h-5 text-amber-300" />
                         </div>
-                        <h4 className="text-sm font-medium text-white">Due Date</h4>
+                        <h4 className="text-base font-medium text-white">Due Date</h4>
                       </div>
-                      <p className="text-gray-300">
+                      <p className="text-gray-300 text-sm sm:text-base">
                         {new Date(selectedGoalDetails.dueDate).toLocaleDateString('en-US', {
                           weekday: 'long',
                           year: 'numeric',
@@ -460,14 +467,14 @@ export default function ApproveGoalsPage() {
                         })}
                       </p>
                     </div>
-                    <div className="bg-[#252832] p-4 rounded-xl border border-gray-800">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="p-1.5 bg-emerald-500/10 rounded-lg">
-                          <BsClock className="w-4 h-4 text-emerald-300" />
+                    <div className="bg-[#252832] p-6 rounded-xl border border-gray-800">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-emerald-500/10 rounded-lg">
+                          <BsClock className="w-5 h-5 text-emerald-300" />
                         </div>
-                        <h4 className="text-sm font-medium text-white">Submission Date</h4>
+                        <h4 className="text-base font-medium text-white">Submission Date</h4>
                       </div>
-                      <p className="text-gray-300">
+                      <p className="text-gray-300 text-sm sm:text-base">
                         {new Date(selectedGoalDetails.createdAt).toLocaleDateString('en-US', {
                           weekday: 'long',
                           year: 'numeric',
@@ -479,13 +486,13 @@ export default function ApproveGoalsPage() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-4">
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
                     <button
                       onClick={() => {
                         setSelectedGoalDetails(null);
                         openActionModal(selectedGoalDetails, 'approve');
                       }}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500/10 text-emerald-300 rounded-lg hover:bg-emerald-500 hover:text-white transition-all group"
+                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-emerald-500/10 text-emerald-300 rounded-lg hover:bg-emerald-500 hover:text-white transition-all group text-sm sm:text-base"
                     >
                       <BsCheckCircle className="w-5 h-5 transform group-hover:scale-110 transition-transform" />
                       Approve Goal
@@ -495,7 +502,7 @@ export default function ApproveGoalsPage() {
                         setSelectedGoalDetails(null);
                         openActionModal(selectedGoalDetails, 'reject');
                       }}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-rose-500/10 text-rose-300 rounded-lg hover:bg-rose-500 hover:text-white transition-all group"
+                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-rose-500/10 text-rose-300 rounded-lg hover:bg-rose-500 hover:text-white transition-all group text-sm sm:text-base"
                     >
                       <BsXCircle className="w-5 h-5 transform group-hover:scale-110 transition-transform" />
                       Reject Goal
@@ -504,10 +511,10 @@ export default function ApproveGoalsPage() {
                 </div>
 
                 {/* Modal Footer */}
-                <div className="p-4 sm:p-6 border-t border-gray-800 bg-[#252832] flex justify-end">
+                <div className="p-6 border-t border-gray-800 bg-[#252832] flex justify-end">
                   <button
                     onClick={() => setSelectedGoalDetails(null)}
-                    className="px-6 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center gap-2"
+                    className="px-6 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center gap-2 text-sm sm:text-base"
                   >
                     Close Details
                   </button>
@@ -520,21 +527,21 @@ export default function ApproveGoalsPage() {
           {selectedGoal && (
             <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
               <div className="bg-[#1E2028] rounded-xl w-full max-w-lg border border-gray-800 shadow-2xl overflow-hidden">
-                <div className="p-4 sm:p-6 border-b border-gray-800 bg-[#252832]">
+                <div className="p-6 border-b border-gray-800 bg-[#252832]">
                   <h2 className="text-xl font-bold text-white flex items-center gap-3">
                     {selectedGoal ? 'Approve' : 'Reject'} Goal
                   </h2>
-                  <p className="text-gray-300 mt-1">{selectedGoal.title}</p>
+                  <p className="text-gray-300 mt-1 text-sm sm:text-base">{selectedGoal.title}</p>
                 </div>
 
-                <div className="p-4 sm:p-6 space-y-4">
+                <div className="p-6 space-y-4">
                   <div className="space-y-2">
-                    <Label className="text-gray-200">Feedback Comments</Label>
+                    <Label className="text-gray-200 text-sm sm:text-base">Feedback Comments</Label>
                     <Textarea
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
                       placeholder="Add your feedback comments here..."
-                      className="bg-[#252832] border-gray-700 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="bg-[#252832] border-gray-700 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
                       rows={4}
                     />
                   </div>
@@ -544,14 +551,14 @@ export default function ApproveGoalsPage() {
                       variant="outline"
                       onClick={closeActionModal}
                       disabled={isSubmitting}
-                      className="bg-gray-700 hover:bg-gray-600 border-gray-600 text-gray-200"
+                      className="bg-gray-700 hover:bg-gray-600 border-gray-600 text-gray-200 text-sm sm:text-base"
                     >
                       Cancel
                     </Button>
                     <Button
                       onClick={handleApprove}
                       disabled={isSubmitting}
-                      className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                      className="bg-emerald-500 hover:bg-emerald-600 text-white text-sm sm:text-base"
                     >
                       {isSubmitting ? (
                         <div className="flex items-center gap-2">
@@ -568,7 +575,7 @@ export default function ApproveGoalsPage() {
                     <Button
                       onClick={handleReject}
                       disabled={isSubmitting}
-                      className="bg-rose-500 hover:bg-rose-600 text-white"
+                      className="bg-rose-500 hover:bg-rose-600 text-white text-sm sm:text-base"
                     >
                       {isSubmitting ? (
                         <div className="flex items-center gap-2">
