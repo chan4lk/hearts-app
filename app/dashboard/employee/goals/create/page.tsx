@@ -149,6 +149,8 @@ function GoalsPageContent() {
   });
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [goalToDelete, setGoalToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchGoals();
@@ -196,13 +198,16 @@ function GoalsPageContent() {
   };
 
   const handleDeleteGoal = async (goalId: string) => {
-    if (!confirm('Are you sure you want to delete this goal?')) {
-      return;
-    }
+    setShowDeleteConfirmation(true);
+    setGoalToDelete(goalId);
+  };
 
+  const confirmDelete = async () => {
+    if (!goalToDelete) return;
+    
     setLoading(true);
     try {
-      const response = await fetch(`/api/goals/${goalId}`, {
+      const response = await fetch(`/api/goals/${goalToDelete}`, {
         method: 'DELETE'
       });
 
@@ -217,6 +222,8 @@ function GoalsPageContent() {
       showNotificationWithTimeout('Failed to delete goal', 'error');
     } finally {
       setLoading(false);
+      setShowDeleteConfirmation(false);
+      setGoalToDelete(null);
     }
   };
 
@@ -321,7 +328,8 @@ function GoalsPageContent() {
       className="bg-[#252832] rounded-lg p-4 border border-gray-800 hover:border-indigo-500/50 transition-all"
     >
       <div className="flex items-center justify-between mb-2">
-        <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(goal.status)} bg-opacity-20`}>
+        <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(goal.status)} bg-opacity-20 flex items-center gap-1`}>
+          {getStatusIcon(goal.status)}
           {goal.status}
         </span>
         <div className="flex items-center gap-2">
@@ -332,13 +340,15 @@ function GoalsPageContent() {
           <div className="flex items-center gap-1">
             <button
               onClick={() => handleEditGoal(goal)}
-              className="p-1 text-gray-400 hover:text-white transition-colors"
+              className="p-1.5 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-gray-700/50"
+              title="Edit Goal"
             >
               <BsGear className="w-4 h-4" />
             </button>
             <button
               onClick={() => handleDeleteGoal(goal.id)}
-              className="p-1 text-gray-400 hover:text-red-400 transition-colors"
+              className="p-1.5 text-gray-400 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10"
+              title="Delete Goal"
             >
               <BsXCircle className="w-4 h-4" />
             </button>
@@ -346,7 +356,7 @@ function GoalsPageContent() {
         </div>
       </div>
       <h3 className="text-white font-medium mb-1">{goal.title}</h3>
-      <p className="text-sm text-gray-400 mb-2">{goal.description}</p>
+      <p className="text-sm text-gray-400 mb-2 line-clamp-2">{goal.description}</p>
       <div className="flex items-center gap-2 text-xs text-gray-500">
         <BsTag className="w-3 h-3" />
         <span>{goal.category}</span>
@@ -371,16 +381,18 @@ function GoalsPageContent() {
   return (
     <DashboardLayout type="employee">
       <div className="space-y-4 md:space-y-6 px-4 md:px-0">
-        {/* Notification Toast - Made more mobile friendly */}
+        {/* Enhanced Notification Toast */}
         {showNotification && (
-          <div className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 p-4 rounded-lg shadow-lg flex items-center gap-2 max-w-[90%] ${
+          <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 p-4 rounded-lg shadow-lg flex items-center gap-3 max-w-[90%] md:max-w-md ${
             notificationType === 'success' ? 'bg-emerald-500' : 'bg-rose-500'
-          } text-white`}>
-            {notificationType === 'success' ? 
-              <BsCheckCircle className="w-5 h-5" /> : 
-              <BsXCircle className="w-5 h-5" />
-            }
-            <span className="text-sm md:text-base">{notificationMessage}</span>
+          } text-white backdrop-blur-sm bg-opacity-95`}>
+            <div className="flex-shrink-0">
+              {notificationType === 'success' ? 
+                <BsCheckCircle className="w-6 h-6" /> : 
+                <BsXCircle className="w-6 h-6" />
+              }
+            </div>
+            <span className="text-sm md:text-base font-medium">{notificationMessage}</span>
           </div>
         )}
 
@@ -598,17 +610,27 @@ function GoalsPageContent() {
           </div>
         </div>
 
-        {/* Create Goal Modal - Made more mobile friendly */}
+        {/* Enhanced Create/Edit Goal Modal */}
         {isCreateModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-[#1a1c23] rounded-lg p-4 md:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-[#1a1c23] rounded-lg p-4 md:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl border border-gray-800">
               <div className="flex justify-between items-center mb-4 md:mb-6">
-                <h2 className="text-lg md:text-xl font-bold text-white">Create New Goal</h2>
+                <div className="flex items-center gap-3">
+                  <div className="bg-indigo-500/10 p-2 rounded-lg">
+                    {selectedGoal ? 
+                      <BsGear className="w-5 h-5 text-indigo-400" /> :
+                      <BsPlus className="w-5 h-5 text-indigo-400" />
+                    }
+                  </div>
+                  <h2 className="text-lg md:text-xl font-bold text-white">
+                    {selectedGoal ? 'Edit Goal' : 'Create New Goal'}
+                  </h2>
+                </div>
                 <button
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="text-gray-400 hover:text-white p-2 -m-2"
+                  className="text-gray-400 hover:text-white p-2 -m-2 rounded-lg hover:bg-gray-700/50 transition-colors"
                 >
-                  ×
+                  <BsXCircle className="w-5 h-5" />
                 </button>
               </div>
 
@@ -697,7 +719,7 @@ function GoalsPageContent() {
                   <button
                     type="button"
                     onClick={() => setIsCreateModalOpen(false)}
-                    className="w-full sm:w-auto px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                    className="w-full sm:w-auto px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-gray-700/50"
                   >
                     Cancel
                   </button>
@@ -711,14 +733,69 @@ function GoalsPageContent() {
                     {loading ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>Creating...</span>
+                        <span>{selectedGoal ? 'Updating...' : 'Creating...'}</span>
                       </>
                     ) : (
-                      <span>Create Goal</span>
+                      <>
+                        {selectedGoal ? 
+                          <BsGear className="w-4 h-4" /> :
+                          <BsPlus className="w-4 h-4" />
+                        }
+                        <span>{selectedGoal ? 'Update Goal' : 'Create Goal'}</span>
+                      </>
                     )}
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirmation && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-[#1a1c23] rounded-lg p-4 md:p-6 w-full max-w-md shadow-xl border border-gray-800">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="bg-red-500/10 p-2 rounded-lg">
+                  <BsXCircle className="w-5 h-5 text-red-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-white">Delete Goal</h3>
+              </div>
+              
+              <p className="text-gray-400 mb-6">
+                Are you sure you want to delete this goal? This action cannot be undone.
+              </p>
+
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirmation(false);
+                    setGoalToDelete(null);
+                  }}
+                  className="w-full sm:w-auto px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-gray-700/50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  disabled={loading}
+                  className={`w-full sm:w-auto px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2 ${
+                    loading ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Deleting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <BsXCircle className="w-4 h-4" />
+                      <span>Delete Goal</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         )}
