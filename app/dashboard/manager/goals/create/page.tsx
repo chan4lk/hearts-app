@@ -133,11 +133,11 @@ export default function ManagerGoalsPage() {
 
   return (
     <DashboardLayout type="manager">
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 px-4 sm:px-6 max-w-7xl mx-auto">
         {showNotification && (
-          <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 p-4 rounded-lg shadow-lg flex items-center gap-2 ${
-            notificationType === 'success' ? 'bg-emerald-500' : 'bg-rose-500'
-          } text-white`}>
+          <div className={`fixed top-4 sm:top-1/2 left-1/2 transform -translate-x-1/2 sm:-translate-y-1/2 z-50 p-4 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in ${
+            notificationType === 'success' ? 'bg-gradient-to-r from-emerald-500 to-green-500' : 'bg-gradient-to-r from-rose-500 to-red-500'
+          } text-white max-w-[90vw] sm:max-w-md backdrop-blur-sm`}>
             {notificationMessage}
           </div>
         )}
@@ -155,40 +155,69 @@ export default function ManagerGoalsPage() {
         />
         {/* Simple View Modal */}
         {isViewModalOpen && viewedGoal && (
-          <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center">
-            <div className="bg-[#23263a] rounded-lg p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+            <div className="bg-[#23263a] rounded-xl p-4 sm:p-6 w-full max-w-lg mx-auto max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-700/50">
+              <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-white">Goal Details</h2>
-                <button onClick={() => setIsViewModalOpen(false)} className="text-gray-400 hover:text-white">×</button>
+                <button 
+                  onClick={() => setIsViewModalOpen(false)} 
+                  className="text-gray-400 hover:text-white transition-all p-2 hover:bg-gray-700/50 rounded-full hover:rotate-90 duration-200"
+                >
+                  ×
+                </button>
               </div>
-              <div className="space-y-2">
-                <div><span className="font-semibold text-gray-300">Title:</span> <span className="text-white">{viewedGoal.title}</span></div>
-                <div><span className="font-semibold text-gray-300">Description:</span> <span className="text-white">{viewedGoal.description}</span></div>
-                <div><span className="font-semibold text-gray-300">Category:</span> <span className="text-white">{viewedGoal.category}</span></div>
-                <div><span className="font-semibold text-gray-300">Due Date:</span> <span className="text-white">{viewedGoal.dueDate}</span></div>
-                <div><span className="font-semibold text-gray-300">Status:</span> <span className="text-white">{viewedGoal.status}</span></div>
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-800/50 rounded-lg hover:bg-gray-800/70 transition-colors">
+                  <span className="font-semibold text-gray-300 block mb-2">Title</span>
+                  <span className="text-white text-lg">{viewedGoal.title}</span>
+                </div>
+                <div className="p-4 bg-gray-800/50 rounded-lg hover:bg-gray-800/70 transition-colors">
+                  <span className="font-semibold text-gray-300 block mb-2">Description</span>
+                  <span className="text-white whitespace-pre-wrap">{viewedGoal.description}</span>
+                </div>
+                <div className="p-4 bg-gray-800/50 rounded-lg hover:bg-gray-800/70 transition-colors">
+                  <span className="font-semibold text-gray-300 block mb-2">Category</span>
+                  <span className="text-white">{viewedGoal.category}</span>
+                </div>
+                <div className="p-4 bg-gray-800/50 rounded-lg hover:bg-gray-800/70 transition-colors">
+                  <span className="font-semibold text-gray-300 block mb-2">Due Date</span>
+                  <span className="text-white">{viewedGoal.dueDate}</span>
+                </div>
+                <div className="p-4 bg-gray-800/50 rounded-lg hover:bg-gray-800/70 transition-colors">
+                  <span className="font-semibold text-gray-300 block mb-2">Status</span>
+                  <span className="text-white">{viewedGoal.status}</span>
+                </div>
               </div>
               <div className="flex justify-end mt-6">
-                <button onClick={() => setIsViewModalOpen(false)} className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Close</button>
+                <button 
+                  onClick={() => setIsViewModalOpen(false)} 
+                  className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl active:scale-95"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>
         )}
         {/* Goal Management Section */}
-        <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800 shadow-lg mt-6">
-          <h2 className="text-xl font-bold text-white mb-4">Goal Management</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="bg-[#1E2028] rounded-xl p-4 sm:p-6 border border-gray-800 shadow-lg mt-6 backdrop-blur-sm bg-opacity-95">
+          <h2 className="text-xl font-bold text-white mb-6">Goal Management</h2>
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {displayedGoals.length === 0 ? (
-              <div className="text-gray-400 col-span-full">No goals found.</div>
+              <div className="text-gray-400 col-span-full text-center py-12 bg-gray-800/30 rounded-lg border border-gray-700/50">
+                <p className="text-lg">No goals found.</p>
+                <p className="text-sm mt-2 text-gray-500">Create your first goal to get started</p>
+              </div>
             ) : (
               displayedGoals.map(goal => (
-                <GoalCard
-                  key={goal.id}
-                  goal={goal}
-                  onView={() => handleView(goal)}
-                  onEdit={() => {}}
-                  onDelete={() => handleDelete(goal.id)}
-                />
+                <div key={goal.id} className="transform transition-all duration-200 hover:scale-[1.02] hover:shadow-xl">
+                  <GoalCard
+                    goal={goal}
+                    onView={() => handleView(goal)}
+                    onEdit={() => {}}
+                    onDelete={() => handleDelete(goal.id)}
+                  />
+                </div>
               ))
             )}
           </div>
