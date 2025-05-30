@@ -219,16 +219,16 @@ export default function SelfRatingPage() {
 
   return (
     <DashboardLayout type={getLayoutType(session?.user?.role)}>
-      <div className="space-y-6 p-6">
+      <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
         {/* Header Section */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-indigo-500/10 rounded-xl">
-              <BsStarFill className="w-8 h-8 text-indigo-400" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="p-2 sm:p-3 bg-indigo-500/10 rounded-xl">
+              <BsStarFill className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white mb-1">Self Rating</h1>
-              <p className="text-gray-400">
+              <h1 className="text-xl sm:text-2xl font-bold text-white mb-0.5 sm:mb-1">Self Rating</h1>
+              <p className="text-sm sm:text-base text-gray-400">
                 {session?.user?.role === 'MANAGER' 
                   ? 'Rate your performance on your goals'
                   : 'Rate your performance on assigned goals'}
@@ -237,13 +237,13 @@ export default function SelfRatingPage() {
           </div>
           
           {/* View Mode */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <span className="text-sm text-gray-400">View</span>
             <div className="flex bg-gray-800/50 rounded-lg p-1">
               <Button
                 variant="ghost"
                 size="sm"
-                className={`flex items-center justify-center w-9 h-9 rounded transition-all duration-200 ${
+                className={`flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded transition-all duration-200 ${
                   viewMode === 'list'
                     ? 'bg-indigo-500 text-white'
                     : 'text-gray-400 hover:text-white hover:bg-gray-700'
@@ -255,7 +255,7 @@ export default function SelfRatingPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className={`flex items-center justify-center w-9 h-9 rounded transition-all duration-200 ${
+                className={`flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded transition-all duration-200 ${
                   viewMode === 'grid'
                     ? 'bg-indigo-500 text-white'
                     : 'text-gray-400 hover:text-white hover:bg-gray-700'
@@ -269,38 +269,38 @@ export default function SelfRatingPage() {
         </div>
 
         {/* Stats Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <Card className="bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700 shadow-xl hover:shadow-2xl transition-all">
-            <div className="p-6">
-              <div className="flex items-center gap-3 text-blue-400 mb-3">
+            <div className="p-4 sm:p-6">
+              <div className="flex items-center gap-3 text-blue-400 mb-2 sm:mb-3">
                 <BsClipboardData className="w-5 h-5" />
-                <span className="text-lg font-semibold">Total Goals</span>
+                <span className="text-base sm:text-lg font-semibold">Total Goals</span>
               </div>
-              <div className="text-3xl font-bold text-white">
+              <div className="text-2xl sm:text-3xl font-bold text-white">
                 {goals.length}
               </div>
             </div>
           </Card>
 
           <Card className="bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700 shadow-xl hover:shadow-2xl transition-all">
-            <div className="p-6">
-              <div className="flex items-center gap-3 text-green-400 mb-3">
+            <div className="p-4 sm:p-6">
+              <div className="flex items-center gap-3 text-green-400 mb-2 sm:mb-3">
                 <BsCheckCircle className="w-5 h-5" />
-                <span className="text-lg font-semibold">Rated Goals</span>
+                <span className="text-base sm:text-lg font-semibold">Rated Goals</span>
               </div>
-              <div className="text-3xl font-bold text-white">
+              <div className="text-2xl sm:text-3xl font-bold text-white">
                 {goals.filter(g => g.rating?.score).length}
               </div>
             </div>
           </Card>
 
-          <Card className="bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700 shadow-xl hover:shadow-2xl transition-all">
-            <div className="p-6">
-              <div className="flex items-center gap-3 text-yellow-400 mb-3">
+          <Card className="bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700 shadow-xl hover:shadow-2xl transition-all sm:col-span-2 lg:col-span-1">
+            <div className="p-4 sm:p-6">
+              <div className="flex items-center gap-3 text-yellow-400 mb-2 sm:mb-3">
                 <BsBarChart className="w-5 h-5" />
-                <span className="text-lg font-semibold">Average Rating</span>
+                <span className="text-base sm:text-lg font-semibold">Average Rating</span>
               </div>
-              <div className="text-3xl font-bold text-white">
+              <div className="text-2xl sm:text-3xl font-bold text-white">
                 {goals.length > 0
                   ? (goals.reduce((acc, goal) => acc + (goal.rating?.score || 0), 0) / goals.length).toFixed(1)
                   : '0.0'}
@@ -310,12 +310,12 @@ export default function SelfRatingPage() {
         </div>
 
         {/* Filters Section */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
           <Select
             value={filterStatus}
             onValueChange={setFilterStatus}
           >
-            <SelectTrigger className="w-[180px] bg-gray-800 border-gray-700 text-white">
+            <SelectTrigger className="w-full sm:w-[180px] bg-gray-800 border-gray-700 text-white">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent className="bg-gray-800 border-gray-700 text-white">
@@ -331,7 +331,7 @@ export default function SelfRatingPage() {
             value={filterRating}
             onValueChange={setFilterRating}
           >
-            <SelectTrigger className="w-[180px] bg-gray-800 border-gray-700 text-white">
+            <SelectTrigger className="w-full sm:w-[180px] bg-gray-800 border-gray-700 text-white">
               <SelectValue placeholder="Filter by rating" />
             </SelectTrigger>
             <SelectContent className="bg-gray-800 border-gray-700 text-white">
@@ -348,7 +348,7 @@ export default function SelfRatingPage() {
             value={ratingStatus}
             onValueChange={setRatingStatus}
           >
-            <SelectTrigger className="w-[180px] bg-gray-800 border-gray-700 text-white">
+            <SelectTrigger className="w-full sm:w-[180px] bg-gray-800 border-gray-700 text-white">
               <SelectValue placeholder="Filter by rating status" />
             </SelectTrigger>
             <SelectContent className="bg-gray-800 border-gray-700 text-white">
@@ -360,17 +360,21 @@ export default function SelfRatingPage() {
         </div>
 
         {/* Goals List */}
-        <div className={`grid gap-6 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
+        <div className={`grid gap-4 sm:gap-6 ${
+          viewMode === 'grid' 
+            ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' 
+            : 'grid-cols-1'
+        }`}>
           {filteredGoals.map((goal) => (
             <Card key={goal.id} className="bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700 shadow-xl hover:shadow-2xl transition-all">
-              <CardHeader>
-                <div className="flex items-center justify-between">
+              <CardHeader className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
-                    <h3 className="text-lg font-semibold text-white">{goal.title}</h3>
-                    <p className="text-sm text-gray-400 mt-1">{goal.description}</p>
+                    <h3 className="text-base sm:text-lg font-semibold text-white">{goal.title}</h3>
+                    <p className="text-sm text-gray-400 mt-1 line-clamp-2">{goal.description}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`text-xs px-2 py-1 rounded-full ${
+                    <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
                       goal.status === 'COMPLETED' ? 'bg-green-500/20 text-green-400' :
                       goal.status === 'APPROVED' ? 'bg-blue-500/20 text-blue-400' :
                       goal.status === 'REJECTED' ? 'bg-red-500/20 text-red-400' :
@@ -382,11 +386,11 @@ export default function SelfRatingPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 sm:p-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-gray-300">Self Rating</Label>
-                    <div className="flex items-center justify-center gap-2">
+                    <div className="flex items-center justify-center gap-1 sm:gap-2">
                       {[1, 2, 3, 4, 5].map((rating) => (
                         <Button
                           key={rating}
@@ -394,24 +398,24 @@ export default function SelfRatingPage() {
                           size="icon"
                           onClick={() => handleSelfRating(goal.id, rating)}
                           disabled={submitting[goal.id]}
-                          className={`w-10 h-10 ${
+                          className={`w-8 h-8 sm:w-10 sm:h-10 ${
                             goal.rating?.score === rating
                               ? RATING_COLORS[rating as keyof typeof RATING_COLORS]
                               : 'bg-gray-800 text-gray-400 border-gray-700'
                           } ${RATING_HOVER_COLORS[rating as keyof typeof RATING_HOVER_COLORS]} transition-all duration-200`}
                         >
-                          <BsStarFill className="w-4 h-4" />
+                          <BsStarFill className="w-3 h-3 sm:w-4 sm:h-4" />
                         </Button>
                       ))}
                     </div>
                   </div>
 
                   {goal.rating?.score && (
-                    <div className="p-4 rounded-lg bg-gray-800/50 border border-gray-700">
-                      <p className={`text-sm font-medium mb-2 ${RATING_COLORS[goal.rating.score as keyof typeof RATING_COLORS]}`}>
+                    <div className="p-3 sm:p-4 rounded-lg bg-gray-800/50 border border-gray-700">
+                      <p className={`text-sm font-medium mb-1 sm:mb-2 ${RATING_COLORS[goal.rating.score as keyof typeof RATING_COLORS]}`}>
                         {RATING_LABELS[goal.rating.score as keyof typeof RATING_LABELS]}
                       </p>
-                      <p className="text-sm text-gray-400 leading-relaxed">
+                      <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
                         {RATING_DESCRIPTIONS[goal.rating.score as keyof typeof RATING_DESCRIPTIONS]}
                       </p>
                     </div>
