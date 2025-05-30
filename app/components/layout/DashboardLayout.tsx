@@ -130,9 +130,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
           { href: '/dashboard/employee', icon: BsGrid, label: 'Dashboard' },
           { href: '/dashboard/employee/goals/create', icon: BsBullseye, label: 'Goals Create' },
           { href: '/dashboard/employee/self-rating', icon: BsStar, label: 'Self Rating' },
-          { href: '/feedback', icon: BsChat, label: 'Feedback' },
-          { href: '/reports', icon: BsBarChart, label: 'Reports' },
-          { href: '/performance-review', icon: BsPerson, label: 'Performance Review' },
+
         ];
       case 'manager':
         return [
@@ -143,8 +141,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
           { href: '/dashboard/manager/rate-employees', icon: BsStar, label: 'Manager Ratings' },
           { href: '/dashboard/manager/goals/create', icon: BsBullseye, label: 'Goals Create' },
           { href: '/dashboard/manager/goals/self-ratings', icon: BsStar, label: 'Self Rating' },
-          { href: '/performance-reviews', icon: BsBarChart, label: 'Performance Reviews' },
-          { href: '/feedback', icon: BsChat, label: 'Feedback' },
+          
         ];
       case 'admin':
         return [
