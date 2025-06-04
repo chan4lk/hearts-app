@@ -10,7 +10,7 @@ export interface User {
 export interface Category {
   value: string;
   label: string;
-  icon: ReactNode;
+  icon: React.ElementType;
 }
 
 export interface GoalFormData {

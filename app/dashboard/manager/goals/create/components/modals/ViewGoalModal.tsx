@@ -4,21 +4,21 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BsEye, BsX, BsPencil } from 'react-icons/bs';
 import { User, Calendar } from 'lucide-react';
-import { Goal } from '../types';
-import { CATEGORIES } from '../constants';
+import { Goal } from '../../types';
+import { CATEGORIES } from '../../constants';
 
 interface ViewGoalModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  onCloseAction: () => void;
   goal: Goal | null;
-  onEdit: () => void;
+  onEditAction: () => void;
 }
 
 export function ViewGoalModal({
   isOpen,
-  onClose,
+  onCloseAction,
   goal,
-  onEdit
+  onEditAction
 }: ViewGoalModalProps) {
   if (!isOpen || !goal) return null;
 
@@ -26,7 +26,7 @@ export function ViewGoalModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={onCloseAction}
       />
       <div className="relative z-10 bg-[#1E2028] border border-gray-800 rounded-lg p-6 w-full max-w-2xl mx-4">
         <div className="flex justify-between items-center mb-6">
@@ -37,7 +37,7 @@ export function ViewGoalModal({
             <h2 className="text-xl font-bold text-white">View Goal Details</h2>
           </div>
           <button
-            onClick={onClose}
+            onClick={onCloseAction}
             className="text-gray-400 hover:text-white transition-colors"
           >
             <BsX className="h-6 w-6" />
@@ -101,14 +101,14 @@ export function ViewGoalModal({
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
             <Button
               variant="outline"
-              onClick={onClose}
+              onClick={onCloseAction}
               className="bg-transparent hover:bg-gray-800 border-gray-700 text-gray-300"
             >
               Close
             </Button>
             <Button
               variant="outline"
-              onClick={onEdit}
+              onClick={onEditAction}
               className="bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/30 text-blue-400"
             >
               <BsPencil className="w-4 h-4 mr-2" />

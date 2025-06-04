@@ -1,11 +1,12 @@
 import { Category, GoalTemplate } from './types';
+import { BsRocket, BsLightbulb, BsAward, BsGraphUp, BsBriefcase } from 'react-icons/bs';
 
 export const CATEGORIES: Category[] = [
-  { value: 'PROFESSIONAL', label: 'Professional Development' },
-  { value: 'TECHNICAL', label: 'Technical Skills' },
-  { value: 'LEADERSHIP', label: 'Leadership' },
-  { value: 'PERSONAL', label: 'Personal Growth' },
-  { value: 'TRAINING', label: 'Training' }
+  { value: 'PROFESSIONAL', label: 'Professional Development', icon: BsRocket },
+  { value: 'TECHNICAL', label: 'Technical Skills', icon: BsLightbulb },
+  { value: 'LEADERSHIP', label: 'Leadership', icon: BsAward },
+  { value: 'PERSONAL', label: 'Personal Growth', icon: BsGraphUp },
+  { value: 'TRAINING', label: 'Training', icon: BsBriefcase }
 ];
 
 export const STATUSES = [

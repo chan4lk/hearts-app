@@ -154,7 +154,7 @@ export function CreateGoalModal({
                   <SelectContent className="bg-[#23242a] border border-gray-700">
                     {CATEGORIES.map((category: Category) => (
                       <SelectItem key={category.value} value={category.value} className="text-white">
-                        <div className="flex items-center gap-2">{category.icon}<span>{category.label}</span></div>
+                        <div className="flex items-center gap-2"><category.icon /><span>{category.label}</span></div>
                       </SelectItem>
                     ))}
                   </SelectContent>

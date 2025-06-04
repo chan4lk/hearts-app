@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/app/components/ui/dialog';
 import { GoalForm } from '@/app/components/shared/GoalForm';
-import { GoalFormData, Goal } from '../types';
+import { GoalFormData, Goal } from '../../types';
 
 interface EditGoalModalProps {
   isOpen: boolean;

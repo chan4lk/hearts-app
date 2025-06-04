@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { goalChain } from "@/lib/langchain/goalChain";
+import { generateGoalSuggestions } from '@/lib/openai';
 
 if (!process.env.OPENAI_API_KEY) {
   throw new Error('OPENAI_API_KEY is not set in environment variables');
@@ -16,18 +16,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const result = await goalChain.call({ prompt, category });
-
-    // Try to parse the result as JSON
-    let goalData;
-    try {
-      goalData = JSON.parse(result.text);
-    } catch {
-      // Fallback: return raw text if not valid JSON
-      goalData = { raw: result.text };
+    // Use the OpenAI helper to generate goals
+    const goals = await generateGoalSuggestions(category, 'employee', prompt);
+    if (!goals || goals.length === 0) {
+      return NextResponse.json({ error: 'No goals generated' }, { status: 500 });
     }
-
-    return NextResponse.json(goalData);
+    return NextResponse.json(goals[0]);
   } catch (error) {
     console.error('Error generating goal:', error);
     return NextResponse.json(
