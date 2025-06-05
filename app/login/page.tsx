@@ -10,8 +10,7 @@ import dynamic from 'next/dynamic';
 // Add dynamic import for client-side components
 const DynamicHeader = dynamic(() => import('@/components/Header'), { 
   ssr: false,
-  loading: () => <div className="h-16 bg-[#0f172a]/50 backdrop-blur-sm border-b border-indigo-500/20" />,
-  suspense: true
+  loading: () => <div className="h-16 bg-[#0f172a]/50 backdrop-blur-sm border-b border-indigo-500/20" />
 });
 
 const DynamicFooter = dynamic(() => import('@/components/Footer'), { 
