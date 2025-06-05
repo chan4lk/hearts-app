@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
 import { generateGoalSuggestions } from '@/lib/openai';
 
-if (!process.env.OPENAI_API_KEY) {
-  throw new Error('OPENAI_API_KEY is not set in environment variables');
-}
 
 export async function POST(req: Request) {
   try {
