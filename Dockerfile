@@ -28,11 +28,6 @@ COPY . .
 # Copy environment file and generate Prisma client
 COPY .env .env
 
-# Set required environment variables for build
-ENV NEXT_PUBLIC_API_URL=http://localhost:3000
-ENV NEXTAUTH_URL=http://localhost:3000
-ENV NEXTAUTH_SECRET=your-secret-key
-
 # Generate Prisma client and build the application
 RUN npm run prisma:generate && \
     npm run build
@@ -43,9 +38,6 @@ RUN apt-get update -y && apt-get install -y openssl
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV NEXT_PUBLIC_API_URL=http://localhost:3000
-ENV NEXTAUTH_URL=http://localhost:3000
-ENV NEXTAUTH_SECRET=your-secret-key
 
 RUN groupadd -g 1001 nodejs && useradd -u 1001 -g nodejs -m nextjs
 
