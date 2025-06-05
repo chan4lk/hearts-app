@@ -66,6 +66,10 @@ export async function enhanceGoalDescription(
   category: string
 ): Promise<string> {
   try {
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+    
     const prompt = `Enhance this goal description to make it more specific and measurable:
     Title: ${title}
     Category: ${category}
