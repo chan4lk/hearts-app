@@ -1,8 +1,5 @@
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 interface GoalSuggestion {
   title: string;
@@ -18,7 +15,14 @@ export async function generateGoalSuggestions(
   employeeRole: string,
   context?: string
 ): Promise<GoalSuggestion[]> {
+
+  
   try {
+
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+    
     const prompt = `Generate 3 professional goals for a ${employeeRole} in the ${category} category. 
     ${context ? `Context: ${context}` : ''}
     Each goal should be SMART (Specific, Measurable, Achievable, Relevant, Time-bound).
