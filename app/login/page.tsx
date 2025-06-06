@@ -37,27 +37,20 @@ function LoginForm() {
     
     setIsLoading(true);
     setErrors({ email: '', password: '' });
-    console.log('[Login] Form submitted');
-    console.log('[Login] NEXTAUTH_URL:', process.env.NEXTAUTH_URL);
-    console.log('[Login] NEXTAUTH_DOMAIN:', process.env.NEXTAUTH_DOMAIN);
 
     const formData = new FormData(e.currentTarget);
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
-    const callbackUrl = searchParams.get('callbackUrl') || '/dashboard/employee';
 
     try {
-      console.log('[Login] Attempting signIn...');
       const result = await signIn('credentials', {
         email,
         password,
         redirect: false,
-        callbackUrl,
+        callbackUrl: '/dashboard'
       });
-      console.log('[Login] signIn result:', result);
 
       if (result?.error) {
-        console.log('[Login] Invalid credentials:', result.error);
         setErrors({
           email: 'Please enter a valid email address',
           password: 'Please enter a valid password'
@@ -66,14 +59,10 @@ function LoginForm() {
       }
 
       // Get the user's role from the session
-      console.log('[Login] Fetching session...');
       const response = await fetch('/api/auth/session');
       const session = await response.json();
-      console.log('[Login] Session data:', session);
-      console.log('[Login] Response status:', response.status);
-      console.log('[Login] Response headers:', Object.fromEntries(response.headers.entries()));
       
-      // Redirect based on role
+      // Redirect based on role from database
       if (session?.user?.role === 'ADMIN') {
         router.push('/dashboard/admin');
       } else if (session?.user?.role === 'MANAGER') {
@@ -96,7 +85,7 @@ function LoginForm() {
       setIsLoading(true);
       const result = await signIn('azure-ad', {
         redirect: false,
-        callbackUrl: '/dashboard/employee'
+        callbackUrl: '/dashboard'
       });
 
       if (result?.error) {
@@ -104,8 +93,19 @@ function LoginForm() {
         return;
       }
 
-      // For Azure AD users, always redirect to employee dashboard
-      router.push('/dashboard/employee');
+      // Get the user's role from the session
+      const response = await fetch('/api/auth/session');
+      const session = await response.json();
+      
+      // Redirect based on role from database
+      if (session?.user?.role === 'ADMIN') {
+        router.push('/dashboard/admin');
+      } else if (session?.user?.role === 'MANAGER') {
+        router.push('/dashboard/manager');
+      } else {
+        router.push('/dashboard/employee');
+      }
+      
       router.refresh();
     } catch (error) {
       console.error('[Login] Error during Azure login:', error);

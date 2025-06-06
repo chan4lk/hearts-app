@@ -5,13 +5,14 @@ import { prisma } from './prisma';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 import { verify } from 'jsonwebtoken';
+import { Role } from '@prisma/client';
 
 declare module 'next-auth' {
   interface User {
     id: string;
     email: string;
     name: string;
-    role: string;
+    role: Role;
   }
   interface Session {
     user: User;
@@ -21,7 +22,7 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT {
     id: string;
-    role: string;
+    role: Role;
   }
 }
 
@@ -39,11 +40,13 @@ export const authOptions: NextAuthOptions = {
         }
       },
       profile(profile) {
+        // Get role from Azure AD groups or custom claims
+        const role = (profile.roles?.[0] || 'EMPLOYEE') as Role;
         return {
           id: profile.sub,
           name: profile.name,
           email: profile.email,
-          role: 'EMPLOYEE'
+          role: role
         }
       }
     }),
@@ -105,16 +108,17 @@ export const authOptions: NextAuthOptions = {
             data: {
               email: user.email!,
               name: user.name!,
-              role: 'EMPLOYEE', // Default role for Azure AD users
+              role: 'EMPLOYEE', // Default role for new users
               isActive: true,
-              password: await bcrypt.hash(Math.random().toString(36), 12), // Generate random password for Azure AD users
+              password: await bcrypt.hash(Math.random().toString(36), 12),
             },
           });
           user.id = newUser.id;
-          user.role = 'EMPLOYEE'; // Force EMPLOYEE role for new Azure AD users
+          user.role = newUser.role;
         } else {
+          // For existing users, use their current role from database
           user.id = existingUser.id;
-          user.role = 'EMPLOYEE'; // Force EMPLOYEE role for existing Azure AD users
+          user.role = existingUser.role;
         }
       }
       return true;
@@ -133,7 +137,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.email = token.email as string;
         session.user.name = token.name as string;
-        session.user.role = token.role as string;
+        session.user.role = token.role;
       }
       return session;
     },
@@ -159,7 +163,7 @@ export const authOptions: NextAuthOptions = {
     }
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: true // process.env.NODE_ENV === 'development',
+  debug: process.env.NODE_ENV === 'development',
 };
 
 export interface AuthUser {

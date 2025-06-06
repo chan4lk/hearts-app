@@ -19,12 +19,17 @@ export default withAuth(
     }
 
     // Role-based access control
-    if (path.startsWith("/dashboard/admin") && token.role !== "ADMIN") {
-      return NextResponse.redirect(new URL("/dashboard/employee", req.url));
-    }
-
-    if (path.startsWith("/dashboard/manager") && token.role !== "MANAGER") {
-      return NextResponse.redirect(new URL("/dashboard/employee", req.url));
+    if (path.startsWith("/dashboard/admin")) {
+      if (token.role !== "ADMIN") {
+        return NextResponse.redirect(new URL("/dashboard/employee", req.url));
+      }
+    } else if (path.startsWith("/dashboard/manager")) {
+      if (token.role !== "MANAGER") {
+        return NextResponse.redirect(new URL("/dashboard/employee", req.url));
+      }
+    } else if (path.startsWith("/dashboard/employee")) {
+      // Allow all authenticated users to access employee dashboard
+      return NextResponse.next();
     }
 
     return NextResponse.next();
