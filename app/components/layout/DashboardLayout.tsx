@@ -227,7 +227,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                 <div className="pt-6 mt-6 border-t border-gray-800">
                   <button
                     onClick={handleSignOut}
-                    className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors text-gray-400 hover:bg-[#2d2f36] hover:text-white w-full"
+                    className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors text-gray-400 hover:bg-red-600 hover:text-white w-full"
                   >
                     <BsBoxArrowRight className="text-xl" />
                     <span>Sign Out</span>
@@ -275,7 +275,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
             <div className="pt-6 mt-6 border-t border-gray-800">
               <button
                 onClick={handleSignOut}
-                className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors text-gray-400 hover:bg-[#2d2f36] hover:text-white w-full"
+                className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors text-red-400 hover:bg-red-400 hover:text-white w-full"
               >
                 <BsBoxArrowRight className="text-xl" />
                 <span>Sign Out</span>
@@ -354,7 +354,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                   
                   <button 
                     onClick={handleSignOut}
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-[#2d2f36] hover:text-white"
+                    className="flex items-center w-full px-4 py-2 text-sm text-red-400 hover:bg-red-600 hover:text-white"
                   >
                     <BsBoxArrowRight className="mr-2" />
                     Sign Out
