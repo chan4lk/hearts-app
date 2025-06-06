@@ -18,6 +18,7 @@ export default function StatsSection({ stats }: StatsSectionProps) {
         <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
           Welcome back, {userName} <span className="font-extrabold"></span>
         </h1>
+        <p className="text-lg text-white/80">Track and manage your performance goals</p>
       </div>
       <div className="bg-[#1E2028] p-4 sm:p-6 rounded-xl shadow-lg">
         <div className="flex items-center gap-3 mb-6">
@@ -26,7 +27,6 @@ export default function StatsSection({ stats }: StatsSectionProps) {
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-white">My Goals Dashboard</h1>
-            <p className="text-gray-400 text-sm sm:text-base">Track and manage your performance goals</p>
           </div>
         </div>
 
