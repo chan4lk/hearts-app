@@ -227,10 +227,11 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                 <div className="pt-6 mt-6 border-t border-gray-800">
                   <button
                     onClick={handleSignOut}
-                    className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors text-gray-400 hover:bg-red-600 hover:text-white w-full"
+                    className="group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 text-red-400 hover:bg-red-500/10 hover:text-red-500 w-full relative overflow-hidden"
                   >
-                    <BsBoxArrowRight className="text-xl" />
-                    <span>Sign Out</span>
+                    <div className="absolute inset-0 bg-red-500/0 group-hover:bg-red-500/5 transition-all duration-300"></div>
+                    <BsBoxArrowRight className="text-xl transform group-hover:translate-x-1 transition-transform duration-300" />
+                    <span className="font-medium">Sign Out</span>
                   </button>
                 </div>
               </nav>
@@ -275,10 +276,11 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
             <div className="pt-6 mt-6 border-t border-gray-800">
               <button
                 onClick={handleSignOut}
-                className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors text-red-400 hover:bg-red-400 hover:text-white w-full"
+                className="group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 text-red-400 hover:bg-red-500/10 hover:text-red-500 w-full relative overflow-hidden"
               >
-                <BsBoxArrowRight className="text-xl" />
-                <span>Sign Out</span>
+                <div className="absolute inset-0 bg-red-500/0 group-hover:bg-red-500/5 transition-all duration-300"></div>
+                <BsBoxArrowRight className="text-xl transform group-hover:translate-x-1 transition-transform duration-300" />
+                <span className="font-medium">Sign Out</span>
               </button>
             </div>
           </nav>
@@ -354,10 +356,10 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                   
                   <button 
                     onClick={handleSignOut}
-                    className="flex items-center w-full px-4 py-2 text-sm text-red-400 hover:bg-red-600 hover:text-white"
+                    className="group flex items-center w-full px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-500 transition-all duration-300"
                   >
-                    <BsBoxArrowRight className="mr-2" />
-                    Sign Out
+                    <BsBoxArrowRight className="mr-2 transform group-hover:translate-x-1 transition-transform duration-300" />
+                    <span className="font-medium">Sign Out</span>
                   </button>
                 </div>
               )}
