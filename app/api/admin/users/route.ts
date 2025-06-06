@@ -250,16 +250,78 @@ export async function DELETE(request: Request) {
       );
     }
 
-    // Delete user
-    await prisma.user.delete({
-      where: { id }
-    });
+    try {
+      // Delete related records first
+      await prisma.$transaction(async (tx) => {
+        // First, delete all ratings associated with the user
+        await tx.rating.deleteMany({
+          where: {
+            OR: [
+              { selfRatedById: id },
+              { managerRatedById: id }
+            ]
+          }
+        });
 
-    return NextResponse.json({ success: true, message: 'User deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting user:', error);
+        // Delete user's notifications
+        await tx.notification.deleteMany({
+          where: { userId: id }
+        });
+
+        // Delete user's feedback (both given and received)
+        await tx.feedback.deleteMany({
+          where: {
+            OR: [
+              { fromId: id },
+              { toId: id }
+            ]
+          }
+        });
+
+        // Now we can safely delete goals
+        await tx.goal.deleteMany({
+          where: {
+            OR: [
+              { employeeId: id },
+              { managerId: id },
+              { createdById: id },
+              { updatedById: id },
+              { deletedById: id }
+            ]
+          }
+        });
+
+        // Update employees' managerId to null if this user was their manager
+        await tx.user.updateMany({
+          where: { managerId: id },
+          data: { managerId: null }
+        });
+
+        // Finally delete the user
+        await tx.user.delete({
+          where: { id }
+        });
+      });
+
+      return NextResponse.json({ success: true, message: 'User deleted successfully' });
+    } catch (txError: any) {
+      console.error('Transaction error:', {
+        error: txError,
+        code: txError.code,
+        message: txError.message,
+        meta: txError.meta
+      });
+      throw txError; // Re-throw to be caught by outer catch
+    }
+  } catch (error: any) {
+    console.error('Error deleting user:', {
+      error,
+      code: error.code,
+      message: error.message,
+      meta: error.meta
+    });
     return NextResponse.json(
-      { error: 'Failed to delete user. Please try again.' },
+      { error: `Failed to delete user: ${error.message}` },
       { status: 500 }
     );
   }
