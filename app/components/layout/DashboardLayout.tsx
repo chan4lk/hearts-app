@@ -351,13 +351,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                       </div>
                     </div>
                   </div>
-                  <Link 
-                    href="/settings" 
-                    className="flex items-center px-4 py-2 text-sm text-gray-300 hover:bg-[#2d2f36] hover:text-white"
-                  >
-                    <BsGear className="mr-2" />
-                    Settings
-                  </Link>
+                  
                   <button 
                     onClick={handleSignOut}
                     className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-[#2d2f36] hover:text-white"
