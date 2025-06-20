@@ -16,12 +16,18 @@ export default withAuth(
     console.log(`Cookies: ${JSON.stringify(cookies.map(c => ({ name: c.name, value: c.name.includes('token') ? '[REDACTED]' : c.value })))}`);
 
     // Allow access to register and login pages
-    if (path === '/register' || path === '/login') {
+    if (path === '/register' || path === '/login' || path === '/error') {
+      return NextResponse.next();
+    }
+    
+    // Handle API routes separately
+    if (path.startsWith('/api/')) {
       return NextResponse.next();
     }
 
     // Redirect to login if no token
     if (!token) {
+      console.log(`[Middleware] No auth token, redirecting to login`);
       const url = new URL("/login", req.url);
       url.searchParams.set("callbackUrl", req.nextUrl.pathname);
       return NextResponse.redirect(url);

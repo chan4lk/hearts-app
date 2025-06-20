@@ -100,7 +100,8 @@ function LoginForm() {
           }
           
           console.log(`[Login] Redirecting to: ${redirectPath}`);
-          router.push(redirectPath);
+          // Use direct window location change instead of router.push
+          window.location.href = redirectPath;
         } else {
           console.log('[Login] No active session found');
         }
