@@ -67,14 +67,6 @@ function LoginForm() {
   
   // Handle callback URL parameter and session check
   useEffect(() => {
-    // Add a flag to prevent redirect loops
-    const isRedirecting = sessionStorage.getItem('isRedirecting');
-    if (isRedirecting === 'true') {
-      console.log('[Login] Preventing redirect loop');
-      sessionStorage.removeItem('isRedirecting');
-      return;
-    }
-    
     const callbackUrl = searchParams.get('callbackUrl');
     const error = searchParams.get('error');
     
@@ -106,12 +98,12 @@ function LoginForm() {
             redirectPath = '/dashboard/employee';
           }
           
-          // Set the redirecting flag to prevent loops
-          sessionStorage.setItem('isRedirecting', 'true');
-          
           console.log(`[Login] Redirecting to: ${redirectPath}`);
           // Use direct window location change instead of router.push
-          window.location.href = redirectPath;
+          if (!sessionStorage.getItem('isRedirecting')) {
+            sessionStorage.setItem('isRedirecting', 'true');
+            window.location.href = redirectPath;
+          }
         } else {
           console.log('[Login] No active session found');
         }
