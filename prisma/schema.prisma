@@ -140,6 +140,7 @@ enum Role {
   EMPLOYEE
 }
 
+// This enum is used to track the status of goals
 enum GoalStatus {
   PENDING
   APPROVED
