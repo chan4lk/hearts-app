@@ -32,37 +32,57 @@ function LoginForm() {
   const handleAzureLogin = async () => {
     try {
       setIsLoading(true);
-      const result = await signIn('azure-ad', {
-        redirect: false,
+      // Use redirect: true for Azure AD in production to avoid client-side handling issues
+      // This will let the NextAuth handle the complete OAuth flow server-side
+      await signIn('azure-ad', {
+        redirect: true,
         callbackUrl: '/dashboard'
       });
-
-      if (result?.error) {
-        toast.error('An error occurred during Azure login');
-        return;
-      }
-
-      // Get the user's role from the session
-      const response = await fetch('/api/auth/session');
-      const session = await response.json();
       
-      // Redirect based on role from database
-      if (session?.user?.role === 'ADMIN') {
-        router.push('/dashboard/admin');
-      } else if (session?.user?.role === 'MANAGER') {
-        router.push('/dashboard/manager');
-      } else {
-        router.push('/dashboard/employee');
-      }
-      
-      router.refresh();
+      // The code below won't execute immediately as the page will redirect
+      // It's kept for local development where redirect might be set to false
     } catch (error) {
       console.error('[Login] Error during Azure login:', error);
       toast.error('An error occurred during Azure login');
-    } finally {
       setIsLoading(false);
     }
   };
+  
+  // Handle callback URL parameter - this helps when user is redirected back after login
+  useEffect(() => {
+    const callbackUrl = searchParams.get('callbackUrl');
+    const error = searchParams.get('error');
+    
+    if (error) {
+      console.error('[Login] Error from auth provider:', error);
+      toast.error('Authentication failed. Please try again.');
+    }
+    
+    // Check if we're already authenticated
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/api/auth/session');
+        const session = await response.json();
+        
+        if (session?.user) {
+          // Already logged in, redirect based on role
+          if (session.user.role === 'ADMIN') {
+            router.push('/dashboard/admin');
+          } else if (session.user.role === 'MANAGER') {
+            router.push('/dashboard/manager');
+          } else {
+            router.push('/dashboard/employee');
+          }
+        }
+      } catch (err) {
+        console.error('[Login] Error checking session:', err);
+      }
+    };
+    
+    if (mounted) {
+      checkSession();
+    }
+  }, [mounted, router, searchParams]);
 
   if (!mounted) {
     return null;
