@@ -206,7 +206,6 @@ export const authOptions: NextAuthOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
-        domain: process.env.NEXTAUTH_DOMAIN || undefined,
       }
     }
   },
