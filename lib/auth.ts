@@ -45,7 +45,10 @@ export const authOptions: NextAuthOptions = {
       profile(profile) {
         console.log('Azure AD profile:', JSON.stringify(profile, null, 2));
         // Get role from Azure AD groups or custom claims
+        // Default to EMPLOYEE if no role is found
         const role = (profile.roles?.[0] || 'EMPLOYEE') as Role;
+        console.log(`Setting user role from Azure AD: ${role}`);
+        
         return {
           id: profile.sub,
           name: profile.name,
@@ -142,6 +145,25 @@ export const authOptions: NextAuthOptions = {
         session.user.email = token.email as string;
         session.user.name = token.name as string;
         session.user.role = token.role;
+        
+        // Log session info for debugging
+        console.log(`Session user role set to: ${session.user.role}`);
+        
+        // If role is missing, try to get it from the database
+        if (!session.user.role && session.user.email) {
+          try {
+            const dbUser = await prisma.user.findUnique({
+              where: { email: session.user.email }
+            });
+            
+            if (dbUser) {
+              session.user.role = dbUser.role;
+              console.log(`Updated role from database: ${dbUser.role}`);
+            }
+          } catch (error) {
+            console.error('Error fetching user role from database:', error);
+          }
+        }
       }
       return session;
     },

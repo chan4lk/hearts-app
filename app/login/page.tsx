@@ -32,16 +32,33 @@ function LoginForm() {
   const handleAzureLogin = async () => {
     try {
       setIsLoading(true);
-      // Get the callbackUrl from search params or use default
-      const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+      console.log('[Login] Starting Azure AD login process');
       
-      // Use redirect: true for Azure AD in production to avoid client-side handling issues
-      await signIn('azure-ad', {
-        redirect: true,
+      // Get the callbackUrl from search params or use role-specific dashboard
+      const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+      console.log(`[Login] Using callback URL: ${callbackUrl}`);
+      
+      // For Azure AD, we'll use the NextAuth redirect flow
+      // This will handle the OAuth flow and redirect properly
+      const result = await signIn('azure-ad', {
+        redirect: false,
         callbackUrl: callbackUrl
       });
       
-      // The code below won't execute immediately as the page will redirect
+      console.log('[Login] SignIn result:', result);
+      
+      // If we get a result (shouldn't happen with redirect:true)
+      if (result) {
+        if (result.error) {
+          console.error('[Login] Authentication error:', result.error);
+          toast.error(`Authentication failed: ${result.error}`);
+          setIsLoading(false);
+        } else if (result.url) {
+          // Manually redirect to the URL provided by NextAuth
+          console.log(`[Login] Redirecting to: ${result.url}`);
+          window.location.href = result.url;
+        }
+      }
     } catch (error) {
       console.error('[Login] Error during Azure login:', error);
       toast.error('An error occurred during Azure login');
@@ -49,7 +66,7 @@ function LoginForm() {
     }
   };
   
-  // Handle callback URL parameter - this helps when user is redirected back after login
+  // Handle callback URL parameter and session check
   useEffect(() => {
     const callbackUrl = searchParams.get('callbackUrl');
     const error = searchParams.get('error');
@@ -62,18 +79,30 @@ function LoginForm() {
     // Check if we're already authenticated
     const checkSession = async () => {
       try {
+        console.log('[Login] Checking session...');
         const response = await fetch('/api/auth/session');
         const session = await response.json();
         
+        console.log('[Login] Session data:', JSON.stringify(session));
+        
         if (session?.user) {
-          // Already logged in, redirect based on role
+          console.log(`[Login] User authenticated with role: ${session.user.role}`);
+          
+          // Determine redirect path based on role
+          let redirectPath = '/dashboard';
+          
           if (session.user.role === 'ADMIN') {
-            router.push('/dashboard/admin');
+            redirectPath = '/dashboard/admin';
           } else if (session.user.role === 'MANAGER') {
-            router.push('/dashboard/manager');
+            redirectPath = '/dashboard/manager';
           } else {
-            router.push('/dashboard/employee');
+            redirectPath = '/dashboard/employee';
           }
+          
+          console.log(`[Login] Redirecting to: ${redirectPath}`);
+          router.push(redirectPath);
+        } else {
+          console.log('[Login] No active session found');
         }
       } catch (err) {
         console.error('[Login] Error checking session:', err);
