@@ -5,6 +5,14 @@ export default withAuth(
   function middleware(req) {
     const token = req.nextauth.token;
     const path = req.nextUrl.pathname;
+    
+    // Debug information for Azure deployment
+    console.log(`Middleware executing for path: ${path}`);
+    console.log(`Auth token present: ${!!token}`);
+    
+    // Log cookies for debugging
+    const cookies = req.cookies.getAll();
+    console.log(`Cookies: ${JSON.stringify(cookies.map(c => ({ name: c.name, value: c.name.includes('token') ? '[REDACTED]' : c.value })))}`);
 
     // Allow access to register and login pages
     if (path === '/register' || path === '/login') {

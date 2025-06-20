@@ -39,7 +39,10 @@ export const authOptions: NextAuthOptions = {
           prompt: "consent"
         }
       },
+      // The tenant is already set via tenantId above
+      // Adding additional configuration for better handling in production
       profile(profile) {
+        console.log('Azure AD profile:', JSON.stringify(profile, null, 2));
         // Get role from Azure AD groups or custom claims
         const role = (profile.roles?.[0] || 'EMPLOYEE') as Role;
         return {
@@ -159,8 +162,22 @@ export const authOptions: NextAuthOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
+        domain: process.env.NEXTAUTH_DOMAIN || undefined,
       }
     }
+  },
+  logger: {
+    error(code, ...message) {
+      console.error(code, message);
+    },
+    warn(code, ...message) {
+      console.warn(code, message);
+    },
+    debug(code, ...message) {
+      if (process.env.NODE_ENV === 'development') {
+        console.debug(code, message);
+      }
+    },
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development',
