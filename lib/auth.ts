@@ -5,7 +5,7 @@ import { prisma } from './prisma';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 import { verify } from 'jsonwebtoken';
-import { Role } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 
 declare module 'next-auth' {
   interface User {
@@ -42,24 +42,29 @@ export const authOptions: NextAuthOptions = {
         }
       },
       // Add explicit configuration for production environment
-      profile(profile) {
+      profile: async (profile) => {
         console.log('Azure AD profile:', JSON.stringify(profile, null, 2));
-        // Attempt to get role from Azure AD groups or custom claims
-        const role = profile.roles?.[0] as Role;
         
-        if (!role) {
-          console.warn('No role found in Azure AD profile, defaulting to EMPLOYEE');
-        }
-        
-        const assignedRole = role || 'EMPLOYEE';
-        console.log(`Setting user role from Azure AD: ${assignedRole}`);
+        // Always fetch or create the user in the database
+        const user = await prisma.user.upsert({
+          where: { email: profile.email },
+          update: { name: profile.name },
+          create: {
+            email: profile.email,
+            name: profile.name,
+            password: 'azure-ad-auth', // Placeholder for Azure AD users
+            role: 'EMPLOYEE', // Default role for new users
+          },
+        });
+
+        console.log(`User role from database: ${user.role}`);
         
         return {
-          id: profile.sub,
-          name: profile.name,
-          email: profile.email,
-          role: assignedRole
-        }
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        };
       }
     }),
     CredentialsProvider({
@@ -109,64 +114,75 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account, profile }) {
       if (account?.provider === 'azure-ad') {
-        // Check if user exists in database
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email! },
+        // For Azure AD, we've already handled user creation in the profile callback
+        // Just fetch the latest user data to ensure we have the correct role
+        const dbUser = await prisma.user.findUnique({
+          where: { email: user.email },
         });
-
-        if (!existingUser) {
-          // Create new user if doesn't exist
-          const newUser = await prisma.user.create({
-            data: {
-              email: user.email!,
-              name: user.name!,
-              role: 'EMPLOYEE', // Default role for new users
-              isActive: true,
-              password: await bcrypt.hash(Math.random().toString(36), 12),
-            },
-          });
-          user.id = newUser.id;
-          user.role = newUser.role;
-        } else {
-          // For existing users, use their current role from database
-          user.id = existingUser.id;
-          user.role = existingUser.role;
+        
+        if (!dbUser) {
+          console.error('User not found in database after Azure AD login');
+          return false;
         }
+        
+        // Update the user object with the latest data from the database
+        user.id = dbUser.id;
+        user.role = dbUser.role;
+        
+        console.log(`[signIn] User logged in with role: ${user.role}`);
       }
       return true;
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.email = user.email;
-        token.name = user.name;
         token.role = user.role;
+        
+        // Always fetch the latest role from the database
+        if (user.email) {
+          try {
+            const dbUser = await prisma.user.findUnique({
+              where: { email: user.email },
+              select: { role: true }
+            });
+            
+            if (dbUser) {
+              token.role = dbUser.role;
+              console.log(`[jwt] Updated token role from database: ${dbUser.role}`);
+            }
+          } catch (error) {
+            console.error('[jwt] Error fetching user role from database:', error);
+          }
+        }
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.email = token.email as string;
-        session.user.name = token.name as string;
-        session.user.role = token.role;
+        // Ensure the session user has the correct type
+        const sessionUser = session.user as User & { role?: Role };
         
-        // Log session info for debugging
-        console.log(`Session user role set to: ${session.user.role}`);
+        // Update session with token data
+        sessionUser.id = token.id as string;
+        sessionUser.role = token.role as Role;
         
-        // If role is missing, try to get it from the database
-        if (!session.user.role && session.user.email) {
+        // Log the session details for debugging
+        console.log(`[session] User session created with role: ${sessionUser.role}`);
+        
+        // Fallback to fetch role from the database if missing
+        if (!sessionUser.role && sessionUser.email) {
           try {
             const dbUser = await prisma.user.findUnique({
-              where: { email: session.user.email }
+              where: { email: sessionUser.email },
+              select: { role: true }
             });
             
             if (dbUser) {
-              session.user.role = dbUser.role;
-              console.log(`Updated role from database: ${dbUser.role}`);
+              sessionUser.role = dbUser.role;
+              console.log(`[session] Updated session role from database: ${dbUser.role}`);
             }
           } catch (error) {
-            console.error('Error fetching user role from database:', error);
+            console.error('[session] Error fetching user role from database:', error);
           }
         }
       }
