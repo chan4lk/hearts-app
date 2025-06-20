@@ -45,12 +45,18 @@ export const authOptions: NextAuthOptions = {
       profile: async (profile) => {
         console.log('Azure AD profile:', JSON.stringify(profile, null, 2));
         
+        // Use preferred_username as email if email is not available
+        const email = profile.email || profile.preferred_username;
+        if (!email) {
+          throw new Error('No email or preferred_username found in Azure AD profile');
+        }
+        
         // Always fetch or create the user in the database
         const user = await prisma.user.upsert({
-          where: { email: profile.email },
+          where: { email },
           update: { name: profile.name },
           create: {
-            email: profile.email,
+            email,
             name: profile.name,
             password: 'azure-ad-auth', // Placeholder for Azure AD users
             role: 'EMPLOYEE', // Default role for new users
