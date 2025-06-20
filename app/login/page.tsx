@@ -31,43 +31,50 @@ function LoginForm() {
 
   const handleAzureLogin = async () => {
     try {
+      // Set a flag to prevent redirect loops
+      sessionStorage.setItem('isRedirecting', 'true');
+      
       setIsLoading(true);
       console.log('[Login] Starting Azure AD login process');
       
-      // Get the callbackUrl from search params or use role-specific dashboard
-      const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+      // Get the callbackUrl from search params or determine based on role
+      let callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+      
+      // Ensure we're not redirecting back to login
+      if (callbackUrl.includes('/login')) {
+        callbackUrl = '/dashboard';
+      }
+      
       console.log(`[Login] Using callback URL: ${callbackUrl}`);
       
-      // For Azure AD, we'll use the NextAuth redirect flow
-      // This will handle the OAuth flow and redirect properly
-      const result = await signIn('azure-ad', {
-        redirect: false,
+      // Use redirect: true for production environment
+      // This lets NextAuth handle the complete OAuth flow
+      await signIn('azure-ad', {
+        redirect: true,
         callbackUrl: callbackUrl
       });
       
-      console.log('[Login] SignIn result:', result);
-      
-      // If we get a result (shouldn't happen with redirect:true)
-      if (result) {
-        if (result.error) {
-          console.error('[Login] Authentication error:', result.error);
-          toast.error(`Authentication failed: ${result.error}`);
-          setIsLoading(false);
-        } else if (result.url) {
-          // Manually redirect to the URL provided by NextAuth
-          console.log(`[Login] Redirecting to: ${result.url}`);
-          window.location.href = result.url;
-        }
-      }
+      // The code below won't execute with redirect:true
+      // It's kept as a fallback
     } catch (error) {
       console.error('[Login] Error during Azure login:', error);
       toast.error('An error occurred during Azure login');
       setIsLoading(false);
+      // Clear the redirecting flag on error
+      sessionStorage.removeItem('isRedirecting');
     }
   };
   
   // Handle callback URL parameter and session check
   useEffect(() => {
+    // Add a flag to prevent redirect loops
+    const isRedirecting = sessionStorage.getItem('isRedirecting');
+    if (isRedirecting === 'true') {
+      console.log('[Login] Preventing redirect loop');
+      sessionStorage.removeItem('isRedirecting');
+      return;
+    }
+    
     const callbackUrl = searchParams.get('callbackUrl');
     const error = searchParams.get('error');
     
@@ -98,6 +105,9 @@ function LoginForm() {
           } else {
             redirectPath = '/dashboard/employee';
           }
+          
+          // Set the redirecting flag to prevent loops
+          sessionStorage.setItem('isRedirecting', 'true');
           
           console.log(`[Login] Redirecting to: ${redirectPath}`);
           // Use direct window location change instead of router.push
