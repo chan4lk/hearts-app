@@ -44,16 +44,21 @@ export const authOptions: NextAuthOptions = {
       // Add explicit configuration for production environment
       profile(profile) {
         console.log('Azure AD profile:', JSON.stringify(profile, null, 2));
-        // Get role from Azure AD groups or custom claims
-        // Default to EMPLOYEE if no role is found
-        const role = (profile.roles?.[0] || 'EMPLOYEE') as Role;
-        console.log(`Setting user role from Azure AD: ${role}`);
+        // Attempt to get role from Azure AD groups or custom claims
+        const role = profile.roles?.[0] as Role;
+        
+        if (!role) {
+          console.warn('No role found in Azure AD profile, defaulting to EMPLOYEE');
+        }
+        
+        const assignedRole = role || 'EMPLOYEE';
+        console.log(`Setting user role from Azure AD: ${assignedRole}`);
         
         return {
           id: profile.sub,
           name: profile.name,
           email: profile.email,
-          role: role
+          role: assignedRole
         }
       }
     }),

@@ -11,17 +11,22 @@ export default withAuth(
     console.log(`Auth token present: ${!!token}`);
     console.log(`User role: ${token?.role || 'none'}`);
     
+    // Log token details for debugging
+    console.log(`Token details: ${JSON.stringify(token)}`);
+
     // Log cookies for debugging
     const cookies = req.cookies.getAll();
     console.log(`Cookies: ${JSON.stringify(cookies.map(c => ({ name: c.name, value: c.name.includes('token') ? '[REDACTED]' : c.value })))}`);
 
     // Allow access to register and login pages
     if (path === '/register' || path === '/login' || path === '/error') {
+      console.log(`[Middleware] Allowing access to: ${path}`);
       return NextResponse.next();
     }
     
     // Handle API routes separately
     if (path.startsWith('/api/')) {
+      console.log(`[Middleware] Allowing access to API route: ${path}`);
       return NextResponse.next();
     }
 
@@ -36,14 +41,17 @@ export default withAuth(
     // Role-based access control
     if (path.startsWith("/dashboard/admin")) {
       if (token.role !== "ADMIN") {
+        console.log(`[Middleware] Unauthorized access attempt to admin dashboard by role: ${token.role}`);
         return NextResponse.redirect(new URL("/dashboard/employee", req.url));
       }
     } else if (path.startsWith("/dashboard/manager")) {
       if (token.role !== "MANAGER") {
+        console.log(`[Middleware] Unauthorized access attempt to manager dashboard by role: ${token.role}`);
         return NextResponse.redirect(new URL("/dashboard/employee", req.url));
       }
     } else if (path.startsWith("/dashboard/employee")) {
       // Allow all authenticated users to access employee dashboard
+      console.log(`[Middleware] Allowing access to employee dashboard for role: ${token.role}`);
       return NextResponse.next();
     }
 
