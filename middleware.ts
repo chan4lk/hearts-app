@@ -9,6 +9,7 @@ export default withAuth(
     // Debug information for Azure deployment
     console.log(`Middleware executing for path: ${path}`);
     console.log(`Auth token present: ${!!token}`);
+    console.log(`User role: ${token?.role || 'none'}`);
     
     // Log cookies for debugging
     const cookies = req.cookies.getAll();

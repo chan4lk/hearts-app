@@ -36,11 +36,12 @@ export const authOptions: NextAuthOptions = {
         params: {
           scope: "openid profile email offline_access",
           response_type: "code",
-          prompt: "consent"
+          // Remove 'consent' to prevent asking for consent every time
+          // Only prompt when necessary
+          prompt: "select_account"
         }
       },
-      // The tenant is already set via tenantId above
-      // Adding additional configuration for better handling in production
+      // Add explicit configuration for production environment
       profile(profile) {
         console.log('Azure AD profile:', JSON.stringify(profile, null, 2));
         // Get role from Azure AD groups or custom claims

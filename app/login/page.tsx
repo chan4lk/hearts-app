@@ -32,15 +32,16 @@ function LoginForm() {
   const handleAzureLogin = async () => {
     try {
       setIsLoading(true);
+      // Get the callbackUrl from search params or use default
+      const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+      
       // Use redirect: true for Azure AD in production to avoid client-side handling issues
-      // This will let the NextAuth handle the complete OAuth flow server-side
       await signIn('azure-ad', {
         redirect: true,
-        callbackUrl: '/dashboard'
+        callbackUrl: callbackUrl
       });
       
       // The code below won't execute immediately as the page will redirect
-      // It's kept for local development where redirect might be set to false
     } catch (error) {
       console.error('[Login] Error during Azure login:', error);
       toast.error('An error occurred during Azure login');
