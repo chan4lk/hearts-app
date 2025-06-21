@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 import { IconType } from 'react-icons';
-import { BsArrowUpRight } from 'react-icons/bs';
 
 interface StatsCardProps {
   icon: IconType;
@@ -12,31 +11,49 @@ interface StatsCardProps {
 }
 
 export default function StatsCard({ icon: Icon, title, value, total, color, delay = 0 }: StatsCardProps) {
+  const percentage = (value / total) * 100;
+  
   return (
     <motion.div variants={itemVariants} className="group">
-      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-lg p-3 shadow-md hover:shadow-lg transition-all duration-300 border border-white/20 dark:border-gray-700/50">
-        <div className="flex items-center justify-between mb-2">
-          <div className={`p-2 bg-gradient-to-br ${color} rounded-lg`}>
-            <Icon className="text-base text-white" />
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-2.5 shadow-sm border border-white/10 dark:border-gray-700/30 relative overflow-hidden">
+        <div className="flex items-center gap-2 mb-1.5">
+          <div className={`p-1.5 bg-gradient-to-br ${color} rounded-md`}>
+            <Icon className="text-sm text-white" />
           </div>
-          <BsArrowUpRight className="text-sm text-gray-400" />
+          <p className="text-xs font-medium text-gray-600 dark:text-gray-300">{title}</p>
         </div>
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-0.5">{value}</h3>
-        <p className="text-xs text-gray-600 dark:text-gray-300">{title}</p>
-        <div className="mt-2 h-1 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-          <motion.div 
-            initial={{ width: 0 }}
-            animate={{ width: `${(value / total) * 100}%` }}
-            transition={{ duration: 1, delay }}
-            className={`h-full bg-gradient-to-r ${color} rounded-full`}
-          />
+        
+        <div className="flex items-end gap-2">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">{value}</h3>
+          <div className="flex-1 h-4 flex items-end">
+            <div className="w-full h-1 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${percentage}%` }}
+                transition={{ duration: 1, delay }}
+                className={`h-full bg-gradient-to-r ${color}`}
+              />
+            </div>
+          </div>
         </div>
+
+        <div className="absolute -right-8 -bottom-8 w-16 h-16 bg-gradient-to-br from-current to-transparent opacity-5 rounded-full blur-xl transition-opacity group-hover:opacity-10"
+          style={{ color: color.split(' ')[1].replace('to-', '') }}
+        />
       </div>
     </motion.div>
   );
 }
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
+  hidden: { opacity: 0, y: 10 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 100,
+      damping: 15
+    }
+  }
 }; 
