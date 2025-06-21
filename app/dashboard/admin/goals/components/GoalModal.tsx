@@ -1,9 +1,9 @@
 import { Goal } from '../types';
 import { getStatusBadge } from '../constants';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { BsRocket, BsLightbulb, BsAward, BsGraphUp, BsBriefcase, BsListTask, BsX, BsPencil, BsTrash } from 'react-icons/bs';
+import { BsRocket, BsLightbulb, BsAward, BsGraphUp, BsBriefcase, BsListTask, BsX, BsStars } from 'react-icons/bs';
 import { User, Calendar } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface GoalModalProps {
   goal: Goal;
@@ -12,81 +12,85 @@ interface GoalModalProps {
   onDelete: (goalId: string) => void;
 }
 
-export function GoalModal({ goal, onClose, onEdit, onDelete }: GoalModalProps) {
+export function GoalModal({ goal, onClose }: GoalModalProps) {
   return (
-    <div className="bg-[#1E2028] rounded-lg p-6 w-full max-w-2xl mx-4 border border-gray-800 shadow-xl">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-3">
-          {goal.category === 'PROFESSIONAL' && <BsRocket className="h-7 w-7 text-blue-400" />}
-          {goal.category === 'TECHNICAL' && <BsLightbulb className="h-7 w-7 text-amber-400" />}
-          {goal.category === 'LEADERSHIP' && <BsAward className="h-7 w-7 text-purple-400" />}
-          {goal.category === 'PERSONAL' && <BsGraphUp className="h-7 w-7 text-emerald-400" />}
-          {goal.category === 'TRAINING' && <BsBriefcase className="h-7 w-7 text-rose-400" />}
-          <h2 className="text-2xl font-bold text-white">{goal.title}</h2>
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="bg-[#1E2028] rounded-lg overflow-hidden w-full max-w-xl border border-gray-800/50 shadow-xl"
+    >
+      {/* Header */}
+      <div className="bg-[#4a5681]/90 px-3 py-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="p-1 rounded-md bg-[#c3935a]">
+            {goal.category === 'PROFESSIONAL' && <BsRocket className="h-3 w-3 text-white" />}
+            {goal.category === 'TECHNICAL' && <BsLightbulb className="h-3 w-3 text-white" />}
+            {goal.category === 'LEADERSHIP' && <BsAward className="h-3 w-3 text-white" />}
+            {goal.category === 'PERSONAL' && <BsGraphUp className="h-3 w-3 text-white" />}
+            {goal.category === 'TRAINING' && <BsBriefcase className="h-3 w-3 text-white" />}
+          </div>
+          <h2 className="text-xs font-medium text-white tracking-wide truncate">{goal.title}</h2>
         </div>
-        <button
-          onClick={onClose}
-          className="text-gray-400 hover:text-white transition-colors p-1 hover:bg-gray-800 rounded-lg"
-        >
-          <BsX className="h-6 w-6" />
-        </button>
-      </div>
-      
-      <div className="space-y-6">
         <div className="flex items-center gap-2">
           <Badge 
-            variant="outline" 
-            className="border-gray-700 text-gray-300 bg-gray-800/50 text-sm"
-          >
-            {goal.category}
-          </Badge>
-          <Badge 
             variant={getStatusBadge(goal.status)}
-            className={`text-sm ${
-              goal.status === 'PENDING' ? 'bg-yellow-500/10 text-yellow-400' :
-              goal.status === 'COMPLETED' ? 'bg-green-500/10 text-green-400' :
-              goal.status === 'APPROVED' ? 'bg-blue-500/10 text-blue-400' :
-              goal.status === 'REJECTED' ? 'bg-red-500/10 text-red-400' :
-              goal.status === 'DRAFT' ? 'bg-gray-500/10 text-gray-400' :
-              'bg-gray-500/10 text-gray-400'
+            className={`text-[10px] px-1.5 py-0.5 ${
+              goal.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+              goal.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+              goal.status === 'APPROVED' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+              goal.status === 'REJECTED' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+              'bg-gray-500/10 text-gray-400 border-gray-500/20'
             }`}
           >
-            {goal.status}
+            <div className="flex items-center gap-1">
+              <BsStars className="h-2 w-2" />
+              <span>{goal.status}</span>
+            </div>
           </Badge>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition-colors p-1 hover:bg-gray-800/30 rounded-md"
+          >
+            <BsX className="h-3.5 w-3.5" />
+          </button>
         </div>
-
-        <div className="bg-gray-900/30 p-4 rounded-lg">
-          <h3 className="text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
-            <BsListTask className="h-4 w-4 text-gray-400" />
-            Description
-          </h3>
-          <p className="text-gray-100 leading-relaxed">{goal.description}</p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-gray-900/30 p-4 rounded-lg">
-            <div className="flex items-center gap-2 mb-3">
-              <User className="h-4 w-4 text-gray-400" />
-              <h3 className="text-sm font-medium text-gray-300">Assigned To</h3>
-            </div>
-            <p className="text-white font-medium">{goal.employee?.name}</p>
-            <p className="text-sm text-gray-400">{goal.employee?.email}</p>
+      </div>
+      
+      {/* Content */}
+      <div className="p-3 space-y-2">
+        {/* Description */}
+        <div className="bg-[#1e1f23] rounded-md p-2">
+          <div className="flex items-center gap-1.5 mb-1">
+            <BsListTask className="h-2.5 w-2.5 text-gray-400" />
+            <h3 className="text-[10px] font-medium text-gray-300 uppercase tracking-wide">Description</h3>
           </div>
-          <div className="bg-gray-900/30 p-4 rounded-lg">
-            <div className="flex items-center gap-2 mb-3">
-              <Calendar className="h-4 w-4 text-gray-400" />
-              <h3 className="text-sm font-medium text-gray-300">Due Date</h3>
+          <p className="text-[11px] text-gray-100 leading-relaxed">{goal.description}</p>
+        </div>
+
+        {/* Info Grid */}
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-[#1e1f23] rounded-md p-2">
+            <div className="flex items-center gap-1.5 mb-1">
+              <User className="h-2.5 w-2.5 text-gray-400" />
+              <h3 className="text-[10px] font-medium text-gray-300 uppercase tracking-wide">Assigned To</h3>
             </div>
-            <p className="text-white font-medium">
+            <div>
+              <p className="text-[11px] text-white font-medium truncate">{goal.employee?.name}</p>
+              <p className="text-[10px] text-gray-400 truncate">{goal.employee?.email}</p>
+            </div>
+          </div>
+          <div className="bg-[#1e1f23] rounded-md p-2">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Calendar className="h-2.5 w-2.5 text-gray-400" />
+              <h3 className="text-[10px] font-medium text-gray-300 uppercase tracking-wide">Due Date</h3>
+            </div>
+            <p className="text-[11px] text-white font-medium">
               {new Date(goal.dueDate).toLocaleDateString()}
             </p>
           </div>
         </div>
-
-        <div className="flex justify-end space-x-4 pt-6">
-          
-        </div>
       </div>
-    </div>
+    </motion.div>
   );
 } 

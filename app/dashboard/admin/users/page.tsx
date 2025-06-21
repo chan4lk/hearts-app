@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { BsPeople, BsCheckCircle, BsPersonBadge, BsBuilding } from 'react-icons/bs';
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import UserTable from './components/UserTable';
@@ -404,10 +404,32 @@ export default function UsersPage() {
           )}
         </AnimatePresence>
 
-        <Toaster
+        <Toaster 
           position="top-center"
+          richColors
+          closeButton
+          theme="dark"
           toastOptions={{
+            style: {
+              background: 'rgba(30, 32, 40, 0.95)',
+              color: '#fff',
+              border: '1px solid rgba(45, 55, 72, 0.5)',
+              borderRadius: '16px',
+              padding: '20px 24px',
+              fontSize: '16px',
+              fontWeight: '600',
+              textAlign: 'center',
+              width: 'auto',
+              maxWidth: '450px',
+              margin: '0 auto',
+              backdropFilter: 'blur(20px)',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px'
+            },
             duration: 4000,
+            className: 'modern-toast'
           }}
         />
       </div>

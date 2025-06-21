@@ -1,8 +1,9 @@
-import { toast, ToastOptions } from 'react-hot-toast';
+import { toast } from 'sonner';
 
-const baseToastStyle = {
+const toastStyle = {
   background: 'rgba(30, 32, 40, 0.95)',
   color: '#fff',
+  border: '1px solid rgba(45, 55, 72, 0.5)',
   borderRadius: '16px',
   padding: '20px 24px',
   fontSize: '16px',
@@ -15,50 +16,78 @@ const baseToastStyle = {
   boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
   display: 'flex',
   alignItems: 'center',
-  gap: '16px',
+  gap: '16px'
 };
 
-const baseToastOptions: ToastOptions = {
+const successStyle = {
+  ...toastStyle,
+  border: '1px solid rgba(34, 197, 94, 0.3)',
+  borderLeft: '4px solid #22c55e'
+};
+
+const errorStyle = {
+  ...toastStyle,
+  border: '1px solid rgba(239, 68, 68, 0.3)',
+  borderLeft: '4px solid #ef4444'
+};
+
+const defaultOptions = {
   duration: 4000,
   position: 'top-center',
-};
-
-// Success toast style
-const successStyle = {
-  ...baseToastStyle,
-  border: '1px solid rgba(34, 197, 94, 0.3)',
-  borderLeft: '4px solid #22c55e',
-};
-
-// Error toast style
-const errorStyle = {
-  ...baseToastStyle,
-  border: '1px solid rgba(239, 68, 68, 0.3)',
-  borderLeft: '4px solid #ef4444',
-};
+} as const;
 
 export const showToast = {
   // User related toasts
   user: {
     created: () => 
-      toast.success('👤 New user has been added to your team', {
-        ...baseToastOptions,
-        style: successStyle,
+      toast('👤 New user has been added to your team', {
+        ...defaultOptions,
+        description: 'The user account has been created successfully.',
+        style: successStyle
       }),
     updated: () =>
-      toast.success('👤 User information has been updated successfully', {
-        ...baseToastOptions,
-        style: successStyle,
+      toast('👤 User information has been updated', {
+        ...defaultOptions,
+        description: 'The user details have been saved successfully.',
+        style: successStyle
       }),
     deleted: () =>
-      toast.success('👤 User has been removed from your team', {
-        ...baseToastOptions,
-        style: successStyle,
+      toast('👤 User has been removed', {
+        ...defaultOptions,
+        description: 'The user has been deleted from your team.',
+        style: successStyle
       }),
     error: (message: string) =>
-      toast.error(message, {
-        ...baseToastOptions,
-        style: errorStyle,
+      toast(message, {
+        ...defaultOptions,
+        style: errorStyle
+      }),
+  },
+
+  // Goal related toasts
+  goal: {
+    created: () =>
+      toast('🎯 Goal created successfully!', {
+        ...defaultOptions,
+        description: 'Your goal has been created and is ready for review.',
+        style: successStyle
+      }),
+    updated: () =>
+      toast('✅ Goal updated successfully!', {
+        ...defaultOptions,
+        description: 'Your goal has been updated with the new information.',
+        style: successStyle
+      }),
+    deleted: () =>
+      toast('🗑️ Goal deleted successfully!', {
+        ...defaultOptions,
+        description: 'The goal has been permanently removed from the system.',
+        style: successStyle
+      }),
+    error: (message: string) =>
+      toast(message, {
+        ...defaultOptions,
+        style: errorStyle
       }),
   },
   
@@ -68,9 +97,9 @@ export const showToast = {
       ? `${prefix}: ${error.message}`
       : 'An unexpected error occurred';
     
-    toast.error(message, {
-      ...baseToastOptions,
-      style: errorStyle,
+    toast(message, {
+      ...defaultOptions,
+      style: errorStyle
     });
   }
 }; 
