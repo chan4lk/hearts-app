@@ -286,34 +286,6 @@ export function GoalForm({
               }`}
             />
           </div>
-
-          {/* AI Context Section - Compact */}
-          <div ref={aiSectionRef} className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-2 border border-slate-600/30">
-            <div className="space-y-2">
-              <div className="space-y-1">
-                <label className="text-[10px] font-medium text-blue-200 flex items-center gap-1">
-                  <BsStars className="h-3 w-3 text-blue-400" /> AI Context
-                </label>
-                <Textarea
-                  value={formData.context}
-                  onChange={(e) => setFormData(prev => ({ ...prev, context: e.target.value }))}
-                  placeholder="Add context for AI..."
-                  className="bg-slate-800/50 border-slate-600/50 text-white text-[10px] h-12 rounded-lg focus:border-blue-400/50 focus:ring-blue-400/20 resize-none transition-all duration-200"
-                />
-              </div>
-
-              {/* AI Suggestions */}
-              <div className="bg-slate-800/70 rounded-xl p-2 border border-blue-500/20">
-                <AIGoalSuggestions
-                  category={formData.category}
-                  context={formData.context}
-                  onSuggestionSelect={handleSuggestionSelect}
-                  onGenerate={scrollToAISection}
-                />
-              </div>
-            </div>
-          </div>
-
           {/* Action Buttons - Full Width */}
           <div className="grid grid-cols-3 gap-2 pt-1">
             <Button
@@ -353,6 +325,35 @@ export function GoalForm({
               )}
             </Button>
           </div>
+
+          {/* AI Context Section - Compact */}
+          <div ref={aiSectionRef} className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-2 border border-slate-600/30">
+            <div className="space-y-2">
+              <div className="space-y-1">
+                <label className="text-[10px] font-medium text-blue-200 flex items-center gap-1">
+                  <BsStars className="h-3 w-3 text-blue-400" /> AI Context
+                </label>
+                <Textarea
+                  value={formData.context}
+                  onChange={(e) => setFormData(prev => ({ ...prev, context: e.target.value }))}
+                  placeholder="Add context for AI..."
+                  className="bg-slate-800/50 border-slate-600/50 text-white text-[10px] h-12 rounded-lg focus:border-blue-400/50 focus:ring-blue-400/20 resize-none transition-all duration-200"
+                />
+              </div>
+
+              {/* AI Suggestions */}
+              <div className="bg-slate-800/70 rounded-xl p-2 border border-blue-500/20">
+                <AIGoalSuggestions
+                  category={formData.category}
+                  context={formData.context}
+                  onSuggestionSelect={handleSuggestionSelect}
+                  onGenerate={scrollToAISection}
+                />
+              </div>
+            </div>
+          </div>
+
+          
 
           {errors.submit && (
             <Alert variant="destructive" className="bg-red-900/30 border-red-800/30 py-1.5 rounded-xl">
