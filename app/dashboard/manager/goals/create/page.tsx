@@ -315,7 +315,7 @@ export default function ManagerGoalsPage() {
                   <div className="text-sm text-amber-600 dark:text-amber-400 font-medium">In Progress</div>
                 </div>
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {goals.filter(g => g.status === 'IN_PROGRESS').length}
+                  {goals.filter(g => g.status === 'PENDING').length}
                 </div>
               </div>
             </motion.div>
