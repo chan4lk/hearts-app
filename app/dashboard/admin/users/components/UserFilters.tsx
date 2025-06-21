@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Filters, ROLES } from '../types';
-import { BsSearch, BsFilter } from 'react-icons/bs';
+import { BsSearch, BsFilter, BsFunnel } from 'react-icons/bs';
 
 interface UserFiltersProps {
   onFilterChange: (filters: Filters) => void;
@@ -33,30 +33,32 @@ export default function UserFilters({ onFilterChange, onSearch }: UserFiltersPro
   };
 
   return (
-    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-3 shadow-sm border border-white/10 dark:border-gray-700/30">
-      <div className="flex flex-col md:flex-row gap-2">
-        <div className="flex-1 relative">
-          <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-            <BsSearch className="h-4 w-4 text-gray-400" />
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-col md:flex-row gap-3">
+        {/* Search Bar */}
+        <div className="flex-1 relative group">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+            <BsSearch className="h-3.5 w-3.5 text-gray-400 group-focus-within:text-indigo-500 transition-colors duration-200" />
           </div>
           <input
             type="text"
-            placeholder="Search by name or email..."
+            placeholder="Search users..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 rounded-md bg-gray-50 dark:bg-gray-700/50 text-sm text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600/30 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/60 dark:bg-gray-800/60 text-sm text-gray-700 dark:text-gray-200 border border-gray-200/80 dark:border-gray-700/80 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:focus:ring-indigo-500/40 focus:border-indigo-500/40 transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500"
           />
         </div>
 
-        <div className="flex gap-2">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-              <BsFilter className="h-4 w-4 text-gray-400" />
+        {/* Filters */}
+        <div className="flex gap-3">
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <BsFunnel className="h-3.5 w-3.5 text-gray-400 group-focus-within:text-indigo-500 transition-colors duration-200" />
             </div>
             <select
               value={filters.role}
               onChange={(e) => handleFilterChange('role', e.target.value)}
-              className="pl-8 pr-8 py-1.5 rounded-md bg-gray-50 dark:bg-gray-700/50 text-sm text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600/30 focus:outline-none focus:ring-1 focus:ring-indigo-500 appearance-none"
+              className="pl-10 pr-10 py-2 rounded-xl bg-white/60 dark:bg-gray-800/60 text-sm text-gray-700 dark:text-gray-200 border border-gray-200/80 dark:border-gray-700/80 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:focus:ring-indigo-500/40 focus:border-indigo-500/40 transition-all duration-200 appearance-none cursor-pointer hover:bg-white/80 dark:hover:bg-gray-800/80"
             >
               <option value="">All Roles</option>
               {Object.entries(ROLES).map(([key, value]) => (
@@ -65,66 +67,73 @@ export default function UserFilters({ onFilterChange, onSearch }: UserFiltersPro
                 </option>
               ))}
             </select>
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <BsFilter className="h-3.5 w-3.5 text-gray-400" />
+            </div>
           </div>
 
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-              <BsFilter className="h-4 w-4 text-gray-400" />
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <BsFunnel className="h-3.5 w-3.5 text-gray-400 group-focus-within:text-indigo-500 transition-colors duration-200" />
             </div>
             <select
               value={filters.status}
               onChange={(e) => handleFilterChange('status', e.target.value)}
-              className="pl-8 pr-8 py-1.5 rounded-md bg-gray-50 dark:bg-gray-700/50 text-sm text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600/30 focus:outline-none focus:ring-1 focus:ring-indigo-500 appearance-none"
+              className="pl-10 pr-10 py-2 rounded-xl bg-white/60 dark:bg-gray-800/60 text-sm text-gray-700 dark:text-gray-200 border border-gray-200/80 dark:border-gray-700/80 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:focus:ring-indigo-500/40 focus:border-indigo-500/40 transition-all duration-200 appearance-none cursor-pointer hover:bg-white/80 dark:hover:bg-gray-800/80"
             >
               <option value="">All Status</option>
               <option value="ACTIVE">Active</option>
               <option value="INACTIVE">Inactive</option>
             </select>
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <BsFilter className="h-3.5 w-3.5 text-gray-400" />
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Active Filters */}
       {(filters.role || filters.status || filters.manager || searchTerm) && (
-        <div className="flex flex-wrap gap-1.5 mt-2">
+        <div className="flex flex-wrap gap-2">
           {filters.role && (
-            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-full text-xs">
+            <div className="flex items-center gap-2 px-3 py-1 bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 rounded-full text-xs font-medium backdrop-blur-sm border border-indigo-500/20">
               <span>{ROLES[filters.role as keyof typeof ROLES]}</span>
               <button
                 onClick={() => handleFilterChange('role', '')}
-                className="hover:text-indigo-800 dark:hover:text-indigo-300"
+                className="hover:text-indigo-900 dark:hover:text-indigo-200 transition-colors"
               >
                 ×
               </button>
             </div>
           )}
           {filters.status && (
-            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full text-xs">
+            <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 rounded-full text-xs font-medium backdrop-blur-sm border border-emerald-500/20">
               <span>{filters.status}</span>
               <button
                 onClick={() => handleFilterChange('status', '')}
-                className="hover:text-green-800 dark:hover:text-green-300"
+                className="hover:text-emerald-900 dark:hover:text-emerald-200 transition-colors"
               >
                 ×
               </button>
             </div>
           )}
           {filters.manager && (
-            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full text-xs">
+            <div className="flex items-center gap-2 px-3 py-1 bg-amber-500/10 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 rounded-full text-xs font-medium backdrop-blur-sm border border-amber-500/20">
               <span>{filters.manager}</span>
               <button
                 onClick={() => handleFilterChange('manager', '')}
-                className="hover:text-amber-800 dark:hover:text-amber-300"
+                className="hover:text-amber-900 dark:hover:text-amber-200 transition-colors"
               >
                 ×
               </button>
             </div>
           )}
           {searchTerm && (
-            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-full text-xs">
-              <span>{searchTerm}</span>
+            <div className="flex items-center gap-2 px-3 py-1 bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 rounded-full text-xs font-medium backdrop-blur-sm border border-purple-500/20">
+              <span>"{searchTerm}"</span>
               <button
                 onClick={() => setSearchTerm('')}
-                className="hover:text-purple-800 dark:hover:text-purple-300"
+                className="hover:text-purple-900 dark:hover:text-purple-200 transition-colors"
               >
                 ×
               </button>

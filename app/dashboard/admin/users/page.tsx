@@ -93,14 +93,6 @@ export default function UsersPage() {
     return () => clearInterval(intervalId);
   }, [session, router, isFormOpen, isDetailsOpen, isDeleteConfirmOpen]);
 
-  // Add last refresh indicator component
-  const LastRefreshIndicator = () => (
-    <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-      <span>Last updated: {lastRefresh.toLocaleTimeString()}</span>
-    </div>
-  );
-
   const filteredUsers = users.filter(user => {
     const matchesSearch = searchTerm === '' || 
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -271,7 +263,7 @@ export default function UsersPage() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3"
+            className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4"
           >
             {statsCards.map((card, index) => (
               <StatsCard key={index} {...card} />
@@ -282,12 +274,11 @@ export default function UsersPage() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="space-y-3"
+            className="space-y-4"
           >
             <motion.div variants={itemVariants}>
-              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-lg p-3 shadow-md border border-white/20 dark:border-gray-700/50">
-                <div className="flex justify-between items-center mb-3">
-                  <LastRefreshIndicator />
+              <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/30">
+                <div className="p-4">
                   <UserFilters
                     onFilterChange={setFilters}
                     onSearch={setSearchTerm}
@@ -297,19 +288,21 @@ export default function UsersPage() {
             </motion.div>
 
             <motion.div variants={itemVariants}>
-              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-lg p-3 shadow-md border border-white/20 dark:border-gray-700/50">
-                <UserTable
-                  users={filteredUsers}
-                  onViewDetails={(user) => {
-                    setSelectedUser(user);
-                    setIsDetailsOpen(true);
-                  }}
-                  onEdit={(user) => {
-                    setSelectedUser(user);
-                    setIsFormOpen(true);
-                  }}
-                  onDelete={handleDeleteUser}
-                />
+              <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/30 overflow-hidden">
+                <div className="p-4">
+                  <UserTable
+                    users={filteredUsers}
+                    onViewDetails={(user) => {
+                      setSelectedUser(user);
+                      setIsDetailsOpen(true);
+                    }}
+                    onEdit={(user) => {
+                      setSelectedUser(user);
+                      setIsFormOpen(true);
+                    }}
+                    onDelete={handleDeleteUser}
+                  />
+                </div>
               </div>
             </motion.div>
           </motion.div>
@@ -321,13 +314,13 @@ export default function UsersPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-3"
+              className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
             >
               <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
+                initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-lg p-4 shadow-lg w-full max-w-2xl border border-white/20 dark:border-gray-700/50"
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-2xl w-full max-w-2xl border border-white/20 dark:border-gray-700/30"
               >
                 <UserForm
                   initialData={selectedUser || undefined}
@@ -348,13 +341,13 @@ export default function UsersPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-3"
+              className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
             >
               <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
+                initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-lg shadow-lg w-full max-w-2xl border border-white/20 dark:border-gray-700/50"
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-2xl w-full max-w-2xl border border-white/20 dark:border-gray-700/30 overflow-hidden"
               >
                 <UserDetails
                   user={selectedUser}
@@ -376,31 +369,31 @@ export default function UsersPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-3"
+              className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
             >
               <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
+                initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-lg p-4 shadow-lg w-full max-w-md border border-white/20 dark:border-gray-700/50"
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-2xl w-full max-w-md border border-white/20 dark:border-gray-700/30"
               >
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Delete User</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                  Are you sure you want to delete <span className="font-semibold">{userToDelete.name}</span>?
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Delete User</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+                  Are you sure you want to delete <span className="font-semibold text-gray-800 dark:text-gray-200">{userToDelete.name}</span>?
                 </p>
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-end gap-3">
                   <button
                     onClick={() => {
                       setIsDeleteConfirmOpen(false);
                       setUserToDelete(null);
                     }}
-                    className="px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-300"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700/50 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={confirmDelete}
-                    className="px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-red-500 to-red-600 rounded-md hover:from-red-600 hover:to-red-700 transition-all duration-300"
+                    className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-xl hover:bg-red-600 transition-all duration-200"
                   >
                     Delete
                   </button>
@@ -415,12 +408,14 @@ export default function UsersPage() {
           toastOptions={{
             duration: 3000,
             style: {
-              background: 'rgba(30, 32, 40, 0.95)',
-              color: '#fff',
-              border: '1px solid rgba(45, 55, 72, 0.5)',
-              padding: '8px',
-              borderRadius: '6px',
-              fontSize: '12px',
+              background: 'rgba(255, 255, 255, 0.9)',
+              color: '#1f2937',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(229, 231, 235, 0.3)',
+              padding: '12px 16px',
+              borderRadius: '12px',
+              fontSize: '14px',
+              boxShadow: '0 8px 16px rgba(0, 0, 0, 0.08)',
             },
           }}
         />
