@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { Goal } from "@prisma/client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,17 @@ import {
   BsFilter,
   BsGrid,
   BsList,
-  BsStar
+  BsStar,
+  BsArrowUpRight,
+  BsLightningCharge,
+  BsTrophy,
+  BsAward,
+  BsGraphUp,
+  BsPeople,
+  BsRocket,
+  BsLightbulb,
+  BsBriefcase,
+  BsBullseye
 } from "react-icons/bs";
 import {
   Select,
@@ -210,220 +221,313 @@ export default function SelfRatingPage() {
   if (loading) {
     return (
       <DashboardLayout type={getLayoutType(session?.user?.role)}>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-gray-400">Loading goals...</div>
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="relative"
+          >
+            <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full"></div>
+            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-600 rounded-full animate-pulse"></div>
+          </motion.div>
         </div>
       </DashboardLayout>
     );
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
     <DashboardLayout type={getLayoutType(session?.user?.role)}>
-      <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
-        {/* Header Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="p-2 sm:p-3 bg-indigo-500/10 rounded-xl">
-              <BsStarFill className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-400" />
-            </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-white mb-0.5 sm:mb-1">Self Rating</h1>
-              <p className="text-sm sm:text-base text-gray-400">
-                {session?.user?.role === 'MANAGER' 
-                  ? 'Rate your performance on your goals'
-                  : 'Rate your performance on assigned goals'}
-              </p>
-            </div>
-          </div>
-          
-          {/* View Mode */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <span className="text-sm text-gray-400">View</span>
-            <div className="flex bg-gray-800/50 rounded-lg p-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className={`flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded transition-all duration-200 ${
-                  viewMode === 'list'
-                    ? 'bg-indigo-500 text-white'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-700'
-                }`}
-                onClick={() => setViewMode('list')}
-              >
-                <BsList className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={`flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded transition-all duration-200 ${
-                  viewMode === 'grid'
-                    ? 'bg-indigo-500 text-white'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-700'
-                }`}
-                onClick={() => setViewMode('grid')}
-              >
-                <BsGrid className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        {/* Floating Background Elements */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
         </div>
 
-        {/* Stats Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <Card className="bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700 shadow-xl hover:shadow-2xl transition-all">
-            <div className="p-4 sm:p-6">
-              <div className="flex items-center gap-3 text-blue-400 mb-2 sm:mb-3">
-                <BsClipboardData className="w-5 h-5" />
-                <span className="text-base sm:text-lg font-semibold">Total Goals</span>
-              </div>
-              <div className="text-2xl sm:text-3xl font-bold text-white">
-                {goals.length}
-              </div>
-            </div>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700 shadow-xl hover:shadow-2xl transition-all">
-            <div className="p-4 sm:p-6">
-              <div className="flex items-center gap-3 text-green-400 mb-2 sm:mb-3">
-                <BsCheckCircle className="w-5 h-5" />
-                <span className="text-base sm:text-lg font-semibold">Rated Goals</span>
-              </div>
-              <div className="text-2xl sm:text-3xl font-bold text-white">
-                {goals.filter(g => g.rating?.score).length}
-              </div>
-            </div>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700 shadow-xl hover:shadow-2xl transition-all sm:col-span-2 lg:col-span-1">
-            <div className="p-4 sm:p-6">
-              <div className="flex items-center gap-3 text-yellow-400 mb-2 sm:mb-3">
-                <BsBarChart className="w-5 h-5" />
-                <span className="text-base sm:text-lg font-semibold">Average Rating</span>
-              </div>
-              <div className="text-2xl sm:text-3xl font-bold text-white">
-                {goals.length > 0
-                  ? (goals.reduce((acc, goal) => acc + (goal.rating?.score || 0), 0) / goals.length).toFixed(1)
-                  : '0.0'}
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Filters Section */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-          <Select
-            value={filterStatus}
-            onValueChange={setFilterStatus}
+        <div className="relative z-10 p-6 space-y-8">
+          {/* Hero Section */}
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative"
           >
-            <SelectTrigger className="w-full sm:w-[180px] bg-gray-800 border-gray-700 text-white">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent className="bg-gray-800 border-gray-700 text-white">
-              <SelectItem value="all" className="text-white hover:bg-gray-700">All Statuses</SelectItem>
-              <SelectItem value="PENDING" className="text-amber-400 hover:bg-gray-700">Pending</SelectItem>
-              <SelectItem value="APPROVED" className="text-emerald-400 hover:bg-gray-700">Approved</SelectItem>
-              <SelectItem value="REJECTED" className="text-rose-400 hover:bg-gray-700">Rejected</SelectItem>
-              <SelectItem value="COMPLETED" className="text-blue-400 hover:bg-gray-700">Completed</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={filterRating}
-            onValueChange={setFilterRating}
-          >
-            <SelectTrigger className="w-full sm:w-[180px] bg-gray-800 border-gray-700 text-white">
-              <SelectValue placeholder="Filter by rating" />
-            </SelectTrigger>
-            <SelectContent className="bg-gray-800 border-gray-700 text-white">
-              <SelectItem value="all" className="text-white hover:bg-gray-700">All Ratings</SelectItem>
-              <SelectItem value="1" className="text-red-400 hover:bg-gray-700">Needs Improvement</SelectItem>
-              <SelectItem value="2" className="text-orange-400 hover:bg-gray-700">Below Average</SelectItem>
-              <SelectItem value="3" className="text-yellow-400 hover:bg-gray-700">Average</SelectItem>
-              <SelectItem value="4" className="text-blue-400 hover:bg-gray-700">Above Average</SelectItem>
-              <SelectItem value="5" className="text-green-400 hover:bg-gray-700">Excellent</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={ratingStatus}
-            onValueChange={setRatingStatus}
-          >
-            <SelectTrigger className="w-full sm:w-[180px] bg-gray-800 border-gray-700 text-white">
-              <SelectValue placeholder="Filter by rating status" />
-            </SelectTrigger>
-            <SelectContent className="bg-gray-800 border-gray-700 text-white">
-              <SelectItem value="all" className="text-white hover:bg-gray-700">All Goals</SelectItem>
-              <SelectItem value="rated" className="text-emerald-400 hover:bg-gray-700">Rated Goals</SelectItem>
-              <SelectItem value="unrated" className="text-amber-400 hover:bg-gray-700">Unrated Goals</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Goals List */}
-        <div className={`grid gap-4 sm:gap-6 ${
-          viewMode === 'grid' 
-            ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' 
-            : 'grid-cols-1'
-        }`}>
-          {filteredGoals.map((goal) => (
-            <Card key={goal.id} className="bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700 shadow-xl hover:shadow-2xl transition-all">
-              <CardHeader className="p-4 sm:p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="bg-gradient-to-r from-indigo-600/90 via-purple-600/90 to-pink-600/90 backdrop-blur-xl rounded-3xl p-8 text-white shadow-2xl border border-white/20">
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 rounded-3xl" />
+              <div className="relative z-10">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                   <div>
-                    <h3 className="text-base sm:text-lg font-semibold text-white">{goal.title}</h3>
-                    <p className="text-sm text-gray-400 mt-1 line-clamp-2">{goal.description}</p>
+                    <h1 className="text-4xl lg:text-5xl font-bold mb-2 bg-gradient-to-r from-white to-indigo-100 bg-clip-text text-transparent">
+                      Self Rating
+                    </h1>
+                    <p className="text-xl text-indigo-100/90">
+                      {session?.user?.role === 'MANAGER' 
+                        ? 'Rate your performance on your goals'
+                        : 'Rate your performance on assigned goals'}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
-                      goal.status === 'COMPLETED' ? 'bg-green-500/20 text-green-400' :
-                      goal.status === 'APPROVED' ? 'bg-blue-500/20 text-blue-400' :
-                      goal.status === 'REJECTED' ? 'bg-red-500/20 text-red-400' :
-                      goal.status === 'MODIFIED' ? 'bg-yellow-500/20 text-yellow-400' :
-                      'bg-gray-500/20 text-gray-400'
-                    }`}>
-                      {goal.status}
-                    </span>
+                  <div className="mt-6 lg:mt-0 flex gap-3">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-6 py-3 flex items-center gap-2 hover:bg-white/30 transition-all duration-300"
+                    >
+                      <BsStarFill className="text-lg" />
+                      Rate Goals
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-6 py-3 flex items-center gap-2 hover:bg-white/30 transition-all duration-300"
+                    >
+                      <BsBarChart className="text-lg" />
+                      View Stats
+                    </motion.button>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-300">Self Rating</Label>
-                    <div className="flex items-center justify-center gap-1 sm:gap-2">
-                      {[1, 2, 3, 4, 5].map((rating) => (
-                        <Button
-                          key={rating}
-                          variant="outline"
-                          size="icon"
-                          onClick={() => handleSelfRating(goal.id, rating)}
-                          disabled={submitting[goal.id]}
-                          className={`w-8 h-8 sm:w-10 sm:h-10 ${
-                            goal.rating?.score === rating
-                              ? RATING_COLORS[rating as keyof typeof RATING_COLORS]
-                              : 'bg-gray-800 text-gray-400 border-gray-700'
-                          } ${RATING_HOVER_COLORS[rating as keyof typeof RATING_HOVER_COLORS]} transition-all duration-200`}
-                        >
-                          <BsStarFill className="w-3 h-3 sm:w-4 sm:h-4" />
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
+              </div>
+            </div>
+          </motion.div>
 
-                  {goal.rating?.score && (
-                    <div className="p-3 sm:p-4 rounded-lg bg-gray-800/50 border border-gray-700">
-                      <p className={`text-sm font-medium mb-1 sm:mb-2 ${RATING_COLORS[goal.rating.score as keyof typeof RATING_COLORS]}`}>
-                        {RATING_LABELS[goal.rating.score as keyof typeof RATING_LABELS]}
-                      </p>
-                      <p className="text-xs sm:text-sm text-gray-400 leading-relaxed">
-                        {RATING_DESCRIPTIONS[goal.rating.score as keyof typeof RATING_DESCRIPTIONS]}
-                      </p>
-                    </div>
-                  )}
+          {/* Stats Section */}
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            <motion.div variants={itemVariants}>
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50">
+                <div className="flex items-center gap-3 text-blue-600 dark:text-blue-400 mb-3">
+                  <div className="p-2 bg-gradient-to-br from-blue-500/10 to-blue-600/10 rounded-lg">
+                    <BsClipboardData className="w-5 h-5" />
+                  </div>
+                  <span className="text-lg font-semibold text-gray-900 dark:text-white">Total Goals</span>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+                <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                  {goals.length}
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div variants={itemVariants}>
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50">
+                <div className="flex items-center gap-3 text-green-600 dark:text-green-400 mb-3">
+                  <div className="p-2 bg-gradient-to-br from-green-500/10 to-green-600/10 rounded-lg">
+                    <BsCheckCircle className="w-5 h-5" />
+                  </div>
+                  <span className="text-lg font-semibold text-gray-900 dark:text-white">Rated Goals</span>
+                </div>
+                <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                  {goals.filter(g => g.rating?.score).length}
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div variants={itemVariants}>
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50">
+                <div className="flex items-center gap-3 text-yellow-600 dark:text-yellow-400 mb-3">
+                  <div className="p-2 bg-gradient-to-br from-yellow-500/10 to-yellow-600/10 rounded-lg">
+                    <BsBarChart className="w-5 h-5" />
+                  </div>
+                  <span className="text-lg font-semibold text-gray-900 dark:text-white">Average Rating</span>
+                </div>
+                <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                  {goals.length > 0
+                    ? (goals.reduce((acc, goal) => acc + (goal.rating?.score || 0), 0) / goals.length).toFixed(1)
+                    : '0.0'}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Filters Section */}
+          <motion.div 
+            variants={itemVariants}
+            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50"
+          >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-purple-500/10 to-purple-600/10 rounded-lg">
+                  <BsFilter className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Filters</h2>
+              </div>
+              
+              {/* View Mode */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 dark:text-gray-400">View</span>
+                <div className="flex bg-gray-100/50 dark:bg-gray-700/50 rounded-lg p-1 backdrop-blur-sm">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`flex items-center justify-center w-8 h-8 rounded transition-all duration-200 ${
+                      viewMode === 'list'
+                        ? 'bg-blue-500 text-white shadow-lg'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-600/50'
+                    }`}
+                    onClick={() => setViewMode('list')}
+                  >
+                    <BsList className="w-4 h-4" />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`flex items-center justify-center w-8 h-8 rounded transition-all duration-200 ${
+                      viewMode === 'grid'
+                        ? 'bg-blue-500 text-white shadow-lg'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/50 dark:hover:bg-gray-600/50'
+                    }`}
+                    onClick={() => setViewMode('grid')}
+                  >
+                    <BsGrid className="w-4 h-4" />
+                  </motion.button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <Select
+                value={filterStatus}
+                onValueChange={setFilterStatus}
+              >
+                <SelectTrigger className="w-full sm:w-[180px] bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border border-white/20 dark:border-gray-600/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-600/50">
+                  <SelectItem value="all" className="text-gray-900 dark:text-white hover:bg-gray-100/50 dark:hover:bg-gray-700/50">All Statuses</SelectItem>
+                  <SelectItem value="PENDING" className="text-amber-600 dark:text-amber-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50">Pending</SelectItem>
+                  <SelectItem value="APPROVED" className="text-emerald-600 dark:text-emerald-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50">Approved</SelectItem>
+                  <SelectItem value="REJECTED" className="text-rose-600 dark:text-rose-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50">Rejected</SelectItem>
+                  <SelectItem value="COMPLETED" className="text-blue-600 dark:text-blue-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={filterRating}
+                onValueChange={setFilterRating}
+              >
+                <SelectTrigger className="w-full sm:w-[180px] bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border border-white/20 dark:border-gray-600/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                  <SelectValue placeholder="Filter by rating" />
+                </SelectTrigger>
+                <SelectContent className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-600/50">
+                  <SelectItem value="all" className="text-gray-900 dark:text-white hover:bg-gray-100/50 dark:hover:bg-gray-700/50">All Ratings</SelectItem>
+                  <SelectItem value="1" className="text-red-600 dark:text-red-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50">Needs Improvement</SelectItem>
+                  <SelectItem value="2" className="text-orange-600 dark:text-orange-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50">Below Average</SelectItem>
+                  <SelectItem value="3" className="text-yellow-600 dark:text-yellow-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50">Average</SelectItem>
+                  <SelectItem value="4" className="text-blue-600 dark:text-blue-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50">Above Average</SelectItem>
+                  <SelectItem value="5" className="text-green-600 dark:text-green-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50">Excellent</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={ratingStatus}
+                onValueChange={setRatingStatus}
+              >
+                <SelectTrigger className="w-full sm:w-[180px] bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border border-white/20 dark:border-gray-600/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                  <SelectValue placeholder="Filter by rating status" />
+                </SelectTrigger>
+                <SelectContent className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-600/50">
+                  <SelectItem value="all" className="text-gray-900 dark:text-white hover:bg-gray-100/50 dark:hover:bg-gray-700/50">All Goals</SelectItem>
+                  <SelectItem value="rated" className="text-emerald-600 dark:text-emerald-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50">Rated Goals</SelectItem>
+                  <SelectItem value="unrated" className="text-amber-600 dark:text-amber-400 hover:bg-gray-100/50 dark:hover:bg-gray-700/50">Unrated Goals</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </motion.div>
+
+          {/* Goals List */}
+          <motion.div 
+            variants={containerVariants}
+            className={`grid gap-6 ${
+              viewMode === 'grid' 
+                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' 
+                : 'grid-cols-1'
+            }`}
+          >
+            {filteredGoals.map((goal) => (
+              <motion.div
+                key={goal.id}
+                variants={itemVariants}
+                whileHover={{ scale: 1.02 }}
+                className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 border border-white/20 dark:border-gray-700/50"
+              >
+                <div className="p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{goal.title}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">{goal.description}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs px-3 py-1 rounded-full whitespace-nowrap font-medium ${
+                        goal.status === 'COMPLETED' ? 'bg-green-500/10 text-green-600 dark:text-green-400' :
+                        goal.status === 'APPROVED' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' :
+                        goal.status === 'REJECTED' ? 'bg-red-500/10 text-red-600 dark:text-red-400' :
+                        goal.status === 'MODIFIED' ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400' :
+                        'bg-gray-500/10 text-gray-600 dark:text-gray-400'
+                      }`}>
+                        {goal.status}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Self Rating</Label>
+                      <div className="flex items-center justify-center gap-2">
+                        {[1, 2, 3, 4, 5].map((rating) => (
+                          <motion.button
+                            key={rating}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => handleSelfRating(goal.id, rating)}
+                            disabled={submitting[goal.id]}
+                            className={`w-10 h-10 rounded-lg transition-all duration-200 ${
+                              goal.rating?.score === rating
+                                ? RATING_COLORS[rating as keyof typeof RATING_COLORS]
+                                : 'bg-gray-100/50 dark:bg-gray-700/50 text-gray-400 dark:text-gray-500 border border-gray-200/50 dark:border-gray-600/50'
+                            } ${RATING_HOVER_COLORS[rating as keyof typeof RATING_HOVER_COLORS]} hover:shadow-lg`}
+                          >
+                            <BsStarFill className="w-4 h-4" />
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {goal.rating?.score && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="p-4 rounded-xl bg-gradient-to-r from-gray-50/50 to-gray-100/50 dark:from-gray-700/50 dark:to-gray-600/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50"
+                      >
+                        <p className={`text-sm font-medium mb-2 ${RATING_COLORS[goal.rating.score as keyof typeof RATING_COLORS]}`}>
+                          {RATING_LABELS[goal.rating.score as keyof typeof RATING_LABELS]}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                          {RATING_DESCRIPTIONS[goal.rating.score as keyof typeof RATING_DESCRIPTIONS]}
+                        </p>
+                      </motion.div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </div>
     </DashboardLayout>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { useSession } from 'next-auth/react';
 import StatsDisplay from './components/StatsDisplay';
@@ -9,6 +10,23 @@ import GoalsGrid from './components/GoalsGrid';
 import GoalDetailsModal from './components/GoalDetailsModal';
 import { Goal, EmployeeStats, DashboardStats } from './types';
 import { useRouter } from 'next/navigation';
+import {
+  BsArrowUpRight,
+  BsLightningCharge,
+  BsTrophy,
+  BsAward,
+  BsGraphUp,
+  BsPeople,
+  BsRocket,
+  BsLightbulb,
+  BsBriefcase,
+  BsBullseye,
+  BsStar,
+  BsCheckCircle,
+  BsClock,
+  BsXCircle,
+  BsBarChart
+} from 'react-icons/bs';
 
 export default function ManagerDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -144,86 +162,189 @@ export default function ManagerDashboard() {
   if (loading) {
     return (
       <DashboardLayout type="manager">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-gray-400">Loading goals...</div>
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="relative"
+          >
+            <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full"></div>
+            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-600 rounded-full animate-pulse"></div>
+          </motion.div>
         </div>
       </DashboardLayout>
     );
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
     <DashboardLayout type="manager">
-      <div className="space-y-4 md:space-y-6 px-3 sm:px-4 md:px-6 lg:px-8 max-w-7xl mx-auto">
-        {/* Header Section */}
-        <div className="bg-gray-800/50 rounded-lg p-3 sm:p-4 md:p-6">
-          <StatsDisplay stats={stats} activeTab={activeTab} />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        {/* Floating Background Elements */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-2 md:space-x-4 border-b border-gray-700">
-          <button
-            onClick={() => setActiveTab('employee')}
-            className={`py-2.5 sm:py-3 px-3 sm:px-4 w-full sm:w-auto font-medium transition-colors text-center sm:text-left rounded-t-lg sm:rounded-t-none ${
-              activeTab === 'employee'
-                ? 'text-indigo-400 border-b-2 border-indigo-400 bg-gray-800/30'
-                : 'text-gray-400 hover:text-gray-300 hover:bg-gray-800/20'
-            }`}
+        <div className="relative z-10 p-6 space-y-8">
+          {/* Hero Section */}
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative"
           >
-            Employee Goals
-          </button>
-          <button
-            onClick={() => setActiveTab('personal')}
-            className={`py-2.5 sm:py-3 px-3 sm:px-4 w-full sm:w-auto font-medium transition-colors text-center sm:text-left rounded-t-lg sm:rounded-t-none ${
-              activeTab === 'personal'
-                ? 'text-indigo-400 border-b-2 border-indigo-400 bg-gray-800/30'
-                : 'text-gray-400 hover:text-gray-300 hover:bg-gray-800/20'
-            }`}
+            <div className="bg-gradient-to-r from-indigo-600/90 via-purple-600/90 to-pink-600/90 backdrop-blur-xl rounded-3xl p-8 text-white shadow-2xl border border-white/20">
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 rounded-3xl" />
+              <div className="relative z-10">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <h1 className="text-4xl lg:text-5xl font-bold mb-2 bg-gradient-to-r from-white to-indigo-100 bg-clip-text text-transparent">
+                      Manager Dashboard
+                    </h1>
+                    <p className="text-xl text-indigo-100/90">Manage and oversee team goals and performance</p>
+                  </div>
+                  <div className="mt-6 lg:mt-0 flex gap-3">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-6 py-3 flex items-center gap-2 hover:bg-white/30 transition-all duration-300"
+                    >
+                      <BsPeople className="text-lg" />
+                      Team Overview
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-6 py-3 flex items-center gap-2 hover:bg-white/30 transition-all duration-300"
+                    >
+                      <BsBarChart className="text-lg" />
+                      Analytics
+                    </motion.button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Stats Section */}
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50"
           >
-            My All Goals
-          </button>
-          <button
-            onClick={() => setActiveTab('assigned')}
-            className={`py-2.5 sm:py-3 px-3 sm:px-4 w-full sm:w-auto font-medium transition-colors text-center sm:text-left rounded-t-lg sm:rounded-t-none ${
-              activeTab === 'assigned'
-                ? 'text-indigo-400 border-b-2 border-indigo-400 bg-gray-800/30'
-                : 'text-gray-400 hover:text-gray-300 hover:bg-gray-800/20'
-            }`}
+            <StatsDisplay stats={stats} activeTab={activeTab} />
+          </motion.div>
+
+          {/* Tab Navigation */}
+          <motion.div 
+            variants={itemVariants}
+            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50"
           >
-          Assigned Goals
-          </button>
-        </div>
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 md:space-x-4">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setActiveTab('employee')}
+                className={`py-3 px-4 font-medium transition-all duration-300 text-center sm:text-left rounded-xl ${
+                  activeTab === 'employee'
+                    ? 'text-white bg-gradient-to-r from-indigo-500 to-indigo-600 shadow-lg'
+                    : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <BsPeople className="w-4 h-4" />
+                  Employee Goals
+                </div>
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setActiveTab('personal')}
+                className={`py-3 px-4 font-medium transition-all duration-300 text-center sm:text-left rounded-xl ${
+                  activeTab === 'personal'
+                    ? 'text-white bg-gradient-to-r from-indigo-500 to-indigo-600 shadow-lg'
+                    : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <BsBriefcase className="w-4 h-4" />
+                  My All Goals
+                </div>
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setActiveTab('assigned')}
+                className={`py-3 px-4 font-medium transition-all duration-300 text-center sm:text-left rounded-xl ${
+                  activeTab === 'assigned'
+                    ? 'text-white bg-gradient-to-r from-indigo-500 to-indigo-600 shadow-lg'
+                    : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <BsCheckCircle className="w-4 h-4" />
+                  Assigned Goals
+                </div>
+              </motion.button>
+            </div>
+          </motion.div>
 
-        {/* Filters Section */}
-        <div className="bg-gray-800/50 rounded-lg p-3 sm:p-4 md:p-6">
-          <Filters
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            selectedStatus={selectedStatus}
-            setSelectedStatus={setSelectedStatus}
-            selectedEmployee={selectedEmployee}
-            setSelectedEmployee={setSelectedEmployee}
-            employees={employees}
-            activeTab={activeTab}
-          />
-        </div>
+          {/* Filters Section */}
+          <motion.div 
+            variants={itemVariants}
+            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50"
+          >
+            <Filters
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              selectedStatus={selectedStatus}
+              setSelectedStatus={setSelectedStatus}
+              selectedEmployee={selectedEmployee}
+              setSelectedEmployee={setSelectedEmployee}
+              employees={employees}
+              activeTab={activeTab}
+            />
+          </motion.div>
 
-        {/* Goals Grid */}
-        <div className="bg-gray-800/50 rounded-lg p-3 sm:p-4 md:p-6">
-          <GoalsGrid
-            goals={filteredGoals}
-            activeTab={activeTab}
-            onGoalClick={handleGoalClick}
-          />
-        </div>
+          {/* Goals Grid */}
+          <motion.div 
+            variants={itemVariants}
+            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50"
+          >
+            <GoalsGrid
+              goals={filteredGoals}
+              activeTab={activeTab}
+              onGoalClick={handleGoalClick}
+            />
+          </motion.div>
 
-        {/* Goal Details Modal */}
-        {selectedGoalDetails && !selectedGoalDetails.isApprovalProcess && (
-          <GoalDetailsModal
-            goal={selectedGoalDetails}
-            onClose={() => setSelectedGoalDetails(null)}
-            activeTab={activeTab}
-          />
-        )}
+          {/* Goal Details Modal */}
+          <AnimatePresence>
+            {selectedGoalDetails && !selectedGoalDetails.isApprovalProcess && (
+              <GoalDetailsModal
+                goal={selectedGoalDetails}
+                onClose={() => setSelectedGoalDetails(null)}
+                activeTab={activeTab}
+              />
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </DashboardLayout>
   );

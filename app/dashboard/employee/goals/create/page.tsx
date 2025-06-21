@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { 
   BsCalendar, 
@@ -27,7 +28,8 @@ import {
   BsLightbulb,
   BsAward,
   BsBriefcase,
-  BsPlus
+  BsPlus,
+  BsBullseye
 } from 'react-icons/bs';
 
 interface Goal {
@@ -131,7 +133,7 @@ const GOAL_TEMPLATES = [
 function GoalsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
@@ -176,6 +178,8 @@ function GoalsPageContent() {
     } catch (error) {
       console.error('Error fetching goals:', error);
       showNotificationWithTimeout('Failed to load goals', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -322,46 +326,84 @@ function GoalsPageContent() {
     });
   };
 
+  if (loading) {
+    return (
+      <DashboardLayout type="employee">
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="relative"
+          >
+            <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full"></div>
+            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-600 rounded-full animate-pulse"></div>
+          </motion.div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   const renderGoalCard = (goal: Goal) => (
-    <div
+    <motion.div
       key={goal.id}
-      className="bg-[#252832] rounded-lg p-4 border border-gray-800 hover:border-indigo-500/50 transition-all"
+      variants={itemVariants}
+      whileHover={{ scale: 1.02 }}
+      className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 border border-white/20 dark:border-gray-700/50"
     >
-      <div className="flex items-center justify-between mb-2">
-        <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(goal.status)} bg-opacity-20 flex items-center gap-1`}>
+      <div className="flex items-center justify-between mb-4">
+        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(goal.status)} bg-opacity-20 flex items-center gap-2`}>
           {getStatusIcon(goal.status)}
           {goal.status}
         </span>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 text-xs text-gray-500">
+          <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
             <BsCalendar className="w-3 h-3" />
             <span>{formatDate(goal.dueDate)}</span>
           </div>
           <div className="flex items-center gap-1">
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => handleEditGoal(goal)}
-              className="p-1.5 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-gray-700/50"
+              className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors rounded-lg hover:bg-blue-500/10"
               title="Edit Goal"
             >
               <BsGear className="w-4 h-4" />
-            </button>
-            <button
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => handleDeleteGoal(goal.id)}
               className="p-1.5 text-gray-400 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10"
               title="Delete Goal"
             >
               <BsXCircle className="w-4 h-4" />
-            </button>
+            </motion.button>
           </div>
         </div>
       </div>
-      <h3 className="text-white font-medium mb-1">{goal.title}</h3>
-      <p className="text-sm text-gray-400 mb-2 line-clamp-2">{goal.description}</p>
-      <div className="flex items-center gap-2 text-xs text-gray-500">
+      <h3 className="text-gray-900 dark:text-white font-medium mb-2">{goal.title}</h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">{goal.description}</p>
+      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
         <BsTag className="w-3 h-3" />
         <span>{goal.category}</span>
       </div>
-    </div>
+    </motion.div>
   );
 
   const getGoalStats = () => {
@@ -380,108 +422,221 @@ function GoalsPageContent() {
 
   return (
     <DashboardLayout type="employee">
-      <div className="space-y-4 md:space-y-6 px-4 md:px-0">
-        {/* Enhanced Notification Toast */}
-        {showNotification && (
-          <div className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 p-4 rounded-lg shadow-lg flex items-center gap-3 max-w-[90%] md:max-w-md ${
-            notificationType === 'success' ? 'bg-emerald-500' : 'bg-rose-500'
-          } text-white backdrop-blur-sm bg-opacity-95`}>
-            <div className="flex-shrink-0">
-              {notificationType === 'success' ? 
-                <BsCheckCircle className="w-6 h-6" /> : 
-                <BsXCircle className="w-6 h-6" />
-              }
-            </div>
-            <span className="text-sm md:text-base font-medium">{notificationMessage}</span>
-          </div>
-        )}
-
-        {/* Header Section - Made more mobile friendly */}
-        <div className="bg-[#1E2028] rounded-xl p-4 md:p-6 border border-gray-800 shadow-lg">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
-            <div>
-              <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
-                My Created Goals
-                <span className="bg-indigo-500/10 p-1 rounded text-indigo-400 text-xs md:text-sm font-normal">
-                  Employee Portal
-                </span>
-              </h1>
-              <p className="text-sm text-gray-400 mt-1">View and manage goals you have created</p>
-            </div>
-            <button 
-              onClick={() => setIsCreateModalOpen(true)}
-              className="w-full md:w-auto px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
-            >
-              <BsPlus className="w-5 h-5" />
-              Create New Goal
-            </button>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        {/* Floating Background Elements */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
         </div>
 
-        {/* Main Content - Improved mobile layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-          {/* Templates Section - Made more mobile friendly */}
-          <div className="lg:col-span-2 space-y-4 md:space-y-6">
-            <div className="bg-[#1E2028] rounded-xl p-4 md:p-6 border border-gray-800">
-              <div className="flex items-center justify-between mb-4 md:mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="bg-amber-500/10 p-2 rounded-lg">
-                    <BsLightbulb className="w-5 h-5 text-amber-400" />
+        <div className="relative z-10 p-6 space-y-8">
+          {/* Hero Section */}
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative"
+          >
+            <div className="bg-gradient-to-r from-indigo-600/90 via-purple-600/90 to-pink-600/90 backdrop-blur-xl rounded-3xl p-8 text-white shadow-2xl border border-white/20">
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 rounded-3xl" />
+              <div className="relative z-10">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <h1 className="text-4xl lg:text-5xl font-bold mb-2 bg-gradient-to-r from-white to-indigo-100 bg-clip-text text-transparent">
+                      Create Goals
+                    </h1>
+                    <p className="text-xl text-indigo-100/90">Set and manage your personal objectives</p>
                   </div>
-                  <h2 className="text-lg md:text-xl font-semibold text-white">Goal Templates</h2>
+                  <div className="mt-6 lg:mt-0 flex gap-3">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setIsCreateModalOpen(true)}
+                      className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-6 py-3 flex items-center gap-2 hover:bg-white/30 transition-all duration-300"
+                    >
+                      <BsPlus className="text-lg" />
+                      Create Goal
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-6 py-3 flex items-center gap-2 hover:bg-white/30 transition-all duration-300"
+                    >
+                      <BsGear className="text-lg" />
+                      Settings
+                    </motion.button>
+                  </div>
                 </div>
               </div>
+            </div>
+          </motion.div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                {GOAL_TEMPLATES.map((template) => (
-                  <div
-                    key={template.id}
-                    onClick={() => {
-                      setNewGoal({
-                        ...newGoal,
-                        title: template.title,
-                        description: template.description,
-                        category: template.category
-                      });
-                      setIsCreateModalOpen(true);
-                    }}
-                    className={`group bg-gradient-to-br ${template.bgGradient} bg-[#252832] hover:bg-[#2d2f36] border border-gray-800 hover:border-indigo-500 rounded-lg p-3 md:p-4 cursor-pointer transition-all duration-200 active:scale-[0.98]`}
-                  >
-                    <div className="flex items-start gap-3 md:gap-4">
-                      <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-lg bg-[#1E2028] border border-gray-700 group-hover:border-gray-600 transition-colors">
-                        {template.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-white font-medium group-hover:text-indigo-400 transition-colors flex items-center gap-2 text-sm md:text-base">
-                          {template.title}
-                          <BsArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </h4>
-                        <p className="text-xs md:text-sm text-gray-400 mt-1">{template.subtitle}</p>
-                        <p className="text-xs text-gray-500 mt-2 line-clamp-2">{template.description}</p>
-                      </div>
+          {/* Enhanced Notification Toast */}
+          <AnimatePresence>
+            {showNotification && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 p-4 rounded-xl shadow-2xl flex items-center gap-3 max-w-[90%] md:max-w-md backdrop-blur-xl border border-white/20 ${
+                  notificationType === 'success' ? 'bg-green-500/90' : 'bg-red-500/90'
+                } text-white`}
+              >
+                <div className="flex-shrink-0">
+                  {notificationType === 'success' ? 
+                    <BsCheckCircle className="w-6 h-6" /> : 
+                    <BsXCircle className="w-6 h-6" />
+                  }
+                </div>
+                <span className="text-sm md:text-base font-medium">{notificationMessage}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Main Content */}
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+          >
+            {/* Templates Section */}
+            <motion.div variants={itemVariants} className="lg:col-span-2">
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl">
+                      <BsLightbulb className="text-2xl text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-white">Goal Templates</h2>
+                      <p className="text-gray-600 dark:text-gray-400">Choose from predefined templates</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
 
-            {/* Recent Goals Section - Improved mobile layout */}
-            <div className="bg-[#1E2028] rounded-xl p-4 md:p-6 border border-gray-800">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 md:mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {GOAL_TEMPLATES.map((template) => (
+                    <motion.div
+                      key={template.id}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setNewGoal({
+                          ...newGoal,
+                          title: template.title,
+                          description: template.description,
+                          category: template.category
+                        });
+                        setIsCreateModalOpen(true);
+                      }}
+                      className="group bg-gradient-to-r from-gray-50/50 to-gray-100/50 dark:from-gray-700/50 dark:to-gray-600/50 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl p-4 cursor-pointer transition-all duration-300 hover:shadow-lg"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-200/20 dark:border-blue-600/20 group-hover:from-blue-500/20 group-hover:to-purple-500/20 transition-all duration-300">
+                          {template.icon}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-gray-900 dark:text-white font-medium group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex items-center gap-2">
+                            {template.title}
+                            <BsArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{template.subtitle}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-500 mt-2 line-clamp-2">{template.description}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Stats Section */}
+            <motion.div variants={itemVariants}>
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
+                      <BsBarChartLine className="text-2xl text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-white">Goals Overview</h2>
+                      <p className="text-gray-600 dark:text-gray-400">Your goal statistics</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50/50 to-gray-100/50 dark:from-gray-700/50 dark:to-gray-600/50 rounded-xl backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-gradient-to-br from-green-500/10 to-green-600/10 rounded-lg">
+                        <BsCheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Approved</span>
+                        <div className="text-xs text-green-600 dark:text-green-400">Completed goals</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-lg font-bold text-gray-900 dark:text-white">{getGoalStats().approved}</span>
+                      <div className="text-xs text-gray-500">{Math.round((getGoalStats().approved / getGoalStats().total) * 100) || 0}%</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50/50 to-gray-100/50 dark:from-gray-700/50 dark:to-gray-600/50 rounded-xl backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-gradient-to-br from-amber-500/10 to-amber-600/10 rounded-lg">
+                        <BsClock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Pending</span>
+                        <div className="text-xs text-amber-600 dark:text-amber-400">Awaiting approval</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-lg font-bold text-gray-900 dark:text-white">{getGoalStats().pending}</span>
+                      <div className="text-xs text-gray-500">{Math.round((getGoalStats().pending / getGoalStats().total) * 100) || 0}%</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50/50 to-gray-100/50 dark:from-gray-700/50 dark:to-gray-600/50 rounded-xl backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-gradient-to-br from-red-500/10 to-red-600/10 rounded-lg">
+                        <BsXCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Rejected</span>
+                        <div className="text-xs text-red-600 dark:text-red-400">Needs revision</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-lg font-bold text-gray-900 dark:text-white">{getGoalStats().rejected}</span>
+                      <div className="text-xs text-gray-500">{Math.round((getGoalStats().rejected / getGoalStats().total) * 100) || 0}%</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Goals List Section */}
+          <motion.div variants={itemVariants}>
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="bg-purple-500/10 p-2 rounded-lg">
-                    <BsListTask className="w-5 h-5 text-purple-400" />
+                  <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
+                    <BsListTask className="text-2xl text-white" />
                   </div>
                   <div>
-                    <h2 className="text-lg md:text-xl font-semibold text-white">My Created Goals</h2>
-                    <p className="text-xs md:text-sm text-gray-400">Goals you have created and submitted</p>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">My Created Goals</h2>
+                    <p className="text-gray-600 dark:text-gray-400">Goals you have created and submitted</p>
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <select
                     value={selectedStatus}
                     onChange={(e) => setSelectedStatus(e.target.value)}
-                    className="w-full sm:w-auto bg-[#252832] text-white text-sm rounded-lg border border-gray-700 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full sm:w-auto bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border border-white/20 dark:border-gray-600/50 rounded-xl px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                   >
                     {STATUSES.map(status => (
                       <option key={status.value} value={status.value}>
@@ -492,7 +647,7 @@ function GoalsPageContent() {
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full sm:w-auto bg-[#252832] text-white text-sm rounded-lg border border-gray-700 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full sm:w-auto bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border border-white/20 dark:border-gray-600/50 rounded-xl px-3 py-2 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                   >
                     <option value="all">All Categories</option>
                     {CATEGORIES.map(category => (
@@ -505,300 +660,33 @@ function GoalsPageContent() {
               </div>
 
               {goals.length > 0 ? (
-                <div className="grid grid-cols-1 gap-3 md:gap-4">
+                <motion.div 
+                  variants={containerVariants}
+                  className="grid grid-cols-1 gap-4"
+                >
                   {filteredGoals.map(renderGoalCard)}
-                </div>
+                </motion.div>
               ) : (
-                <div className="text-center py-6 md:py-8">
-                  <div className="inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full bg-[#252832] mb-4">
-                    <BsListTask className="w-6 h-6 md:w-8 md:h-8 text-gray-400" />
+                <div className="text-center py-12">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-gray-100/50 to-gray-200/50 dark:from-gray-700/50 dark:to-gray-600/50 mb-4">
+                    <BsListTask className="w-8 h-8 text-gray-400" />
                   </div>
-                  <h3 className="text-base md:text-lg font-medium text-white mb-2">No goals created yet</h3>
-                  <p className="text-sm text-gray-400">Start creating and tracking your goals</p>
-                  <button
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No goals created yet</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">Start creating and tracking your goals</p>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => setIsCreateModalOpen(true)}
-                    className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 mx-auto"
+                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-lg flex items-center gap-2 mx-auto"
                   >
                     <BsPlus className="w-5 h-5" />
                     Create New Goal
-                  </button>
+                  </motion.button>
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Right Column - Stats - Made more mobile friendly */}
-          <div className="space-y-4 md:space-y-6">
-            <div className="bg-[#1E2028] rounded-xl overflow-hidden border border-gray-800">
-              <div className="p-4 md:p-6 border-b border-gray-800 bg-gradient-to-r from-indigo-500/10 to-purple-500/10">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-indigo-500/10 p-2 rounded-lg">
-                      <BsBarChartLine className="w-5 h-5 text-indigo-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-base md:text-lg font-semibold text-white">Created Goals Overview</h3>
-                      <p className="text-xs md:text-sm text-gray-400">Status of goals you've created</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xl md:text-2xl font-bold text-white">{getGoalStats().total}</div>
-                    <div className="text-xs md:text-sm text-gray-400">Total Created</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 md:p-6 space-y-4 md:space-y-6">
-                <div>
-                  <h4 className="text-xs md:text-sm font-medium text-gray-400 mb-4 flex items-center gap-2">
-                    <BsCheckCircle className="w-4 h-4" />
-                    Status Overview
-                  </h4>
-                  <div className="space-y-2 md:space-y-3">
-                    {/* Status cards - Made more mobile friendly */}
-                    <div className="flex items-center justify-between p-3 bg-[#252832] rounded-lg border border-gray-800/50 hover:border-emerald-500/20 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="bg-emerald-500/10 p-2 rounded-lg">
-                          <BsCheckCircle className="w-4 h-4 text-emerald-400" />
-                        </div>
-                        <div>
-                          <span className="text-xs md:text-sm text-gray-400">Completed</span>
-                          <div className="text-xs text-emerald-400/70">Approved goals</div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-base md:text-lg font-medium text-white">{getGoalStats().approved}</span>
-                        <div className="text-xs text-gray-500">{Math.round((getGoalStats().approved / getGoalStats().total) * 100) || 0}%</div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 bg-[#252832] rounded-lg border border-gray-800/50 hover:border-amber-500/20 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="bg-amber-500/10 p-2 rounded-lg">
-                          <BsClock className="w-4 h-4 text-amber-400" />
-                        </div>
-                        <div>
-                          <span className="text-xs md:text-sm text-gray-400">In Progress</span>
-                          <div className="text-xs text-amber-400/70">Pending approval</div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-base md:text-lg font-medium text-white">{getGoalStats().pending}</span>
-                        <div className="text-xs text-gray-500">{Math.round((getGoalStats().pending / getGoalStats().total) * 100) || 0}%</div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 bg-[#252832] rounded-lg border border-gray-800/50 hover:border-red-500/20 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="bg-red-500/10 p-2 rounded-lg">
-                          <BsXCircle className="w-4 h-4 text-red-400" />
-                        </div>
-                        <div>
-                          <span className="text-xs md:text-sm text-gray-400">Rejected</span>
-                          <div className="text-xs text-red-400/70">Needs revision</div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-base md:text-lg font-medium text-white">{getGoalStats().rejected}</span>
-                        <div className="text-xs text-gray-500">{Math.round((getGoalStats().rejected / getGoalStats().total) * 100) || 0}%</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          </motion.div>
         </div>
-
-        {/* Enhanced Create/Edit Goal Modal */}
-        {isCreateModalOpen && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-[#1a1c23] rounded-lg p-4 md:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl border border-gray-800">
-              <div className="flex justify-between items-center mb-4 md:mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="bg-indigo-500/10 p-2 rounded-lg">
-                    {selectedGoal ? 
-                      <BsGear className="w-5 h-5 text-indigo-400" /> :
-                      <BsPlus className="w-5 h-5 text-indigo-400" />
-                    }
-                  </div>
-                  <h2 className="text-lg md:text-xl font-bold text-white">
-                    {selectedGoal ? 'Edit Goal' : 'Create New Goal'}
-                  </h2>
-                </div>
-                <button
-                  onClick={() => setIsCreateModalOpen(false)}
-                  className="text-gray-400 hover:text-white p-2 -m-2 rounded-lg hover:bg-gray-700/50 transition-colors"
-                >
-                  <BsXCircle className="w-5 h-5" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
-                <div>
-                  <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
-                    Goal Title
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <BsListTask className="text-gray-400" />
-                    </div>
-                    <input
-                      type="text"
-                      id="title"
-                      value={newGoal.title}
-                      onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
-                      className="w-full pl-10 pr-4 py-2 bg-[#2d2f36] text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                      placeholder="Enter goal title"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    id="description"
-                    value={newGoal.description}
-                    onChange={(e) => setNewGoal({ ...newGoal, description: e.target.value })}
-                    className="w-full px-4 py-2 bg-[#2d2f36] text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="Describe your goal in detail"
-                    rows={4}
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                  <div>
-                    <label htmlFor="category" className="block text-sm font-medium text-gray-300 mb-2">
-                      Category
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <BsTag className="text-gray-400" />
-                      </div>
-                      <select
-                        id="category"
-                        value={newGoal.category}
-                        onChange={(e) => setNewGoal({ ...newGoal, category: e.target.value })}
-                        className="w-full pl-10 pr-4 py-2 bg-[#2d2f36] text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        required
-                      >
-                        {CATEGORIES.map(category => (
-                          <option key={category.value} value={category.value}>
-                            {category.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="dueDate" className="block text-sm font-medium text-gray-300 mb-2">
-                      Due Date
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <BsCalendar className="text-gray-400" />
-                      </div>
-                      <input
-                        type="date"
-                        id="dueDate"
-                        value={newGoal.dueDate}
-                        onChange={(e) => setNewGoal({ ...newGoal, dueDate: e.target.value })}
-                        className="w-full pl-10 pr-4 py-2 bg-[#2d2f36] text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 md:pt-6">
-                  <button
-                    type="button"
-                    onClick={() => setIsCreateModalOpen(false)}
-                    className="w-full sm:w-auto px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-gray-700/50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className={`w-full sm:w-auto px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center space-x-2 ${
-                      loading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                  >
-                    {loading ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>{selectedGoal ? 'Updating...' : 'Creating...'}</span>
-                      </>
-                    ) : (
-                      <>
-                        {selectedGoal ? 
-                          <BsGear className="w-4 h-4" /> :
-                          <BsPlus className="w-4 h-4" />
-                        }
-                        <span>{selectedGoal ? 'Update Goal' : 'Create Goal'}</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Delete Confirmation Modal */}
-        {showDeleteConfirmation && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-[#1a1c23] rounded-lg p-4 md:p-6 w-full max-w-md shadow-xl border border-gray-800">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="bg-red-500/10 p-2 rounded-lg">
-                  <BsXCircle className="w-5 h-5 text-red-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-white">Delete Goal</h3>
-              </div>
-              
-              <p className="text-gray-400 mb-6">
-                Are you sure you want to delete this goal? This action cannot be undone.
-              </p>
-
-              <div className="flex flex-col-reverse sm:flex-row justify-end gap-3">
-                <button
-                  onClick={() => {
-                    setShowDeleteConfirmation(false);
-                    setGoalToDelete(null);
-                  }}
-                  className="w-full sm:w-auto px-4 py-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-gray-700/50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmDelete}
-                  disabled={loading}
-                  className={`w-full sm:w-auto px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2 ${
-                    loading ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                >
-                  {loading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Deleting...</span>
-                    </>
-                  ) : (
-                    <>
-                      <BsXCircle className="w-4 h-4" />
-                      <span>Delete Goal</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </DashboardLayout>
   );

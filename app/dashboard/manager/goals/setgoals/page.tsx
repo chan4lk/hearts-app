@@ -2,6 +2,8 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +36,13 @@ import {
   BsGear,
   BsTrophy,
   BsBook,
-  BsRobot
+  BsRobot,
+  BsLightningCharge,
+  BsStars,
+  BsArrowUpRight,
+  BsPersonLinesFill,
+  BsClipboardData,
+  BsBarChart
 } from 'react-icons/bs';
 import { User, Calendar } from 'lucide-react';
 import type { IconType } from 'react-icons';
@@ -105,6 +113,7 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
 
 function ManagerGoalSettingPageContent() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [assignedEmployees, setAssignedEmployees] = useState<User[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -139,6 +148,16 @@ function ManagerGoalSettingPageContent() {
   };
 
   useEffect(() => {
+    if (!session) {
+      router.push('/login');
+      return;
+    }
+
+    if (session.user?.role !== 'MANAGER') {
+      router.push('/dashboard');
+      return;
+    }
+
     const fetchAssignedEmployees = async () => {
       try {
         const response = await fetch('/api/employees/assigned');
@@ -155,7 +174,7 @@ function ManagerGoalSettingPageContent() {
     };
 
     fetchAssignedEmployees();
-  }, []);
+  }, [session, router]);
 
   const getFilteredGoals = (goals: Goal[]) => {
     if (selectedEmployee === 'all') return goals;
@@ -410,153 +429,318 @@ function ManagerGoalSettingPageContent() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="relative"
+        >
+          <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full"></div>
+          <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-600 rounded-full animate-pulse"></div>
+        </motion.div>
       </div>
     );
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800 shadow-lg">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              Manage Employee Goals
-              <span className="bg-blue-500/10 p-1 rounded text-blue-400 text-sm font-normal">
-                Manager Portal
-              </span>
-            </h1>
-            <p className="text-gray-400 mt-1">Create and manage goals for your assigned employees</p>
-          </div>
-          <div className="flex gap-3">
-          <Button 
-            onClick={() => setIsCreateModalOpen(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-          >
-            <BsPlus className="w-5 h-5" />
-            Quick Create
-          </Button>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* Floating Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
       </div>
-        </div>
 
-      <GoalTemplates onSelect={handleTemplateSelect} />
-      <GoalStats stats={stats} />
-
-      <div className="bg-[#1E2028] rounded-xl p-6 border border-gray-800 shadow-lg">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              Goal Management
-              <span className="bg-blue-500/10 p-1 rounded text-blue-400 text-sm font-normal">
-                {getFilteredGoals(goals).length} Goals
-              </span>
-            </h2>
-            <p className="text-gray-400 mt-1">Manage and track all assigned goals</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <Select
-              value={selectedEmployee}
-              onValueChange={setSelectedEmployee}
-            >
-              <SelectTrigger className="w-[200px] bg-[#25262b] border-0 focus:ring-1 focus:ring-gray-500 text-white">
-                <SelectValue>
-                  <div className="flex items-center gap-2 text-white">
-                    <BsPeople className="h-4 w-4 text-gray-400" />
-                    <span className="text-white">{selectedEmployee === 'all' ? 'All Employees' : assignedEmployees.find(e => e.id === selectedEmployee)?.name}</span>
-                  </div>
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent className="bg-[#25262b] border border-gray-700">
-                <SelectItem value="all" className="focus:bg-gray-700">
-                  <div className="flex items-center gap-2 text-white">
-                    <BsPeople className="h-4 w-4 text-gray-400" />
-                    <span className="text-white">All Employees</span>
-                  </div>
-                </SelectItem>
-                {assignedEmployees.map((employee) => (
-                  <SelectItem 
-                    key={employee.id} 
-                    value={employee.id}
-                    className="focus:bg-gray-700"
-                  >
-                    <div className="flex items-center gap-2 text-white">
-                      <BsPeople className="h-4 w-4 text-gray-400" />
-                      <span className="text-white">{employee.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {getFilteredGoals(goals).map((goal) => (
-            <GoalCard
-              key={goal.id} 
-              goal={goal}
-              onView={handleView}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          ))}
+      <div className="relative z-10 p-6 space-y-8">
+        {/* Hero Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative"
+        >
+          <div className="bg-gradient-to-r from-indigo-600/90 via-purple-600/90 to-pink-600/90 backdrop-blur-xl rounded-3xl p-8 text-white shadow-2xl border border-white/20">
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 rounded-3xl" />
+            <div className="relative z-10">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <h1 className="text-4xl lg:text-5xl font-bold mb-2 bg-gradient-to-r from-white to-indigo-100 bg-clip-text text-transparent">
+                    Manage Employee Goals
+                  </h1>
+                  <p className="text-xl text-indigo-100/90">Create and manage goals for your assigned employees</p>
                 </div>
+                <div className="mt-6 lg:mt-0 flex gap-3">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-6 py-3 flex items-center gap-2 hover:bg-white/30 transition-all duration-300"
+                  >
+                    <BsPlus className="text-lg" />
+                    Quick Create
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-6 py-3 flex items-center gap-2 hover:bg-white/30 transition-all duration-300"
+                  >
+                    <BsBarChart className="text-lg" />
+                    Analytics
+                  </motion.button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Header Section */}
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50"
+        >
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-gradient-to-br from-indigo-500/10 to-indigo-600/10 rounded-xl">
+                <BsLightningCharge className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Employee Goal Management</h2>
+                <p className="text-gray-600 dark:text-gray-400">Create and manage goals for your assigned employees</p>
+              </div>
+            </div>
+            
+            {/* Quick Actions */}
+            <div className="flex items-center gap-3">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsCreateModalOpen(true)}
+                className="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 px-4 py-2 rounded-xl flex items-center gap-2 transition-all duration-200"
+              >
+                <BsPlus className="w-4 h-4" />
+                New Goal
+              </motion.button>
+            </div>
+          </div>
+
+          {/* Stats Grid */}
+          <motion.div 
+            variants={itemVariants}
+            className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
+          >
+            <div className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 backdrop-blur-sm border border-blue-200/20 dark:border-blue-600/20 p-4 rounded-xl">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-blue-500/10 rounded-lg">
+                  <BsPeople className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">Total Employees</div>
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalEmployees}</div>
+            </div>
+            
+            <div className="bg-gradient-to-r from-emerald-500/10 to-emerald-600/10 backdrop-blur-sm border border-emerald-200/20 dark:border-emerald-600/20 p-4 rounded-xl">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-emerald-500/10 rounded-lg">
+                  <BsClipboardData className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">Total Goals</div>
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalGoals}</div>
+            </div>
+            
+            <div className="bg-gradient-to-r from-amber-500/10 to-amber-600/10 backdrop-blur-sm border border-amber-200/20 dark:border-amber-600/20 p-4 rounded-xl">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-amber-500/10 rounded-lg">
+                  <BsCheckCircle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div className="text-sm text-amber-600 dark:text-amber-400 font-medium">Completed Goals</div>
+              </div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.completedGoals}</div>
+            </div>
+          </motion.div>
+        </motion.div>
+
+        {/* Goal Templates Section */}
+        <motion.div variants={itemVariants}>
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <BsLightbulb className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              Goal Templates
+            </h3>
+            <GoalTemplates onSelect={handleTemplateSelect} />
+          </div>
+        </motion.div>
+
+        {/* Goal Stats Section */}
+        <motion.div variants={itemVariants}>
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <BsBarChart className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              Goal Statistics
+            </h3>
+            <GoalStats stats={stats} />
+          </div>
+        </motion.div>
+
+        {/* Goal Management Section */}
+        <motion.div variants={itemVariants}>
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6">
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <BsBriefcase className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  Goal Management
+                  <span className="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded-full text-sm font-normal">
+                    {getFilteredGoals(goals).length} Goals
+                  </span>
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mt-1">Manage and track all assigned goals</p>
+              </div>
+              
+              {/* Employee Filter */}
+              <div className="flex items-center gap-4">
+                <div className="relative group min-w-[200px]">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <BsPeople className="w-5 h-5 text-gray-400 group-hover:text-indigo-500 transition-colors" />
                   </div>
+                  <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+                    <SelectTrigger className="pl-10 pr-4 py-3 bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm border border-white/20 dark:border-gray-600/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all w-full rounded-xl">
+                      <SelectValue>
+                        <span className="text-gray-900 dark:text-white">
+                          {selectedEmployee === 'all' ? 'All Employees' : assignedEmployees.find(e => e.id === selectedEmployee)?.name}
+                        </span>
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-white/20 dark:border-gray-600/50">
+                      <SelectItem value="all">
+                        <div className="flex items-center gap-2">
+                          <BsPeople className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                          <span className="text-gray-900 dark:text-white">All Employees</span>
+                        </div>
+                      </SelectItem>
+                      {assignedEmployees.map((employee) => (
+                        <SelectItem key={employee.id} value={employee.id}>
+                          <div className="flex items-center gap-2">
+                            <BsPeople className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                            <span className="text-gray-900 dark:text-white">{employee.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
 
-      <CreateGoalModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSubmit={handleSubmit}
-        assignedEmployees={assignedEmployees}
-        loading={loading}
-        formData={formData}
-        setFormData={setFormData}
-      />
+            {getFilteredGoals(goals).length === 0 ? (
+              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-12 text-center border border-white/20 dark:border-gray-700/50 shadow-lg">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-gray-100/50 to-gray-200/50 dark:from-gray-700/50 dark:to-gray-600/50 mb-4">
+                  <BsPersonLinesFill className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">No goals found</h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {selectedEmployee !== 'all'
+                    ? "This employee has no assigned goals"
+                    : "Create your first goal to get started"}
+                </p>
+              </div>
+            ) : (
+              <motion.div 
+                variants={containerVariants}
+                className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+              >
+                {getFilteredGoals(goals).map((goal) => (
+                  <motion.div
+                    key={goal.id}
+                    variants={itemVariants}
+                    whileHover={{ scale: 1.02 }}
+                    className="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/50 hover:border-indigo-500/50 transition-all duration-300 overflow-hidden shadow-lg hover:shadow-2xl"
+                  >
+                    <GoalCard
+                      goal={goal}
+                      onView={handleView}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </div>
+        </motion.div>
 
-      <EditGoalModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        onSubmit={handleUpdateGoal}
-        assignedEmployees={assignedEmployees}
-        loading={loading}
-        goal={selectedGoal}
-      />
+        {/* Modals */}
+        <CreateGoalModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSubmit={handleSubmit}
+          assignedEmployees={assignedEmployees}
+          loading={loading}
+          formData={formData}
+          setFormData={setFormData}
+        />
 
-      <ViewGoalModal
-        isOpen={isViewModalOpen}
-        onClose={() => setIsViewModalOpen(false)}
-        goal={viewedGoal}
-        onEdit={() => {
-          setIsViewModalOpen(false);
-          if (viewedGoal) handleEdit(viewedGoal);
-        }}
-      />
+        <EditGoalModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSubmit={handleUpdateGoal}
+          assignedEmployees={assignedEmployees}
+          loading={loading}
+          goal={selectedGoal}
+        />
 
-      <DeleteGoalModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => {
-          setIsDeleteModalOpen(false);
-          setGoalToDelete(null);
-        }}
-        onConfirm={confirmDelete}
-      />
+        <ViewGoalModal
+          isOpen={isViewModalOpen}
+          onClose={() => setIsViewModalOpen(false)}
+          goal={viewedGoal}
+          onEdit={() => {
+            setIsViewModalOpen(false);
+            if (viewedGoal) handleEdit(viewedGoal);
+          }}
+        />
 
-      <Toaster 
-        position="top-center"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: '#1E2028',
-            color: 'white',
-            border: '1px solid #2d2f36',
-            padding: '16px',
-            borderRadius: '8px',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          },
-        }}
-      />
+        <DeleteGoalModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => {
+            setIsDeleteModalOpen(false);
+            setGoalToDelete(null);
+          }}
+          onConfirm={confirmDelete}
+        />
+
+        <Toaster 
+          position="top-center"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: '#1E2028',
+              color: 'white',
+              border: '1px solid #2d2f36',
+              padding: '16px',
+              borderRadius: '8px',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            },
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -565,8 +749,15 @@ export default function ManagerGoalSettingPage() {
   return (
     <DashboardLayout type="manager">
       <Suspense fallback={
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="relative"
+          >
+            <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full"></div>
+            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-600 rounded-full animate-pulse"></div>
+          </motion.div>
         </div>
       }>
         <ManagerGoalSettingPageContent />
