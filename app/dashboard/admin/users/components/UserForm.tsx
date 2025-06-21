@@ -111,10 +111,10 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-xs font-medium text-gray-400 mb-1.5">
             Name
           </label>
           <input
@@ -122,15 +122,15 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className={`w-full px-4 py-2 rounded-lg bg-[#2D3748] text-white border ${
-              errors.name ? 'border-red-500' : 'border-[#4A5568]'
-            } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            className={`w-full px-3 py-1.5 rounded bg-gray-800/50 text-sm text-gray-200 border ${
+              errors.name ? 'border-red-500/50' : 'border-gray-700/50'
+            } focus:outline-none focus:ring-1 focus:ring-indigo-500/50`}
           />
-          {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
+          {errors.name && <p className="mt-1 text-xs text-red-400">{errors.name}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-xs font-medium text-gray-400 mb-1.5">
             Email
           </label>
           <input
@@ -138,17 +138,17 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className={`w-full px-4 py-2 rounded-lg bg-[#2D3748] text-white border ${
-              errors.email ? 'border-red-500' : 'border-[#4A5568]'
-            } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            className={`w-full px-3 py-1.5 rounded bg-gray-800/50 text-sm text-gray-200 border ${
+              errors.email ? 'border-red-500/50' : 'border-gray-700/50'
+            } focus:outline-none focus:ring-1 focus:ring-indigo-500/50`}
           />
-          {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
+          {errors.email && <p className="mt-1 text-xs text-red-400">{errors.email}</p>}
         </div>
 
         {!isEditing && (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-xs font-medium text-gray-400 mb-1.5">
                 Password
               </label>
               <div className="relative">
@@ -157,23 +157,23 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`w-full px-4 py-2 rounded-lg bg-[#2D3748] text-white border ${
-                    errors.password ? 'border-red-500' : 'border-[#4A5568]'
-                  } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  className={`w-full px-3 py-1.5 rounded bg-gray-800/50 text-sm text-gray-200 border ${
+                    errors.password ? 'border-red-500/50' : 'border-gray-700/50'
+                  } focus:outline-none focus:ring-1 focus:ring-indigo-500/50`}
                 />
                 <button
                   type="button"
                   onClick={() => handlePasswordVisibility('password')}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white"
+                  className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-500 hover:text-gray-300"
                 >
-                  <BsEye className="w-5 h-5" />
+                  <BsEye className="w-3.5 h-3.5" />
                 </button>
               </div>
-              {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
+              {errors.password && <p className="mt-1 text-xs text-red-400">{errors.password}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-xs font-medium text-gray-400 mb-1.5">
                 Confirm Password
               </label>
               <div className="relative">
@@ -182,19 +182,19 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={`w-full px-4 py-2 rounded-lg bg-[#2D3748] text-white border ${
-                    errors.confirmPassword ? 'border-red-500' : 'border-[#4A5568]'
-                  } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                  className={`w-full px-3 py-1.5 rounded bg-gray-800/50 text-sm text-gray-200 border ${
+                    errors.confirmPassword ? 'border-red-500/50' : 'border-gray-700/50'
+                  } focus:outline-none focus:ring-1 focus:ring-indigo-500/50`}
                 />
                 <button
                   type="button"
                   onClick={() => handlePasswordVisibility('confirmPassword')}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white"
+                  className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-500 hover:text-gray-300"
                 >
-                  <BsEye className="w-5 h-5" />
+                  <BsEye className="w-3.5 h-3.5" />
                 </button>
               </div>
-              {errors.confirmPassword && <p className="mt-1 text-sm text-red-500">{errors.confirmPassword}</p>}
+              {errors.confirmPassword && <p className="mt-1 text-xs text-red-400">{errors.confirmPassword}</p>}
             </div>
           </>
         )}
@@ -202,7 +202,7 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
         {isEditing && (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-xs font-medium text-gray-400 mb-1.5">
                 New Password
               </label>
               <div className="relative">
@@ -211,22 +211,22 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
                   name="newPassword"
                   value={formData.newPassword}
                   onChange={handleChange}
-                  placeholder="Leave blank to keep current password"
-                  className="w-full px-4 py-2 rounded-lg bg-[#2D3748] text-white border border-[#4A5568] focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+                  placeholder="Leave blank to keep current"
+                  className="w-full px-3 py-1.5 rounded bg-gray-800/50 text-sm text-gray-200 border border-gray-700/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 placeholder-gray-500"
                 />
                 <button
                   type="button"
                   onClick={() => handlePasswordVisibility('newPassword')}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white"
+                  className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-500 hover:text-gray-300"
                 >
-                  <BsEye className="w-5 h-5" />
+                  <BsEye className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <p className="mt-1 text-xs text-gray-400">Only enter if you want to change the password</p>
+              <p className="mt-1 text-[10px] text-gray-500">Only enter if you want to change the password</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-xs font-medium text-gray-400 mb-1.5">
                 Confirm New Password
               </label>
               <div className="relative">
@@ -235,33 +235,33 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  placeholder="Leave blank to keep current password"
-                  className={`w-full px-4 py-2 rounded-lg bg-[#2D3748] text-white border ${
-                    errors.confirmPassword ? 'border-red-500' : 'border-[#4A5568]'
-                  } focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400`}
+                  placeholder="Leave blank to keep current"
+                  className={`w-full px-3 py-1.5 rounded bg-gray-800/50 text-sm text-gray-200 border ${
+                    errors.confirmPassword ? 'border-red-500/50' : 'border-gray-700/50'
+                  } focus:outline-none focus:ring-1 focus:ring-indigo-500/50 placeholder-gray-500`}
                 />
                 <button
                   type="button"
                   onClick={() => handlePasswordVisibility('confirmPassword')}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white"
+                  className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-gray-500 hover:text-gray-300"
                 >
-                  <BsEye className="w-5 h-5" />
+                  <BsEye className="w-3.5 h-3.5" />
                 </button>
               </div>
-              {errors.confirmPassword && <p className="mt-1 text-sm text-red-500">{errors.confirmPassword}</p>}
+              {errors.confirmPassword && <p className="mt-1 text-xs text-red-400">{errors.confirmPassword}</p>}
             </div>
           </>
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-xs font-medium text-gray-400 mb-1.5">
             Role
           </label>
           <select
             name="role"
             value={formData.role}
             onChange={handleChange}
-            className="w-full px-4 py-2 rounded-lg bg-[#2D3748] text-white border border-[#4A5568] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-1.5 rounded bg-gray-800/50 text-sm text-gray-200 border border-gray-700/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
           >
             {Object.entries(ROLES).map(([key, value]) => (
               <option key={key} value={key}>
@@ -273,14 +273,14 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
 
         {formData.role !== 'ADMIN' && (
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-xs font-medium text-gray-400 mb-1.5">
               Manager
             </label>
             <select
               name="managerId"
               value={formData.managerId}
               onChange={handleChange}
-              className="w-full px-4 py-2 rounded-lg bg-[#2D3748] text-white border border-[#4A5568] focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-1.5 rounded bg-gray-800/50 text-sm text-gray-200 border border-gray-700/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
             >
               <option value="">Select Manager</option>
               {managers.map(manager => (
@@ -293,14 +293,14 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-xs font-medium text-gray-400 mb-1.5">
             Status
           </label>
           <select
             name="status"
             value={formData.status}
             onChange={handleChange}
-            className="w-full px-4 py-2 rounded-lg bg-[#2D3748] text-white border border-[#4A5568] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-1.5 rounded bg-gray-800/50 text-sm text-gray-200 border border-gray-700/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
           >
             <option value="ACTIVE">Active</option>
             <option value="INACTIVE">Inactive</option>
@@ -308,7 +308,7 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
         </div>
       </div>
 
-      <div className="flex justify-end gap-4">
+      <div className="flex justify-end gap-2 pt-3 border-t border-gray-800/50">
         <button
           type="button"
           onClick={() => {
@@ -324,21 +324,21 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
             });
             setErrors({});
           }}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-300 bg-[#2D3748] rounded-lg hover:bg-[#4A5568] transition-all duration-200 hover:scale-105"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-400 bg-gray-800/50 rounded hover:bg-gray-800/70 transition-colors"
         >
-          <BsArrowCounterclockwise className="w-4 h-4" />
+          <BsArrowCounterclockwise className="w-3 h-3" />
           Reset
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-gray-300 bg-[#2D3748] rounded-lg hover:bg-[#4A5568] transition-all duration-200 hover:scale-105"
+          className="px-3 py-1.5 text-xs font-medium text-gray-400 bg-gray-800/50 rounded hover:bg-gray-800/70 transition-colors"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all duration-200 hover:scale-105"
+          className="px-3 py-1.5 text-xs font-medium text-white bg-indigo-500/80 rounded hover:bg-indigo-500 transition-colors"
         >
           {isEditing ? 'Update User' : 'Create User'}
         </button>

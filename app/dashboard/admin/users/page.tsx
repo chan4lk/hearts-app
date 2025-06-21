@@ -33,14 +33,10 @@ export default function UsersPage() {
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
-  useEffect(() => {
-    if (!session?.user || session.user.role !== 'ADMIN') {
-      router.push('/dashboard');
-      return;
-    }
-    fetchUsers();
-  }, [session, router]);
+  // Add auto-refresh functionality
+  const REFRESH_INTERVAL = 30000; // 30 seconds
 
   const fetchUsers = async () => {
     try {
@@ -67,6 +63,7 @@ export default function UsersPage() {
       }));
       setUsers(transformedUsers);
       setManagers(transformedUsers.filter((user: User) => user.role === 'MANAGER'));
+      setLastRefresh(new Date());
     } catch (error) {
       console.error('Error fetching users:', error);
       toast.error('Failed to fetch users');
@@ -74,6 +71,35 @@ export default function UsersPage() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!session?.user || session.user.role !== 'ADMIN') {
+      router.push('/dashboard');
+      return;
+    }
+
+    // Initial fetch
+    fetchUsers();
+
+    // Set up auto-refresh
+    const intervalId = setInterval(() => {
+      // Only refresh if no modals are open
+      if (!isFormOpen && !isDetailsOpen && !isDeleteConfirmOpen) {
+        fetchUsers();
+      }
+    }, REFRESH_INTERVAL);
+
+    // Cleanup on unmount
+    return () => clearInterval(intervalId);
+  }, [session, router, isFormOpen, isDetailsOpen, isDeleteConfirmOpen]);
+
+  // Add last refresh indicator component
+  const LastRefreshIndicator = () => (
+    <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+      <span>Last updated: {lastRefresh.toLocaleTimeString()}</span>
+    </div>
+  );
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = searchTerm === '' || 
@@ -236,7 +262,10 @@ export default function UsersPage() {
         <BackgroundElements />
 
         <div className="relative z-10 p-3 space-y-4">
-          <HeroSection />
+          <HeroSection onAddUser={() => {
+            setSelectedUser(null);
+            setIsFormOpen(true);
+          }} />
 
           <motion.div 
             variants={containerVariants}
@@ -257,10 +286,13 @@ export default function UsersPage() {
           >
             <motion.div variants={itemVariants}>
               <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-lg p-3 shadow-md border border-white/20 dark:border-gray-700/50">
-                <UserFilters
-                  onFilterChange={setFilters}
-                  onSearch={setSearchTerm}
-                />
+                <div className="flex justify-between items-center mb-3">
+                  <LastRefreshIndicator />
+                  <UserFilters
+                    onFilterChange={setFilters}
+                    onSearch={setSearchTerm}
+                  />
+                </div>
               </div>
             </motion.div>
 
