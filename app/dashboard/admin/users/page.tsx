@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { BsPeople, BsCheckCircle, BsPersonBadge, BsBuilding } from 'react-icons/bs';
-import { Toaster, toast } from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import UserTable from './components/UserTable';
@@ -15,6 +15,7 @@ import StatsCard from './components/StatsCard';
 import HeroSection from './components/HeroSection';
 import BackgroundElements from './components/BackgroundElements';
 import { User, FormData, Filters } from './types';
+import { showToast } from '@/app/utils/toast';
 
 export default function UsersPage() {
   const { data: session } = useSession();
@@ -43,7 +44,7 @@ export default function UsersPage() {
       const response = await fetch('/api/admin/users');
       if (!response.ok) {
         if (response.status === 401) {
-          toast.error('Unauthorized access');
+          showToast.user.error('Unauthorized access');
           router.push('/login');
           return;
         }
@@ -66,7 +67,7 @@ export default function UsersPage() {
       setLastRefresh(new Date());
     } catch (error) {
       console.error('Error fetching users:', error);
-      toast.error('Failed to fetch users');
+      showToast.user.error('Failed to fetch users');
     } finally {
       setIsLoading(false);
     }
@@ -129,9 +130,9 @@ export default function UsersPage() {
       const newUser = await response.json();
       setUsers(prev => [newUser, ...prev]);
       setIsFormOpen(false);
-      toast.success('User created successfully');
+      showToast.user.created();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to create user');
+      showToast.error('Failed to create user', error);
     }
   };
 
@@ -164,9 +165,9 @@ export default function UsersPage() {
       ));
       setIsFormOpen(false);
       setSelectedUser(null);
-      toast.success('User updated successfully');
+      showToast.user.updated();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to update user');
+      showToast.error('Failed to update user', error);
     }
   };
 
@@ -193,9 +194,9 @@ export default function UsersPage() {
       setUsers(prev => prev.filter(user => user.id !== userToDelete.id));
       setIsDeleteConfirmOpen(false);
       setUserToDelete(null);
-      toast.success('User deleted successfully');
+      showToast.user.deleted();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to delete user');
+      showToast.error('Failed to delete user', error);
     }
   };
 
@@ -404,19 +405,9 @@ export default function UsersPage() {
         </AnimatePresence>
 
         <Toaster
-          position="top-right"
+          position="top-center"
           toastOptions={{
-            duration: 3000,
-            style: {
-              background: 'rgba(255, 255, 255, 0.9)',
-              color: '#1f2937',
-              backdropFilter: 'blur(8px)',
-              border: '1px solid rgba(229, 231, 235, 0.3)',
-              padding: '12px 16px',
-              borderRadius: '12px',
-              fontSize: '14px',
-              boxShadow: '0 8px 16px rgba(0, 0, 0, 0.08)',
-            },
+            duration: 4000,
           }}
         />
       </div>
