@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react';
 
 interface StatsDisplayProps {
   stats: DashboardStats;
-  activeTab: 'employee' | 'personal' | 'assigned';
+  activeTab: 'employee' | 'assigned';
 }
 
 export default function StatsDisplay({ stats, activeTab }: StatsDisplayProps) {
@@ -26,8 +26,8 @@ export default function StatsDisplay({ stats, activeTab }: StatsDisplayProps) {
         <div className="relative z-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
             Welcome back, {userName} <span className="font-extrabold">✨</span>
-          </h1>
-          <p className="text-lg text-white/80">Manage your goals and track employee progress</p>
+        </h1>
+        <p className="text-lg text-white/80">Manage your goals and track employee progress</p>
         </div>
       </div>
       
@@ -44,88 +44,61 @@ export default function StatsDisplay({ stats, activeTab }: StatsDisplayProps) {
           </h1>
 
           <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-            {activeTab === 'employee' ? (
-              <>
+          {activeTab === 'employee' ? (
+            <>
                 <div className="group bg-gradient-to-br from-gray-800/80 to-gray-700/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-600/30 hover:border-indigo-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/20">
                   <div className="text-sm text-gray-300 mb-2 font-medium">Total Employee Goals</div>
                   <div className="text-3xl font-bold text-white group-hover:text-indigo-300 transition-colors">{stats.employeeGoals.total}</div>
-                </div>
+              </div>
                 <div className="group bg-gradient-to-br from-gray-800/80 to-gray-700/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-600/30 hover:border-amber-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-amber-500/20">
                   <div className="text-sm text-amber-400 mb-2 font-medium">Pending</div>
                   <div className="text-3xl font-bold text-white group-hover:text-amber-300 transition-colors">{stats.employeeGoals.pending}</div>
-                </div>
+              </div>
                 <div className="group bg-gradient-to-br from-gray-800/80 to-gray-700/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-600/30 hover:border-emerald-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-emerald-500/20">
                   <div className="text-sm text-emerald-400 mb-2 font-medium">Approved</div>
                   <div className="text-3xl font-bold text-white group-hover:text-emerald-300 transition-colors">{stats.employeeGoals.approved}</div>
-                </div>
+              </div>
                 <div className="group bg-gradient-to-br from-gray-800/80 to-gray-700/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-600/30 hover:border-rose-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-rose-500/20">
                   <div className="text-sm text-rose-400 mb-2 font-medium">Rejected</div>
                   <div className="text-3xl font-bold text-white group-hover:text-rose-300 transition-colors">{stats.employeeGoals.rejected}</div>
-                </div>
+              </div>
                 <div className="group bg-gradient-to-br from-gray-800/80 to-gray-700/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-600/30 hover:border-indigo-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/20">
                   <div className="text-sm text-indigo-400 mb-2 font-medium">Total Employees</div>
                   <div className="text-3xl font-bold text-white group-hover:text-indigo-300 transition-colors">{stats.employeeCount}</div>
-                </div>
+              </div>
                 <div className="group bg-gradient-to-br from-gray-800/80 to-gray-700/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-600/30 hover:border-emerald-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-emerald-500/20">
                   <div className="text-sm text-emerald-400 mb-2 font-medium">Active Employees</div>
                   <div className="text-3xl font-bold text-white group-hover:text-emerald-300 transition-colors">{stats.activeEmployees}</div>
-                </div>
-              </>
-            ) : activeTab === 'personal' ? (
-              <>
-                <div className="group bg-gradient-to-br from-gray-800/80 to-gray-700/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-600/30 hover:border-indigo-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/20">
-                  <div className="text-sm text-gray-300 mb-2 font-medium">My Total Goals</div>
-                  <div className="text-3xl font-bold text-white group-hover:text-indigo-300 transition-colors">{stats.personalGoals.total}</div>
-                </div>
-                <div className="group bg-gradient-to-br from-gray-800/80 to-gray-700/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-600/30 hover:border-amber-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-amber-500/20">
-                  <div className="text-sm text-amber-400 mb-2 font-medium">Pending</div>
-                  <div className="text-3xl font-bold text-white group-hover:text-amber-300 transition-colors">{stats.personalGoals.pending}</div>
-                </div>
-                <div className="group bg-gradient-to-br from-gray-800/80 to-gray-700/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-600/30 hover:border-emerald-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-emerald-500/20">
-                  <div className="text-sm text-emerald-400 mb-2 font-medium">Approved</div>
-                  <div className="text-3xl font-bold text-white group-hover:text-emerald-300 transition-colors">{stats.personalGoals.approved}</div>
-                </div>
-                <div className="group bg-gradient-to-br from-gray-800/80 to-gray-700/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-600/30 hover:border-rose-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-rose-500/20">
-                  <div className="text-sm text-rose-400 mb-2 font-medium">Rejected</div>
-                  <div className="text-3xl font-bold text-white group-hover:text-rose-300 transition-colors">{stats.personalGoals.rejected}</div>
-                </div>
-                <div className="group bg-gradient-to-br from-gray-800/80 to-gray-700/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-600/30 hover:border-indigo-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/20 col-span-2">
-                  <div className="text-sm text-indigo-400 mb-2 font-medium">Completion Rate</div>
-                  <div className="text-3xl font-bold text-white group-hover:text-indigo-300 transition-colors">
-                    {stats.personalGoals.total > 0
-                      ? `${Math.round((stats.personalGoals.approved / stats.personalGoals.total) * 100)}%`
-                      : '0%'}
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
+              </div>
+            </>
+          ) : (
+            <>
                 <div className="group bg-gradient-to-br from-gray-800/80 to-gray-700/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-600/30 hover:border-indigo-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/20">
                   <div className="text-sm text-gray-300 mb-2 font-medium">Total Assigned Goals</div>
                   <div className="text-3xl font-bold text-white group-hover:text-indigo-300 transition-colors">{stats.approvalProcessGoals}</div>
-                </div>
+              </div>
                 <div className="group bg-gradient-to-br from-gray-800/80 to-gray-700/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-600/30 hover:border-amber-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-amber-500/20">
                   <div className="text-sm text-amber-400 mb-2 font-medium">Pending</div>
                   <div className="text-3xl font-bold text-white group-hover:text-amber-300 transition-colors">{stats.employeeGoals.pending}</div>
-                </div>
+              </div>
                 <div className="group bg-gradient-to-br from-gray-800/80 to-gray-700/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-600/30 hover:border-emerald-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-emerald-500/20">
                   <div className="text-sm text-emerald-400 mb-2 font-medium">Approved</div>
                   <div className="text-3xl font-bold text-white group-hover:text-emerald-300 transition-colors">{stats.employeeGoals.approved}</div>
-                </div>
+              </div>
                 <div className="group bg-gradient-to-br from-gray-800/80 to-gray-700/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-600/30 hover:border-rose-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-rose-500/20">
                   <div className="text-sm text-rose-400 mb-2 font-medium">Rejected</div>
                   <div className="text-3xl font-bold text-white group-hover:text-rose-300 transition-colors">{stats.employeeGoals.rejected}</div>
-                </div>
+              </div>
                 <div className="group bg-gradient-to-br from-gray-800/80 to-gray-700/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-600/30 hover:border-indigo-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-indigo-500/20 col-span-2">
                   <div className="text-sm text-indigo-400 mb-2 font-medium">Completion Rate</div>
                   <div className="text-3xl font-bold text-white group-hover:text-indigo-300 transition-colors">
-                    {stats.approvalProcessGoals > 0
-                      ? `${Math.round((stats.employeeGoals.approved / stats.approvalProcessGoals) * 100)}%`
-                      : '0%'}
-                  </div>
+                  {stats.approvalProcessGoals > 0
+                    ? `${Math.round((stats.employeeGoals.approved / stats.approvalProcessGoals) * 100)}%`
+                    : '0%'}
                 </div>
-              </>
-            )}
+              </div>
+            </>
+          )}
           </div>
         </div>
       </div>

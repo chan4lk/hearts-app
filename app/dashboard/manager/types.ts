@@ -52,15 +52,6 @@ export interface DashboardStats {
     modified: number;
     completed: number;
   };
-  personalGoals: {
-    total: number;
-    draft: number;
-    pending: number;
-    approved: number;
-    rejected: number;
-    modified: number;
-    completed: number;
-  };
   employeeCount: number;
   activeEmployees: number;
   approvalProcessGoals: number;

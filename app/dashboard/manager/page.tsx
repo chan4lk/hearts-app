@@ -37,11 +37,11 @@ export default function ManagerDashboard() {
   const [employees, setEmployees] = useState<EmployeeStats[]>([]);
   const [employeeCounts, setEmployeeCounts] = useState({ total: 0, active: 0 });
   const [selectedGoalDetails, setSelectedGoalDetails] = useState<Goal | null>(null);
-  const [activeTab, setActiveTab] = useState<'employee' | 'personal' | 'assigned'>('employee');
+  const [activeTab, setActiveTab] = useState<'employee' | 'assigned'>('employee');
   const { data: session } = useSession();
   const router = useRouter();
 
-  // Calculate statistics for both employee goals and personal goals
+  // Calculate statistics for employee goals and assigned goals
   const stats: DashboardStats = {
     employeeGoals: {
       total: goals.filter(g => g.employee.email !== session?.user?.email && !g.isApprovalProcess).length,
@@ -51,15 +51,6 @@ export default function ManagerDashboard() {
       rejected: goals.filter(g => g.employee.email !== session?.user?.email && !g.isApprovalProcess && g.status === 'REJECTED').length,
       modified: goals.filter(g => g.employee.email !== session?.user?.email && !g.isApprovalProcess && g.status === 'MODIFIED').length,
       completed: goals.filter(g => g.employee.email !== session?.user?.email && !g.isApprovalProcess && g.status === 'COMPLETED').length,
-    },
-    personalGoals: {
-      total: goals.filter(g => g.employee.email === session?.user?.email).length,
-      draft: goals.filter(g => g.employee.email === session?.user?.email && g.status === 'DRAFT').length,
-      pending: goals.filter(g => g.employee.email === session?.user?.email && g.status === 'PENDING').length,
-      approved: goals.filter(g => g.employee.email === session?.user?.email && g.status === 'APPROVED').length,
-      rejected: goals.filter(g => g.employee.email === session?.user?.email && g.status === 'REJECTED').length,
-      modified: goals.filter(g => g.employee.email === session?.user?.email && g.status === 'MODIFIED').length,
-      completed: goals.filter(g => g.employee.email === session?.user?.email && g.status === 'COMPLETED').length,
     },
     employeeCount: employeeCounts.total,
     activeEmployees: employeeCounts.active,
@@ -150,8 +141,6 @@ export default function ManagerDashboard() {
     // Filter based on active tab
     if (activeTab === 'assigned') {
       return matchesSearch && matchesStatus && goal.managerId === session?.user?.id;
-    } else if (activeTab === 'personal') {
-      return matchesSearch && matchesStatus && goal.employee.email === session?.user?.email;
     } else {
       // Employee goals tab
       return matchesSearch && matchesStatus && matchesEmployee && 
@@ -245,21 +234,6 @@ export default function ManagerDashboard() {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => setActiveTab('personal')}
-                className={`py-3 px-4 font-medium transition-all duration-300 text-center sm:text-left rounded-xl ${
-                  activeTab === 'personal'
-                    ? 'text-white bg-gradient-to-r from-indigo-500 to-indigo-600 shadow-lg'
-                    : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <BsBriefcase className="w-4 h-4" />
-                  My All Goals
-                </div>
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveTab('assigned')}
                 className={`py-3 px-4 font-medium transition-all duration-300 text-center sm:text-left rounded-xl ${
                   activeTab === 'assigned'
@@ -269,7 +243,7 @@ export default function ManagerDashboard() {
               >
                 <div className="flex items-center gap-2">
                   <BsCheckCircle className="w-4 h-4" />
-                  Assigned Goals
+                  Self Assigned Goals
                 </div>
               </motion.button>
             </div>

@@ -170,6 +170,9 @@ function ManagerGoalSettingPageContent() {
         console.error('Error fetching assigned employees:', error);
         setError(error instanceof Error ? error : new Error('Failed to load assigned employees'));
         toast.error('Failed to load assigned employees');
+      } finally {
+        // Set loading to false even if there are no assigned employees
+        setLoading(false);
       }
     };
 
@@ -208,15 +211,13 @@ function ManagerGoalSettingPageContent() {
             return acc;
           }, {})
         }));
-        
-        setLoading(false);
       } catch (error) {
         console.error('Error fetching goals:', error);
         toast.error('Failed to load goals');
-        setLoading(false);
       }
     };
 
+    // Only fetch goals if we have assigned employees, but don't block loading state
     if (assignedEmployees.length > 0) {
       fetchGoals();
     }
