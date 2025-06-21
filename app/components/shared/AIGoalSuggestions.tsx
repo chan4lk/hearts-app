@@ -9,12 +9,14 @@ interface AIGoalSuggestionsProps {
   category: string;
   onSuggestionSelect: (suggestion: { title: string; description: string }) => void;
   context?: string;
+  onGenerate?: () => void;
 }
 
 export function AIGoalSuggestions({
   category,
   onSuggestionSelect,
-  context
+  context,
+  onGenerate
 }: AIGoalSuggestionsProps) {
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<{ title: string; description: string }[]>([]);
@@ -36,6 +38,9 @@ export function AIGoalSuggestions({
 
       const data = await response.json();
       setSuggestions(data.suggestions);
+      if (onGenerate) {
+        onGenerate();
+      }
     } catch (error) {
       console.error('Error generating suggestions:', error);
       toast.error('Failed to generate goal suggestions');

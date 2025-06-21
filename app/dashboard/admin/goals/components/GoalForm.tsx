@@ -105,11 +105,11 @@ export function GoalForm({
 
   const handleReset = () => {
     setFormData({
-      title: '',
-      description: '',
-      category: 'PROFESSIONAL',
-      dueDate: new Date().toISOString().split('T')[0],
-      employeeId: '',
+      title: initialData.title,
+      description: initialData.description,
+      category: initialData.category,
+      dueDate: initialData.dueDate,
+      employeeId: initialData.employeeId,
       context: ''
     });
     setErrors({});
@@ -118,14 +118,9 @@ export function GoalForm({
   const scrollToAISection = () => {
     setTimeout(() => {
       if (aiSectionRef.current) {
-        const yOffset = -50;
-        const element = aiSectionRef.current;
-        const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.pageYOffset + yOffset;
-        
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: 'smooth'
+        aiSectionRef.current.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'center'
         });
       }
     }, 100); // Small delay to ensure content is rendered
@@ -313,7 +308,7 @@ export function GoalForm({
                   category={formData.category}
                   context={formData.context}
                   onSuggestionSelect={handleSuggestionSelect}
-                  onGenerateClick={scrollToAISection}
+                  onGenerate={scrollToAISection}
                 />
               </div>
             </div>
@@ -329,6 +324,16 @@ export function GoalForm({
               className="bg-slate-800/50 hover:bg-slate-700/50 border-slate-600/50 text-slate-200 text-[10px] h-7 rounded-xl transition-all duration-200 hover:border-slate-500/50 w-full"
             >
               <BsArrowCounterclockwise className="h-2.5 w-2.5 mr-1" /> Reset
+            </Button>
+            
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={loading}
+              className="bg-slate-800/50 hover:bg-slate-700/50 border-slate-600/50 text-slate-200 text-[10px] h-7 rounded-xl transition-all duration-200 hover:border-slate-500/50 w-full"
+            >
+              Cancel
             </Button>
             <Button
               type="submit"
@@ -346,15 +351,6 @@ export function GoalForm({
                   <span>Save</span>
                 </div>
               )}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={loading}
-              className="bg-slate-800/50 hover:bg-slate-700/50 border-slate-600/50 text-slate-200 text-[10px] h-7 rounded-xl transition-all duration-200 hover:border-slate-500/50 w-full"
-            >
-              Cancel
             </Button>
           </div>
 
