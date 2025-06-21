@@ -172,7 +172,31 @@ function AdminGoalSettingPageContent() {
       const responseData = await response.json();
       setGoals(prevGoals => [responseData.goal, ...prevGoals]);
       setIsCreateModalOpen(false);
-      toast.success('Goal created successfully as draft');
+      toast.success('🎯 Goal created successfully!', {
+        description: 'Your goal has been created and is ready for review.',
+        duration: 4000,
+        position: 'top-center',
+        style: {
+          background: 'rgba(30, 32, 40, 0.95)',
+          color: '#fff',
+          border: '1px solid rgba(34, 197, 94, 0.3)',
+          borderRadius: '16px',
+          padding: '20px 24px',
+          fontSize: '16px',
+          fontWeight: '600',
+          textAlign: 'center',
+          width: 'auto',
+          maxWidth: '450px',
+          margin: '0 auto',
+          backdropFilter: 'blur(20px)',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          borderLeft: '4px solid #22c55e'
+        },
+        className: 'goal-success-toast'
+      });
     } catch (error) {
       console.error('Error creating goal:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to create goal');
@@ -208,7 +232,31 @@ function AdminGoalSettingPageContent() {
 
       setIsEditModalOpen(false);
       setSelectedGoal(null);
-      toast.success('Goal updated successfully');
+      toast.success('✅ Goal updated successfully!', {
+        description: 'Your goal has been updated with the new information.',
+        duration: 4000,
+        position: 'top-center',
+        style: {
+          background: 'rgba(30, 32, 40, 0.95)',
+          color: '#fff',
+          border: '1px solid rgba(34, 197, 94, 0.3)',
+          borderRadius: '16px',
+          padding: '20px 24px',
+          fontSize: '16px',
+          fontWeight: '600',
+          textAlign: 'center',
+          width: 'auto',
+          maxWidth: '450px',
+          margin: '0 auto',
+          backdropFilter: 'blur(20px)',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          borderLeft: '4px solid #22c55e'
+        },
+        className: 'goal-success-toast'
+      });
     } catch (error) {
       console.error('Error updating goal:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to update goal');
@@ -238,7 +286,31 @@ function AdminGoalSettingPageContent() {
       }
 
       setGoals(prevGoals => prevGoals.filter(goal => goal.id !== goalToDelete.id));
-      toast.success('Goal deleted successfully');
+      toast.success('🗑️ Goal deleted successfully!', {
+        description: 'The goal has been permanently removed from the system.',
+        duration: 4000,
+        position: 'top-center',
+        style: {
+          background: 'rgba(30, 32, 40, 0.95)',
+          color: '#fff',
+          border: '1px solid rgba(34, 197, 94, 0.3)',
+          borderRadius: '16px',
+          padding: '20px 24px',
+          fontSize: '16px',
+          fontWeight: '600',
+          textAlign: 'center',
+          width: 'auto',
+          maxWidth: '450px',
+          margin: '0 auto',
+          backdropFilter: 'blur(20px)',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          borderLeft: '4px solid #22c55e'
+        },
+        className: 'goal-success-toast'
+      });
     } catch (error) {
       console.error('Error deleting goal:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to delete goal');
@@ -635,22 +707,22 @@ export default function AdminGoalSettingPage() {
               background: 'rgba(30, 32, 40, 0.95)',
               color: '#fff',
               border: '1px solid rgba(45, 55, 72, 0.5)',
-              borderRadius: '12px',
-              padding: '16px 24px',
-              fontSize: '14px',
-              fontWeight: '500',
+              borderRadius: '16px',
+              padding: '20px 24px',
+              fontSize: '16px',
+              fontWeight: '600',
               textAlign: 'center',
               width: 'auto',
-              maxWidth: '400px',
+              maxWidth: '450px',
               margin: '0 auto',
-              backdropFilter: 'blur(10px)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
               display: 'flex',
               alignItems: 'center',
-              gap: '12px'
+              gap: '16px'
             },
-            duration: 3000,
-            className: 'toast-message'
+            duration: 4000,
+            className: 'modern-toast'
           }}
         />
         <AdminGoalSettingPageContent />

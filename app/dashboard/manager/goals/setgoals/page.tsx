@@ -284,17 +284,29 @@ function ManagerGoalSettingPageContent() {
       });
       
       setTimeout(() => {
-        toast.success('Goal created successfully! 🎯', {
-          duration: 3000,
+        toast.success('🎯 Goal created successfully!', {
+          description: 'Your goal has been created and assigned to the employee.',
+          duration: 4000,
           position: 'top-center',
           style: {
-            background: '#1E2028',
-            color: 'white',
-            border: '1px solid #2d2f36',
-            padding: '16px',
-            borderRadius: '8px',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            background: 'rgba(30, 32, 40, 0.95)',
+            color: '#fff',
+            border: '1px solid rgba(45, 55, 72, 0.5)',
+            borderRadius: '16px',
+            padding: '20px 24px',
+            fontSize: '16px',
+            fontWeight: '600',
+            textAlign: 'center',
+            width: 'auto',
+            maxWidth: '450px',
+            margin: '0 auto',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px'
           },
+          className: 'modern-toast'
         });
       }, 100);
     } catch (error) {
@@ -373,7 +385,31 @@ function ManagerGoalSettingPageContent() {
         }, {})
       }));
 
-      toast.success('Goal updated successfully! 🎯');
+      toast.success('✅ Goal updated successfully!', {
+        description: 'Your goal has been updated with the new information.',
+        duration: 4000,
+        position: 'top-center',
+        style: {
+          background: 'rgba(30, 32, 40, 0.95)',
+          color: '#fff',
+          border: '1px solid rgba(34, 197, 94, 0.3)',
+          borderRadius: '16px',
+          padding: '20px 24px',
+          fontSize: '16px',
+          fontWeight: '600',
+          textAlign: 'center',
+          width: 'auto',
+          maxWidth: '450px',
+          margin: '0 auto',
+          backdropFilter: 'blur(20px)',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          borderLeft: '4px solid #22c55e'
+        },
+        className: 'goal-success-toast'
+      });
 
       setIsEditModalOpen(false);
       setSelectedGoal(null);
@@ -417,7 +453,31 @@ function ManagerGoalSettingPageContent() {
       setIsDeleteModalOpen(false);
       setGoalToDelete(null);
       
-      toast.success('Goal deleted successfully! 🗑️');
+      toast.success('🗑️ Goal deleted successfully!', {
+        description: 'The goal has been permanently removed from the system.',
+        duration: 4000,
+        position: 'top-center',
+        style: {
+          background: 'rgba(30, 32, 40, 0.95)',
+          color: '#fff',
+          border: '1px solid rgba(34, 197, 94, 0.3)',
+          borderRadius: '16px',
+          padding: '20px 24px',
+          fontSize: '16px',
+          fontWeight: '600',
+          textAlign: 'center',
+          width: 'auto',
+          maxWidth: '450px',
+          margin: '0 auto',
+          backdropFilter: 'blur(20px)',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          borderLeft: '4px solid #22c55e'
+        },
+        className: 'goal-success-toast'
+      });
     } catch (error) {
       console.error('Error deleting goal:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to delete goal');
@@ -730,15 +790,26 @@ function ManagerGoalSettingPageContent() {
         <Toaster 
           position="top-center"
           toastOptions={{
-            duration: 3000,
+            duration: 4000,
             style: {
-              background: '#1E2028',
-              color: 'white',
-              border: '1px solid #2d2f36',
-              padding: '16px',
-              borderRadius: '8px',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+              background: 'rgba(30, 32, 40, 0.95)',
+              color: '#fff',
+              border: '1px solid rgba(45, 55, 72, 0.5)',
+              borderRadius: '16px',
+              padding: '20px 24px',
+              fontSize: '16px',
+              fontWeight: '600',
+              textAlign: 'center',
+              width: 'auto',
+              maxWidth: '450px',
+              margin: '0 auto',
+              backdropFilter: 'blur(20px)',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px'
             },
+            className: 'modern-toast'
           }}
         />
       </div>
