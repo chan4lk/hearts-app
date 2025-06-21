@@ -51,7 +51,7 @@ export function GoalModals({
             }
           }}
         >
-          <div className="bg-[#1a1c23] rounded-lg p-6 mt-16  w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-2xl mx-4">
             
 
             <GoalForm
@@ -92,14 +92,16 @@ export function GoalModals({
 
       {isEditModalOpen && selectedGoal && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center overflow-hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               onCloseEdit();
             }
           }}
         >
-          <div className="bg-[#1E2028] rounded-lg p-6 w-full max-w-2xl mx-4 border border-gray-800 mt-16 max-h-[85vh] overflow-y-auto">
+          <div className="w-full max-w-2xl mx-4">
+            
+
             <GoalForm
               initialData={{
                 title: selectedGoal.title,

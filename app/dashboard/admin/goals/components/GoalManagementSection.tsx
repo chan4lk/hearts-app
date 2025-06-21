@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { BsPeople, BsFilter } from 'react-icons/bs';
+import { BsPeople, BsFilter, BsEye, BsPencilSquare, BsTrash, BsThreeDotsVertical } from 'react-icons/bs';
 import { Goal, User } from '../types';
 import {
   Select,
@@ -143,24 +143,32 @@ export function GoalManagementSection({
                 <h3 className="text-sm font-medium text-gray-900 dark:text-white">{goal.title}</h3>
                 <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{goal.description}</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <button
                   onClick={() => onView(goal)}
-                  className="text-xs text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                  className="flex items-center gap-1 px-2 py-1 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
                 >
+                  <BsEye className="h-3.5 w-3.5" />
                   View
                 </button>
                 <button
                   onClick={() => onEdit(goal)}
-                  className="text-xs text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                  className="flex items-center gap-1 px-2 py-1 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
                 >
+                  <BsPencilSquare className="h-3.5 w-3.5" />
                   Edit
                 </button>
                 <button
                   onClick={() => onDelete(goal.id)}
-                  className="text-xs text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                  className="flex items-center gap-1 px-2 py-1 text-xs rounded-md text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 >
+                  <BsTrash className="h-3.5 w-3.5" />
                   Delete
+                </button>
+                <button
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-md transition-colors"
+                >
+                  <BsThreeDotsVertical className="h-3.5 w-3.5" />
                 </button>
               </div>
             </div>
