@@ -42,10 +42,27 @@
   50% { opacity: 0.25; transform: scale(1.05); }
 }
 
+@keyframes pulse-fast {
+  0%, 100% { transform: scale(0.95); }
+  50% { transform: scale(1.05); }
+}
+
 @keyframes gradient {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+@keyframes loading-dot {
+  0%, 100% { transform: translateY(0); opacity: 0.3; }
+  50% { transform: translateY(-4px); opacity: 1; }
+}
+
+@keyframes float-particle {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(10px, -10px); }
+  50% { transform: translate(0, -20px); }
+  75% { transform: translate(-10px, -10px); }
 }
 
 @layer utilities {
@@ -73,11 +90,35 @@
   .animate-pulse-medium {
     animation: pulse-medium 4s ease-in-out infinite;
   }
+  .animate-pulse-fast {
+    animation: pulse-fast 2s ease-in-out infinite;
+  }
   .animate-gradient {
     background-size: 200% 200%;
     animation: gradient 8s ease infinite;
   }
+  .animate-loading-dot-1 {
+    animation: loading-dot 1.4s ease-in-out infinite;
+  }
+  .animate-loading-dot-2 {
+    animation: loading-dot 1.4s ease-in-out infinite;
+    animation-delay: 0.2s;
+  }
+  .animate-loading-dot-3 {
+    animation: loading-dot 1.4s ease-in-out infinite;
+    animation-delay: 0.4s;
+  }
 }
+
+/* Particle animations */
+.animate-float-particle-1 { animation: float-particle 4s ease-in-out infinite; }
+.animate-float-particle-2 { animation: float-particle 4.2s ease-in-out infinite; }
+.animate-float-particle-3 { animation: float-particle 4.4s ease-in-out infinite; }
+.animate-float-particle-4 { animation: float-particle 4.6s ease-in-out infinite; }
+.animate-float-particle-5 { animation: float-particle 4.8s ease-in-out infinite; }
+.animate-float-particle-6 { animation: float-particle 5s ease-in-out infinite; }
+.animate-float-particle-7 { animation: float-particle 5.2s ease-in-out infinite; }
+.animate-float-particle-8 { animation: float-particle 5.4s ease-in-out infinite; }
 
 :root {
   --foreground-rgb: 255, 255, 255;

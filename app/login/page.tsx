@@ -6,6 +6,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import dynamic from 'next/dynamic';
+import LoadingScreen from '@/app/components/LoadingScreen';
 
 // Add dynamic import for client-side components
 const DynamicHeader = dynamic(() => import('@/components/Header'), { 
@@ -23,6 +24,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -35,6 +37,7 @@ function LoginForm() {
       sessionStorage.setItem('isRedirecting', 'true');
       
       setIsLoading(true);
+      setIsTransitioning(true);
       console.log('[Login] Starting Azure AD login process');
       
       // Get the callbackUrl from search params or determine based on role
@@ -60,6 +63,7 @@ function LoginForm() {
       console.error('[Login] Error during Azure login:', error);
       toast.error('An error occurred during Azure login');
       setIsLoading(false);
+      setIsTransitioning(false);
       // Clear the redirecting flag on error
       sessionStorage.removeItem('isRedirecting');
     }
@@ -73,6 +77,7 @@ function LoginForm() {
     if (error) {
       console.error('[Login] Error from auth provider:', error);
       toast.error('Authentication failed. Please try again.');
+      setIsTransitioning(false);
     }
     
     // Check if we're already authenticated
@@ -86,6 +91,7 @@ function LoginForm() {
         
         if (session?.user) {
           console.log(`[Login] User authenticated with role: ${session.user.role}`);
+          setIsTransitioning(true);
           
           // Determine redirect path based on role
           let redirectPath = '/dashboard';
@@ -102,13 +108,18 @@ function LoginForm() {
           // Use direct window location change instead of router.push
           if (!sessionStorage.getItem('isRedirecting')) {
             sessionStorage.setItem('isRedirecting', 'true');
-            window.location.href = redirectPath;
+            // Add a small delay to show the loading animation
+            setTimeout(() => {
+              window.location.href = redirectPath;
+            }, 1500);
           }
         } else {
           console.log('[Login] No active session found');
+          setIsTransitioning(false);
         }
       } catch (err) {
         console.error('[Login] Error checking session:', err);
+        setIsTransitioning(false);
       }
     };
     
@@ -123,6 +134,8 @@ function LoginForm() {
 
   return (
     <main className="flex flex-col min-h-screen bg-gradient-to-br from-[#0B1120] via-[#132145] to-[#1E1B4B]">
+      {isTransitioning && <LoadingScreen />}
+      
       <Suspense fallback={<div className="h-14 bg-[#0f172a]/50 backdrop-blur-sm border-b border-indigo-500/20" />}>
         <DynamicHeader />
       </Suspense>
