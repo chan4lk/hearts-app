@@ -6,26 +6,26 @@ export const CATEGORIES: Category[] = [
   {
     value: 'PROFESSIONAL',
     label: 'Professional Development',
-    icon: <BsBriefcase className="h-4 w-4" />
+    icon: BsBriefcase
   },
   {
     value: 'PERFORMANCE',
     label: 'Performance',
-    icon: <BsLightningCharge className="h-4 w-4" />
+    icon: BsLightningCharge
   },
   {
     value: 'GROWTH',
     label: 'Growth',
-    icon: <BsGraphUp className="h-4 w-4" />
+    icon: BsGraphUp
   },
   {
     value: 'LEARNING',
     label: 'Learning',
-    icon: <BsBook className="h-4 w-4" />
+    icon: BsBook
   },
   {
     value: 'WELLBEING',
     label: 'Wellbeing',
-    icon: <BsHeart className="h-4 w-4" />
+    icon: BsHeart
   }
 ]; 

@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
+import { SelfCreateGoalModal } from '@/app/components/shared/SelfCreateGoalModal';
 import { 
   BsCalendar, 
   BsListTask, 
@@ -231,8 +232,8 @@ function GoalsPageContent() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (goalData: { title: string; description: string; dueDate: string; category: string }) => {
+    console.log('Submitting goal data:', goalData);
     setLoading(true);
 
     try {
@@ -242,17 +243,26 @@ function GoalsPageContent() {
       
       const method = selectedGoal ? 'PUT' : 'POST';
       
+      console.log('Making request to:', url, 'with method:', method);
+      
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(newGoal)
+        body: JSON.stringify(goalData)
       });
 
+      console.log('Response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error(`Failed to ${selectedGoal ? 'update' : 'create'} goal`);
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+        throw new Error(`Failed to ${selectedGoal ? 'update' : 'create'} goal: ${errorData.error || response.statusText}`);
       }
+
+      const result = await response.json();
+      console.log('Success response:', result);
 
       setIsCreateModalOpen(false);
       showNotificationWithTimeout(
@@ -270,7 +280,7 @@ function GoalsPageContent() {
     } catch (error) {
       console.error('Error submitting goal:', error);
       showNotificationWithTimeout(
-        `Failed to ${selectedGoal ? 'update' : 'create'} goal`,
+        `Failed to ${selectedGoal ? 'update' : 'create'} goal: ${error instanceof Error ? error.message : 'Unknown error'}`,
         'error'
       );
     } finally {
@@ -688,6 +698,16 @@ function GoalsPageContent() {
           </motion.div>
         </div>
       </div>
+
+      {/* Create Goal Modal */}
+      <SelfCreateGoalModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleSubmit}
+        loading={loading}
+        goal={newGoal}
+        setGoal={setNewGoal}
+      />
     </DashboardLayout>
   );
 }

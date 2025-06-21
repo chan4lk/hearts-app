@@ -3,9 +3,37 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BsListTask, BsCalendar, BsX, BsArrowCounterclockwise, BsRobot, BsLightning } from 'react-icons/bs';
-import { CATEGORIES } from '@/app/dashboard/manager/goals/create/constants';
+import { BsListTask, BsCalendar, BsX, BsArrowCounterclockwise, BsRobot, BsLightning, BsBriefcase, BsLightningCharge, BsGraphUp, BsBook, BsHeart } from 'react-icons/bs';
 import { AIGoalSuggestions } from '@/app/components/shared/AIGoalSuggestions';
+
+// Define categories that match the Prisma schema
+const CATEGORIES = [
+  {
+    value: 'PROFESSIONAL',
+    label: 'Professional Development',
+    icon: BsBriefcase
+  },
+  {
+    value: 'TECHNICAL',
+    label: 'Technical Skills',
+    icon: BsLightningCharge
+  },
+  {
+    value: 'LEADERSHIP',
+    label: 'Leadership',
+    icon: BsGraphUp
+  },
+  {
+    value: 'PERSONAL',
+    label: 'Personal Growth',
+    icon: BsHeart
+  },
+  {
+    value: 'TRAINING',
+    label: 'Training',
+    icon: BsBook
+  }
+];
 
 export interface SelfCreateGoalModalProps {
   isOpen: boolean;
