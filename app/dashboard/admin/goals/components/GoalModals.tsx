@@ -51,7 +51,7 @@ export function GoalModals({
             }
           }}
         >
-          <div className="bg-[#1a1c23] rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#1a1c23] rounded-lg p-6 mt-16  w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
             
 
             <GoalForm
@@ -99,7 +99,7 @@ export function GoalModals({
             }
           }}
         >
-          <div className="bg-[#1E2028] rounded-lg p-6 w-full max-w-2xl mx-4 border border-gray-800">
+          <div className="bg-[#1E2028] rounded-lg p-6 w-full max-w-2xl mx-4 border border-gray-800 mt-16">
             
 
             <GoalForm

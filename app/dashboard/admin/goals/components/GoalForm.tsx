@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { User } from '../types';
 import { CATEGORIES } from '../constants';
 import { Input } from '@/components/ui/input';
@@ -70,6 +70,7 @@ export function GoalForm({
   loading,
   title
 }: GoalFormProps) {
+  const aiSectionRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState({
     title: initialData.title,
     description: initialData.description,
@@ -114,6 +115,22 @@ export function GoalForm({
     setErrors({});
   };
 
+  const scrollToAISection = () => {
+    setTimeout(() => {
+      if (aiSectionRef.current) {
+        const yOffset = -50;
+        const element = aiSectionRef.current;
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset + yOffset;
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
+    }, 100); // Small delay to ensure content is rendered
+  };
+
   const handleSuggestionSelect = (suggestion: { title: string; description: string }) => {
     setFormData(prev => ({
       ...prev,
@@ -128,66 +145,67 @@ export function GoalForm({
   };
 
   return (
-    <div className="">
+    <div className="bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 rounded-xl shadow-lg border border-slate-700/50 overflow-hidden ">
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-2.5 bg-[#4a5681]/90 rounded-t-lg">
-        <div className="p-1.5 rounded-md bg-[#c3935a]">
-          <BsListTask className="w-3.5 h-3.5 text-white" />
+      <div className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-indigo-600/90 to-purple-600/90 border-b border-slate-700/30">
+        <div className="p-1 rounded-lg bg-white/20 backdrop-blur-sm">
+          <BsListTask className="w-3 h-3 text-white" />
         </div>
-        <h2 className="text-sm font-medium text-white tracking-wide">{title}</h2>
+        <h2 className="text-xs font-semibold text-white tracking-wide">{title}</h2>
       </div>
 
       {/* Form */}
-      <div className="bg-[#4a5681]/80 rounded-b-lg">
-        <form onSubmit={handleSubmit} className="flex flex-col">
-          {/* Main Form Fields - Always Visible */}
-          <div className="p-4 space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-              {/* Title Field - Full Width */}
-              <div className="lg:col-span-2 space-y-1">
-                <label className="text-[10px] font-medium text-gray-300 flex items-center gap-1">
-                  <BsListTask className="h-2.5 w-2.5" /> Title
+      <div className="p-3">
+        <form onSubmit={handleSubmit} className="space-y-3">
+          {/* Main Form Fields - Two Column Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            {/* Left Column */}
+            <div className="space-y-3">
+              {/* Title Field */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-medium text-slate-200 flex items-center gap-1">
+                  <BsListTask className="h-3 w-3 text-indigo-400" /> Goal Title
                 </label>
                 <div className="relative">
                   <Input
                     value={formData.title}
                     onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                     placeholder="Enter goal title"
-                    className={`bg-[#1e1f23] border-gray-700/50 text-white text-xs h-8 rounded-md focus:border-amber-500/50 focus:ring-amber-500/20 ${
-                      errors.title ? 'border-red-500/50' : ''
+                    className={`bg-slate-800/50 border-slate-600/50 text-white text-[10px] h-7 rounded-lg focus:border-indigo-400/50 focus:ring-indigo-400/20 transition-all duration-200 ${
+                      errors.title ? 'border-red-400/50 ring-red-400/20' : ''
                     }`}
                   />
-                  {errors.title && <BsXCircle className="absolute right-2 top-1/2 -translate-y-1/2 h-3 w-3 text-red-400" />}
+                  {errors.title && <BsXCircle className="absolute right-1.5 top-1/2 -translate-y-1/2 h-2.5 w-2.5 text-red-400" />}
                 </div>
                 {errors.title && (
-                  <p className="text-[10px] text-red-400 flex items-center gap-1 bg-red-900/10 px-1.5 py-0.5 rounded">
-                    <BsInfoCircle className="h-2.5 w-2.5" /> {errors.title}
+                  <p className="text-[8px] text-red-300 flex items-center gap-0.5 bg-red-900/20 px-1.5 py-0.5 rounded-lg border border-red-800/30">
+                    <BsInfoCircle className="h-2 w-2" /> {errors.title}
                   </p>
                 )}
               </div>
 
               {/* Category Field */}
               <div className="space-y-1">
-                <label className="text-[10px] font-medium text-gray-300 flex items-center gap-1">
-                  <BsTag className="h-2.5 w-2.5" /> Category
+                <label className="text-[10px] font-medium text-slate-200 flex items-center gap-1">
+                  <BsTag className="h-3 w-3 text-emerald-400" /> Category
                 </label>
                 <Select
                   value={formData.category}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
                 >
-                  <SelectTrigger className={`bg-[#1e1f23] border-gray-700/50 text-white text-xs h-8 rounded-md focus:border-amber-500/50 focus:ring-amber-500/20 ${
-                    errors.category ? 'border-red-500/50' : ''
+                  <SelectTrigger className={`bg-slate-800/50 border-slate-600/50 text-white text-[10px] h-7 rounded-lg focus:border-emerald-400/50 focus:ring-emerald-400/20 transition-all duration-200 ${
+                    errors.category ? 'border-red-400/50 ring-red-400/20' : ''
                   }`}>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder="Choose category" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1e1f23] border-gray-700/50">
+                  <SelectContent className="bg-slate-800 border-slate-600/50 rounded-lg">
                     {CATEGORIES.map((category) => (
                       <SelectItem 
                         key={category.value} 
                         value={category.value}
-                        className="text-white text-xs hover:bg-gray-700/50"
+                        className="text-white text-[10px] hover:bg-slate-700/50 focus:bg-slate-700/50"
                       >
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1">
                           {category.value === 'PROFESSIONAL' && <BsBriefcase className="h-3 w-3 text-blue-400" />}
                           {category.value === 'TECHNICAL' && <BsLightbulb className="h-3 w-3 text-amber-400" />}
                           {category.value === 'LEADERSHIP' && <BsAward className="h-3 w-3 text-purple-400" />}
@@ -200,148 +218,149 @@ export function GoalForm({
                   </SelectContent>
                 </Select>
               </div>
+            </div>
 
+            {/* Right Column */}
+            <div className="space-y-3">
               {/* Employee Field */}
               <div className="space-y-1">
-                <label className="text-[10px] font-medium text-gray-300 flex items-center gap-1">
-                  <BsPeople className="h-2.5 w-2.5" /> Employee
+                <label className="text-[10px] font-medium text-slate-200 flex items-center gap-1">
+                  <BsPeople className="h-3 w-3 text-cyan-400" /> Assign To
                 </label>
                 <Select
                   value={formData.employeeId}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, employeeId: value }))}
                 >
-                  <SelectTrigger className={`bg-[#1e1f23] border-gray-700/50 text-white text-xs h-8 rounded-md focus:border-amber-500/50 focus:ring-amber-500/20 ${
-                    errors.employeeId ? 'border-red-500/50' : ''
+                  <SelectTrigger className={`bg-slate-800/50 border-slate-600/50 text-white text-[10px] h-7 rounded-lg focus:border-cyan-400/50 focus:ring-cyan-400/20 transition-all duration-200 ${
+                    errors.employeeId ? 'border-red-400/50 ring-red-400/20' : ''
                   }`}>
                     <SelectValue placeholder="Select employee" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1e1f23] border-gray-700/50 max-h-40">
+                  <SelectContent className="bg-slate-800 border-slate-600/50 max-h-24 rounded-lg">
                     {users
                       .filter(user => user.role !== 'ADMIN')
                       .map((user) => (
                         <SelectItem 
                           key={user.id} 
                           value={user.id}
-                          className="text-white text-xs hover:bg-gray-700/50"
+                          className="text-white text-[10px] hover:bg-slate-700/50 focus:bg-slate-700/50"
                         >
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1">
                             {user.role === 'EMPLOYEE' && <BsPeople className="h-3 w-3 text-blue-400" />}
                             {user.role === 'MANAGER' && <BsStars className="h-3 w-3 text-purple-400" />}
-                            <span className="font-medium truncate">{user.name}</span>
-                            <span className="text-[10px] text-gray-400 truncate">({user.email})</span>
+                            <span className="font-medium">{user.name}</span>
+                            <span className="text-[8px] text-slate-400">({user.email})</span>
                           </div>
                         </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-              {/* Description Field - Wider */}
-              <div className="lg:col-span-3 space-y-1">
-                <label className="text-[10px] font-medium text-gray-300 flex items-center gap-1">
-                  <BsListTask className="h-2.5 w-2.5" /> Description
-                </label>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Describe the goal details..."
-                  className={`bg-[#1e1f23] border-gray-700/50 text-white text-xs h-20 rounded-md focus:border-amber-500/50 focus:ring-amber-500/20 resize-none ${
-                    errors.description ? 'border-red-500/50' : ''
-                  }`}
-                />
-              </div>
 
               {/* Due Date Field */}
               <div className="space-y-1">
-                <label className="text-[10px] font-medium text-gray-300 flex items-center gap-1">
-                  <BsCalendar className="h-2.5 w-2.5" /> Due Date
+                <label className="text-[10px] font-medium text-slate-200 flex items-center gap-1">
+                  <BsCalendar className="h-3 w-3 text-orange-400" /> Due Date
                 </label>
                 <div className="relative">
                   <Input
                     type="date"
                     value={formData.dueDate}
                     onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
-                    className={`bg-[#1e1f23] border-gray-700/50 text-white text-xs h-8 rounded-md pl-7 focus:border-amber-500/50 focus:ring-amber-500/20 ${
-                      errors.dueDate ? 'border-red-500/50' : ''
+                    className={`bg-slate-800/50 border-slate-600/50 text-white text-[10px] h-7 rounded-lg pl-6 focus:border-orange-400/50 focus:ring-orange-400/20 transition-all duration-200 ${
+                      errors.dueDate ? 'border-red-400/50 ring-red-400/20' : ''
                     }`}
                   />
-                  <BsCalendar className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-3 w-3" />
+                  <BsCalendar className="absolute left-1.5 top-1/2 transform -translate-y-1/2 text-blue-400 h-2.5 w-2.5" />
                 </div>
               </div>
             </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-2 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleReset}
-                disabled={loading}
-                className="bg-[#1e1f23] hover:bg-gray-800/30 border-gray-700/50 text-gray-300 text-xs h-8 rounded-md px-4"
-              >
-                <BsArrowCounterclockwise className="h-2.5 w-2.5 mr-1.5" /> Reset
-              </Button>
-              <Button
-                type="submit"
-                disabled={loading}
-                className="bg-[#6366f1] hover:bg-[#5b5be6] text-white text-xs h-8 rounded-md font-medium px-4"
-              >
-                {loading ? (
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Saving...</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1.5">
-                    <BsLightning className="h-2.5 w-2.5" />
-                    <span>Save Goal</span>
-                  </div>
-                )}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onCancel}
-                disabled={loading}
-                className="bg-[#1e1f23] hover:bg-gray-800/30 border-gray-700/50 text-gray-300 text-xs h-8 rounded-md px-4"
-              >
-                Cancel
-              </Button>
-            </div>
           </div>
 
-          {/* AI Section - Scrollable */}
-          <div className="max-h-[300px] overflow-y-auto bg-[#3d4663]">
-            {/* Context Field */}
-            <div className="p-4 space-y-3">
+          {/* Description Field - Full Width */}
+          <div className="space-y-1">
+            <label className="text-[10px] font-medium text-slate-200 flex items-center gap-1">
+              <BsListTask className="h-3 w-3 text-indigo-400" /> Description
+            </label>
+            <Textarea
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              placeholder="Describe the goal..."
+              className={`bg-slate-800/50 border-slate-600/50 text-white text-[10px] h-16 rounded-lg focus:border-indigo-400/50 focus:ring-indigo-400/20 resize-none transition-all duration-200 ${
+                errors.description ? 'border-red-400/50 ring-red-400/20' : ''
+              }`}
+            />
+          </div>
+
+          {/* AI Context Section - Compact */}
+          <div ref={aiSectionRef} className="bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-xl p-2 border border-slate-600/30">
+            <div className="space-y-2">
               <div className="space-y-1">
-                <label className="text-[10px] font-medium text-blue-200/90 flex items-center gap-1">
-                  <BsStars className="h-2.5 w-2.5" /> Additional Context (Optional)
+                <label className="text-[10px] font-medium text-blue-200 flex items-center gap-1">
+                  <BsStars className="h-3 w-3 text-blue-400" /> AI Context
                 </label>
                 <Textarea
                   value={formData.context}
                   onChange={(e) => setFormData(prev => ({ ...prev, context: e.target.value }))}
-                  placeholder="Add context for AI suggestions..."
-                  className="bg-[#1e1f23] border-gray-700/50 text-white text-xs h-16 rounded-md focus:border-blue-500/50 focus:ring-blue-500/20 resize-none"
+                  placeholder="Add context for AI..."
+                  className="bg-slate-800/50 border-slate-600/50 text-white text-[10px] h-12 rounded-lg focus:border-blue-400/50 focus:ring-blue-400/20 resize-none transition-all duration-200"
                 />
               </div>
 
               {/* AI Suggestions */}
-              <div className="bg-[#1e1f23] rounded-md p-3 border border-blue-500/10">
+              <div className="bg-slate-800/70 rounded-xl p-2 border border-blue-500/20">
                 <AIGoalSuggestions
                   category={formData.category}
                   context={formData.context}
                   onSuggestionSelect={handleSuggestionSelect}
+                  onGenerateClick={scrollToAISection}
                 />
               </div>
             </div>
           </div>
 
+          {/* Action Buttons - Full Width */}
+          <div className="grid grid-cols-3 gap-2 pt-1">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleReset}
+              disabled={loading}
+              className="bg-slate-800/50 hover:bg-slate-700/50 border-slate-600/50 text-slate-200 text-[10px] h-7 rounded-xl transition-all duration-200 hover:border-slate-500/50 w-full"
+            >
+              <BsArrowCounterclockwise className="h-2.5 w-2.5 mr-1" /> Reset
+            </Button>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-[10px] h-7 rounded-xl font-medium transition-all duration-200 shadow-md hover:shadow-lg w-full"
+            >
+              {loading ? (
+                <div className="flex items-center gap-1">
+                  <div className="w-2.5 h-2.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Saving...</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1">
+                  <BsLightning className="h-2.5 w-2.5" />
+                  <span>Save</span>
+                </div>
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={loading}
+              className="bg-slate-800/50 hover:bg-slate-700/50 border-slate-600/50 text-slate-200 text-[10px] h-7 rounded-xl transition-all duration-200 hover:border-slate-500/50 w-full"
+            >
+              Cancel
+            </Button>
+          </div>
+
           {errors.submit && (
-            <Alert variant="destructive" className="m-4 bg-red-900/30 border-red-800/30 py-1.5">
-              <AlertDescription className="text-xs text-red-200">{errors.submit}</AlertDescription>
+            <Alert variant="destructive" className="bg-red-900/30 border-red-800/30 py-1.5 rounded-xl">
+              <AlertDescription className="text-[10px] text-red-200">{errors.submit}</AlertDescription>
             </Alert>
           )}
         </form>
