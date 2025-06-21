@@ -84,28 +84,7 @@ export function GoalModal({ goal, onClose, onEdit, onDelete }: GoalModalProps) {
         </div>
 
         <div className="flex justify-end space-x-4 pt-6">
-          <Button
-            variant="outline"
-            onClick={() => {
-              onClose();
-              onEdit(goal);
-            }}
-            className="bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
-          >
-            <BsPencil className="h-4 w-4 mr-2" />
-            Edit Goal
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={() => {
-              onClose();
-              onDelete(goal.id);
-            }}
-            className="bg-red-900/20 text-red-400 hover:bg-red-900/40"
-          >
-            <BsTrash className="h-4 w-4 mr-2" />
-            Delete Goal
-          </Button>
+          
         </div>
       </div>
     </div>

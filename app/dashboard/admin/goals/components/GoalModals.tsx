@@ -44,7 +44,7 @@ export function GoalModals({
     <>
       {isCreateModalOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center "
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               onCloseCreate();
@@ -52,15 +52,7 @@ export function GoalModals({
           }}
         >
           <div className="bg-[#1a1c23] rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-white">Create New Goal</h2>
-              <button
-                onClick={onCloseCreate}
-                className="text-gray-400 hover:text-white"
-              >
-                ×
-              </button>
-            </div>
+            
 
             <GoalForm
               users={users}
@@ -108,15 +100,7 @@ export function GoalModals({
           }}
         >
           <div className="bg-[#1E2028] rounded-lg p-6 w-full max-w-2xl mx-4 border border-gray-800">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-white">Edit Goal</h2>
-              <button
-                onClick={onCloseEdit}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                ×
-              </button>
-            </div>
+            
 
             <GoalForm
               initialData={{
