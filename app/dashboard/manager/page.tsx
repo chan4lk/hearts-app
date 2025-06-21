@@ -201,44 +201,14 @@ export default function ManagerDashboard() {
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
         </div>
 
-        <div className="relative z-10 p-6 space-y-8">
+        <div className=" ">
           {/* Hero Section */}
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="relative"
           >
-            <div className="bg-gradient-to-r from-indigo-600/90 via-purple-600/90 to-pink-600/90 backdrop-blur-xl rounded-3xl p-8 text-white shadow-2xl border border-white/20">
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 to-purple-600/20 rounded-3xl" />
-              <div className="relative z-10">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-                  <div>
-                    <h1 className="text-4xl lg:text-5xl font-bold mb-2 bg-gradient-to-r from-white to-indigo-100 bg-clip-text text-transparent">
-                      Manager Dashboard
-                    </h1>
-                    <p className="text-xl text-indigo-100/90">Manage and oversee team goals and performance</p>
-                  </div>
-                  <div className="mt-6 lg:mt-0 flex gap-3">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-6 py-3 flex items-center gap-2 hover:bg-white/30 transition-all duration-300"
-                    >
-                      <BsPeople className="text-lg" />
-                      Team Overview
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-6 py-3 flex items-center gap-2 hover:bg-white/30 transition-all duration-300"
-                    >
-                      <BsBarChart className="text-lg" />
-                      Analytics
-                    </motion.button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            
           </motion.div>
 
           {/* Stats Section */}
