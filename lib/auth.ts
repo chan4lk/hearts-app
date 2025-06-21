@@ -36,51 +36,35 @@ export const authOptions: NextAuthOptions = {
         params: {
           scope: "openid profile email offline_access",
           response_type: "code",
+          // Remove 'consent' to prevent asking for consent every time
+          // Only prompt when necessary
           prompt: "select_account"
         }
       },
+      // Add explicit configuration for production environment
       profile: async (profile) => {
-        console.log('[Azure AD] Profile received:', JSON.stringify(profile, null, 2));
+        console.log('Azure AD profile:', JSON.stringify(profile, null, 2));
         
-        try {
-          // Use preferred_username as email if email is not available
-          const email = profile.email || profile.preferred_username;
-          if (!email) {
-            console.error('[Azure AD] No email or preferred_username found in profile');
-            throw new Error('No email or preferred_username found in Azure AD profile');
-          }
-          
-          console.log(`[Azure AD] Processing user with email: ${email}`);
-          
-          // Always fetch or create the user in the database
-          const user = await prisma.user.upsert({
-            where: { email },
-            update: { 
-              name: profile.name,
-              lastLoginAt: new Date()
-            },
-            create: {
-              email,
-              name: profile.name,
-              password: 'azure-ad-auth', // Placeholder for Azure AD users
-              role: 'EMPLOYEE', // Default role for new users
-              isActive: true,
-              lastLoginAt: new Date()
-            },
-          });
+        // Always fetch or create the user in the database
+        const user = await prisma.user.upsert({
+          where: { email: profile.email },
+          update: { name: profile.name },
+          create: {
+            email: profile.email,
+            name: profile.name,
+            password: 'azure-ad-auth', // Placeholder for Azure AD users
+            role: 'EMPLOYEE', // Default role for new users
+          },
+        });
 
-          console.log(`[Azure AD] User processed successfully with role: ${user.role}`);
-          
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role
-          };
-        } catch (error) {
-          console.error('[Azure AD] Error in profile callback:', error);
-          throw error;
-        }
+        console.log(`User role from database: ${user.role}`);
+        
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        };
       }
     }),
     CredentialsProvider({
@@ -129,36 +113,27 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      console.log(`[signIn] Callback triggered for provider: ${account?.provider}`);
-      
       if (account?.provider === 'azure-ad') {
-        try {
-          // For Azure AD, we've already handled user creation in the profile callback
-          // Just fetch the latest user data to ensure we have the correct role
-          const dbUser = await prisma.user.findUnique({
-            where: { email: user.email },
-          });
-          
-          if (!dbUser) {
-            console.error('[signIn] User not found in database after Azure AD login');
-            return false;
-          }
-          
-          // Update the user object with the latest data from the database
-          user.id = dbUser.id;
-          user.role = dbUser.role;
-          
-          console.log(`[signIn] User logged in successfully with role: ${user.role}`);
-        } catch (error) {
-          console.error('[signIn] Error processing Azure AD sign in:', error);
+        // For Azure AD, we've already handled user creation in the profile callback
+        // Just fetch the latest user data to ensure we have the correct role
+        const dbUser = await prisma.user.findUnique({
+          where: { email: user.email },
+        });
+        
+        if (!dbUser) {
+          console.error('User not found in database after Azure AD login');
           return false;
         }
+        
+        // Update the user object with the latest data from the database
+        user.id = dbUser.id;
+        user.role = dbUser.role;
+        
+        console.log(`[signIn] User logged in with role: ${user.role}`);
       }
       return true;
     },
-    async jwt({ token, user, account }) {
-      console.log(`[jwt] JWT callback triggered for user: ${user?.email}`);
-      
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
@@ -183,8 +158,6 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      console.log(`[session] Session callback triggered for token: ${token?.id}`);
-      
       if (session.user) {
         // Ensure the session user has the correct type
         const sessionUser = session.user as User & { role?: Role };
@@ -227,31 +200,7 @@ export const authOptions: NextAuthOptions = {
   },
   cookies: {
     sessionToken: {
-      name: process.env.NODE_ENV === 'production' 
-        ? '__Secure-next-auth.session-token' 
-        : 'next-auth.session-token',
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-      }
-    },
-    callbackUrl: {
-      name: process.env.NODE_ENV === 'production' 
-        ? '__Secure-next-auth.callback-url' 
-        : 'next-auth.callback-url',
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-      }
-    },
-    csrfToken: {
-      name: process.env.NODE_ENV === 'production' 
-        ? '__Host-next-auth.csrf-token' 
-        : 'next-auth.csrf-token',
+      name: `__Secure-next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
@@ -262,14 +211,14 @@ export const authOptions: NextAuthOptions = {
   },
   logger: {
     error(code, ...message) {
-      console.error(`[NextAuth Error] ${code}:`, ...message);
+      console.error(code, message);
     },
     warn(code, ...message) {
-      console.warn(`[NextAuth Warn] ${code}:`, ...message);
+      console.warn(code, message);
     },
     debug(code, ...message) {
       if (process.env.NODE_ENV === 'development') {
-        console.debug(`[NextAuth Debug] ${code}:`, ...message);
+        console.debug(code, message);
       }
     },
   },
