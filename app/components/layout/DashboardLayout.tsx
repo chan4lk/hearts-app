@@ -211,27 +211,63 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                      className={`group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
                         isActive
-                          ? 'bg-blue-600 text-white'
-                          : 'text-gray-400 hover:bg-[#2d2f36] hover:text-white'
+                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                          : 'text-gray-400 hover:text-white'
                       }`}
                     >
-                      <item.icon className="text-xl" />
-                      <span>{item.label}</span>
+                      <span className="flex items-center space-x-3 relative z-10 w-full">
+                        {/* Background hover effect */}
+                        {!isActive && (
+                          <div className="absolute inset-0 bg-gradient-to-r from-[#2d2f36] to-[#2d2f36]/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        )}
+                        
+                        {/* Active indicator */}
+                        {isActive && (
+                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-white rounded-full" />
+                        )}
+                        
+                        {/* Icon with hover effect */}
+                        <span className="relative z-10 transition-transform duration-300 group-hover:scale-110">
+                          <item.icon className={`text-xl ${isActive ? 'transform rotate-0' : 'group-hover:rotate-6'} transition-all duration-300`} />
+                        </span>
+                        
+                        {/* Label with slide effect */}
+                        <span className="relative z-10 transform transition-transform duration-300 group-hover:translate-x-1">{item.label}</span>
+                        
+                        {/* Highlight dots for active state */}
+                        {isActive && (
+                          <>
+                            <div className="absolute top-1 right-1 w-1 h-1 bg-white rounded-full opacity-30" />
+                            <div className="absolute bottom-1 right-2 w-1 h-1 bg-white rounded-full opacity-20" />
+                          </>
+                        )}
+                      </span>
                     </Link>
                   );
                 })}
 
-                {/* Sign Out Button */}
+                {/* Sign Out Button with enhanced hover effect */}
                 <div className="pt-6 mt-6 border-t border-gray-800">
                   <button
                     onClick={handleSignOut}
-                    className="group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 text-red-400 hover:bg-red-500/10 hover:text-red-500 w-full relative overflow-hidden"
+                    className="group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 text-red-400 hover:text-red-500 w-full relative overflow-hidden"
                   >
-                    <div className="absolute inset-0 bg-red-500/0 group-hover:bg-red-500/5 transition-all duration-300"></div>
-                    <BsBoxArrowRight className="text-xl transform group-hover:translate-x-1 transition-transform duration-300" />
-                    <span className="font-medium">Sign Out</span>
+                    {/* Gradient background on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-red-500/5 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                    
+                    {/* Icon with rotation and slide effect */}
+                    <div className="relative z-10 transition-transform duration-300 group-hover:scale-110">
+                      <BsBoxArrowRight className="text-xl transform group-hover:translate-x-1 group-hover:rotate-6 transition-all duration-300" />
+                    </div>
+                    
+                    {/* Label with slide effect */}
+                    <span className="relative z-10 font-medium transform transition-transform duration-300 group-hover:translate-x-1">Sign Out</span>
+                    
+                    {/* Decorative elements */}
+                    <div className="absolute top-1 right-1 w-1 h-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
+                    <div className="absolute bottom-1 right-2 w-1 h-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
                   </button>
                 </div>
               </nav>
@@ -260,27 +296,63 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                  className={`group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
                     isActive
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-400 hover:bg-[#2d2f36] hover:text-white'
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                      : 'text-gray-400 hover:text-white'
                   }`}
                 >
-                  <item.icon className="text-xl" />
-                  <span>{item.label}</span>
+                  <span className="flex items-center space-x-3 relative z-10 w-full">
+                    {/* Background hover effect */}
+                    {!isActive && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#2d2f36] to-[#2d2f36]/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    )}
+                    
+                    {/* Active indicator */}
+                    {isActive && (
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-white rounded-full" />
+                    )}
+                    
+                    {/* Icon with hover effect */}
+                    <span className="relative z-10 transition-transform duration-300 group-hover:scale-110">
+                      <item.icon className={`text-xl ${isActive ? 'transform rotate-0' : 'group-hover:rotate-6'} transition-all duration-300`} />
+                    </span>
+                    
+                    {/* Label with slide effect */}
+                    <span className="relative z-10 transform transition-transform duration-300 group-hover:translate-x-1">{item.label}</span>
+                    
+                    {/* Highlight dots for active state */}
+                    {isActive && (
+                      <>
+                        <div className="absolute top-1 right-1 w-1 h-1 bg-white rounded-full opacity-30" />
+                        <div className="absolute bottom-1 right-2 w-1 h-1 bg-white rounded-full opacity-20" />
+                      </>
+                    )}
+                  </span>
                 </Link>
               );
             })}
 
-            {/* Sign Out Button */}
+            {/* Sign Out Button with enhanced hover effect */}
             <div className="pt-6 mt-6 border-t border-gray-800">
               <button
                 onClick={handleSignOut}
-                className="group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 text-red-400 hover:bg-red-500/10 hover:text-red-500 w-full relative overflow-hidden"
+                className="group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 text-red-400 hover:text-red-500 w-full relative overflow-hidden"
               >
-                <div className="absolute inset-0 bg-red-500/0 group-hover:bg-red-500/5 transition-all duration-300"></div>
-                <BsBoxArrowRight className="text-xl transform group-hover:translate-x-1 transition-transform duration-300" />
-                <span className="font-medium">Sign Out</span>
+                {/* Gradient background on hover */}
+                <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-red-500/5 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                
+                {/* Icon with rotation and slide effect */}
+                <div className="relative z-10 transition-transform duration-300 group-hover:scale-110">
+                  <BsBoxArrowRight className="text-xl transform group-hover:translate-x-1 group-hover:rotate-6 transition-all duration-300" />
+                </div>
+                
+                {/* Label with slide effect */}
+                <span className="relative z-10 font-medium transform transition-transform duration-300 group-hover:translate-x-1">Sign Out</span>
+                
+                {/* Decorative elements */}
+                <div className="absolute top-1 right-1 w-1 h-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
+                <div className="absolute bottom-1 right-2 w-1 h-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
               </button>
             </div>
           </nav>
