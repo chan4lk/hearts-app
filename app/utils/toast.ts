@@ -90,6 +90,27 @@ export const showToast = {
         style: errorStyle
       }),
   },
+
+  // Settings related toasts
+  settings: {
+    updated: () =>
+      toast('⚙️ Settings updated successfully', {
+        ...defaultOptions,
+        description: 'Your changes to the system settings have been saved.',
+        style: successStyle
+      }),
+    reset: () =>
+      toast('⚙️ Changes discarded', {
+        ...defaultOptions,
+        description: 'Your changes have been reverted to the last saved state.',
+        style: toastStyle
+      }),
+    error: (prefix: string, message: string) =>
+      toast(`${prefix}: ${message}`, {
+        ...defaultOptions,
+        style: errorStyle
+      }),
+  },
   
   // Generic error handler
   error: (prefix: string, error: unknown) => {

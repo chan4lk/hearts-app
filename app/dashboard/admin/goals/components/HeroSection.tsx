@@ -33,15 +33,7 @@ export function HeroSection({ onCreateClick }: HeroSectionProps) {
               className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 hover:bg-white/20 transition-all duration-200"
             >
               <BsBullseye className="text-sm" />
-              Create Goal
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 hover:bg-white/20 transition-all duration-200"
-            >
-              <BsGear className="text-sm" />
-              Settings
+               Quick Create Goal
             </motion.button>
           </div>
         </div>
