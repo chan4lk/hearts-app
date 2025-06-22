@@ -339,17 +339,21 @@ function GoalsPageContent() {
   if (loading) {
     return (
       <DashboardLayout type="employee">
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <div className="relative">
           <motion.div
             animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="relative"
-          >
-            <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full"></div>
-            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-600 rounded-full animate-pulse"></div>
-          </motion.div>
+            transition={{ duration: 3.5, repeat: Infinity, ease: "linear" }}
+            className="w-12 h-12 border-2 border-indigo-300/20 border-t-indigo-500 rounded-full"
+          />
+          <motion.div
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute inset-0 bg-indigo-500/10 rounded-full blur-xl"
+          />
         </div>
-      </DashboardLayout>
+      </div>
+    </DashboardLayout>
     );
   }
 

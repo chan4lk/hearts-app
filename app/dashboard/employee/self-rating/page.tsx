@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Goal } from "@prisma/client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -40,13 +39,27 @@ import {
   SelectGroup,
 } from "@/components/ui/select";
 
+interface Goal {
+  id: string;
+  title: string;
+  description: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED' | 'MODIFIED';
+  createdAt: Date;
+  updatedAt: Date;
+  employeeId: string;
+  managerId: string;
+}
+
+interface Rating {
+  id: string;
+  score: number;
+  comments: string;
+  updatedAt?: Date;
+  goalId: string;
+}
+
 interface GoalWithRating extends Goal {
-  rating?: {
-    id: string;
-    score: number;
-    comments: string;
-    updatedAt?: Date;
-  };
+  rating?: Rating;
 }
 
 const RATING_COLORS = {
@@ -55,7 +68,7 @@ const RATING_COLORS = {
   3: 'bg-yellow-500/10 text-yellow-400',
   4: 'bg-blue-500/10 text-blue-400',
   5: 'bg-green-500/10 text-green-400'
-};
+} as const;
 
 const RATING_LABELS = {
   1: 'Needs Improvement',
@@ -63,7 +76,7 @@ const RATING_LABELS = {
   3: 'Average',
   4: 'Above Average',
   5: 'Excellent'
-};
+} as const;
 
 const RATING_DESCRIPTIONS = {
   1: 'Performance is below expectations and needs significant improvement.',
@@ -71,7 +84,7 @@ const RATING_DESCRIPTIONS = {
   3: 'Performance meets basic expectations but could be improved.',
   4: 'Performance exceeds expectations in most areas.',
   5: 'Performance consistently exceeds expectations and demonstrates excellence.'
-};
+} as const;
 
 const RATING_HOVER_COLORS = {
   1: 'hover:bg-red-500/20 hover:text-red-300',
@@ -79,10 +92,10 @@ const RATING_HOVER_COLORS = {
   3: 'hover:bg-yellow-500/20 hover:text-yellow-300',
   4: 'hover:bg-blue-500/20 hover:text-blue-300',
   5: 'hover:bg-green-500/20 hover:text-green-300'
-};
+} as const;
 
 export default function SelfRatingPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [goals, setGoals] = useState<GoalWithRating[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,62 +107,66 @@ export default function SelfRatingPage() {
   const [ratingComments, setRatingComments] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    if (status === 'loading') return;
+
     if (!session) {
       router.push('/login');
       return;
     }
 
-    // Allow both employees and managers to access this page
     if (session.user?.role !== 'EMPLOYEE' && session.user?.role !== 'MANAGER') {
+      toast.error('You do not have permission to access this page');
       router.push('/dashboard');
       return;
     }
 
     fetchGoals();
-  }, [session, router]);
+  }, [session, router, status]);
 
   const fetchGoals = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/goals/self");
-      if (!response.ok) throw new Error("Failed to fetch goals");
-      const data = await response.json();
-      
-      if (!data.goals || !Array.isArray(data.goals)) {
-        throw new Error("Invalid response format");
+      const goalsResponse = await fetch("/api/goals/self");
+
+      if (!goalsResponse.ok) {
+        throw new Error("Failed to fetch goals");
       }
+
+      const goalsData = await goalsResponse.json();
       
-      // Transform goals to include ratings
-      const goalsWithRatings = await Promise.all(data.goals.map(async (goal: Goal) => {
-        try {
-          const ratingResponse = await fetch(`/api/goals/${goal.id}/ratings`);
-          if (ratingResponse.ok) {
-            const ratingData = await ratingResponse.json();
-            return {
-              ...goal,
-              rating: ratingData.ratings?.find((r: any) => r.selfRatedById === session?.user?.id)
-            };
-          }
-          return goal;
-        } catch (error) {
-          console.error(`Error fetching rating for goal ${goal.id}:`, error);
-          return goal;
+      if (!goalsData.goals || !Array.isArray(goalsData.goals)) {
+        throw new Error("Invalid goals response format");
+      }
+
+      // Try to fetch ratings, but don't fail if the endpoint is not available
+      let ratingsData = { ratings: [] };
+      try {
+        const ratingsResponse = await fetch("/api/goals/ratings/self");
+        if (ratingsResponse.ok) {
+          ratingsData = await ratingsResponse.json();
         }
+      } catch (error) {
+        console.warn('Failed to fetch ratings, proceeding without them:', error);
+      }
+
+      const goalsWithRatings = goalsData.goals.map((goal: Goal) => ({
+        ...goal,
+        rating: ratingsData.ratings?.find((r: Rating) => r.goalId === goal.id)
       }));
       
       setGoals(goalsWithRatings);
       toast.success("Goals loaded successfully");
     } catch (error) {
-      console.error("Error fetching goals:", error);
-      toast.error("Failed to load goals. Please try again.");
+      const message = error instanceof Error ? error.message : "Failed to load goals";
+      toast.error(message);
       setGoals([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSelfRating = async (goalId: string, value: number, comments: string = '') => {
-    if (isNaN(value)) return;
+  const handleSelfRating = async (goalId: string, value: number) => {
+    if (isNaN(value) || submitting[goalId]) return;
 
     try {
       setSubmitting(prev => ({ ...prev, [goalId]: true }));
@@ -159,7 +176,7 @@ export default function SelfRatingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           score: value,
-          comments: comments || ratingComments[goalId] || ''
+          comments: ratingComments[goalId] || ''
         })
       });
 
@@ -170,21 +187,23 @@ export default function SelfRatingPage() {
 
       const updatedRating = await response.json();
       
-      setGoals(goals.map(goal => 
-        goal.id === goalId 
-          ? { 
-              ...goal, 
-              rating: { 
-                id: updatedRating.id, 
-                score: value,
-                comments: updatedRating.comments || '',
-                updatedAt: updatedRating.updatedAt
+      setGoals(prevGoals => 
+        prevGoals.map(goal => 
+          goal.id === goalId 
+            ? { 
+                ...goal, 
+                rating: { 
+                  id: updatedRating.id, 
+                  score: value,
+                  comments: updatedRating.comments || '',
+                  updatedAt: updatedRating.updatedAt,
+                  goalId: goalId
+                } 
               } 
-            } 
-          : goal
-      ));
+            : goal
+        )
+      );
 
-      // Clear comments for this goal after successful submission
       setRatingComments(prev => {
         const newComments = { ...prev };
         delete newComments[goalId];
@@ -192,22 +211,38 @@ export default function SelfRatingPage() {
       });
 
       toast.success('Self-rating updated successfully');
-    } catch (error: any) {
-      console.error('Error updating rating:', error);
-      toast.error(error.message || 'Failed to update rating');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update rating';
+      toast.error(message);
     } finally {
       setSubmitting(prev => ({ ...prev, [goalId]: false }));
     }
   };
 
-  const filteredGoals = goals.filter(goal => {
-    if (filterStatus === 'all' && filterRating === 'all' && ratingStatus === 'all') return true;
-    if (filterStatus !== 'all' && goal.status !== filterStatus) return false;
-    if (filterRating !== 'all' && goal.rating?.score !== parseInt(filterRating)) return false;
-    if (ratingStatus === 'rated' && !goal.rating) return false;
-    if (ratingStatus === 'unrated' && goal.rating) return false;
-    return true;
-  });
+  const filteredGoals = useMemo(() => {
+    return goals.filter(goal => {
+      const matchesStatus = filterStatus === 'all' || goal.status === filterStatus;
+      const matchesRating = filterRating === 'all' || goal.rating?.score === parseInt(filterRating);
+      const matchesRatingStatus = 
+        ratingStatus === 'all' || 
+        (ratingStatus === 'rated' && goal.rating) || 
+        (ratingStatus === 'unrated' && !goal.rating);
+      
+      return matchesStatus && matchesRating && matchesRatingStatus;
+    });
+  }, [goals, filterStatus, filterRating, ratingStatus]);
+
+  const stats = useMemo(() => {
+    const ratedGoals = goals.filter(g => g.rating?.score);
+    const totalRating = ratedGoals.reduce((acc, goal) => acc + (goal.rating?.score || 0), 0);
+    const averageRating = ratedGoals.length > 0 ? (totalRating / ratedGoals.length).toFixed(1) : '0.0';
+
+    return {
+      total: goals.length,
+      rated: ratedGoals.length,
+      average: averageRating
+    };
+  }, [goals]);
 
   const getLayoutType = (role?: string): "manager" | "employee" | "admin" => {
     if (!role) return "employee";
@@ -221,15 +256,19 @@ export default function SelfRatingPage() {
   if (loading) {
     return (
       <DashboardLayout type={getLayoutType(session?.user?.role)}>
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="relative"
-          >
-            <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full"></div>
-            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-600 rounded-full animate-pulse"></div>
-          </motion.div>
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+          <div className="relative">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+              className="w-12 h-12 border-2 border-indigo-300/20 border-t-indigo-500 rounded-full"
+            />
+            <motion.div
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="absolute inset-0 bg-indigo-500/10 rounded-full blur-xl"
+            />
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -320,7 +359,7 @@ export default function SelfRatingPage() {
                   <span className="text-lg font-semibold text-gray-900 dark:text-white">Total Goals</span>
                 </div>
                 <div className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {goals.length}
+                  {stats.total}
                 </div>
               </div>
             </motion.div>
@@ -334,7 +373,7 @@ export default function SelfRatingPage() {
                   <span className="text-lg font-semibold text-gray-900 dark:text-white">Rated Goals</span>
                 </div>
                 <div className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {goals.filter(g => g.rating?.score).length}
+                  {stats.rated}
                 </div>
               </div>
             </motion.div>
@@ -348,9 +387,7 @@ export default function SelfRatingPage() {
                   <span className="text-lg font-semibold text-gray-900 dark:text-white">Average Rating</span>
                 </div>
                 <div className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {goals.length > 0
-                    ? (goals.reduce((acc, goal) => acc + (goal.rating?.score || 0), 0) / goals.length).toFixed(1)
-                    : '0.0'}
+                  {stats.average}
                 </div>
               </div>
             </motion.div>

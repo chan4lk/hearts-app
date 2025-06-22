@@ -1,6 +1,9 @@
-import { useState } from 'react';
-import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield } from 'react-icons/bs';
+import { useState, useRef, useEffect } from 'react';
+import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, BsArrowRight } from 'react-icons/bs';
 import { Goal } from './types';
+import { IconType } from 'react-icons';
+import { showToast } from '@/app/utils/toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface GoalDetailModalProps {
   goal: Goal;
@@ -8,124 +11,239 @@ interface GoalDetailModalProps {
   onSubmitGoal: (goalId: string) => Promise<void>;
 }
 
+type StatusConfig = {
+  bgColor: string;
+  textColor: string;
+  icon: IconType;
+  label: string;
+};
+
 export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDetailModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
 
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [onClose]);
+
+  const getStatusConfig = (status: string): StatusConfig => {
+    const configs: Record<string, StatusConfig> = {
+      APPROVED: { bgColor: 'bg-emerald-500/20', textColor: 'text-emerald-400', icon: BsCheckCircle, label: 'Approved' },
+      REJECTED: { bgColor: 'bg-rose-500/20', textColor: 'text-rose-400', icon: BsXCircle, label: 'Rejected' },
+      COMPLETED: { bgColor: 'bg-blue-500/20', textColor: 'text-blue-400', icon: BsCheckCircle, label: 'Completed' },
+      MODIFIED: { bgColor: 'bg-amber-500/20', textColor: 'text-amber-400', icon: BsClock, label: 'Modified' },
+      PENDING: { bgColor: 'bg-amber-500/20', textColor: 'text-amber-400', icon: BsClock, label: 'Pending' }
+    };
+    return configs[status] || configs.PENDING;
+  };
+
+  const statusConfig = getStatusConfig(goal.status);
+
+  const handleSubmit = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isSubmitting) return;
+
     try {
+      setIsSubmitting(true);
       await onSubmitGoal(goal.id);
+      showToast.goal.updated();
       onClose();
     } catch (error) {
-      console.error('Error submitting goal:', error);
+      showToast.goal.error(
+        error instanceof Error 
+          ? error.message 
+          : 'Failed to submit goal. Please try again.'
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleClose = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isSubmitting) {
+      showToast.error(
+        'Action in Progress', 
+        'Please wait for the current action to complete'
+      );
+      return;
+    }
+    onClose();
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-6" onClick={onClose}>
-      <div className="bg-[#1E2028] rounded-xl p-5 w-full max-w-lg md:max-w-2xl mx-auto border border-gray-800 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between items-start mb-5">
-          <div>
-            <span className={`px-2 py-0.5 rounded-full text-xs inline-flex items-center gap-1.5 mb-2 ${
-              goal.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' :
-              goal.status === 'REJECTED' ? 'bg-rose-500/10 text-rose-400' :
-              goal.status === 'COMPLETED' ? 'bg-blue-500/10 text-blue-400' :
-              goal.status === 'MODIFIED' ? 'bg-amber-500/10 text-amber-400' :
-              'bg-amber-500/10 text-amber-400'
-            }`}>
-              {goal.status === 'APPROVED' && <BsCheckCircle className="w-3 h-3" />}
-              {goal.status === 'REJECTED' && <BsXCircle className="w-3 h-3" />}
-              {goal.status === 'COMPLETED' && <BsCheckCircle className="w-3 h-3" />}
-              {goal.status === 'MODIFIED' && <BsClock className="w-3 h-3" />}
-              {goal.status === 'PENDING' && <BsClock className="w-3 h-3" />}
-              {goal.status.charAt(0) + goal.status.slice(1).toLowerCase()}
-            </span>
-            <h2 className="text-xl sm:text-2xl font-bold text-white leading-tight">{goal.title}</h2>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors active:scale-[0.98] ml-4"
-          >
-            <BsX className="w-5 h-5 sm:w-6 sm:h-6" />
-          </button>
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 flex items-center justify-center z-50 p-3 bg-black/60 backdrop-blur-sm"
+    >
+      <motion.div 
+        ref={modalRef}
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        className="relative bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl w-full max-w-md mx-auto 
+                   shadow-2xl overflow-hidden transform transition-all"
+      >
+        {/* Decorative Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/10 rounded-full"></div>
+          <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-500/10 rounded-full"></div>
         </div>
 
-        <div className="space-y-5">
-          <div>
-            <h3 className="text-base font-medium text-white mb-1.5">Description</h3>
-            <p className="text-gray-400 text-sm sm:text-base">{goal.description}</p>
+        {/* Header */}
+        <div className="relative px-4 py-3 flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs ${statusConfig.bgColor} ${statusConfig.textColor} mb-2`}
+            >
+              <statusConfig.icon className="w-3 h-3" />
+              <span>{statusConfig.label}</span>
+            </motion.div>
+            <h2 className="text-base font-medium text-white truncate pr-8">{goal.title}</h2>
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={handleClose}
+            className="text-gray-400 hover:text-white transition-colors p-1.5 hover:bg-white/10 rounded-full -mr-1"
+          >
+            <BsX className="w-5 h-5" />
+          </motion.button>
+        </div>
+
+        {/* Content */}
+        <div className="px-4 pb-4 space-y-3 max-h-[calc(85vh-200px)] overflow-y-auto">
+          {/* Description Card */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-3.5"
+          >
+            <p className="text-sm text-white/90 leading-relaxed">{goal.description}</p>
+          </motion.div>
+
+          {/* Info Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            <motion.div 
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-3"
+            >
+              <div className="flex items-center gap-2 text-gray-300 mb-1.5">
+                <BsCalendar className="w-3.5 h-3.5" />
+                <span className="text-xs font-medium">Due Date</span>
+              </div>
+              <p className="text-sm text-white/90">{new Date(goal.dueDate).toLocaleDateString()}</p>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-3"
+            >
+              <div className="flex items-center gap-2 text-gray-300 mb-1.5">
+                <BsShield className="w-3.5 h-3.5" />
+                <span className="text-xs font-medium">Manager</span>
+              </div>
+              <p className="text-sm text-white/90 truncate">{goal.manager?.name || 'Not assigned'}</p>
+            </motion.div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div className="bg-[#252832] rounded-lg p-3">
-              <div className="flex items-center gap-2 text-gray-400 mb-1">
-                <BsCalendar className="w-4 h-4" />
-                <span className="text-sm font-medium">Due Date</span>
-              </div>
-              <p className="text-white text-sm sm:text-base">
-                {new Date(goal.dueDate).toLocaleDateString()}
-              </p>
-            </div>
+          {/* Manager Feedback */}
+          <AnimatePresence>
+            {(goal.status === 'APPROVED' || goal.status === 'REJECTED') && goal.managerComments && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-3.5"
+              >
+                <div className="flex items-center gap-2 text-gray-300 mb-2">
+                  <BsChat className="w-3.5 h-3.5" />
+                  <span className="text-xs font-medium">Manager Feedback</span>
+                </div>
+                <p className="text-sm text-white/90">{goal.managerComments}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-            <div className="bg-[#252832] rounded-lg p-3">
-              <div className="flex items-center gap-2 text-gray-400 mb-1">
-                <BsShield className="w-4 h-4" />
-                <span className="text-sm font-medium">Assigned Manager</span>
-              </div>
-              <p className="text-white text-sm sm:text-base">{goal.manager?.name || 'Not assigned'}</p>
-            </div>
-          </div>
+          {/* Pending Status */}
+          <AnimatePresence>
+            {goal.status === 'PENDING' && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="flex items-center bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-amber-400 
+                          text-sm p-3 rounded-2xl"
+              >
+                <BsClock className="w-3.5 h-3.5 mr-2 animate-pulse" />
+                <span>Awaiting manager approval</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
-          {(goal.status === 'DRAFT' || goal.status === 'MODIFIED') && (
-            <div className="bg-[#252832] rounded-lg p-4 border border-gray-700 mt-5">
-              <button
+        {/* Footer */}
+        <div className="relative px-4 pb-4 pt-2">
+          <div className="flex justify-end gap-2">
+            {(goal.status === 'DRAFT' || goal.status === 'MODIFIED') && (
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] text-sm font-medium"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-500 text-white rounded-xl 
+                         hover:bg-indigo-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm group"
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    Submitting...
+                    <div className="w-3.5 h-3.5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    <span>Submitting...</span>
                   </>
                 ) : (
                   <>
-                    <BsCheckCircle className="w-4 h-4" />
-                    Submit for Approval
+                    <span>Submit</span>
+                    <BsArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                   </>
                 )}
-              </button>
-            </div>
-          )}
-
-          {(goal.status === 'APPROVED' || goal.status === 'REJECTED') && goal.managerComments && (
-            <div className="bg-[#252832] rounded-lg p-4 border border-gray-700 mt-5">
-              <div className="flex items-center gap-2 text-gray-400 mb-1.5">
-                <span className="text-sm font-medium">Manager Feedback</span>
-              </div>
-              <p className="text-gray-300 text-sm sm:text-base">{goal.managerComments}</p>
-            </div>
-          )}
-
-          {goal.status === 'PENDING' && (
-            <div className="flex items-center text-amber-400 mt-5 text-sm sm:text-base">
-              <BsClock className="w-4 h-4 mr-2" />
-              <span>Awaiting manager approval</span>
-            </div>
-          )}
-
-          <div className="flex justify-end pt-4">
-            <button
-              onClick={onClose}
-              className="px-3 py-1.5 text-gray-400 hover:text-white transition-colors active:scale-[0.98] text-sm"
+              </motion.button>
+            )}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleClose}
+              className="px-4 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
             >
               Close
-            </button>
+            </motion.button>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

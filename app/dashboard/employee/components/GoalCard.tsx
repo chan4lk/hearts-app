@@ -1,59 +1,92 @@
 import { BsCalendar, BsEye, BsChevronRight, BsCheckCircle, BsXCircle, BsClock } from 'react-icons/bs';
 import { Goal } from './types';
+import { IconType } from 'react-icons';
 
 interface GoalCardProps {
   goal: Goal;
   onClick: () => void;
 }
 
+type StatusConfig = {
+  bgColor: string;
+  textColor: string;
+  icon: IconType;
+};
+
+type StatusConfigs = {
+  [key in 'APPROVED' | 'REJECTED' | 'COMPLETED' | 'MODIFIED' | 'PENDING']: StatusConfig;
+};
+
 export default function GoalCard({ goal, onClick }: GoalCardProps) {
+  const getStatusConfig = (status: string): StatusConfig => {
+    const configs: StatusConfigs = {
+      APPROVED: { bgColor: 'bg-emerald-500/10', textColor: 'text-emerald-400', icon: BsCheckCircle },
+      REJECTED: { bgColor: 'bg-rose-500/10', textColor: 'text-rose-400', icon: BsXCircle },
+      COMPLETED: { bgColor: 'bg-blue-500/10', textColor: 'text-blue-400', icon: BsCheckCircle },
+      MODIFIED: { bgColor: 'bg-amber-500/10', textColor: 'text-amber-400', icon: BsClock },
+      PENDING: { bgColor: 'bg-amber-500/10', textColor: 'text-amber-400', icon: BsClock }
+    };
+    return configs[status as keyof StatusConfigs] || configs.PENDING;
+  };
+
+  const statusConfig = getStatusConfig(goal.status);
+
   return (
     <div
-      className="bg-[#252832] rounded-xl p-4 sm:p-5 border border-gray-800 hover:border-indigo-500/50 transition-all group cursor-pointer active:scale-[0.98]"
       onClick={onClick}
+      className="relative bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-sm rounded-lg p-3 
+                 border border-gray-800/50 hover:border-indigo-500/30 transition-all duration-300 group 
+                 cursor-pointer active:scale-[0.98] overflow-hidden"
     >
-      <div className="flex justify-between items-start mb-3 sm:mb-4">
-        <h3 className="text-base sm:text-lg font-medium text-white group-hover:text-indigo-400 transition-colors flex items-center gap-2">
-          {goal.title}
-          <BsChevronRight className="w-3 h-3 sm:w-4 sm:h-4 opacity-0 group-hover:opacity-100 transform translate-x-0 group-hover:translate-x-1 transition-all" />
-        </h3>
-        <span className={`px-2 sm:px-3 py-1 rounded-full text-xs flex items-center gap-1.5 ${
-          goal.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' :
-          goal.status === 'REJECTED' ? 'bg-rose-500/10 text-rose-400' :
-          goal.status === 'COMPLETED' ? 'bg-blue-500/10 text-blue-400' :
-          goal.status === 'MODIFIED' ? 'bg-amber-500/10 text-amber-400' :
-          'bg-amber-500/10 text-amber-400'
-        }`}>
-          {goal.status === 'APPROVED' && <BsCheckCircle className="w-3 h-3" />}
-          {goal.status === 'REJECTED' && <BsXCircle className="w-3 h-3" />}
-          {goal.status === 'COMPLETED' && <BsCheckCircle className="w-3 h-3" />}
-          {goal.status === 'MODIFIED' && <BsClock className="w-3 h-3" />}
-          {goal.status === 'PENDING' && <BsClock className="w-3 h-3" />}
-          <span className="hidden sm:inline">{goal.status.charAt(0) + goal.status.slice(1).toLowerCase()}</span>
-          <span className="sm:hidden">{goal.status.charAt(0)}</span>
-        </span>
-      </div>
+      {/* Hover Effect Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/0 via-indigo-500/0 to-indigo-500/0 
+                    group-hover:from-indigo-500/3 group-hover:via-indigo-500/5 group-hover:to-indigo-500/3 
+                    transition-all duration-500" />
 
-      <p className="text-gray-400 text-sm mb-3 sm:mb-4 line-clamp-2 group-hover:text-gray-300 transition-colors">
-        {goal.description}
-      </p>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 bg-[#1E2028] px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm">
-          <BsCalendar className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-          <span className="text-gray-400">Due: {new Date(goal.dueDate).toLocaleDateString()}</span>
+      <div className="relative">
+        {/* Header Section */}
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <h3 className="text-sm font-medium text-gray-200 group-hover:text-indigo-300 transition-colors line-clamp-1 flex-1">
+            {goal.title}
+          </h3>
+          <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] ${statusConfig.bgColor} ${statusConfig.textColor}`}>
+            <statusConfig.icon className="w-2.5 h-2.5" />
+            <span className="hidden sm:inline">{goal.status.charAt(0) + goal.status.slice(1).toLowerCase()}</span>
+            <span className="sm:hidden">{goal.status.charAt(0)}</span>
+          </div>
         </div>
-        <button
-          className="flex items-center gap-1.5 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity text-sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            onClick();
-          }}
-        >
-          <BsEye className="w-3 h-3 sm:w-4 sm:h-4" />
-          <span className="hidden sm:inline">View Details</span>
-          <span className="sm:hidden">View</span>
-        </button>
+
+        {/* Description */}
+        <p className="text-xs text-gray-400 line-clamp-2 mb-2 group-hover:text-gray-300 transition-colors">
+          {goal.description}
+        </p>
+
+        {/* Footer Section */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 bg-black/20 px-2 py-1 rounded text-[10px]">
+            <BsCalendar className="w-2.5 h-2.5 text-gray-400" />
+            <span className="text-gray-400">{new Date(goal.dueDate).toLocaleDateString()}</span>
+          </div>
+          
+          {/* View Details Button - Always Visible on Mobile, Hover on Desktop */}
+          <button
+            className="flex items-center gap-1.5 text-indigo-400/80 hover:text-indigo-300 
+                       sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 text-[10px]"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClick();
+            }}
+          >
+            <BsEye className="w-2.5 h-2.5" />
+            <span className="hidden sm:inline">Details</span>
+          </button>
+        </div>
+
+        {/* Right Arrow Indicator */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 pr-2 opacity-0 group-hover:opacity-100 
+                      transform translate-x-2 group-hover:translate-x-0 transition-all duration-300">
+          <BsChevronRight className="w-3 h-3 text-indigo-400/60" />
+        </div>
       </div>
     </div>
   );
