@@ -123,26 +123,23 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       case 'employee':
         return [
           { href: '/dashboard/employee', icon: BsGrid, label: 'Dashboard' },
-          { href: '/dashboard/employee/goals/create', icon: BsBullseye, label: 'Goals Create' },
+          { href: '/dashboard/employee/goals', icon: BsBullseye, label: 'Goals Create' },
           { href: '/dashboard/employee/self-rating', icon: BsStar, label: 'Self Rating' },
-
         ];
       case 'manager':
         return [
           { href: '/dashboard/manager', icon: BsGrid, label: 'Dashboard' },
           { href: '/dashboard/manager/goals/approve-goals', icon: BsBullseye, label: 'Goal Approvals' },
-          { href: '/dashboard/manager/goals/setgoals', icon: BsBullseye, label: 'Set Goals ' },
-
+          { href: '/dashboard/manager/goals/setgoals', icon: BsBullseye, label: 'Set Goals' },
           { href: '/dashboard/manager/rate-employees', icon: BsStar, label: 'Manager Ratings' },
           { href: '/dashboard/manager/goals/create', icon: BsBullseye, label: 'Goals Create' },
           { href: '/dashboard/manager/goals/self-ratings', icon: BsStar, label: 'Self Rating' },
-          
         ];
       case 'admin':
         return [
           { href: '/dashboard/admin', label: 'Dashboard', icon: BsGrid },
           { href: '/dashboard/admin/users', label: 'Users', icon: BsPeople },
-          { href: '/dashboard/admin/goals/', icon: BsBullseye, label: 'Set Goals ' },
+          { href: '/dashboard/admin/goals', icon: BsBullseye, label: 'Set Goals' },
         ];
       default:
         return [];
@@ -151,6 +148,21 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
 
   const navItems = getNavItems();
   const portalTitle = type.charAt(0).toUpperCase() + type.slice(1) + ' Portal';
+
+  // Function to check if current path matches or is a sub-path of nav item
+  const isPathActive = (href: string) => {
+    // Remove trailing slashes for consistent comparison
+    const cleanPath = pathname.replace(/\/$/, '');
+    const cleanHref = href.replace(/\/$/, '');
+
+    // For dashboard pages, check if we're on the exact dashboard path
+    if (cleanHref.endsWith('/dashboard/' + type)) {
+      return cleanPath === cleanHref;
+    }
+
+    // For all other pages, check if we're in that section
+    return cleanPath.includes(cleanHref);
+  };
 
   const handleSignOut = async () => {
     try {
@@ -181,7 +193,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
             <div className="p-6">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 rounded-full  flex items-center justify-center">
+                  <div className="w-14 h-14 rounded-full  flex items-center justify-center">
                   <Link href="/" className="group transform hover:scale-105 transition-transform duration-300">
               <Image 
                 src="/logo.png" 
@@ -192,7 +204,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
               />
             </Link>                  </div>
                   <div>
-                    <h1 className="text-xl font-bold text-white">
+                    <h1 className="text-lg font-bold text-white">
                       {settings.systemName}
                     </h1>
                     <p className="text-xs text-gray-400">{portalTitle}</p>
@@ -208,41 +220,54 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
               </div>
               <nav className="space-y-1">
                 {navItems.map((item) => {
-                  const isActive = pathname === item.href;
+                  const isActive = isPathActive(item.href);
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
                       className={`group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
                         isActive
-                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                          ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/20'
                           : 'text-gray-400 hover:text-white'
                       }`}
                     >
                       <span className="flex items-center space-x-3 relative z-10 w-full">
-                        {/* Background hover effect */}
+                        {/* Animated background hover effect */}
                         {!isActive && (
-                          <div className="absolute inset-0 bg-gradient-to-r from-[#2d2f36] to-[#2d2f36]/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          <div className="absolute inset-0 bg-gradient-to-r from-[#2d2f36] to-[#2d2f36]/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg transform group-hover:scale-105" />
                         )}
                         
-                        {/* Active indicator */}
-                        {isActive && (
-                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-white rounded-full" />
-                        )}
-                        
-                        {/* Icon with hover effect */}
-                        <span className="relative z-10 transition-transform duration-300 group-hover:scale-110">
-                          <item.icon className={`text-xl ${isActive ? 'transform rotate-0' : 'group-hover:rotate-6'} transition-all duration-300`} />
-                        </span>
-                        
-                        {/* Label with slide effect */}
-                        <span className="relative z-10 transform transition-transform duration-300 group-hover:translate-x-1">{item.label}</span>
-                        
-                        {/* Highlight dots for active state */}
+                        {/* Active indicator with glow */}
                         {isActive && (
                           <>
-                            <div className="absolute top-1 right-1 w-1 h-1 bg-white rounded-full opacity-30" />
-                            <div className="absolute bottom-1 right-2 w-1 h-1 bg-white rounded-full opacity-20" />
+                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
+                            <div className="absolute inset-0 bg-white/5 rounded-lg backdrop-blur-sm" />
+                          </>
+                        )}
+                        
+                        {/* Icon with enhanced hover effect */}
+                        <span className="relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:translate-x-1">
+                          <item.icon className={`text-xl ${
+                            isActive 
+                              ? 'transform rotate-0 drop-shadow-[0_0_3px_rgba(255,255,255,0.5)]' 
+                              : 'group-hover:rotate-6 group-hover:text-blue-400'
+                          } transition-all duration-300`} />
+                        </span>
+                        
+                        {/* Label with enhanced slide and glow effect */}
+                        <span className={`relative z-10 transform transition-all duration-300 group-hover:translate-x-1 ${
+                          isActive 
+                            ? 'font-medium drop-shadow-[0_0_2px_rgba(255,255,255,0.3)]' 
+                            : 'group-hover:text-blue-400'
+                        }`}>
+                          {item.label}
+                        </span>
+                        
+                        {/* Decorative elements */}
+                        {isActive && (
+                          <>
+                            <div className="absolute top-1 right-2 w-1.5 h-1.5 bg-white rounded-full opacity-30 animate-pulse" />
+                            <div className="absolute bottom-1 right-4 w-1 h-1 bg-white rounded-full opacity-20 animate-pulse delay-100" />
                           </>
                         )}
                       </span>
@@ -282,7 +307,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       <div className="fixed left-0 top-0 h-full w-64 bg-[#1a1c23] hidden md:block z-30">
         <div className="p-6">
           <div className="flex items-center space-x-3 mb-8">
-            <div className="w-12 h-12 rounded-full  flex items-center justify-center">
+            <div className="w-14 h-14 rounded-full  flex items-center justify-center">
             <Link href="/" className="group transform hover:scale-105 transition-transform duration-300">
               <Image 
                 src="/logo.png" 
@@ -293,7 +318,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
               />
             </Link>                   </div>
             <div>
-              <h1 className="text-xl font-bold text-white">
+              <h1 className="text-lg font-bold text-white">
                 {settings.systemName}
               </h1>
               <p className="text-xs text-gray-400">{portalTitle}</p>
@@ -301,41 +326,54 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
           </div>
           <nav className="space-y-1">
             {navItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = isPathActive(item.href);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={`group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
                     isActive
-                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                      ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/20'
                       : 'text-gray-400 hover:text-white'
                   }`}
                 >
                   <span className="flex items-center space-x-3 relative z-10 w-full">
-                    {/* Background hover effect */}
+                    {/* Animated background hover effect */}
                     {!isActive && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#2d2f36] to-[#2d2f36]/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#2d2f36] to-[#2d2f36]/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg transform group-hover:scale-105" />
                     )}
                     
-                    {/* Active indicator */}
-                    {isActive && (
-                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-white rounded-full" />
-                    )}
-                    
-                    {/* Icon with hover effect */}
-                    <span className="relative z-10 transition-transform duration-300 group-hover:scale-110">
-                      <item.icon className={`text-xl ${isActive ? 'transform rotate-0' : 'group-hover:rotate-6'} transition-all duration-300`} />
-                    </span>
-                    
-                    {/* Label with slide effect */}
-                    <span className="relative z-10 transform transition-transform duration-300 group-hover:translate-x-1">{item.label}</span>
-                    
-                    {/* Highlight dots for active state */}
+                    {/* Active indicator with glow */}
                     {isActive && (
                       <>
-                        <div className="absolute top-1 right-1 w-1 h-1 bg-white rounded-full opacity-30" />
-                        <div className="absolute bottom-1 right-2 w-1 h-1 bg-white rounded-full opacity-20" />
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
+                        <div className="absolute inset-0 bg-white/5 rounded-lg backdrop-blur-sm" />
+                      </>
+                    )}
+                    
+                    {/* Icon with enhanced hover effect */}
+                    <span className="relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:translate-x-1">
+                      <item.icon className={`text-xl ${
+                        isActive 
+                          ? 'transform rotate-0 drop-shadow-[0_0_3px_rgba(255,255,255,0.5)]' 
+                          : 'group-hover:rotate-6 group-hover:text-blue-400'
+                      } transition-all duration-300`} />
+                    </span>
+                    
+                    {/* Label with enhanced slide and glow effect */}
+                    <span className={`relative z-10 transform transition-all duration-300 group-hover:translate-x-1 ${
+                      isActive 
+                        ? 'font-medium drop-shadow-[0_0_2px_rgba(255,255,255,0.3)]' 
+                        : 'group-hover:text-blue-400'
+                    }`}>
+                      {item.label}
+                    </span>
+                    
+                    {/* Decorative elements */}
+                    {isActive && (
+                      <>
+                        <div className="absolute top-1 right-2 w-1.5 h-1.5 bg-white rounded-full opacity-30 animate-pulse" />
+                        <div className="absolute bottom-1 right-4 w-1 h-1 bg-white rounded-full opacity-20 animate-pulse delay-100" />
                       </>
                     )}
                   </span>

@@ -62,7 +62,7 @@ export default function UserTable({ users, onViewDetails, onEdit, onDelete }: Us
                   {user.manager?.name || '-'}
                 </td>
                 <td className="px-3 py-2 whitespace-nowrap">
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                  <div className="flex items-center gap-1 transition-colors duration-150">
                     <button
                       onClick={() => onViewDetails(user)}
                       className="p-1 text-blue-400 hover:bg-blue-500/10 rounded transition-colors"
