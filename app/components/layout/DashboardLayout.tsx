@@ -123,7 +123,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       case 'employee':
         return [
           { href: '/dashboard/employee', icon: BsGrid, label: 'Dashboard' },
-          { href: '/dashboard/employee/goals', icon: BsBullseye, label: 'Goals Create' },
+          { href: '/dashboard/employee/goals/create', icon: BsBullseye, label: 'Goals Create' },
           { href: '/dashboard/employee/self-rating', icon: BsStar, label: 'Self Rating' },
         ];
       case 'manager':
