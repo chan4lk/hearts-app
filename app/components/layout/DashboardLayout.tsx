@@ -143,7 +143,6 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
           { href: '/dashboard/admin', label: 'Dashboard', icon: BsGrid },
           { href: '/dashboard/admin/users', label: 'Users', icon: BsPeople },
           { href: '/dashboard/admin/goals/', icon: BsBullseye, label: 'Set Goals ' },
-          { href: '/dashboard/admin/settings', label: 'Settings', icon: BsGear },
         ];
       default:
         return [];

@@ -6,7 +6,6 @@ import { useState, useEffect, Suspense } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import dynamic from 'next/dynamic';
-import LoadingScreen from '@/app/components/LoadingScreen';
 
 // Add dynamic import for client-side components
 const DynamicHeader = dynamic(() => import('@/components/Header'), { 
@@ -134,7 +133,6 @@ function LoginForm() {
 
   return (
     <main className="flex flex-col min-h-screen bg-gradient-to-br from-[#0B1120] via-[#132145] to-[#1E1B4B]">
-      {isTransitioning && <LoadingScreen />}
       
       <Suspense fallback={<div className="h-14 bg-[#0f172a]/50 backdrop-blur-sm border-b border-indigo-500/20" />}>
         <DynamicHeader />
