@@ -16,6 +16,26 @@ export async function GET() {
     // Get total users count
     const totalUsers = await prisma.user.count();
 
+    // Get specific role counts
+    const employeeCount = await prisma.user.count({
+      where: { role: 'EMPLOYEE' }
+    });
+
+    const adminCount = await prisma.user.count({
+      where: { role: 'ADMIN' }
+    });
+
+    const managerCount = await prisma.user.count({
+      where: { role: 'MANAGER' }
+    });
+
+    // Get total goals count
+    const totalGoals = await prisma.goal.count({
+      where: {
+        status: { not: 'DELETED' }
+      }
+    });
+
     // Get active sessions (users who have been active in the last 30 minutes)
     const activeSessions = await prisma.user.count({
       where: {
@@ -61,6 +81,10 @@ export async function GET() {
 
     return NextResponse.json({
       totalUsers,
+      employeeCount,
+      adminCount,
+      managerCount,
+      totalGoals,
       activeSessions,
       systemUptime,
       securityAlerts,

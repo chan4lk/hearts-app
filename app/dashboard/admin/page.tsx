@@ -1,7 +1,7 @@
 'use client';
 
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import { BsPeople, BsLightning, BsClock, BsShieldExclamation, BsGraphUp, BsPersonPlus, BsThreeDotsVertical, BsArrowUpRight, BsActivity, BsGear, BsBell } from 'react-icons/bs';
+import { BsPeople, BsLightning, BsClock, BsShieldExclamation, BsGraphUp, BsPersonPlus, BsThreeDotsVertical, BsArrowUpRight, BsActivity, BsGear, BsBell, BsBullseye } from 'react-icons/bs';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -10,6 +10,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface DashboardStats {
   totalUsers: number;
+  employeeCount: number;
+  adminCount: number;
+  managerCount: number;
+  totalGoals: number;
   activeSessions: number;
   systemUptime: number;
   securityAlerts: number;
@@ -45,6 +49,10 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
+    employeeCount: 0,
+    adminCount: 0,
+    managerCount: 0,
+    totalGoals: 0,
     activeSessions: 0,
     systemUptime: 0,
     securityAlerts: 0,
@@ -158,21 +166,102 @@ export default function AdminDashboard() {
             </div>
           </motion.div>
 
-          {/* Total Users Card */}
+          {/* Statistics Grid */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-3 shadow-lg border border-white/20 dark:border-gray-700/50"
+            transition={{ delay: 0.1 }}
+            className="grid grid-cols-2 lg:grid-cols-5 gap-4"
           >
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
-                <BsPeople className="text-lg text-white" />
+            {/* Total Users Card */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1 }}
+              className="bg-gradient-to-br from-slate-500/90 to-slate-600/90 backdrop-blur-xl rounded-xl p-4 text-white shadow-lg border border-white/20"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-100/90 mb-1">Total Users</p>
+                  <p className="text-2xl font-bold">{stats.totalUsers}</p>
+                </div>
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <BsPersonPlus className="text-xl" />
+                </div>
               </div>
-              <div>
-                <span className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalUsers}</span>
-                <p className="text-sm text-gray-600 dark:text-gray-300">Total Users</p>
+            </motion.div>
+
+            {/* Employees Card */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className="bg-gradient-to-br from-blue-500/90 to-blue-600/90 backdrop-blur-xl rounded-xl p-4 text-white shadow-lg border border-white/20"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-blue-100/90 mb-1">Employees</p>
+                  <p className="text-2xl font-bold">{stats.employeeCount}</p>
+                </div>
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <BsPeople className="text-xl" />
+                </div>
               </div>
-            </div>
+            </motion.div>
+
+            {/* Managers Card */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3 }}
+              className="bg-gradient-to-br from-purple-500/90 to-purple-600/90 backdrop-blur-xl rounded-xl p-4 text-white shadow-lg border border-white/20"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-purple-100/90 mb-1">Managers</p>
+                  <p className="text-2xl font-bold">{stats.managerCount}</p>
+                </div>
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <BsGraphUp className="text-xl" />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Admins Card */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.4 }}
+              className="bg-gradient-to-br from-indigo-500/90 to-indigo-600/90 backdrop-blur-xl rounded-xl p-4 text-white shadow-lg border border-white/20"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-indigo-100/90 mb-1">Admins</p>
+                  <p className="text-2xl font-bold">{stats.adminCount}</p>
+                </div>
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <BsShieldExclamation className="text-xl" />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Goals Card */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5 }}
+              className="bg-gradient-to-br from-green-500/90 to-green-600/90 backdrop-blur-xl rounded-xl p-4 text-white shadow-lg border border-white/20"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-green-100/90 mb-1">Goals</p>
+                  <p className="text-2xl font-bold">{stats.totalGoals}</p>
+                </div>
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <BsBullseye className="text-xl" />
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
 
           {/* Main Content Grid */}
