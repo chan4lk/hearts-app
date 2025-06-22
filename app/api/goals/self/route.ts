@@ -5,9 +5,48 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 
-interface Goal {
-  status: 'PENDING' | 'APPROVED' | 'COMPLETED' | 'REJECTED' | 'MODIFIED';
-  ratings: any[];
+// Define the status enum since we can't import it directly
+const GoalStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  COMPLETED: 'COMPLETED',
+  REJECTED: 'REJECTED',
+  MODIFIED: 'MODIFIED',
+  DRAFT: 'DRAFT',
+  DELETED: 'DELETED'
+} as const;
+
+type GoalStatus = typeof GoalStatus[keyof typeof GoalStatus];
+
+interface Rating {
+  id: string;
+  score: number;
+  comments: string | null;
+  goalId: string;
+  selfRatedById: string;
+  managerRatedById: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+interface GoalWithRelations {
+  id: string;
+  title: string;
+  description: string;
+  status: GoalStatus;
+  createdAt: Date;
+  updatedAt: Date;
+  employeeId: string;
+  managerId: string | null;
+  employee: User | null;
+  manager: User | null;
+  ratings: Rating[];
 }
 
 export async function GET() {
@@ -52,20 +91,21 @@ export async function GET() {
       orderBy: {
         createdAt: 'desc'
       }
-    });
+    }) as unknown as GoalWithRelations[];
 
     return NextResponse.json({ 
       goals,
       stats: {
         total: goals.length,
-        rated: goals.filter((g: Goal) => g.ratings.length > 0).length,
-        unrated: goals.filter((g: Goal) => g.ratings.length === 0).length,
+        rated: goals.filter((g: GoalWithRelations) => g.ratings.length > 0).length,
+        unrated: goals.filter((g: GoalWithRelations) => g.ratings.length === 0).length,
         byStatus: {
-          PENDING: goals.filter((g: Goal) => g.status === 'PENDING').length,
-          APPROVED: goals.filter((g: Goal) => g.status === 'APPROVED').length,
-          COMPLETED: goals.filter((g: Goal) => g.status === 'COMPLETED').length,
-          REJECTED: goals.filter((g: Goal) => g.status === 'REJECTED').length,
-          MODIFIED: goals.filter((g: Goal) => g.status === 'MODIFIED').length
+          PENDING: goals.filter((g: GoalWithRelations) => g.status === GoalStatus.PENDING).length,
+          APPROVED: goals.filter((g: GoalWithRelations) => g.status === GoalStatus.APPROVED).length,
+          COMPLETED: goals.filter((g: GoalWithRelations) => g.status === GoalStatus.COMPLETED).length,
+          REJECTED: goals.filter((g: GoalWithRelations) => g.status === GoalStatus.REJECTED).length,
+          MODIFIED: goals.filter((g: GoalWithRelations) => g.status === GoalStatus.MODIFIED).length,
+          DRAFT: goals.filter((g: GoalWithRelations) => g.status === GoalStatus.DRAFT).length
         }
       }
     });
