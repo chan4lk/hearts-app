@@ -46,7 +46,7 @@ interface Settings {
 
 export default function DashboardLayout({ children, type }: DashboardLayoutProps) {
   const { data: session, status } = useSession();
-  const { settings } = useSettings();
+  const { settings, updateSettings } = useSettings();
   const router = useRouter();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -91,10 +91,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
           }
           const data = await response.json();
           if (data && typeof data === 'object') {
-            setSetting(prev => ({
-              ...prev,
-              ...data
-            }));
+            await updateSettings(data);
           }
         }
       } catch (error) {
@@ -105,7 +102,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
     if (status === 'authenticated') {
       fetchSettings();
     }
-  }, [type, status]);
+  }, [type, status, updateSettings]);
 
   // Close user menu when clicking outside
   useEffect(() => {
