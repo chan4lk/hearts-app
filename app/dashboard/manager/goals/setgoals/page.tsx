@@ -479,8 +479,8 @@ function ManagerGoalSettingPageContent() {
         className: 'goal-success-toast'
       });
     } catch (error) {
-      console.error('Error deleting goal:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to delete goal');
+      console.error('Error Deleting Goal:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to Delete Goal');
     }
   };
 

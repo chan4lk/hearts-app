@@ -27,9 +27,9 @@ export async function GET() {
       }
     });
 
-    // Get recent goal activities
+    // Get recent goal activities, including deleted goals
     const recentGoals = await prisma.goal.findMany({
-      take: 5,
+      take: 10, // Increased take to get more goal activities
       orderBy: {
         updatedAt: 'desc'
       },
@@ -46,26 +46,39 @@ export async function GET() {
     const activities = [
       ...recentUsers.map(user => ({
         type: 'User Activity',
-        description: `${user.name} (${user.role}) was active`,
+        description: `${user.name} (${user.role}) was Active`,
         timestamp: user.updatedAt.toISOString(),
         status: 'success' as const
       })),
-      ...recentGoals.map(goal => ({
-        type: 'Goal Update',
-        description: `Goal "${goal.title}" was updated by ${goal.employee.name}`,
-        timestamp: goal.updatedAt.toISOString(),
-        status: goal.status === 'APPROVED' ? 'success' : 
-                goal.status === 'REJECTED' ? 'error' : 
-                'warning' as const
-      }))
+      ...recentGoals.map(goal => {
+        let description = `Goal "${goal.title}" was Updated by ${goal.employee.name}`;
+        if (goal.status === 'DELETED') {
+          description = `Goal "${goal.title}" was Deleted`;
+        } else if (goal.status === 'COMPLETED') {
+          description = `Goal "${goal.title}" was Completed by ${goal.employee.name}`;
+        } else if (goal.status === 'APPROVED') {
+          description = `Goal "${goal.title}" was Approved`;
+        } else if (goal.status === 'REJECTED') {
+          description = `Goal "${goal.title}" was Rejected`;
+        }
+
+        return {
+          type: `Goal ${goal.status.toLowerCase()}`,
+          description,
+          timestamp: goal.updatedAt.toISOString(),
+          status: goal.status === 'APPROVED' || goal.status === 'COMPLETED' ? 'success' : 
+                  goal.status === 'REJECTED' || goal.status === 'DELETED' ? 'error' : 
+                  'warning' as const
+        };
+      })
     ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-     .slice(0, 10); // Get only the 10 most recent activities
+     .slice(0, 15); // Get only the 15 most recent activities
 
     return NextResponse.json(activities);
   } catch (error) {
-    console.error('Error fetching admin activities:', error);
+    console.error('Error Fetching Admin Activities:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal Server Error' },
       { status: 500 }
     );
   }

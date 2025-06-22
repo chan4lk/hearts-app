@@ -220,11 +220,11 @@ function GoalsPageContent() {
         throw new Error('Failed to delete goal');
       }
 
-      showNotificationWithTimeout('Goal deleted successfully!', 'success');
+      showNotificationWithTimeout('Goal Deleted Successfully!', 'success');
       fetchGoals();
     } catch (error) {
-      console.error('Error deleting goal:', error);
-      showNotificationWithTimeout('Failed to delete goal', 'error');
+      console.error('Error Deleting Goal:', error);
+      showNotificationWithTimeout('Failed to Delete Goal', 'error');
     } finally {
       setLoading(false);
       setShowDeleteConfirmation(false);

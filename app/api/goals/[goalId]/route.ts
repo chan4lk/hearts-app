@@ -250,11 +250,11 @@ export async function DELETE(req: Request, { params }: { params: { goalId: strin
 
     return NextResponse.json({ 
       success: true,
-      message: 'Goal deleted successfully',
+      message: 'Goal Deleted Successfully',
       goal
     });
   } catch (error) {
-    console.error('Error deleting goal:', error);
-    return NextResponse.json({ error: 'Failed to delete goal' }, { status: 500 });
+    console.error('Error Deleting Goal:', error);
+    return NextResponse.json({ error: 'Failed to Delete Goal' }, { status: 500 });
   }
 } 

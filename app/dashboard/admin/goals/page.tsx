@@ -23,7 +23,6 @@ import { StatsGrid } from './components/StatsGrid';
 import { BackgroundElements } from './components/BackgroundElements';
 import GoalTemplates from '@/app/components/shared/GoalTemplates';
 import { GoalManagementSection } from './components/GoalManagementSection';
-import { GoalCreationSection } from './components/GoalCreationSection';
 import { GoalModals } from './components/GoalModals';
 import { Notification } from './components/Notification';
 
@@ -314,8 +313,8 @@ function AdminGoalSettingPageContent() {
         className: 'goal-success-toast'
       });
     } catch (error) {
-      console.error('Error deleting goal:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to delete goal');
+      console.error('Error Deleting Goal:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to Delete Goal');
     } finally {
       setIsDeleteModalOpen(false);
       setGoalToDelete(null);
@@ -392,12 +391,6 @@ function AdminGoalSettingPageContent() {
           animate="visible"
           className="space-y-4"
         >
-          {/* Goal Creation Section */}
-          <motion.div variants={itemVariants}>
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-3 shadow-md border border-white/10 dark:border-gray-700/30">
-              <GoalCreationSection onCreate={() => setIsCreateModalOpen(true)} />
-            </div>
-          </motion.div>
 
           {/* Goal Templates */}
           <motion.div variants={itemVariants}>

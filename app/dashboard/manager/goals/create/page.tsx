@@ -156,7 +156,7 @@ export default function ManagerGoalsPage() {
       fetchGoals();
     } catch (error) {
       console.error('Error deleting goal:', error);
-      showNotificationWithTimeout('Failed to delete goal. Please try again.', 'error');
+      showNotificationWithTimeout('Failed to Delete Goal. Please Try Again.', 'error');
     } finally {
       setLoading(false);
     }
