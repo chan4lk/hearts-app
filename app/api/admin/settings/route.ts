@@ -14,29 +14,17 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get system settings from database
-    const settings = await prisma.systemSettings.findFirst();
+    let settings = await prisma.systemSettings.findFirst({ where: { id: 1 } });
 
     if (!settings) {
-      // Return default settings if none exist
-      return NextResponse.json({
-        notificationSettings: {
-          emailNotifications: true,
-          goalReminders: true,
-          reviewReminders: true,
-        },
-        reviewSettings: {
-          goalReviewPeriod: 30,
-          performanceReviewPeriod: 90,
-          selfReviewEnabled: true,
-        },
-        securitySettings: {
-          passwordPolicy: {
-            minLength: 8,
-            requireSpecialChar: true,
-            requireNumbers: true,
-          },
-          sessionTimeout: 30,
+      settings = await prisma.systemSettings.create({
+        data: {
+          id: 1,
+          systemName: 'Performance Management System',
+          theme: 'dark',
+          notificationSettings: {},
+          reviewSettings: {},
+          securitySettings: {},
         },
       });
     }
@@ -70,61 +58,15 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Update or create system settings
-    const settings = await prisma.systemSettings.upsert({
+    const updatedSettings = await prisma.systemSettings.update({
       where: { id: 1 },
-      update: {
-        securitySettings: {
-          systemName,
-          theme,
-          passwordPolicy: {
-            minLength: 8,
-            requireSpecialChar: true,
-            requireNumbers: true,
-          },
-          sessionTimeout: 30,
-        },
-        notificationSettings: {
-          emailNotifications: true,
-          goalReminders: true,
-          reviewReminders: true,
-        },
-        reviewSettings: {
-          goalReviewPeriod: 30,
-          performanceReviewPeriod: 90,
-          selfReviewEnabled: true,
-        }
+      data: {
+        systemName,
+        theme,
       },
-      create: {
-        id: 1,
-        securitySettings: {
-          systemName,
-          theme,
-          passwordPolicy: {
-            minLength: 8,
-            requireSpecialChar: true,
-            requireNumbers: true,
-          },
-          sessionTimeout: 30,
-        },
-        notificationSettings: {
-          emailNotifications: true,
-          goalReminders: true,
-          reviewReminders: true,
-        },
-        reviewSettings: {
-          goalReviewPeriod: 30,
-          performanceReviewPeriod: 90,
-          selfReviewEnabled: true,
-        }
-      }
     });
 
-    return NextResponse.json({
-      systemName,
-      theme,
-      ...settings
-    });
+    return NextResponse.json(updatedSettings);
   } catch (error) {
     console.error('Error updating system settings:', error);
     return NextResponse.json(

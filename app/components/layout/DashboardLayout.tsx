@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ReactNode, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
+
 import { 
   BsGrid, 
   BsBullseye,
@@ -28,6 +30,7 @@ import {
   BsX
 } from 'react-icons/bs';
 import dynamic from 'next/dynamic';
+import { useSettings } from '@/app/providers';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -43,16 +46,11 @@ interface Settings {
 
 export default function DashboardLayout({ children, type }: DashboardLayoutProps) {
   const { data: session, status } = useSession();
+  const { settings } = useSettings();
   const router = useRouter();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [settings, setSettings] = useState<Settings>({
-    systemName: 'Performance Management System',
-    timezone: 'UTC',
-    dateFormat: 'MM/DD/YYYY',
-    timeFormat: '12h'
-  });
   const userMenuRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
@@ -93,7 +91,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
           }
           const data = await response.json();
           if (data && typeof data === 'object') {
-            setSettings(prev => ({
+            setSetting(prev => ({
               ...prev,
               ...data
             }));
@@ -187,13 +185,21 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
             <div className="p-6">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
-                    <BsPerson className="w-6 h-6 text-white" />
-                  </div>
+                  <div className="w-12 h-12 rounded-full  flex items-center justify-center">
+                  <Link href="/" className="group transform hover:scale-105 transition-transform duration-300">
+              <Image 
+                src="/logo.png" 
+                alt="Bistec Logo" 
+                width={120} 
+                height={40}
+                className="h-12 w-auto object-contain"
+              />
+            </Link>                  </div>
                   <div>
                     <h1 className="text-xl font-bold text-white">
-                      {portalTitle}
+                      {settings.systemName}
                     </h1>
+                    <p className="text-xs text-gray-400">{portalTitle}</p>
                   </div>
                 </div>
                 <button
@@ -280,13 +286,21 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       <div className="fixed left-0 top-0 h-full w-64 bg-[#1a1c23] hidden md:block z-30">
         <div className="p-6">
           <div className="flex items-center space-x-3 mb-8">
-            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
-              <BsPerson className="w-6 h-6 text-white" />
-            </div>
+            <div className="w-12 h-12 rounded-full  flex items-center justify-center">
+            <Link href="/" className="group transform hover:scale-105 transition-transform duration-300">
+              <Image 
+                src="/logo.png" 
+                alt="Bistec Logo" 
+                width={120} 
+                height={40}
+                className="h-12 w-auto object-contain"
+              />
+            </Link>                   </div>
             <div>
               <h1 className="text-xl font-bold text-white">
-                {portalTitle}
+                {settings.systemName}
               </h1>
+              <p className="text-xs text-gray-400">{portalTitle}</p>
             </div>
           </div>
           <nav className="space-y-1">
@@ -374,12 +388,15 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
             </button>
             {/* Logo and System Name */}
             <div className="flex items-center space-x-2">
-              {/* Logo */}
-              <img
-                src="/logo.png"
-                alt="Bistec Global Logo"
-                className="h-8 w-auto"
+            <Link href="/" className="group transform hover:scale-105 transition-transform duration-300">
+              <Image 
+                src="/logo.png" 
+                alt="Bistec Logo" 
+                width={120} 
+                height={40}
+                className="h-12 w-auto object-contain"
               />
+            </Link>       
               {/* System Name */}
               <div className="flex flex-col">
                 <h1 className="text-lg font-semibold text-gray-300">

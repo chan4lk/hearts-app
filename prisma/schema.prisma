@@ -127,6 +127,8 @@ model Notification {
 
 model SystemSettings {
   id                   Int      @id @default(1)
+  systemName           String   @default("Performance Management System")
+  theme                String   @default("dark")
   notificationSettings Json
   reviewSettings       Json
   securitySettings     Json

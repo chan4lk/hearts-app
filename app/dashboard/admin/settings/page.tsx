@@ -7,6 +7,7 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import HeroSection from './components/HeroSection';
 import BackgroundElements from './components/BackgroundElements';
 import { showToast } from '@/app/utils/toast';
+import { useSettings } from '@/app/providers';
 import {
   BsGear,
   BsPalette,
@@ -19,64 +20,27 @@ import {
   BsGlobe
 } from 'react-icons/bs';
 
+import packageJson from '../../../../package.json';
+
+const appVersion = packageJson.version;
+const environment = process.env.NODE_ENV;
+
 export default function Settings() {
-  const [isLoading, setIsLoading] = useState(true);
+  const { settings: globalSettings, loading: isLoading, updateSettings } = useSettings();
   const [isSaving, setIsSaving] = useState(false);
-  const [settings, setSettings] = useState({
-    systemName: 'Performance Management System',
-    theme: 'dark'
-  });
-  const [originalSettings, setOriginalSettings] = useState({
-    systemName: 'Performance Management System',
-    theme: 'dark'
-  });
-
-  const hasChanges = JSON.stringify(settings) !== JSON.stringify(originalSettings);
+  const [settings, setSettings] = useState(globalSettings);
 
   useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const response = await fetch('/api/admin/settings');
-        if (response.ok) {
-          const data = await response.json();
-          setSettings(data);
-          setOriginalSettings(data);
-        }
-      } catch (error) {
-        console.error('Error fetching settings:', error);
-        showToast.settings.error('Load Failed', 'Could not load settings.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    setSettings(globalSettings);
+  }, [globalSettings]);
 
-    fetchSettings();
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', settings.theme === 'dark');
-    localStorage.setItem('theme', settings.theme);
-  }, [settings.theme]);
+  const hasChanges = JSON.stringify(settings) !== JSON.stringify(globalSettings);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const response = await fetch('/api/admin/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings),
-      });
-
-      if (response.ok) {
-        const newSettings = await response.json();
-        setOriginalSettings(newSettings);
-        setSettings(newSettings);
-        document.title = newSettings.systemName;
-        showToast.settings.updated();
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update settings');
-      }
+      await updateSettings(settings);
+      showToast.settings.updated();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       showToast.settings.error('Save Failed', message);
@@ -87,7 +51,7 @@ export default function Settings() {
   };
 
   const handleReset = () => {
-    setSettings(originalSettings);
+    setSettings(globalSettings);
     showToast.settings.reset();
   };
 
@@ -171,11 +135,11 @@ export default function Settings() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-700 dark:text-gray-300">Version</span>
-                      <span className="text-gray-900 dark:text-white font-medium">1.0.0</span>
+                      <span className="text-gray-900 dark:text-white font-medium">{appVersion}</span>
                     </div>
                      <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-700 dark:text-gray-300">Environment</span>
-                      <span className="text-gray-900 dark:text-white font-medium">Production</span>
+                      <span className="text-gray-900 dark:text-white font-medium capitalize">{environment}</span>
                     </div>
                   </div>
               </div>
