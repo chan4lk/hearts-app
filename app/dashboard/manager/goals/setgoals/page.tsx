@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { BsExclamationTriangle } from 'react-icons/bs';
 import { Button } from '@/components/ui/button';
+import { showToast } from '@/app/utils/toast';
 
 // Layout
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
@@ -109,7 +110,7 @@ function ManagerGoalSettingPageContent() {
     } catch (error) {
       console.error('Error fetching assigned employees:', error);
       setError(error instanceof Error ? error : new Error('Failed to load assigned employees'));
-      toast.error('Failed to load assigned employees');
+      showToast.goal.error('Failed to load assigned employees');
     }
   };
 
@@ -128,7 +129,7 @@ function ManagerGoalSettingPageContent() {
       updateStats(assignedGoals, employees);
     } catch (error) {
       console.error('Error fetching goals:', error);
-      toast.error('Failed to load goals');
+      showToast.goal.error('Failed to load goals');
     } finally {
       setLoading(false);
     }
@@ -173,10 +174,10 @@ function ManagerGoalSettingPageContent() {
       setGoals(prev => [goal, ...prev]);
       setIsCreateModalOpen(false);
       resetForm();
-      toast.success('Goal created successfully!');
+      showToast.goal.created();
     } catch (error) {
       console.error('Error creating goal:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create goal');
+      showToast.goal.error(error instanceof Error ? error.message : 'Failed to create goal');
     } finally {
       setLoading(false);
     }
@@ -199,10 +200,10 @@ function ManagerGoalSettingPageContent() {
       setGoals(prev => prev.map(goal => goal.id === selectedGoal.id ? updatedGoal : goal));
       setIsEditModalOpen(false);
       resetForm();
-      toast.success('Goal updated successfully!');
+      showToast.goal.updated();
     } catch (error) {
       console.error('Error updating goal:', error);
-      toast.error('Failed to update goal');
+      showToast.goal.error('Failed to update goal');
     } finally {
       setLoading(false);
     }
@@ -221,10 +222,10 @@ function ManagerGoalSettingPageContent() {
       setGoals(prev => prev.filter(goal => goal.id !== goalToDelete));
       setIsDeleteModalOpen(false);
       setGoalToDelete(null);
-      toast.success('Goal deleted successfully!');
+      showToast.goal.deleted();
     } catch (error) {
       console.error('Error deleting goal:', error);
-      toast.error('Failed to delete goal');
+      showToast.goal.error('Failed to delete goal');
     }
   };
 

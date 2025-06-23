@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { User, GoalFormData } from '../types';
 import { CATEGORIES } from '../constants';
 import { AIGoalSuggestions } from '@/app/components/shared/AIGoalSuggestions';
+import { showToast } from '@/app/utils/toast';
 
 interface GoalModalProps {
   isOpen: boolean;
@@ -38,6 +39,7 @@ export function GoalModal({
   const [context, setContext] = useState('');
   const [initialEditData, setInitialEditData] = useState<GoalFormData | null>(null);
   const [errors, setErrors] = useState<{ title?: string; category?: string; employeeId?: string }>({});
+  const [justSubmitted, setJustSubmitted] = useState<'create' | 'update' | null>(null);
 
   useEffect(() => {
     if (mode === 'edit') {
@@ -46,6 +48,21 @@ export function GoalModal({
       setInitialEditData(null);
     }
     setErrors({});
+    if (!isOpen && justSubmitted) {
+      if (justSubmitted === 'create') {
+        showToast.goal.created();
+      } else {
+        showToast.goal.updated();
+      }
+      setJustSubmitted(null);
+      setFormData({
+        title: '',
+        description: '',
+        dueDate: new Date().toISOString().split('T')[0],
+        employeeId: '',
+        category: 'PROFESSIONAL',
+      });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, isOpen]);
 
@@ -65,17 +82,18 @@ export function GoalModal({
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
     await onSubmit(formData);
+    setJustSubmitted(mode === 'edit' ? 'update' : 'create');
   };
 
   const handleGenerate = async () => {
     if (!formData.employeeId) {
-      toast.error('Please select an employee first');
+      showToast.goal.error('Please select an employee first');
       return;
     }
 
     const selectedEmployee = assignedEmployees.find(e => e.id === formData.employeeId);
     if (!selectedEmployee) {
-      toast.error('Selected employee not found');
+      showToast.goal.error('Selected employee not found');
       return;
     }
 
@@ -107,10 +125,10 @@ export function GoalModal({
         title: data.title,
         description: data.description,
       }));
-      toast.success('Goal generated successfully!');
+      showToast.goal.updated();
     } catch (error) {
       console.error('Error generating goal:', error);
-      toast.error('Failed to generate goal. Please try again.');
+      showToast.goal.error('Failed to generate goal. Please try again.');
     } finally {
       setIsGenerating(false);
     }
