@@ -5,10 +5,9 @@ import { getStatusStyle } from '../utils';
 interface GoalDetailsModalProps {
   goal: Goal | null;
   onClose: () => void;
-  activeTab: 'employee' | 'assigned';
 }
 
-export default function GoalDetailsModal({ goal, onClose, activeTab }: GoalDetailsModalProps) {
+export default function GoalDetailsModal({ goal, onClose }: GoalDetailsModalProps) {
   if (!goal) return null;
 
   return (
@@ -35,16 +34,14 @@ export default function GoalDetailsModal({ goal, onClose, activeTab }: GoalDetai
                   {goal.title}
                 </h2>
               </div>
-              {activeTab === 'employee' && (
-                <div className="flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-gray-700/50 to-gray-600/50 backdrop-blur-sm p-2 sm:p-3 rounded-lg sm:rounded-xl border border-gray-600/30">
-                  <div className="p-1 sm:p-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-md sm:rounded-lg">
-                    <BsPerson className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-                  </div>
-                  <span className="text-gray-200 font-medium text-sm sm:text-lg truncate">
-                    {goal.employee?.name}
-                  </span>
+              <div className="flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-gray-700/50 to-gray-600/50 backdrop-blur-sm p-2 sm:p-3 rounded-lg sm:rounded-xl border border-gray-600/30">
+                <div className="p-1 sm:p-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-md sm:rounded-lg">
+                  <BsPerson className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                 </div>
-              )}
+                <span className="text-gray-200 font-medium text-sm sm:text-lg truncate">
+                  {goal.employee?.name}
+                </span>
+              </div>
             </div>
             
             {/* Status Badge */}

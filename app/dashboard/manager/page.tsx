@@ -37,24 +37,22 @@ export default function ManagerDashboard() {
   const [employees, setEmployees] = useState<EmployeeStats[]>([]);
   const [employeeCounts, setEmployeeCounts] = useState({ total: 0, active: 0 });
   const [selectedGoalDetails, setSelectedGoalDetails] = useState<Goal | null>(null);
-  const [activeTab, setActiveTab] = useState<'employee' | 'assigned'>('employee');
   const { data: session } = useSession();
   const router = useRouter();
 
-  // Calculate statistics for employee goals and assigned goals
+  // Calculate statistics for employee goals
   const stats: DashboardStats = {
     employeeGoals: {
-      total: goals.filter(g => g.employee.email !== session?.user?.email && !g.isApprovalProcess).length,
-      draft: goals.filter(g => g.employee.email !== session?.user?.email && !g.isApprovalProcess && g.status === 'DRAFT').length,
-      pending: goals.filter(g => g.employee.email !== session?.user?.email && !g.isApprovalProcess && g.status === 'PENDING').length,
-      approved: goals.filter(g => g.employee.email !== session?.user?.email && !g.isApprovalProcess && g.status === 'APPROVED').length,
-      rejected: goals.filter(g => g.employee.email !== session?.user?.email && !g.isApprovalProcess && g.status === 'REJECTED').length,
-      modified: goals.filter(g => g.employee.email !== session?.user?.email && !g.isApprovalProcess && g.status === 'MODIFIED').length,
-      completed: goals.filter(g => g.employee.email !== session?.user?.email && !g.isApprovalProcess && g.status === 'COMPLETED').length,
+      total: goals.filter(g => g.employee.email !== session?.user?.email).length,
+      draft: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'DRAFT').length,
+      pending: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'PENDING').length,
+      approved: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'APPROVED').length,
+      rejected: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'REJECTED').length,
+      modified: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'MODIFIED').length,
+      completed: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'COMPLETED').length,
     },
     employeeCount: employeeCounts.total,
-    activeEmployees: employeeCounts.active,
-    approvalProcessGoals: goals.filter(g => g.managerId === session?.user?.id).length
+    activeEmployees: employeeCounts.active
   };
 
   // Load goals and employees from the database
@@ -116,13 +114,7 @@ export default function ManagerDashboard() {
   }, [session?.user?.email]);
 
   const handleGoalClick = (goal: Goal) => {
-    if (goal.isApprovalProcess) {
-      // Navigate to the approval page for approval process goals
-      router.push(`/approval/${goal.id}`);
-    } else {
-      // Show goal details for non-assigned goals
-      setSelectedGoalDetails(goal);
-    }
+    setSelectedGoalDetails(goal);
   };
 
   const filteredGoals = goals.filter(goal => {
@@ -138,14 +130,7 @@ export default function ManagerDashboard() {
     const matchesStatus = !selectedStatus || goal.status === selectedStatus;
     const matchesEmployee = selectedEmployee === 'all' || goal.employee?.email === selectedEmployee;
     
-    // Filter based on active tab
-    if (activeTab === 'assigned') {
-      return matchesSearch && matchesStatus && goal.managerId === session?.user?.id;
-    } else {
-      // Employee goals tab
-      return matchesSearch && matchesStatus && matchesEmployee && 
-             goal.employee.email !== session?.user?.email && goal.managerId !== session?.user?.id;
-    }
+    return matchesSearch && matchesStatus && matchesEmployee && goal.employee.email !== session?.user?.email;
   });
 
   if (loading) {
@@ -190,69 +175,21 @@ export default function ManagerDashboard() {
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
         </div>
 
-        <div className=" ">
-          {/* Hero Section */}
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative"
-          >
-            
-          </motion.div>
-
+        <div className="container mx-auto px-4 py-8">
           {/* Stats Section */}
           <motion.div 
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50"
+            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50 mb-6"
           >
-            <StatsDisplay stats={stats} activeTab={activeTab} />
-          </motion.div>
-
-          {/* Tab Navigation */}
-          <motion.div 
-            variants={itemVariants}
-            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50"
-          >
-            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 md:space-x-4">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setActiveTab('employee')}
-                className={`py-3 px-4 font-medium transition-all duration-300 text-center sm:text-left rounded-xl ${
-                  activeTab === 'employee'
-                    ? 'text-white bg-gradient-to-r from-indigo-500 to-indigo-600 shadow-lg'
-                    : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <BsPeople className="w-4 h-4" />
-                  Employee Goals
-                </div>
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setActiveTab('assigned')}
-                className={`py-3 px-4 font-medium transition-all duration-300 text-center sm:text-left rounded-xl ${
-                  activeTab === 'assigned'
-                    ? 'text-white bg-gradient-to-r from-indigo-500 to-indigo-600 shadow-lg'
-                    : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <BsCheckCircle className="w-4 h-4" />
-                  Self Assigned Goals
-                </div>
-              </motion.button>
-            </div>
+            <StatsDisplay stats={stats} />
           </motion.div>
 
           {/* Filters Section */}
           <motion.div 
             variants={itemVariants}
-            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50"
+            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50 mb-6"
           >
             <Filters
               searchQuery={searchQuery}
@@ -262,7 +199,6 @@ export default function ManagerDashboard() {
               selectedEmployee={selectedEmployee}
               setSelectedEmployee={setSelectedEmployee}
               employees={employees}
-              activeTab={activeTab}
             />
           </motion.div>
 
@@ -271,24 +207,19 @@ export default function ManagerDashboard() {
             variants={itemVariants}
             className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50"
           >
-            <GoalsGrid
-              goals={filteredGoals}
-              activeTab={activeTab}
-              onGoalClick={handleGoalClick}
-            />
+            <GoalsGrid goals={filteredGoals} onGoalClick={handleGoalClick} />
           </motion.div>
-
-          {/* Goal Details Modal */}
-          <AnimatePresence>
-            {selectedGoalDetails && !selectedGoalDetails.isApprovalProcess && (
-              <GoalDetailsModal
-                goal={selectedGoalDetails}
-                onClose={() => setSelectedGoalDetails(null)}
-                activeTab={activeTab}
-              />
-            )}
-          </AnimatePresence>
         </div>
+
+        {/* Goal Details Modal */}
+        <AnimatePresence>
+          {selectedGoalDetails && (
+            <GoalDetailsModal
+              goal={selectedGoalDetails}
+              onClose={() => setSelectedGoalDetails(null)}
+            />
+          )}
+        </AnimatePresence>
       </div>
     </DashboardLayout>
   );

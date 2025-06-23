@@ -9,7 +9,6 @@ interface FiltersProps {
   selectedEmployee: string;
   setSelectedEmployee: (employee: string) => void;
   employees: EmployeeStats[];
-  activeTab: 'employee' | 'personal' | 'assigned';
 }
 
 export default function Filters({
@@ -19,8 +18,7 @@ export default function Filters({
   setSelectedStatus,
   selectedEmployee,
   setSelectedEmployee,
-  employees,
-  activeTab
+  employees
 }: FiltersProps) {
   return (
     <div className="flex flex-col md:flex-row gap-4 animate-in slide-in-from-top-4 duration-500">
@@ -33,7 +31,7 @@ export default function Filters({
           </div>
           <input
             type="text"
-            placeholder={`Search ${activeTab === 'employee' ? 'employee' : activeTab === 'personal' ? 'personal' : 'assigned'} goals...`}
+            placeholder="Search employee goals..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-14 pr-4 py-4 bg-gradient-to-r from-gray-800/80 to-gray-700/80 backdrop-blur-xl text-white rounded-2xl border border-gray-600/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300 hover:bg-gradient-to-r hover:from-gray-700/80 hover:to-gray-600/80 hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/20"

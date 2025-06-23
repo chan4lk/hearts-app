@@ -54,5 +54,4 @@ export interface DashboardStats {
   };
   employeeCount: number;
   activeEmployees: number;
-  approvalProcessGoals: number;
 } 
