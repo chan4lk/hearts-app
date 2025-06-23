@@ -167,7 +167,7 @@ export function SelfCreateGoalModal({ isOpen, onClose, onSubmit, loading, goal, 
 
               {/* Description */}
               <div className="group">
-                <label className="block text-sm font-medium text-white/70 mb-2 flex items-center gap-2">
+                <label className="text-sm font-medium text-white/70 mb-2 flex items-center gap-2">
                   <BsListTask className="h-4 w-4" /> Description
                 </label>
                 <Textarea

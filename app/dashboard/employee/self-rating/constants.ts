@@ -31,9 +31,10 @@ export const RATING_HOVER_COLORS = {
 } as const;
 
 export const STATUS_COLORS = {
+  DRAFT: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
+  PENDING: 'bg-gray-500/10 text-gray-600 dark:text-gray-400',
   COMPLETED: 'bg-green-500/10 text-green-600 dark:text-green-400',
   APPROVED: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
   REJECTED: 'bg-red-500/10 text-red-600 dark:text-red-400',
-  MODIFIED: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400',
-  PENDING: 'bg-gray-500/10 text-gray-600 dark:text-gray-400'
+  MODIFIED: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400'
 } as const; 

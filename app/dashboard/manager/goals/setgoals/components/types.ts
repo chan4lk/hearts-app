@@ -2,9 +2,9 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: string;
-  department: string | null;
-  position: string | null;
+  role?: string;
+  department?: string;
+  position?: string;
 }
 
 export interface Goal {
@@ -14,6 +14,8 @@ export interface Goal {
   status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'DRAFT';
   dueDate: string;
   category: string;
+  createdAt: string;
+  updatedAt: string;
   employee: {
     id: string;
     name: string;
@@ -32,7 +34,11 @@ export interface GoalStats {
   completedGoals: number;
   pendingGoals: number;
   draftGoals: number;
-  categoryStats: { [key: string]: number };
+  approvedGoals: number;
+  rejectedGoals: number;
+  categoryStats: {
+    [key: string]: number;
+  };
 }
 
 export interface GoalFormData {
