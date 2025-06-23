@@ -1,11 +1,14 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { BsCalendar, BsTag, BsXCircle, BsCheckCircle, BsClock } from 'react-icons/bs';
+import { BsCalendar, BsTag, BsXCircle, BsCheckCircle, BsClock, BsGear, BsTrash } from 'react-icons/bs';
 import { Goal } from '../../types';
 
 interface GoalDetailsModalProps {
   goal: Goal | null;
   isOpen: boolean;
   onClose: () => void;
+  onEdit?: (goal: Goal) => void;
+  onDelete?: (goal: Goal) => void;
+  userIsAdminOrManager: boolean;
 }
 
 const getStatusColor = (status: string) => {
@@ -34,8 +37,11 @@ const formatDate = (dateString: string) => {
   });
 };
 
-export const GoalDetailsModal = ({ goal, isOpen, onClose }: GoalDetailsModalProps) => {
+export const GoalDetailsModal = ({ goal, isOpen, onClose, onEdit = () => {}, onDelete = () => {}, userIsAdminOrManager }: GoalDetailsModalProps) => {
   if (!goal || !isOpen) return null;
+
+  const canEdit = true;
+  const canDelete = true;
 
   return (
     <AnimatePresence>
@@ -73,12 +79,32 @@ export const GoalDetailsModal = ({ goal, isOpen, onClose }: GoalDetailsModalProp
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={onClose}
-                  className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <BsXCircle className="w-5 h-5 text-gray-500" />
-                </button>
+                <div className="flex items-center gap-2">
+                  {canEdit && (
+                    <button
+                      onClick={() => onEdit?.(goal)}
+                      className="p-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
+                      title="Edit Goal"
+                    >
+                      <BsGear className="w-5 h-5 text-blue-500" />
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button
+                      onClick={() => onDelete?.(goal)}
+                      className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900 transition-colors"
+                      title="Delete Goal"
+                    >
+                      <BsTrash className="w-5 h-5 text-red-500" />
+                    </button>
+                  )}
+                  <button
+                    onClick={onClose}
+                    className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <BsXCircle className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
               </div>
 
               <div className="p-4 space-y-4">

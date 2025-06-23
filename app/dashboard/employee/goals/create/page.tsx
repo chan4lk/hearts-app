@@ -11,10 +11,12 @@ import { HeroSection } from './components/HeroSection';
 import { GoalsList } from './components/GoalsList';
 import { GoalDetailsModal } from './components/modals/GoalDetailsModal';
 import { Goal, NewGoal } from './types';
+import { useSession } from 'next-auth/react';
 
 function GoalsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
   const [loading, setLoading] = useState(true);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [selectedStatus, setSelectedStatus] = useState('all');
@@ -30,6 +32,13 @@ function GoalsPageContent() {
     category: 'PROFESSIONAL',
     dueDate: new Date().toISOString().split('T')[0]
   });
+  const [editGoal, setEditGoal] = useState<Goal | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [deleteGoal, setDeleteGoal] = useState<Goal | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  // Helper to check if user is admin or manager
+  const userIsAdminOrManager = session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER';
 
   useEffect(() => {
     fetchGoals();
@@ -87,6 +96,75 @@ function GoalsPageContent() {
       console.error('Error submitting goal:', error);
       showNotificationWithTimeout(
         `Failed to create goal: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        'error'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditGoal = (goal: Goal) => {
+    setEditGoal(goal);
+    setIsEditModalOpen(true);
+    setNewGoal({
+      title: goal.title,
+      description: goal.description,
+      category: goal.category,
+      dueDate: goal.dueDate.split('T')[0],
+    });
+    setSelectedViewGoal(null); // Close details modal
+  };
+
+  const handleDeleteGoal = (goal: Goal) => {
+    setDeleteGoal(goal);
+    setIsDeleteModalOpen(true);
+    setSelectedViewGoal(null); // Close details modal
+  };
+
+  const handleEditSubmit = async (goalData: NewGoal) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/goals/${editGoal?.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(goalData),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Failed to update goal: ${errorData.error || response.statusText}`);
+      }
+      setIsEditModalOpen(false);
+      setEditGoal(null);
+      showNotificationWithTimeout('Goal updated successfully!', 'success');
+      fetchGoals();
+    } catch (error) {
+      showNotificationWithTimeout(
+        `Failed to update goal: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        'error'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteGoal) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/goals/${deleteGoal.id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Failed to delete goal: ${errorData.error || response.statusText}`);
+      }
+      setIsDeleteModalOpen(false);
+      setDeleteGoal(null);
+      showNotificationWithTimeout('Goal deleted successfully!', 'success');
+      fetchGoals();
+    } catch (error) {
+      showNotificationWithTimeout(
+        `Failed to delete goal: ${error instanceof Error ? error.message : 'Unknown error'}`,
         'error'
       );
     } finally {
@@ -191,10 +269,47 @@ function GoalsPageContent() {
         setGoal={setNewGoal}
       />
 
+      <SelfCreateGoalModal
+        isOpen={isEditModalOpen}
+        onClose={() => { setIsEditModalOpen(false); setEditGoal(null); }}
+        onSubmit={handleEditSubmit}
+        loading={loading}
+        goal={newGoal}
+        setGoal={setNewGoal}
+      />
+
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl w-full max-w-sm">
+            <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Delete Goal</h2>
+            <p className="mb-6 text-gray-700 dark:text-gray-300">Are you sure you want to delete this goal?</p>
+            <div className="flex justify-end gap-2">
+              <button
+                className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+                onClick={() => setIsDeleteModalOpen(false)}
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600"
+                onClick={handleDeleteConfirm}
+                disabled={loading}
+              >
+                {loading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <GoalDetailsModal
         goal={selectedViewGoal}
         isOpen={!!selectedViewGoal}
         onClose={() => setSelectedViewGoal(null)}
+        onEdit={handleEditGoal}
+        onDelete={handleDeleteGoal}
+        userIsAdminOrManager={userIsAdminOrManager}
       />
     </DashboardLayout>
   );
