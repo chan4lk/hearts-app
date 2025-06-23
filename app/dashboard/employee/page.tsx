@@ -9,8 +9,9 @@ import GoalDetailModal from './components/GoalDetailModal';
 import { Goal, GoalStats } from './components/types';
 import { BsGear, BsBell, BsSearch } from 'react-icons/bs';
 import { showToast } from '@/app/utils/toast';
+import { withDashboardBehavior } from '@/app/components/shared/withDashboardBehavior';
 
-export default function EmployeeDashboard() {
+function EmployeeDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -123,7 +124,7 @@ export default function EmployeeDashboard() {
 
   if (loading) {
     return (
-      <DashboardLayout type="employee">
+      <DashboardLayout>
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
           <div className="relative">
             <motion.div
@@ -143,7 +144,7 @@ export default function EmployeeDashboard() {
   }
 
   return (
-    <DashboardLayout type="employee">
+    <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         {/* Subtle Background Pattern */}
         <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
@@ -211,3 +212,5 @@ export default function EmployeeDashboard() {
     </DashboardLayout>
   );
 }
+
+export default withDashboardBehavior(EmployeeDashboard, 'EMPLOYEE');

@@ -1,84 +1,53 @@
-import { withAuth } from "next-auth/middleware";
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
+import { Role } from '@prisma/client';
+import type { NextRequest } from 'next/server';
 
-export default withAuth(
-  function middleware(req) {
-    const token = req.nextauth.token;
-    const path = req.nextUrl.pathname;
-    
-    // Debug information for Azure deployment
-    console.log(`Middleware executing for path: ${path}`);
-    console.log(`Auth token present: ${!!token}`);
-    console.log(`User role: ${token?.role || 'none'}`);
-    
-    // Log token details for debugging
-    console.log(`Token details: ${JSON.stringify(token)}`);
+// Define route patterns and their required roles
+const ROLE_ROUTES: Record<string, Role[]> = {
+  '/dashboard/admin': ['ADMIN'],
+  '/dashboard/manager': ['ADMIN', 'MANAGER'],
+  '/dashboard/employee': ['ADMIN', 'MANAGER', 'EMPLOYEE'],
+};
 
-    // Log cookies for debugging
-    const cookies = req.cookies.getAll();
-    console.log(`Cookies: ${JSON.stringify(cookies.map(c => ({ name: c.name, value: c.name.includes('token') ? '[REDACTED]' : c.value })))}`);
+export async function middleware(request: NextRequest) {
+  const token = await getToken({ req: request });
 
-    // Allow access to register and login pages
-    if (path === '/register' || path === '/login' || path === '/error') {
-      console.log(`[Middleware] Allowing access to: ${path}`);
-      return NextResponse.next();
-    }
-    
-    // Handle API routes separately
-    if (path.startsWith('/api/')) {
-      console.log(`[Middleware] Allowing access to API route: ${path}`);
-      return NextResponse.next();
-    }
-
-    // Redirect to login if no token
-    if (!token) {
-      console.log(`[Middleware] No auth token, redirecting to login`);
-      const url = new URL("/login", req.url);
-      url.searchParams.set("callbackUrl", req.nextUrl.pathname);
-      return NextResponse.redirect(url);
-    }
-
-    // Role-based access control
-    if (path.startsWith("/dashboard/admin")) {
-      if (token.role !== "ADMIN") {
-        console.log(`[Middleware] Unauthorized access attempt to admin dashboard by role: ${token.role}`);
-        return NextResponse.redirect(new URL("/dashboard/employee", req.url));
-      }
-    } else if (path.startsWith("/dashboard/manager")) {
-      if (token.role !== "MANAGER") {
-        console.log(`[Middleware] Unauthorized access attempt to manager dashboard by role: ${token.role}`);
-        return NextResponse.redirect(new URL("/dashboard/employee", req.url));
-      }
-    } else if (path.startsWith("/dashboard/employee")) {
-      // Allow all authenticated users to access employee dashboard
-      console.log(`[Middleware] Allowing access to employee dashboard for role: ${token.role}`);
-      return NextResponse.next();
-    }
-
-    return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ token, req }) => {
-        const path = req.nextUrl.pathname;
-        // Allow access to register and login pages without authentication
-        if (path === '/register' || path === '/login') {
-          return true;
-        }
-        return !!token;
-      },
-    },
-    pages: {
-      signIn: "/login",
-    },
+  // If there's no token, redirect to login
+  if (!token) {
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('callbackUrl', request.url);
+    return NextResponse.redirect(loginUrl);
   }
-);
+
+  // Get the active role from the token
+  const activeRole = (token.activeRole as Role) || (token.role as Role);
+
+  // Check if the current path requires role-based access
+  const path = request.nextUrl.pathname;
+  for (const [route, allowedRoles] of Object.entries(ROLE_ROUTES)) {
+    if (path.startsWith(route)) {
+      // If the user's active role is not allowed for this route
+      if (!allowedRoles.includes(activeRole)) {
+        // Redirect to the highest level dashboard they have access to
+        if (activeRole === 'ADMIN') {
+          return NextResponse.redirect(new URL('/dashboard/admin', request.url));
+        } else if (activeRole === 'MANAGER') {
+          return NextResponse.redirect(new URL('/dashboard/manager', request.url));
+        } else {
+          return NextResponse.redirect(new URL('/dashboard/employee', request.url));
+        }
+      }
+    }
+  }
+
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [
-    "/dashboard/:path*",
-    "/api/((?!auth).)*",  // Block all API routes except auth
-    "/login",
-    "/register",
+    '/dashboard/:path*',
+    '/api/admin/:path*',
+    '/api/manager/:path*',
   ],
 }; 

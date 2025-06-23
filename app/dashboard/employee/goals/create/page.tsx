@@ -177,7 +177,7 @@ function GoalsPageContent() {
 
   if (loading) {
     return (
-      <DashboardLayout type="employee">
+      <DashboardLayout role="EMPLOYEE">
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
           <div className="relative">
             <motion.div
@@ -197,7 +197,7 @@ function GoalsPageContent() {
   }
 
   return (
-    <DashboardLayout type="employee">
+    <DashboardLayout role="EMPLOYEE">
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         {/* Background Elements */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">

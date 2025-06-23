@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { withDashboardBehavior } from '@/app/components/shared/withDashboardBehavior';
 
 interface DashboardStats {
   totalUsers: number;
@@ -44,7 +45,7 @@ interface SystemHealth {
   percentage: number;
 }
 
-export default function AdminDashboard() {
+function AdminDashboard() {
   const { data: session } = useSession();
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats>({
@@ -108,7 +109,7 @@ export default function AdminDashboard() {
 
   if (isLoading) {
     return (
-      <DashboardLayout type="admin">
+      <DashboardLayout>
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
           <motion.div
             animate={{ rotate: 360 }}
@@ -139,7 +140,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <DashboardLayout type="admin">
+    <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         {/* Floating Background Elements */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -374,4 +375,6 @@ export default function AdminDashboard() {
       </div>
     </DashboardLayout>
   );
-} 
+}
+
+export default withDashboardBehavior(AdminDashboard, 'ADMIN');

@@ -1,514 +1,339 @@
 'use client';
 
-import { signOut, useSession } from 'next-auth/react';
-import Link from 'next/link';
+import { ReactNode, useEffect, useState } from 'react';
+import { useSession, signOut } from 'next-auth/react';
+import { useRole } from '../context/RoleContext';
+import { Role } from '@prisma/client';
 import { usePathname, useRouter } from 'next/navigation';
-import { ReactNode, useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
-
+import Link from 'next/link';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 import { 
-  BsGrid, 
-  BsBullseye,
-  BsStar,
-  BsChat,
-  BsBarChart,
-  BsPerson,
-  BsGear,
-  BsShield,
-  BsGraphUp,
-  BsClipboardData,
-  BsBell,
-  BsPeople,
-  BsChevronDown,
+  BsPersonCircle, 
+  BsGrid3X3GapFill, 
+  BsPeopleFill, 
+  BsBullseye, 
+  BsStarFill, 
   BsBoxArrowRight,
-  BsBuilding,
-  BsSun,
-  BsMoon,
-  BsSearch,
-  BsList,
-  BsX
+  BsBellFill, 
+  BsShieldFillCheck, 
+  BsCheckCircleFill, 
+  BsPersonFill 
 } from 'react-icons/bs';
-import dynamic from 'next/dynamic';
-import { useSettings } from '@/app/providers';
+import { HiOutlineMenuAlt3 } from 'react-icons/hi';
+import type { IconType } from 'react-icons';
+import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 interface DashboardLayoutProps {
   children: ReactNode;
-  type: 'employee' | 'manager' | 'admin';
+  role?: Role;
 }
 
-interface Settings {
-  systemName: string;
-  timezone: string;
-  dateFormat: string;
-  timeFormat: string;
+interface NavItem {
+  href: string;
+  label: string;
+  icon: IconType;
 }
 
-export default function DashboardLayout({ children, type }: DashboardLayoutProps) {
-  const { data: session, status } = useSession();
-  const { settings, updateSettings } = useSettings();
+const ROLE_LABELS: Record<Role, string> = {
+  ADMIN: 'Admin Dashboard',
+  MANAGER: 'Manager Dashboard',
+  EMPLOYEE: 'Employee Dashboard',
+};
+
+const ROLE_ROUTES: Record<Role, string> = {
+  ADMIN: '/dashboard/admin',
+  MANAGER: '/dashboard/manager',
+  EMPLOYEE: '/dashboard/employee',
+};
+
+const ROLE_DESCRIPTIONS: Record<Role, string> = {
+  ADMIN: 'Full system access and control',
+  MANAGER: 'Team and goal management',
+  EMPLOYEE: 'Personal goals and progress',
+};
+
+const ROLE_NAV_ITEMS: Record<Role, NavItem[]> = {
+  ADMIN: [
+    { href: '/dashboard/admin', label: 'Dashboard', icon: BsGrid3X3GapFill },
+    { href: '/dashboard/admin/users', label: 'Users', icon: BsPeopleFill },
+    { href: '/dashboard/admin/goals', label: 'Goals', icon: BsBullseye },
+  ],
+  MANAGER: [
+    { href: '/dashboard/manager', label: 'Dashboard', icon: BsGrid3X3GapFill },
+    { href: '/dashboard/manager/goals/approve-goals', label: 'Goal Approvals', icon: BsBullseye },
+    { href: '/dashboard/manager/goals/setgoals', label: 'Set Goals', icon: BsBullseye },
+    { href: '/dashboard/manager/rate-employees', label: 'Ratings', icon: BsStarFill },
+  ],
+  EMPLOYEE: [
+    { href: '/dashboard/employee', label: 'Dashboard', icon: BsGrid3X3GapFill },
+    { href: '/dashboard/employee/goals/create', label: 'Create Goals', icon: BsBullseye },
+    { href: '/dashboard/employee/self-rating', label: 'Self Rating', icon: BsStarFill },
+  ],
+};
+
+export default function DashboardLayout({ children, role }: DashboardLayoutProps) {
+  const { data: session } = useSession();
+  const { activeRole, availableRoles, setActiveRole } = useRole();
   const router = useRouter();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const userMenuRef = useRef<HTMLDivElement>(null);
-  const sidebarRef = useRef<HTMLDivElement>(null);
 
-  // Close mobile menu when route changes
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [pathname]);
+  // If role prop is provided, use it, otherwise use activeRole from context
+  const currentRole = role || activeRole;
 
-  // Close mobile menu when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-        setIsMobileMenuOpen(false);
-      }
-    }
+  // Handle role switching
+  const handleRoleSwitch = (newRole: Role) => {
+    setActiveRole(newRole);
+    // Redirect to the appropriate dashboard
+    router.push(ROLE_ROUTES[newRole]);
+  };
 
-    if (isMobileMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isMobileMenuOpen]);
+  // Handle sign out
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: '/login' });
+  };
 
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        // Only fetch admin settings if user is an admin
-        if (type === 'admin') {
-          const response = await fetch('/api/admin/settings');
-          if (!response.ok) {
-            if (response.status === 401) {
-              console.log('Not authorized to access admin settings');
-              return;
-            }
-            throw new Error('Failed to fetch settings');
-          }
-          const data = await response.json();
-          if (data && typeof data === 'object') {
-            await updateSettings(data);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching settings:', error);
-      }
-    };
-
-    if (status === 'authenticated') {
-      fetchSettings();
-    }
-  }, [type, status, updateSettings]);
-
-  // Close user menu when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
-        setIsUserMenuOpen(false);
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
+  // Get navigation items for the current role
   const getNavItems = () => {
-    switch (type) {
-      case 'employee':
-        return [
-          { href: '/dashboard/employee', icon: BsGrid, label: 'Dashboard' },
-          { href: '/dashboard/employee/goals/create', icon: BsBullseye, label: 'Goals Create' },
-          { href: '/dashboard/employee/self-rating', icon: BsStar, label: 'Self Rating' },
-        ];
-      case 'manager':
-        return [
-          { href: '/dashboard/manager', icon: BsGrid, label: 'Dashboard' },
-          { href: '/dashboard/manager/goals/approve-goals', icon: BsBullseye, label: 'Goal Approvals' },
-          { href: '/dashboard/manager/goals/setgoals', icon: BsBullseye, label: 'Set Goals' },
-          { href: '/dashboard/manager/rate-employees', icon: BsStar, label: 'Manager Ratings' },
-        ];
-      case 'admin':
-        return [
-          { href: '/dashboard/admin', label: 'Dashboard', icon: BsGrid },
-          { href: '/dashboard/admin/users', label: 'Users', icon: BsPeople },
-          { href: '/dashboard/admin/goals', icon: BsBullseye, label: 'Set Goals' },
-        ];
-      default:
-        return [];
-    }
+    return ROLE_NAV_ITEMS[currentRole] || [];
   };
 
   const navItems = getNavItems();
-  const portalTitle = type.charAt(0).toUpperCase() + type.slice(1) + ' Portal';
 
-  // Function to check if current path matches or is a sub-path of nav item
-  const isPathActive = (href: string) => {
-    // Remove trailing slashes for consistent comparison
-    const cleanPath = pathname.replace(/\/$/, '');
-    const cleanHref = href.replace(/\/$/, '');
-
-    // For dashboard pages, check if we're on the exact dashboard path
-    if (cleanHref.endsWith('/dashboard/' + type)) {
-      return cleanPath === cleanHref;
+  // Updated isActivePath function for more precise matching
+  const isActivePath = (href: string) => {
+    if (!pathname) return false;
+    
+    // Exact match for dashboard root paths
+    if (href.endsWith('/dashboard/admin') || 
+        href.endsWith('/dashboard/manager') || 
+        href.endsWith('/dashboard/employee')) {
+      return pathname === href;
     }
-
-    // For all other pages, check if we're in that section
-    return cleanPath.includes(cleanHref);
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await signOut({
-        callbackUrl: '/login',
-        redirect: true
-      });
-      router.push('/login');
-    } catch (error) {
-      console.error('Error signing out:', error);
-      router.push('/login');
+    
+    // For other paths, check if it's the current section
+    const currentPath = pathname.toLowerCase();
+    const navPath = href.toLowerCase();
+    
+    // Don't match parent paths if we're in a sub-path
+    if (navPath.endsWith('/goals') && currentPath.includes('/goals/')) {
+      return false;
     }
+    
+    return currentPath.startsWith(navPath);
   };
 
   return (
     <div className="min-h-screen bg-[#0f1117]">
-      {/* Sidebar */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div
-            ref={sidebarRef}
-            initial={{ x: '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed left-0 top-0 h-full w-64 bg-[#1a1c23] z-30 md:hidden"
-          >
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center space-x-3">
-                  <div className="w-14 h-14 rounded-full  flex items-center justify-center">
-                  <Link href="/" className="group transform hover:scale-105 transition-transform duration-300">
-              <Image 
-                src="/logo.png" 
-                alt="Bistec Logo" 
-                width={120} 
-                height={40}
-                className="h-12 w-auto object-contain"
-              />
-            </Link>                  </div>
-                  <div>
-                    <h1 className="text-lg font-bold text-white">
-                      {settings.systemName}
-                    </h1>
-                    <p className="text-xs text-gray-400">{portalTitle}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-gray-400 hover:text-white"
-                  aria-label="Close menu"
-                >
-                  <BsX className="w-6 h-6" />
-                </button>
-              </div>
-              <nav className="space-y-1">
-                {navItems.map((item) => {
-                  const isActive = isPathActive(item.href);
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
-                        isActive
-                          ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/20'
-                          : 'text-gray-400 hover:text-white'
-                      }`}
-                    >
-                      <span className="flex items-center space-x-3 relative z-10 w-full">
-                        {/* Animated background hover effect */}
-                        {!isActive && (
-                          <div className="absolute inset-0 bg-gradient-to-r from-[#2d2f36] to-[#2d2f36]/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg transform group-hover:scale-105" />
-                        )}
-                        
-                        {/* Active indicator with glow */}
-                        {isActive && (
-                          <>
-                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
-                            <div className="absolute inset-0 bg-white/5 rounded-lg backdrop-blur-sm" />
-                          </>
-                        )}
-                        
-                        {/* Icon with enhanced hover effect */}
-                        <span className="relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:translate-x-1">
-                          <item.icon className={`text-xl ${
-                            isActive 
-                              ? 'transform rotate-0 drop-shadow-[0_0_3px_rgba(255,255,255,0.5)]' 
-                              : 'group-hover:rotate-6 group-hover:text-blue-400'
-                          } transition-all duration-300`} />
-                        </span>
-                        
-                        {/* Label with enhanced slide and glow effect */}
-                        <span className={`relative z-10 transform transition-all duration-300 group-hover:translate-x-1 ${
-                          isActive 
-                            ? 'font-medium drop-shadow-[0_0_2px_rgba(255,255,255,0.3)]' 
-                            : 'group-hover:text-blue-400'
-                        }`}>
-                          {item.label}
-                        </span>
-                        
-                        {/* Decorative elements */}
-                        {isActive && (
-                          <>
-                            <div className="absolute top-1 right-2 w-1.5 h-1.5 bg-white rounded-full opacity-30 animate-pulse" />
-                            <div className="absolute bottom-1 right-4 w-1 h-1 bg-white rounded-full opacity-20 animate-pulse delay-100" />
-                          </>
-                        )}
-                      </span>
-                    </Link>
-                  );
-                })}
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
 
-                {/* Sign Out Button with enhanced hover effect */}
-                <div className="pt-6 mt-6 border-t border-gray-800">
-                  <button
-                    onClick={handleSignOut}
-                    className="group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 text-red-400 hover:text-red-500 w-full relative overflow-hidden"
-                  >
-                    {/* Gradient background on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-red-500/5 opacity-0 group-hover:opacity-100 transition-all duration-300" />
-                    
-                    {/* Icon with rotation and slide effect */}
-                    <div className="relative z-10 transition-transform duration-300 group-hover:scale-110">
-                      <BsBoxArrowRight className="text-xl transform group-hover:translate-x-1 group-hover:rotate-6 transition-all duration-300" />
-                    </div>
-                    
-                    {/* Label with slide effect */}
-                    <span className="relative z-10 font-medium transform transition-transform duration-300 group-hover:translate-x-1">Sign Out</span>
-                    
-                    {/* Decorative elements */}
-                    <div className="absolute top-1 right-1 w-1 h-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
-                    <div className="absolute bottom-1 right-2 w-1 h-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-                  </button>
-                </div>
-              </nav>
+      {/* Left Sidebar */}
+      <div className={cn(
+        "fixed left-0 top-0 h-screen w-64 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-100 z-50 transition-all duration-300 ease-in-out lg:translate-x-0 shadow-xl",
+        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        {/* Logo and Title Section */}
+        <div className="p-4 border-b border-gray-800/60">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 relative">
+              <Image src="/logo.png" alt="Logo" fill className="object-contain" />
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Desktop Sidebar */}
-      <div className="fixed left-0 top-0 h-full w-64 bg-[#1a1c23] hidden md:block z-30">
-        <div className="p-6">
-          <div className="flex items-center space-x-3 mb-8">
-            <div className="w-14 h-14 rounded-full  flex items-center justify-center">
-            <Link href="/" className="group transform hover:scale-105 transition-transform duration-300">
-              <Image 
-                src="/logo.png" 
-                alt="Bistec Logo" 
-                width={120} 
-                height={40}
-                className="h-12 w-auto object-contain"
-              />
-            </Link>                   </div>
             <div>
-              <h1 className="text-lg font-bold text-white">
-                {settings.systemName}
-              </h1>
-              <p className="text-xs text-gray-400">{portalTitle}</p>
+              <h1 className="text-lg font-semibold">BISTEC Global</h1>
+              <p className="text-sm text-gray-400">Performance Management</p>
+              <p className="text-xs text-gray-400">{ROLE_LABELS[currentRole].split(' ')[0]} Portal</p>
             </div>
           </div>
-          <nav className="space-y-1">
+        </div>
+
+        {/* Navigation Section */}
+        <nav className="mt-6 px-4 flex flex-col h-[calc(100vh-180px)]">
+          <div className="flex-1">
             {navItems.map((item) => {
-              const isActive = isPathActive(item.href);
+              const Icon = item.icon;
+              const isActive = isActivePath(item.href);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
-                    isActive
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/20'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(
+                    "mb-2 flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200",
+                    "relative group hover:bg-[#282d3d]",
+                    isActive 
+                      ? "bg-blue-600/90 text-white shadow-md before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-8 before:w-1 before:bg-blue-400 before:rounded-r-full" 
+                      : "text-gray-300 hover:text-white"
+                  )}
                 >
-                  <span className="flex items-center space-x-3 relative z-10 w-full">
-                    {/* Animated background hover effect */}
-                    {!isActive && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#2d2f36] to-[#2d2f36]/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg transform group-hover:scale-105" />
-                    )}
-                    
-                    {/* Active indicator with glow */}
-                    {isActive && (
-                      <>
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
-                        <div className="absolute inset-0 bg-white/5 rounded-lg backdrop-blur-sm" />
-                      </>
-                    )}
-                    
-                    {/* Icon with enhanced hover effect */}
-                    <span className="relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:translate-x-1">
-                      <item.icon className={`text-xl ${
-                        isActive 
-                          ? 'transform rotate-0 drop-shadow-[0_0_3px_rgba(255,255,255,0.5)]' 
-                          : 'group-hover:rotate-6 group-hover:text-blue-400'
-                      } transition-all duration-300`} />
-                    </span>
-                    
-                    {/* Label with enhanced slide and glow effect */}
-                    <span className={`relative z-10 transform transition-all duration-300 group-hover:translate-x-1 ${
-                      isActive 
-                        ? 'font-medium drop-shadow-[0_0_2px_rgba(255,255,255,0.3)]' 
-                        : 'group-hover:text-blue-400'
-                    }`}>
-                      {item.label}
-                    </span>
-                    
-                    {/* Decorative elements */}
-                    {isActive && (
-                      <>
-                        <div className="absolute top-1 right-2 w-1.5 h-1.5 bg-white rounded-full opacity-30 animate-pulse" />
-                        <div className="absolute bottom-1 right-4 w-1 h-1 bg-white rounded-full opacity-20 animate-pulse delay-100" />
-                      </>
-                    )}
-                  </span>
+                  <Icon className={cn(
+                    "mr-3 h-5 w-5 transition-transform duration-200",
+                    "group-hover:scale-110",
+                    isActive ? "text-white" : "text-gray-400 group-hover:text-white"
+                  )} />
+                  {item.label}
                 </Link>
               );
             })}
+          </div>
 
-            {/* Sign Out Button with enhanced hover effect */}
-            <div className="pt-6 mt-6 border-t border-gray-800">
-              <button
-                onClick={handleSignOut}
-                className="group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 text-red-400 hover:text-red-500 w-full relative overflow-hidden"
-              >
-                {/* Gradient background on hover */}
-                <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-red-500/5 opacity-0 group-hover:opacity-100 transition-all duration-300" />
-                
-                {/* Icon with rotation and slide effect */}
-                <div className="relative z-10 transition-transform duration-300 group-hover:scale-110">
-                  <BsBoxArrowRight className="text-xl transform group-hover:translate-x-1 group-hover:rotate-6 transition-all duration-300" />
-                </div>
-                
-                {/* Label with slide effect */}
-                <span className="relative z-10 font-medium transform transition-transform duration-300 group-hover:translate-x-1">Sign Out</span>
-                
-                {/* Decorative elements */}
-                <div className="absolute top-1 right-1 w-1 h-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
-                <div className="absolute bottom-1 right-2 w-1 h-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-              </button>
-            </div>
-          </nav>
-        </div>
+          {/* Sign Out Button */}
+          <div className="mb-6">
+            <button
+              onClick={handleSignOut}
+              className="w-full flex items-center px-4 py-3 text-sm font-medium text-red-400 hover:bg-red-500/10 rounded-lg transition-all duration-200 group"
+            >
+              <BsBoxArrowRight className="mr-3 h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
+              Sign Out
+            </button>
+          </div>
+        </nav>
       </div>
 
-      {/* Header */}
-      <header className="fixed top-0 right-0 left-0 h-16 bg-[#1a1c23] md:pl-64 z-20">
-        <div className="flex items-center justify-between h-full px-4">
-          {/* Left side: Mobile menu, Logo, and System Name */}
-          <div className="flex items-center space-x-4">
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-gray-400 hover:text-white md:hidden"
-              aria-label="Open menu"
-            >
-              <BsList className="w-6 h-6" />
-            </button>
-            {/* Logo and System Name */}
-            <div className="flex items-center space-x-2">
-            <Link href="/" className="group transform hover:scale-105 transition-transform duration-300">
-              <Image 
-                src="/logo.png" 
-                alt="Bistec Logo" 
-                width={120} 
-                height={40}
-                className="h-12 w-auto object-contain"
-              />
-            </Link>       
-              {/* System Name */}
-              <div className="flex flex-col">
-                <h1 className="text-lg font-semibold text-gray-300">
-                  Performance
-                </h1>
-                <span className="text-xs text-gray-400">Management System</span>
+      {/* Main Content Area */}
+      <div className="lg:ml-64 min-h-screen bg-[#0f1117]">
+        {/* Top Navigation Bar */}
+        <nav className="fixed top-0 right-0 left-0 lg:left-64 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-b border-gray-800/60 shadow-md z-30">
+          <div className="max-w-full px-4 mx-auto">
+            <div className="flex justify-between h-16 items-center">
+              <div className="flex items-center">
+                {/* Mobile Menu Button */}
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="text-gray-300 hover:text-white lg:hidden mr-4 p-1 hover:bg-white/10 rounded-lg transition-colors duration-200"
+                >
+                  <HiOutlineMenuAlt3 className="h-6 w-6" />
+                </button>
+
+                {/* Mobile Header - Only visible on mobile */}
+                <div className="flex items-center space-x-3 lg:hidden">
+                  <div className="w-8 h-8 relative">
+                    <Image src="/logo.png" alt="Logo" fill className="object-contain" />
+                  </div>
+                  <h1 className="text-lg font-bold text-white">
+                    BISTEC Global PEM
+                  </h1>
+                </div>
+
+                {/* Desktop Welcome - Only visible on desktop */}
+                
+              </div>
+
+              <div className="flex items-center space-x-4">
+                {/* Notifications */}
+                <button className="text-gray-300 hover:text-white p-1 hover:bg-white/10 rounded-lg transition-all duration-200">
+                  <BsBellFill className="h-5 w-5" />
+                </button>
+
+                {/* Profile/Role Switcher */}
+                {session?.user && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="bg-[#282d3d] border-gray-700 text-gray-200 hover:bg-[#32374a] transition-all duration-200 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <div className="relative w-7 h-7 bg-blue-500/10 rounded-md flex items-center justify-center">
+                            <BsPersonCircle className="h-4 w-4 text-blue-400" />
+                          </div>
+                        </div>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent 
+                      className="w-64 bg-[#1a1d27]/95 backdrop-blur-sm border-gray-700/50 shadow-xl shadow-black/20 rounded-lg overflow-hidden"
+                      align="end"
+                      alignOffset={0}
+                      sideOffset={8}
+                    >
+                      <div className="px-3 py-2 border-b border-gray-800/50">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                            <BsPersonCircle className="h-5 w-5 text-blue-400" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="font-medium text-sm text-gray-100">{session.user.name}</span>
+                            <span className="text-xs text-gray-400">{session.user.email}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {availableRoles.length > 1 && (
+                        <div className="py-1">
+                          <div className="px-3 py-1.5 text-xs font-medium text-gray-400 uppercase tracking-wider">
+                            Switch Role
+                          </div>
+                          {availableRoles.map((role) => (
+                            <div
+                              key={role}
+                              onClick={() => handleRoleSwitch(role)}
+                              className={cn(
+                                "px-3 py-1.5 flex items-center space-x-2 cursor-pointer transition-all duration-200",
+                                "text-gray-200 hover:text-white hover:bg-[#32374a]",
+                                "relative",
+                                currentRole === role ? "bg-[#32374a] text-white" : ""
+                              )}
+                            >
+                              <div className={cn(
+                                "w-6 h-6 rounded-md flex items-center justify-center",
+                                role === 'ADMIN' && "bg-purple-500/10",
+                                role === 'MANAGER' && "bg-blue-500/10",
+                                role === 'EMPLOYEE' && "bg-green-500/10"
+                              )}>
+                                {role === 'ADMIN' && <BsShieldFillCheck className="h-3.5 w-3.5 text-purple-400" />}
+                                {role === 'MANAGER' && <BsPeopleFill className="h-3.5 w-3.5 text-blue-400" />}
+                                {role === 'EMPLOYEE' && <BsPersonFill className="h-3.5 w-3.5 text-green-400" />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-medium truncate">{ROLE_LABELS[role].split(' ')[0]}</span>
+                                  {currentRole === role && (
+                                    <BsCheckCircleFill className="h-3.5 w-3.5 text-blue-400 ml-2" />
+                                  )}
+                                </div>
+                                <span className="text-xs text-gray-400 truncate block">{ROLE_DESCRIPTIONS[role]}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <DropdownMenuSeparator className="bg-gray-800/50" />
+                      
+                      {/* Sign Out Option */}
+                      <div className="py-1">
+                        <button
+                          onClick={handleSignOut}
+                          className="w-full px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 flex items-center space-x-2 transition-all duration-200"
+                        >
+                          <BsBoxArrowRight className="h-4 w-4" />
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
             </div>
           </div>
-          {/* Right side: Notification Bell and User Menu */}
-          <div className="flex items-center space-x-4">
-            {/* Notification Bell */}
-            <button className="text-gray-400 hover:text-white">
-              <BsBell className="w-6 h-6" />
-            </button>
-            {/* User Menu */}
-            <div className="relative" ref={userMenuRef}>
-              <button 
-                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center space-x-3 text-gray-400 hover:text-white focus:outline-none"
-              >
-                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">
-                    {session?.user?.email?.[0].toUpperCase()}
-                  </span>
-                </div>
-                <BsChevronDown className={`w-4 h-4 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
-              </button>
-              
-              {/* User Dropdown Menu */}
-              {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-[#1a1c23] rounded-lg shadow-lg py-1 z-50 border border-gray-700">
-                  <div className="px-4 py-3 border-b border-gray-700">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
-                        <span className="text-white text-sm font-medium">
-                          {session?.user?.email?.[0].toUpperCase()}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-white">{session?.user?.email}</p>
-                        <p className="text-xs text-gray-400">{session?.user?.role}</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <button 
-                    onClick={handleSignOut}
-                    className="group flex items-center w-full px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-500 transition-all duration-300"
-                  >
-                    <BsBoxArrowRight className="mr-2 transform group-hover:translate-x-1 transition-transform duration-300" />
-                    <span className="font-medium">Sign Out</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+        </nav>
 
-      {/* Main Content */}
-      <main className="md:pl-64 pt-16">
-        <div className="p-6">
+        {/* Content Wrapper - Add padding-top to account for fixed header */}
+        <div className="pt-16">
           {children}
         </div>
-      </main>
-
-      {/* Mobile menu backdrop */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-        )}
-      </AnimatePresence>
+      </div>
     </div>
   );
 } 

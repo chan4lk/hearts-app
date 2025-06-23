@@ -1,3 +1,5 @@
+import type { Role, User as PrismaUser } from '.prisma/client';
+import type { User } from 'next-auth';
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import AzureADProvider from 'next-auth/providers/azure-ad';
@@ -5,17 +7,35 @@ import { prisma } from './prisma';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 import { verify } from 'jsonwebtoken';
-import { Role, User } from '@prisma/client';
+
+
+
+
+
+// Role hierarchy configuration
+export const ROLE_HIERARCHY: Record<Role, Role[]> = {
+  ADMIN: ['ADMIN', 'MANAGER', 'EMPLOYEE'],
+  MANAGER: ['MANAGER', 'EMPLOYEE'],
+  EMPLOYEE: ['EMPLOYEE'],
+};
+
+// Role hierarchy utility functions
+export const canAccessRole = (userRole: Role, targetRole: Role): boolean => {
+  return ROLE_HIERARCHY[userRole].includes(targetRole as Role);
+};
+
+export const getAvailableRoles = (userRole: Role): Role[] => {
+  return [...ROLE_HIERARCHY[userRole]];
+};
 
 declare module 'next-auth' {
-  interface User {
-    id: string;
-    email: string;
-    name: string;
-    role: Role;
+  interface User extends Omit<PrismaUser, 'activeRole'> {
+    activeRole?: Role;
   }
   interface Session {
-    user: User;
+    user: User & {
+      activeRole?: Role;
+    };
   }
 }
 
@@ -23,6 +43,7 @@ declare module 'next-auth/jwt' {
   interface JWT {
     id: string;
     role: Role;
+    activeRole?: Role;
   }
 }
 
@@ -262,3 +283,6 @@ export async function logout() {
   const cookieStore = cookies();
   cookieStore.delete('token');
 } 
+
+
+// Server-side auth utilities are moved to server-auth.ts 
