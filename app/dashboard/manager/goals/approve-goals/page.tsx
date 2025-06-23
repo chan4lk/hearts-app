@@ -170,28 +170,28 @@ export default function ApproveGoalsPage() {
                 employeeStats={employeeStats}
               />
             </div>
-            
+
             <StatsSection
               goalsCount={goals.length}
               employeesCount={employeeStats.length}
               avgGoalsPerEmployee={employeeStats.length > 0 ? goals.length / employeeStats.length : 0}
             />
-          </div>
-
+              </div>
+              
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredGoals.map(goal => (
+                {filteredGoals.map(goal => (
               <GoalCard
-                key={goal.id}
+                    key={goal.id}
                 goal={goal}
                 onAction={handleAction}
                 onViewDetails={setSelectedGoalDetails}
               />
             ))}
-          </div>
-        </div>
+                      </div>
+                    </div>
 
-        {/* Goal Details Modal */}
-        {selectedGoalDetails && (
+          {/* Goal Details Modal */}
+          {selectedGoalDetails && (
           <GoalDetailsModal
             goal={selectedGoalDetails}
             onClose={() => setSelectedGoalDetails(null)}

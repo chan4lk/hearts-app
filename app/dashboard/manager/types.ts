@@ -22,6 +22,8 @@ export interface Goal {
   isApprovalProcess: boolean;
   approvalProcessId?: string;
   managerId?: string;
+  managerComments?: string;
+  reviewedAt?: string;
 }
 
 export interface EmployeeStats {

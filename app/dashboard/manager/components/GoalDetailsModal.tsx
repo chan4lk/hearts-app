@@ -1,4 +1,4 @@
-import { BsLightningCharge, BsPerson, BsCalendar, BsClock, BsX } from 'react-icons/bs';
+import { BsLightningCharge, BsPerson, BsCalendar, BsClock, BsX, BsChat } from 'react-icons/bs';
 import { Goal } from '../types';
 import { getStatusStyle } from '../utils';
 import { useEffect, useRef } from 'react';
@@ -43,6 +43,8 @@ export default function GoalDetailsModal({ goal, onClose }: GoalDetailsModalProp
 
   if (!goal) return null;
 
+  const isReviewed = goal.status === 'APPROVED' || goal.status === 'REJECTED';
+
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-2 animate-in fade-in duration-300">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -51,9 +53,9 @@ export default function GoalDetailsModal({ goal, onClose }: GoalDetailsModalProp
       </div>
 
       <div ref={modalRef} className="relative bg-gradient-to-br from-gray-800/90 to-gray-700/90 backdrop-blur-xl rounded-xl w-full max-w-md border border-white/20 shadow-2xl animate-in slide-in-from-bottom-4 duration-500">
-        <div className="relative z-10 p-4">
+        <div className="relative z-10 p-4 space-y-4">
           {/* Header */}
-          <div className="flex justify-between items-start mb-3">
+          <div className="flex justify-between items-start">
             <div className="space-y-2 flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg shadow-lg">
@@ -75,7 +77,7 @@ export default function GoalDetailsModal({ goal, onClose }: GoalDetailsModalProp
             <div className="flex items-start gap-2">
               <span className={`px-2 py-1 rounded-lg text-xs font-medium shadow-lg ${getStatusStyle(goal.status).bg} ${getStatusStyle(goal.status).text}`}>
                 {getStatusStyle(goal.status).icon}
-                <span className="ml-1">{goal.status.charAt(0)}</span>
+                <span className="ml-1">{goal.status}</span>
               </span>
               <button
                 onClick={onClose}
@@ -87,7 +89,7 @@ export default function GoalDetailsModal({ goal, onClose }: GoalDetailsModalProp
           </div>
 
           {/* Description */}
-          <div className="mb-3">
+          <div>
             <h3 className="text-sm font-semibold text-white mb-1">Description</h3>
             <div className="bg-gray-700/50 p-2 rounded-lg border border-gray-600/30">
               <p className="text-gray-200 text-sm line-clamp-3 hover:line-clamp-none transition-all cursor-pointer">
@@ -118,6 +120,35 @@ export default function GoalDetailsModal({ goal, onClose }: GoalDetailsModalProp
               </span>
             </div>
           </div>
+
+          {/* Manager's Decision Section */}
+          {isReviewed && goal.managerComments && (
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <BsChat className="w-4 h-4 text-blue-400" />
+                <h3 className="text-sm font-semibold text-white">Manager's Decision</h3>
+              </div>
+              <div className="bg-gray-700/50 p-3 rounded-lg border border-gray-600/30 space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
+                    goal.status === 'APPROVED' 
+                      ? 'bg-emerald-500/20 text-emerald-400' 
+                      : 'bg-red-500/20 text-red-400'
+                  }`}>
+                    {goal.status}
+                  </span>
+                  <span className="text-gray-400 text-xs">
+                    {goal.updatedAt ? new Date(goal.updatedAt).toLocaleDateString() : ''}
+                  </span>
+                </div>
+                <div className="bg-gray-800/50 p-2 rounded border border-gray-700/30">
+                  <p className="text-gray-200 text-sm whitespace-pre-wrap">
+                    {goal.managerComments}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
