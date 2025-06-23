@@ -36,7 +36,15 @@ export default function EmployeeDashboard() {
           selfResponse.json()
         ]);
         
-        setGoals([...(assignedData.goals || []), ...(selfData.goals || [])]);
+        // Deduplicate goals based on their IDs
+        const uniqueGoals = new Map();
+        [...(assignedData.goals || []), ...(selfData.goals || [])].forEach(goal => {
+          if (!uniqueGoals.has(goal.id)) {
+            uniqueGoals.set(goal.id, goal);
+          }
+        });
+        
+        setGoals(Array.from(uniqueGoals.values()));
       } catch (error) {
         showToast.error('Goals Loading Error', error);
       } finally {
