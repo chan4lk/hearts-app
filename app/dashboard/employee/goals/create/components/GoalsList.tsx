@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { BsListTask } from 'react-icons/bs';
 import { Goal } from '../types';
 import { CATEGORIES, STATUSES } from '../constants';
+import { useSession } from 'next-auth/react';
 
 interface GoalsListProps {
   goals: Goal[];
@@ -20,7 +21,13 @@ export const GoalsList = ({
   setSelectedCategory,
   onViewGoal,
 }: GoalsListProps) => {
-  const filteredGoals = goals.filter(goal => {
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+
+  // Only show goals created by the current user
+  const userCreatedGoals = goals.filter(goal => goal.createdBy?.id === userId);
+
+  const filteredGoals = userCreatedGoals.filter(goal => {
     const matchesStatus = selectedStatus === 'all' || goal.status === selectedStatus;
     const matchesCategory = selectedCategory === 'all' || goal.category === selectedCategory;
     return matchesStatus && matchesCategory;

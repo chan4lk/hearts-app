@@ -46,6 +46,7 @@ interface GoalWithRelations {
   managerId: string | null;
   employee: User | null;
   manager: User | null;
+  createdBy: User | null;
   ratings: Rating[];
 }
 
@@ -73,6 +74,13 @@ export async function GET() {
           }
         },
         manager: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        createdBy: {
           select: {
             id: true,
             name: true,
