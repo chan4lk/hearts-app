@@ -180,13 +180,31 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDet
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-3.5"
+                className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-3.5 space-y-2"
               >
-                <div className="flex items-center gap-2 text-gray-300 mb-2">
-                  <BsChat className="w-3.5 h-3.5" />
-                  <span className="text-xs font-medium">Manager Feedback</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-gray-300">
+                    <BsChat className="w-3.5 h-3.5" />
+                    <span className="text-xs font-medium">Manager's Decision</span>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    goal.status === 'APPROVED' 
+                      ? 'bg-emerald-500/20 text-emerald-400' 
+                      : 'bg-rose-500/20 text-rose-400'
+                  }`}>
+                    {goal.status}
+                  </span>
                 </div>
-                <p className="text-sm text-white/90">{goal.managerComments}</p>
+                <div className="text-xs text-gray-400">
+                  {goal.updatedAt ? new Date(goal.updatedAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  }) : ''}
+                </div>
+                <div className="bg-black/20 rounded-xl p-3 mt-2">
+                  <p className="text-sm text-white/90 whitespace-pre-wrap">{goal.managerComments}</p>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
