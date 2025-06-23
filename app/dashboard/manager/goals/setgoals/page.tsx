@@ -15,10 +15,9 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { HeroSection } from './components/sections/HeroSection';
 import { StatsSection } from './components/sections/StatsSection';
 import { GoalList } from './components/sections/GoalList';
-import { CreateGoalModal } from './components/modals/CreateGoalModal';
+import { GoalModal } from './components/modals/CreateGoalModal';
 import { ViewGoalModal } from './components/modals/ViewGoalModal';
 import { DeleteGoalModal } from './components/modals/DeleteGoalModal';
-import { EditGoalModal } from './components/modals/EditGoalModal';
 import GoalTemplates from '@/app/components/shared/GoalTemplates';
 
 // Styles and Types
@@ -301,23 +300,22 @@ function ManagerGoalSettingPageContent() {
         />
 
         {/* Modals */}
-        <CreateGoalModal
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          onSubmit={handleSubmit}
+        <GoalModal
+          isOpen={isCreateModalOpen || isEditModalOpen}
+          onClose={() => {
+            if (isEditModalOpen) {
+              setIsEditModalOpen(false);
+            } else {
+              setIsCreateModalOpen(false);
+            }
+            resetForm();
+          }}
+          onSubmit={isEditModalOpen ? handleUpdateGoal : handleSubmit}
           assignedEmployees={assignedEmployees}
           loading={loading}
           formData={formData}
           setFormData={setFormData}
-        />
-
-        <EditGoalModal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          onSubmit={handleUpdateGoal}
-          assignedEmployees={assignedEmployees}
-          loading={loading}
-          goal={selectedGoal}
+          mode={isEditModalOpen ? 'edit' : 'create'}
         />
 
         <ViewGoalModal
@@ -325,10 +323,19 @@ function ManagerGoalSettingPageContent() {
           onClose={() => setIsViewModalOpen(false)}
           goal={viewedGoal}
           onEdit={() => {
-            setIsViewModalOpen(false);
             if (viewedGoal) {
+              setFormData({
+                title: viewedGoal.title,
+                description: viewedGoal.description,
+                dueDate: new Date(viewedGoal.dueDate).toISOString().split('T')[0],
+                employeeId: viewedGoal.employee?.id || '',
+                category: viewedGoal.category
+              });
               setSelectedGoal(viewedGoal);
-              setIsEditModalOpen(true);
+              setIsViewModalOpen(false);
+              setTimeout(() => {
+                setIsEditModalOpen(true);
+              }, 100);
             }
           }}
         />

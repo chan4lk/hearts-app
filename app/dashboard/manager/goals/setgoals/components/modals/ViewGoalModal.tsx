@@ -118,10 +118,10 @@ export function ViewGoalModal({
             <Button
               variant="outline"
               onClick={onEdit}
-              className="h-6 px-2 text-[10px] bg-gradient-to-r from-[#4c49ed]/10 to-[#6366f1]/10 hover:from-[#4c49ed]/20 hover:to-[#6366f1]/20 border-indigo-500/30 text-indigo-400"
+              className="h-6 px-2 text-[10px] bg-gradient-to-r from-[#4c49ed]/10 to-[#6366f1]/10 hover:from-[#4c49ed]/20 hover:to-[#6366f1]/20 border-indigo-500/30 text-indigo-400 hover:text-indigo-300 transition-all duration-200 hover:scale-105 active:scale-95"
             >
               <BsPencil className="w-2.5 h-2.5 mr-1" />
-              Edit
+              Edit Goal
             </Button>
           </div>
         </div>

@@ -1,17 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BsListTask, BsPeople, BsCalendar, BsX, BsArrowCounterclockwise, BsPlus, BsRobot, BsLightning } from 'react-icons/bs';
+import { BsListTask, BsPeople, BsCalendar, BsX, BsArrowCounterclockwise, BsPlus, BsRobot, BsLightning, BsPencil } from 'react-icons/bs';
 import { toast } from 'sonner';
 import { User, GoalFormData } from '../types';
 import { CATEGORIES } from '../constants';
 import { AIGoalSuggestions } from '@/app/components/shared/AIGoalSuggestions';
 
-interface CreateGoalModalProps {
+interface GoalModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (formData: GoalFormData) => Promise<void>;
@@ -19,19 +19,33 @@ interface CreateGoalModalProps {
   loading: boolean;
   formData: GoalFormData;
   setFormData: React.Dispatch<React.SetStateAction<GoalFormData>>;
+  mode: 'create' | 'edit';
+  initialData?: GoalFormData;
 }
 
-export function CreateGoalModal({
+export function GoalModal({
   isOpen,
   onClose,
   onSubmit,
   assignedEmployees,
   loading,
   formData,
-  setFormData
-}: CreateGoalModalProps) {
+  setFormData,
+  mode = 'create',
+  initialData
+}: GoalModalProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [context, setContext] = useState('');
+  const [initialEditData, setInitialEditData] = useState<GoalFormData | null>(null);
+
+  useEffect(() => {
+    if (mode === 'edit') {
+      setInitialEditData({ ...formData });
+    } else {
+      setInitialEditData(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,6 +103,8 @@ export function CreateGoalModal({
 
   if (!isOpen) return null;
 
+  const isEditMode = mode === 'edit';
+
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-3">
       <div className="bg-gradient-to-br from-[#1a1b1e] to-[#2a2b2e] rounded-xl w-full max-w-sm shadow-2xl border border-gray-800/50">
@@ -98,7 +114,7 @@ export function CreateGoalModal({
             <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 p-1.5 rounded-lg">
               <BsListTask className="w-3.5 h-3.5 text-amber-400" />
             </div>
-            <h2 className="text-sm font-medium text-white">Create Goal</h2>
+            <h2 className="text-sm font-medium text-white">{isEditMode ? 'Update Goal' : 'Create Goal'}</h2>
           </div>
           <button
             onClick={onClose}
@@ -191,7 +207,7 @@ export function CreateGoalModal({
             />
           </div>
 
-          {/* AI Context */}
+          {/* AI Context - Always show in both modes */}
           <div>
             <label className="block text-[10px] font-medium text-blue-400/90 mb-1 flex items-center gap-1">
               <BsRobot className="h-2.5 w-2.5" /> AI Context (Optional)
@@ -204,7 +220,7 @@ export function CreateGoalModal({
             />
           </div>
 
-          {/* AI Suggestions */}
+          {/* AI Suggestions - Always show in both modes */}
           <div className="bg-gradient-to-r from-blue-500/5 to-purple-500/5 rounded-lg p-2 border border-blue-500/20">
             <AIGoalSuggestions
               category={formData.category}
@@ -220,14 +236,19 @@ export function CreateGoalModal({
                 type="button"
                 variant="outline"
                 onClick={() => {
-                  setFormData({
-                    title: '',
-                    description: '',
-                    dueDate: new Date().toISOString().split('T')[0],
-                    employeeId: '',
-                    category: 'PROFESSIONAL'
-                  });
-                  setContext('');
+                  if (isEditMode && initialEditData) {
+                    setFormData({ ...initialEditData });
+                    setContext('');
+                  } else {
+                    setFormData({
+                      title: '',
+                      description: '',
+                      dueDate: new Date().toISOString().split('T')[0],
+                      employeeId: '',
+                      category: 'PROFESSIONAL'
+                    });
+                    setContext('');
+                  }
                 }}
                 className="flex-1 bg-black/20 hover:bg-black/30 border-gray-800/50 text-white/70 text-xs h-7 rounded-lg transition-colors"
               >
@@ -242,12 +263,12 @@ export function CreateGoalModal({
                 {loading ? (
                   <div className="flex items-center gap-1">
                     <div className="w-2.5 h-2.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Saving...
+                    {isEditMode ? 'Updating...' : 'Creating...'}
                   </div>
                 ) : (
                   <div className="flex items-center gap-1">
-                    <BsLightning className="h-2.5 w-2.5" />
-                    Create Goal
+                    <BsListTask className="h-2.5 w-2.5" />
+                    {isEditMode ? 'Update Goal' : 'Create Goal'}
                   </div>
                 )}
               </Button>
