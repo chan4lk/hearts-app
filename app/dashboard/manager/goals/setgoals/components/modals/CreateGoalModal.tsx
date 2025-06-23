@@ -37,6 +37,7 @@ export function GoalModal({
   const [isGenerating, setIsGenerating] = useState(false);
   const [context, setContext] = useState('');
   const [initialEditData, setInitialEditData] = useState<GoalFormData | null>(null);
+  const [errors, setErrors] = useState<{ title?: string; category?: string; employeeId?: string }>({});
 
   useEffect(() => {
     if (mode === 'edit') {
@@ -44,11 +45,25 @@ export function GoalModal({
     } else {
       setInitialEditData(null);
     }
+    setErrors({});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Validation for required fields
+    const newErrors: { title?: string; category?: string; employeeId?: string } = {};
+    if (!formData.title.trim()) {
+      newErrors.title = 'Goal title is required';
+    }
+    if (!formData.category) {
+      newErrors.category = 'Category is required';
+    }
+    if (!formData.employeeId) {
+      newErrors.employeeId = 'Employee is required';
+    }
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
     await onSubmit(formData);
   };
 
@@ -136,6 +151,9 @@ export function GoalModal({
                 placeholder="Enter goal title"
                 className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20"
               />
+              {errors.title && (
+                <div className="text-red-400 text-[10px] mt-1 font-semibold animate-pulse">{errors.title}</div>
+              )}
             </div>
             <div>
               <label className="block text-[10px] font-medium text-white/70 mb-1">Category</label>
@@ -154,6 +172,9 @@ export function GoalModal({
                   ))}
                 </SelectContent>
               </Select>
+              {errors.category && (
+                <div className="text-red-400 text-[10px] mt-1 font-semibold animate-pulse">{errors.category}</div>
+              )}
             </div>
           </div>
 
@@ -191,6 +212,9 @@ export function GoalModal({
                   ))}
                 </SelectContent>
               </Select>
+              {errors.employeeId && (
+                <div className="text-red-400 text-[10px] mt-1 font-semibold animate-pulse">{errors.employeeId}</div>
+              )}
             </div>
           </div>
 
