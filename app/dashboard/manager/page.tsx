@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { useSession } from 'next-auth/react';
 import StatsDisplay from './components/StatsDisplay';
@@ -9,24 +9,6 @@ import Filters from './components/Filters';
 import GoalsGrid from './components/GoalsGrid';
 import GoalDetailsModal from './components/GoalDetailsModal';
 import { Goal, EmployeeStats, DashboardStats } from './types';
-import { useRouter } from 'next/navigation';
-import {
-  BsArrowUpRight,
-  BsLightningCharge,
-  BsTrophy,
-  BsAward,
-  BsGraphUp,
-  BsPeople,
-  BsRocket,
-  BsLightbulb,
-  BsBriefcase,
-  BsBullseye,
-  BsStar,
-  BsCheckCircle,
-  BsClock,
-  BsXCircle,
-  BsBarChart
-} from 'react-icons/bs';
 
 export default function ManagerDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,7 +20,6 @@ export default function ManagerDashboard() {
   const [employeeCounts, setEmployeeCounts] = useState({ total: 0, active: 0 });
   const [selectedGoalDetails, setSelectedGoalDetails] = useState<Goal | null>(null);
   const { data: session } = useSession();
-  const router = useRouter();
 
   // Calculate statistics for employee goals
   const stats: DashboardStats = {
@@ -150,76 +131,35 @@ export default function ManagerDashboard() {
     );
   }
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
-
   return (
     <DashboardLayout type="manager">
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        {/* Floating Background Elements */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
-        </div>
-
-        <div className="container mx-auto px-4 py-8">
+      <div className="min-h-screen bg-gray-900 p-4">
+        <div className="max-w-7xl mx-auto space-y-4">
           {/* Stats Section */}
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50 mb-6"
-          >
-            <StatsDisplay stats={stats} />
-          </motion.div>
+          <StatsDisplay stats={stats} />
 
           {/* Filters Section */}
-          <motion.div 
-            variants={itemVariants}
-            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50 mb-6"
-          >
-            <Filters
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              selectedStatus={selectedStatus}
-              setSelectedStatus={setSelectedStatus}
-              selectedEmployee={selectedEmployee}
-              setSelectedEmployee={setSelectedEmployee}
-              employees={employees}
-            />
-          </motion.div>
+          <Filters
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            selectedStatus={selectedStatus}
+            setSelectedStatus={setSelectedStatus}
+            selectedEmployee={selectedEmployee}
+            setSelectedEmployee={setSelectedEmployee}
+            employees={employees}
+          />
 
           {/* Goals Grid */}
-          <motion.div 
-            variants={itemVariants}
-            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50"
-          >
-            <GoalsGrid goals={filteredGoals} onGoalClick={handleGoalClick} />
-          </motion.div>
+          <GoalsGrid goals={filteredGoals} onGoalClick={handleGoalClick} />
         </div>
 
         {/* Goal Details Modal */}
-        <AnimatePresence>
-          {selectedGoalDetails && (
-            <GoalDetailsModal
-              goal={selectedGoalDetails}
-              onClose={() => setSelectedGoalDetails(null)}
-            />
-          )}
-        </AnimatePresence>
+        {selectedGoalDetails && (
+          <GoalDetailsModal
+            goal={selectedGoalDetails}
+            onClose={() => setSelectedGoalDetails(null)}
+          />
+        )}
       </div>
     </DashboardLayout>
   );
