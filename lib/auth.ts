@@ -261,4 +261,4 @@ export async function hasRole(role: string): Promise<boolean> {
 export async function logout() {
   const cookieStore = cookies();
   cookieStore.delete('token');
-} 
+}
