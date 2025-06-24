@@ -1,8 +1,6 @@
 import { NextAuthOptions } from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
 import AzureADProvider from 'next-auth/providers/azure-ad';
 import { prisma } from './prisma';
-import bcrypt from 'bcryptjs';
 import type { Role, User as PrismaUser } from '.prisma/client';
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import type { User } from 'next-auth';
@@ -67,43 +65,12 @@ export const authOptions: NextAuthOptions = {
         }
       }
     }),
-    CredentialsProvider({
-      name: 'credentials',
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Please enter your email and password");
-        }
-
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
-        });
-
-        if (!user || !user.password) {
-          throw new Error("No user found with this email");
-        }
-
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        );
-
-        if (!isPasswordValid) {
-          throw new Error("Invalid password");
-        }
-
-        return user as User;
-      },
-    }),
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
       console.log(`[signIn] Callback triggered for provider: ${account?.provider}`);
+      console.log('[signIn] Account details:', JSON.stringify(account, null, 2));
+      console.log('[signIn] Profile details:', JSON.stringify(profile, null, 2));
       
       try {
         // Always fetch the latest user data from database
@@ -130,6 +97,8 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, user, account }) {
       console.log(`[jwt] JWT callback triggered for user: ${user?.email}`);
+      console.log('[jwt] Token details:', JSON.stringify(token, null, 2));
+      console.log('[jwt] Account details:', JSON.stringify(account, null, 2));
       
       if (user) {
         token.id = user.id;
@@ -145,6 +114,7 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       console.log(`[session] Session callback triggered for token: ${token?.id}`);
+      console.log('[session] Token details:', JSON.stringify(token, null, 2));
       
       if (session.user) {
         // Ensure the session user has the correct type
@@ -157,6 +127,7 @@ export const authOptions: NextAuthOptions = {
         
         // Log the session details for debugging
         console.log(`[session] User session created with role: ${sessionUser.role}`);
+        console.log('[session] Session details:', JSON.stringify(session, null, 2));
       }
       return session;
     },
@@ -205,19 +176,5 @@ export const authOptions: NextAuthOptions = {
       }
     }
   },
-  logger: {
-    error(code, ...message) {
-      console.error(`[NextAuth Error] ${code}:`, ...message);
-    },
-    warn(code, ...message) {
-      console.warn(`[NextAuth Warn] ${code}:`, ...message);
-    },
-    debug(code, ...message) {
-      if (process.env.NODE_ENV === 'development') {
-        console.debug(`[NextAuth Debug] ${code}:`, ...message);
-      }
-    },
-  },
-  secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development',
 }; 
