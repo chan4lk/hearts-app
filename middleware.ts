@@ -10,6 +10,16 @@ const ROLE_ROUTES: Record<string, Role[]> = {
   '/dashboard/employee': ['ADMIN', 'MANAGER', 'EMPLOYEE'],
 };
 
+// Helper function to check if a role can access another role's routes
+const canAccessRole = (userRole: Role, targetRole: Role): boolean => {
+  const roleHierarchy: Record<Role, Role[]> = {
+    ADMIN: ['ADMIN', 'MANAGER', 'EMPLOYEE'],
+    MANAGER: ['MANAGER', 'EMPLOYEE'],
+    EMPLOYEE: ['EMPLOYEE'],
+  };
+  return roleHierarchy[userRole].includes(targetRole);
+};
+
 export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request });
 
@@ -20,23 +30,26 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Get the active role from the token
-  const activeRole = (token.activeRole as Role) || (token.role as Role);
+  // Get the user's base role and active role from the token
+  const baseRole = token.role as Role;
+  const activeRole = (token.activeRole as Role) || baseRole;
 
   // Check if the current path requires role-based access
   const path = request.nextUrl.pathname;
-  for (const [route, allowedRoles] of Object.entries(ROLE_ROUTES)) {
-    if (path.startsWith(route)) {
-      // If the user's active role is not allowed for this route
-      if (!allowedRoles.includes(activeRole)) {
-        // Redirect to the highest level dashboard they have access to
-        if (activeRole === 'ADMIN') {
-          return NextResponse.redirect(new URL('/dashboard/admin', request.url));
-        } else if (activeRole === 'MANAGER') {
-          return NextResponse.redirect(new URL('/dashboard/manager', request.url));
-        } else {
-          return NextResponse.redirect(new URL('/dashboard/employee', request.url));
-        }
+  
+  // Extract the target role from the path
+  const targetRole = path.split('/')[2]?.toUpperCase() as Role;
+  
+  if (targetRole && ['ADMIN', 'MANAGER', 'EMPLOYEE'].includes(targetRole)) {
+    // Check if the user's base role can access the target role's routes
+    if (!canAccessRole(baseRole, targetRole)) {
+      // Redirect to their highest accessible dashboard
+      if (baseRole === 'ADMIN') {
+        return NextResponse.redirect(new URL('/dashboard/admin', request.url));
+      } else if (baseRole === 'MANAGER') {
+        return NextResponse.redirect(new URL('/dashboard/manager', request.url));
+      } else {
+        return NextResponse.redirect(new URL('/dashboard/employee', request.url));
       }
     }
   }

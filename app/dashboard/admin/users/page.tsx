@@ -202,7 +202,7 @@ export default function UsersPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout type="admin">
+      <DashboardLayout role="ADMIN">
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
           <motion.div
             animate={{ rotate: 360 }}
@@ -250,7 +250,7 @@ export default function UsersPage() {
   ];
 
   return (
-    <DashboardLayout type="admin">
+    <DashboardLayout role="ADMIN">
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <BackgroundElements />
 

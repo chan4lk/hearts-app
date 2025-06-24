@@ -25,7 +25,8 @@ import {
   BsBellFill, 
   BsShieldFillCheck, 
   BsCheckCircleFill, 
-  BsPersonFill 
+  BsPersonFill,
+  BsChevronDown
 } from 'react-icons/bs';
 import { HiOutlineMenuAlt3 } from 'react-icons/hi';
 import type { IconType } from 'react-icons';
@@ -82,7 +83,7 @@ const ROLE_NAV_ITEMS: Record<Role, NavItem[]> = {
 
 export default function DashboardLayout({ children, role }: DashboardLayoutProps) {
   const { data: session } = useSession();
-  const { activeRole, availableRoles, setActiveRole } = useRole();
+  const { activeRole, availableRoles, switchToRole } = useRole();
   const router = useRouter();
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -91,10 +92,8 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
   const currentRole = role || activeRole;
 
   // Handle role switching
-  const handleRoleSwitch = (newRole: Role) => {
-    setActiveRole(newRole);
-    // Redirect to the appropriate dashboard
-    router.push(ROLE_ROUTES[newRole]);
+  const handleRoleSwitch = async (newRole: Role) => {
+    await switchToRole(newRole);
   };
 
   // Handle sign out
@@ -113,22 +112,22 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
   const isActivePath = (href: string) => {
     if (!pathname) return false;
     
-    // Exact match for dashboard root paths
-    if (href.endsWith('/dashboard/admin') || 
-        href.endsWith('/dashboard/manager') || 
-        href.endsWith('/dashboard/employee')) {
-      return pathname === href;
-    }
-    
-    // For other paths, check if it's the current section
     const currentPath = pathname.toLowerCase();
     const navPath = href.toLowerCase();
-    
-    // Don't match parent paths if we're in a sub-path
-    if (navPath.endsWith('/goals') && currentPath.includes('/goals/')) {
-      return false;
+
+    // Exact match for dashboard root paths
+    if (navPath === `/dashboard/${currentRole.toLowerCase()}`) {
+      return currentPath === navPath;
     }
-    
+
+    // For goal-related paths, match the specific section
+    if (navPath.includes('/goals/')) {
+      const navPathParts = navPath.split('/');
+      const currentPathParts = currentPath.split('/');
+      return navPathParts[navPathParts.length - 1] === currentPathParts[currentPathParts.length - 1];
+    }
+
+    // For other paths, check if current path starts with nav path
     return currentPath.startsWith(navPath);
   };
 
@@ -156,7 +155,35 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
             <div>
               <h1 className="text-lg font-semibold">BISTEC Global</h1>
               <p className="text-sm text-gray-400">Performance Management</p>
-              <p className="text-xs text-gray-400">{ROLE_LABELS[currentRole].split(' ')[0]} Portal</p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-gray-400">{ROLE_LABELS[currentRole].split(' ')[0]} Portal</p>
+                {availableRoles.length > 1 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-6 px-2">
+                        <BsChevronDown className="h-3 w-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      {availableRoles.map((role) => (
+                        <DropdownMenuItem
+                          key={role}
+                          onClick={() => handleRoleSwitch(role)}
+                          className={cn(
+                            "flex items-center gap-2",
+                            role === currentRole && "bg-blue-500/10 text-blue-400"
+                          )}
+                        >
+                          <div className="flex-1">{ROLE_LABELS[role]}</div>
+                          {role === currentRole && (
+                            <BsCheckCircleFill className="h-3 w-3 text-blue-400" />
+                          )}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { Role } from "@prisma/client";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
 import { BackgroundElements } from "./components/BackgroundElements";
 import { HeroSection } from "./components/HeroSection";
@@ -164,18 +165,18 @@ export default function SelfRatingPage() {
     };
   }, [goals]);
 
-  const getLayoutType = (role?: string): "manager" | "employee" | "admin" => {
-    if (!role) return "employee";
+  const getLayoutType = (role?: string): Role => {
+    if (!role) return "EMPLOYEE";
     const roleLower = role.toLowerCase();
-    if (roleLower === "manager" || roleLower === "employee" || roleLower === "admin") {
-      return roleLower as "manager" | "employee" | "admin";
-    }
-    return "employee";
+    if (roleLower === "manager") return "MANAGER";
+    if (roleLower === "employee") return "EMPLOYEE";
+    if (roleLower === "admin") return "ADMIN";
+    return "EMPLOYEE";
   };
 
   if (loading) {
     return (
-      <DashboardLayout type={getLayoutType(session?.user?.role)}>
+      <DashboardLayout role={getLayoutType(session?.user?.role)}>
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
           <div className="relative">
             <motion.div
@@ -195,7 +196,7 @@ export default function SelfRatingPage() {
   }
 
   return (
-    <DashboardLayout type={getLayoutType(session?.user?.role)}>
+    <DashboardLayout role={getLayoutType(session?.user?.role)}>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <BackgroundElements />
 

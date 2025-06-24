@@ -6,6 +6,9 @@ import { useState, useEffect, Suspense } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import dynamic from 'next/dynamic';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 // Add dynamic import for client-side components
 const DynamicHeader = dynamic(() => import('@/components/Header'), { 
@@ -25,58 +28,93 @@ function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [loginMethod, setLoginMethod] = useState<'microsoft' | 'credentials'>('microsoft');
+  const [credentials, setCredentials] = useState({
+    email: '',
+    password: ''
+  });
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  const handleCredentialsLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsLoading(true);
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: credentials.email,
+        password: credentials.password
+      });
+
+      if (result?.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      // After successful login, fetch the session to get the user's role
+      const response = await fetch('/api/auth/session');
+      const session = await response.json();
+
+      if (session?.user?.role) {
+        // Determine redirect path based on role
+        let redirectPath = '/dashboard';
+        
+        if (session.user.role === 'ADMIN') {
+          redirectPath = '/dashboard/admin';
+        } else if (session.user.role === 'MANAGER') {
+          redirectPath = '/dashboard/manager';
+        } else {
+          redirectPath = '/dashboard/employee';
+        }
+
+        // Store the initial role
+        localStorage.setItem('activeRole', session.user.role);
+        
+        // Redirect to the appropriate dashboard
+        router.push(redirectPath);
+      } else {
+        // Fallback to default dashboard if role is not available
+        router.push('/dashboard');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('Failed to login. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleAzureLogin = async () => {
     try {
-      // Set a flag to prevent redirect loops
-      sessionStorage.setItem('isRedirecting', 'true');
-      
       setIsLoading(true);
       setIsTransitioning(true);
       console.log('[Login] Starting Azure AD login process');
       
-      // Get the callbackUrl from search params or determine based on role
-      let callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
-      
-      // Ensure we're not redirecting back to login
-      if (callbackUrl.includes('/login')) {
-        callbackUrl = '/dashboard';
-      }
-      
-      console.log(`[Login] Using callback URL: ${callbackUrl}`);
-      
-      // Use redirect: true for production environment
-      // This lets NextAuth handle the complete OAuth flow
+      // Always redirect to /api/auth/session after login
+      // We'll handle the final redirect after checking the role
       await signIn('azure-ad', {
         redirect: true,
-        callbackUrl: callbackUrl
+        callbackUrl: '/api/auth/session'
       });
-      
-      // The code below won't execute with redirect:true
-      // It's kept as a fallback
     } catch (error) {
       console.error('[Login] Error during Azure login:', error);
       toast.error('An error occurred during Azure login');
       setIsLoading(false);
       setIsTransitioning(false);
-      // Clear the redirecting flag on error
-      sessionStorage.removeItem('isRedirecting');
     }
   };
   
-  // Handle callback URL parameter and session check
+  // Handle session check and redirection
   useEffect(() => {
-    const callbackUrl = searchParams.get('callbackUrl');
     const error = searchParams.get('error');
     
     if (error) {
       console.error('[Login] Error from auth provider:', error);
       toast.error('Authentication failed. Please try again.');
       setIsTransitioning(false);
+      return;
     }
     
     // Check if we're already authenticated
@@ -85,8 +123,6 @@ function LoginForm() {
         console.log('[Login] Checking session...');
         const response = await fetch('/api/auth/session');
         const session = await response.json();
-        
-        console.log('[Login] Session data:', JSON.stringify(session));
         
         if (session?.user) {
           console.log(`[Login] User authenticated with role: ${session.user.role}`);
@@ -103,15 +139,11 @@ function LoginForm() {
             redirectPath = '/dashboard/employee';
           }
           
+          // Store the initial role
+          localStorage.setItem('activeRole', session.user.role);
+          
           console.log(`[Login] Redirecting to: ${redirectPath}`);
-          // Use direct window location change instead of router.push
-          if (!sessionStorage.getItem('isRedirecting')) {
-            sessionStorage.setItem('isRedirecting', 'true');
-            // Add a small delay to show the loading animation
-            setTimeout(() => {
-              window.location.href = redirectPath;
-            }, 1500);
-          }
+          router.push(redirectPath);
         } else {
           console.log('[Login] No active session found');
           setIsTransitioning(false);
@@ -175,38 +207,113 @@ function LoginForm() {
               <p className="text-gray-400 text-sm">Sign in to track your performance journey</p>
             </div>
             
-            {/* Login Button */}
-            <button
-              onClick={handleAzureLogin}
-              disabled={isLoading}
-              className="group w-full h-12 relative flex items-center justify-center gap-3 bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-              {isLoading ? (
-                <span className="flex items-center">
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <span className="ml-2">Signing in...</span>
-                </span>
-              ) : (
-                <>
-                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 1h22v22H1V1z" fill="#F25022"/>
-                    <path d="M1 1h10v10H1V1z" fill="#7FBA00"/>
-                    <path d="M13 1h10v10H13V1z" fill="#00A4EF"/>
-                    <path d="M1 13h10v10H1V13z" fill="#FFB900"/>
-                  </svg>
-                  <span>Sign in with Microsoft</span>
-                </>
-              )}
-            </button>
+            {/* Login Method Toggle */}
+            <div className="flex gap-2 p-1 bg-gray-800/50 rounded-lg">
+              <button
+                onClick={() => setLoginMethod('microsoft')}
+                className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
+                  loginMethod === 'microsoft'
+                    ? 'bg-indigo-500 text-white'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Microsoft
+              </button>
+              <button
+                onClick={() => setLoginMethod('credentials')}
+                className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
+                  loginMethod === 'credentials'
+                    ? 'bg-indigo-500 text-white'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Email & Password
+              </button>
+            </div>
+            
+            {loginMethod === 'credentials' ? (
+              <form onSubmit={handleCredentialsLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-300">
+                    Email Address
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={credentials.email}
+                    onChange={(e) => setCredentials(prev => ({ ...prev, email: e.target.value }))}
+                    className="w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-400"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-sm font-medium text-gray-300">
+                    Password
+                  </Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={credentials.password}
+                    onChange={(e) => setCredentials(prev => ({ ...prev, password: e.target.value }))}
+                    className="w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-400"
+                    required
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-12 bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 text-white"
+                >
+                  {isLoading ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Signing in...
+                    </span>
+                  ) : (
+                    'Sign in with Email'
+                  )}
+                </Button>
+              </form>
+            ) : (
+              <button
+                onClick={handleAzureLogin}
+                disabled={isLoading}
+                className="group w-full h-12 relative flex items-center justify-center gap-3 bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                {isLoading ? (
+                  <span className="flex items-center">
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span className="ml-2">Signing in...</span>
+                  </span>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1 1h22v22H1V1z" fill="#F25022"/>
+                      <path d="M1 1h10v10H1V1z" fill="#7FBA00"/>
+                      <path d="M13 1h10v10H13V1z" fill="#00A4EF"/>
+                      <path d="M1 13h10v10H1V13z" fill="#FFB900"/>
+                    </svg>
+                    <span>Sign in with Microsoft</span>
+                  </>
+                )}
+              </button>
+            )}
 
             {/* Footer Text */}
             <div className="text-center">
               <p className="text-xs text-gray-500">
-                Access your performance dashboard securely with Microsoft
+                {loginMethod === 'microsoft' 
+                  ? 'Access your performance dashboard securely with Microsoft'
+                  : 'Use your email and password to access the dashboard'}
               </p>
             </div>
           </div>

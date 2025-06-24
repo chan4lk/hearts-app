@@ -474,7 +474,7 @@ export default function AdminGoalSettingPage() {
         </motion.div>
       </div>
     }>
-      <DashboardLayout type="admin">
+      <DashboardLayout role="ADMIN">
         <Toaster 
           position="top-center"
           richColors

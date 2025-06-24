@@ -356,7 +356,7 @@ function ManagerGoalSettingPageContent() {
 
 export default function ManagerGoalSettingPage() {
   return (
-    <DashboardLayout type="manager">
+    <DashboardLayout role="MANAGER">
       <Suspense fallback={<LoadingSpinner />}>
         <ManagerGoalSettingPageContent />
       </Suspense>
