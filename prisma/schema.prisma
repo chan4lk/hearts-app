@@ -173,4 +173,5 @@ enum GoalCategory {
   LEADERSHIP
   PERSONAL
   TRAINING
+  KPI
 }

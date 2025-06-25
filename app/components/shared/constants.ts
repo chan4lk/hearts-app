@@ -1,4 +1,4 @@
-import { BsRocket, BsLightbulb, BsAward, BsGraphUp, BsStars, BsBriefcase, BsLightningCharge, BsBook, BsHeart } from 'react-icons/bs';
+import { BsRocket, BsLightbulb, BsAward, BsGraphUp, BsStars, BsBriefcase, BsLightningCharge, BsBook, BsHeart, BsBarChart, BsCode, BsBug, BsPeople } from 'react-icons/bs';
 
 export const CATEGORIES = [
   {
@@ -45,6 +45,15 @@ export const CATEGORIES = [
     color: 'from-amber-500 to-orange-500',
     bgGradient: 'from-rose-500/10 to-transparent',
     bgColor: 'bg-[#2a1a20]'
+  },
+  {
+    value: 'KPI',
+    label: 'Key Performance Indicators',
+    icon: BsBarChart,
+    iconColor: 'text-cyan-400',
+    color: 'from-cyan-500 to-blue-500',
+    bgGradient: 'from-cyan-500/10 to-transparent',
+    bgColor: 'bg-[#1a2a35]'
   }
 ] as const;
 
@@ -125,6 +134,127 @@ export const GOAL_TEMPLATES = [
     subtitle: 'Team Building',
     bgGradient: 'from-green-500/10 to-transparent',
     bgColor: 'bg-[#1a2a20]'
+  },
+  {
+    id: 'revenue-kpi',
+    title: 'Revenue Growth',
+    category: 'KPI',
+    icon: 'BsGraphUp',
+    iconColor: 'text-cyan-400',
+    description: 'Achieve quarterly revenue target of [Amount] with [Growth %] YoY growth by [Date]',
+    subtitle: 'Financial Performance',
+    bgGradient: 'from-cyan-500/10 to-transparent',
+    bgColor: 'bg-[#1a2a2a]'
+  },
+  {
+    id: 'customer-satisfaction-kpi',
+    title: 'Customer Satisfaction (CSAT)',
+    category: 'KPI',
+    icon: 'BsStars',
+    iconColor: 'text-yellow-400',
+    description: 'Maintain CSAT score above [Target %] and reduce customer churn to [Target %]',
+    subtitle: 'Customer Success Metrics',
+    bgGradient: 'from-yellow-500/10 to-transparent',
+    bgColor: 'bg-[#2a2a1a]'
+  },
+  {
+    id: 'operational-efficiency-kpi',
+    title: 'Operational Efficiency',
+    category: 'KPI',
+    icon: 'BsLightbulb',
+    iconColor: 'text-teal-400',
+    description: 'Reduce operational costs by [Target %] while maintaining quality standards above [Target %]',
+    subtitle: 'Process Optimization',
+    bgGradient: 'from-teal-500/10 to-transparent',
+    bgColor: 'bg-[#1a2a25]'
+  },
+  {
+    id: 'employee-performance-kpi',
+    title: 'Employee Performance',
+    category: 'KPI',
+    icon: 'BsBarChart',
+    iconColor: 'text-indigo-400',
+    description: 'Achieve team productivity rate of [Target %] and maintain employee satisfaction above [Score]',
+    subtitle: 'HR Metrics',
+    bgGradient: 'from-indigo-500/10 to-transparent',
+    bgColor: 'bg-[#1a1a35]'
+  },
+  {
+    id: 'market-share-kpi',
+    title: 'Market Share Growth',
+    category: 'KPI',
+    icon: 'BsGraphUp',
+    iconColor: 'text-purple-400',
+    description: 'Increase market share by [Target %] in [Market Segment] through [Strategic Actions]',
+    subtitle: 'Market Performance',
+    bgGradient: 'from-purple-500/10 to-transparent',
+    bgColor: 'bg-[#251a35]'
+  },
+  {
+    id: 'quality-metrics-kpi',
+    title: 'Quality Assurance',
+    category: 'KPI',
+    icon: 'BsAward',
+    iconColor: 'text-emerald-400',
+    description: 'Maintain product/service quality rating of [Target %] with defect rate below [Target %]',
+    subtitle: 'Quality Metrics',
+    bgGradient: 'from-emerald-500/10 to-transparent',
+    bgColor: 'bg-[#1a2a25]'
+  },
+  {
+    id: 'dev-time-allocation-kpi',
+    title: 'Development Time Allocation',
+    category: 'KPI',
+    icon: 'BsCode',
+    iconColor: 'text-blue-400',
+    description: 'Maintain [Target %] of development hours dedicated to core development activities',
+    subtitle: 'Development Efficiency',
+    bgGradient: 'from-blue-500/10 to-transparent',
+    bgColor: 'bg-[#1a1f35]'
+  },
+  {
+    id: 'code-quality-kpi',
+    title: 'Code Quality Metrics',
+    category: 'KPI',
+    icon: 'BsBug',
+    iconColor: 'text-red-400',
+    description: 'Achieve maximum of [Number] bugs per story with [Number] peer test cycles',
+    subtitle: 'Quality Assurance',
+    bgGradient: 'from-red-500/10 to-transparent',
+    bgColor: 'bg-[#2a1a20]'
+  },
+  {
+    id: 'sprint-delivery-kpi',
+    title: 'Sprint Delivery Rate',
+    category: 'KPI',
+    icon: 'BsRocket',
+    iconColor: 'text-green-400',
+    description: 'Maintain sprint delivery rate of [Target %] or higher',
+    subtitle: 'Sprint Performance',
+    bgGradient: 'from-green-500/10 to-transparent',
+    bgColor: 'bg-[#1a2a20]'
+  },
+  {
+    id: 'team-engagement-kpi',
+    title: 'Team Engagement',
+    category: 'KPI',
+    icon: 'BsPeople',
+    iconColor: 'text-purple-400',
+    description: 'Achieve [Target %] participation in company events (Code Crunch, Toastmasters)',
+    subtitle: 'Team Participation',
+    bgGradient: 'from-purple-500/10 to-transparent',
+    bgColor: 'bg-[#251a35]'
+  },
+  {
+    id: 'knowledge-sharing-kpi',
+    title: 'Knowledge Sharing',
+    category: 'KPI',
+    icon: 'BsLightbulb',
+    iconColor: 'text-amber-400',
+    description: 'Conduct [Number] Hearts Talks/podcasts for knowledge sharing',
+    subtitle: 'Learning & Development',
+    bgGradient: 'from-amber-500/10 to-transparent',
+    bgColor: 'bg-[#2a2520]'
   }
 ] as const;
 

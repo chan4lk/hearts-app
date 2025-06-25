@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { BsRocket, BsLightbulb, BsAward, BsGraphUp, BsStars, BsBriefcase } from 'react-icons/bs';
+import { BsRocket, BsLightbulb, BsAward, BsGraphUp, BsStars, BsBriefcase, BsCode, BsBug, BsPeople, BsBarChart } from 'react-icons/bs';
 import { GOAL_TEMPLATES } from './constants';
 
-type IconType = typeof BsRocket | typeof BsLightbulb | typeof BsAward | typeof BsGraphUp | typeof BsStars | typeof BsBriefcase;
+type IconType = typeof BsRocket | typeof BsLightbulb | typeof BsAward | typeof BsGraphUp | typeof BsStars | typeof BsBriefcase | typeof BsCode | typeof BsBug | typeof BsPeople | typeof BsBarChart;
 
 interface Template {
   id: string;
@@ -27,7 +27,11 @@ const iconMap: Record<string, IconType> = {
   'BsAward': BsAward,
   'BsGraphUp': BsGraphUp,
   'BsStars': BsStars,
-  'BsBriefcase': BsBriefcase
+  'BsBriefcase': BsBriefcase,
+  'BsCode': BsCode,
+  'BsBug': BsBug,
+  'BsPeople': BsPeople,
+  'BsBarChart': BsBarChart
 };
 
 export default function GoalTemplates({ onSelect }: GoalTemplatesProps) {
@@ -36,6 +40,8 @@ export default function GoalTemplates({ onSelect }: GoalTemplatesProps) {
   const filteredTemplates = selectedCategory === 'all'
     ? GOAL_TEMPLATES
     : GOAL_TEMPLATES.filter(template => template.category === selectedCategory);
+
+  const categories = Array.from(new Set(GOAL_TEMPLATES.map(t => t.category)));
 
   return (
     <div className="space-y-6">
@@ -56,7 +62,7 @@ export default function GoalTemplates({ onSelect }: GoalTemplatesProps) {
             />
           )}
         </button>
-        {Array.from(new Set(GOAL_TEMPLATES.map(t => t.category))).map(category => (
+        {categories.map(category => (
           <button
             key={category}
             onClick={() => setSelectedCategory(category)}
@@ -80,6 +86,10 @@ export default function GoalTemplates({ onSelect }: GoalTemplatesProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredTemplates.map((template) => {
           const Icon = iconMap[template.icon];
+          if (!Icon) {
+            console.warn(`Icon ${template.icon} not found in iconMap`);
+            return null;
+          }
           return (
             <motion.button
               key={template.id}
