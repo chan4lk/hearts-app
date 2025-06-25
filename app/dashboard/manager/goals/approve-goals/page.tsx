@@ -12,6 +12,8 @@ import StatsSection from './components/StatsSection';
 import EmployeeFilter from './components/EmployeeFilter';
 import GoalCard from './components/GoalCard';
 import GoalDetailsModal from './components/GoalDetailsModal';
+import LoadingComponent from '@/app/components/LoadingScreen';
+
 
 export default function ApproveGoalsPage() {
   const { data: session } = useSession();
@@ -139,20 +141,7 @@ export default function ApproveGoalsPage() {
   );
 
   if (isLoading) {
-    return (
-      <DashboardLayout type="manager">
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="relative"
-          >
-            <div className="w-12 h-12 border-3 border-indigo-200 border-t-indigo-600 rounded-full"></div>
-            <div className="absolute inset-0 w-12 h-12 border-3 border-transparent border-t-purple-600 rounded-full animate-pulse"></div>
-          </motion.div>
-        </div>
-      </DashboardLayout>
-    );
+    return <LoadingComponent />;
   }
 
   return (

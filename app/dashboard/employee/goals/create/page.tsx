@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
+import LoadingComponent from '@/app/components/LoadingScreen';
 import { SelfCreateGoalModal } from '@/app/components/shared/SelfCreateGoalModal';
 import { BsPlus } from 'react-icons/bs';
 import { GoalTemplates } from './components/GoalTemplates';
@@ -176,24 +177,7 @@ function GoalsPageContent() {
   const completedGoals = goals.filter(g => g.status === 'APPROVED').length;
 
   if (loading) {
-    return (
-      <DashboardLayout type="employee">
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-          <div className="relative">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: "linear" }}
-              className="w-12 h-12 border-2 border-indigo-300/20 border-t-indigo-500 rounded-full"
-            />
-            <motion.div
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="absolute inset-0 bg-indigo-500/10 rounded-full blur-xl"
-            />
-          </div>
-        </div>
-      </DashboardLayout>
-    );
+    return <LoadingComponent />;
   }
 
   return (

@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { NotificationType, Prisma } from '@prisma/client';
 
 export async function PUT(
   req: Request,
@@ -42,14 +41,14 @@ export async function PUT(
         progress: progress,
         progressNotes: notes,
         lastProgressUpdate: new Date(),
-      } as Prisma.GoalUpdateInput,
+      },
     });
 
     // Create notification for manager
     if (goal.managerId) {
       await prisma.notification.create({
         data: {
-          type: NotificationType.GOAL_UPDATED,
+          type: 'GOAL_UPDATED',
           message: `Progress updated for goal: ${updatedGoal.title}`,
           userId: goal.managerId,
           goalId: updatedGoal.id,

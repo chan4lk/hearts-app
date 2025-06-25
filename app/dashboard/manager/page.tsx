@@ -8,6 +8,8 @@ import StatsDisplay from './components/StatsDisplay';
 import Filters from './components/Filters';
 import GoalsGrid from './components/GoalsGrid';
 import GoalDetailsModal from './components/GoalDetailsModal';
+import LoadingComponent from '@/app/components/LoadingScreen';
+
 import { Goal, EmployeeStats, DashboardStats } from './types';
 
 export default function ManagerDashboard() {
@@ -115,20 +117,7 @@ export default function ManagerDashboard() {
   });
 
   if (loading) {
-    return (
-      <DashboardLayout type="manager">
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="relative"
-          >
-            <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full"></div>
-            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-600 rounded-full animate-pulse"></div>
-          </motion.div>
-        </div>
-      </DashboardLayout>
-    );
+    return <LoadingComponent />;
   }
 
   return (

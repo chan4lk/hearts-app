@@ -6,7 +6,7 @@ import { Providers } from './providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Performance Management System',
+  title: 'Bistec AspireHub',
   description: 'A system for managing employee performance and goals',
 };
 

@@ -44,7 +44,7 @@ export default async function Home() {
               </h1>
               
               <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-                Empower your team with our innovative performance management system. Set goals, track progress, and celebrate success together.
+                Empower your team with our innovative Bistec AspireHub. Set goals, track progress, and celebrate success together.
               </p>
 
               <div className="flex flex-col sm:flex-row justify-center items-center gap-4">

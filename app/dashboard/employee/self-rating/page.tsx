@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import LoadingComponent from '@/app/components/LoadingScreen';
+
 import { toast } from "sonner";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
 import { BackgroundElements } from "./components/BackgroundElements";
@@ -174,24 +176,7 @@ export default function SelfRatingPage() {
   };
 
   if (loading) {
-    return (
-      <DashboardLayout type={getLayoutType(session?.user?.role)}>
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-          <div className="relative">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-              className="w-12 h-12 border-2 border-indigo-300/20 border-t-indigo-500 rounded-full"
-            />
-            <motion.div
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="absolute inset-0 bg-indigo-500/10 rounded-full blur-xl"
-            />
-          </div>
-        </div>
-      </DashboardLayout>
-    );
+    return <LoadingComponent />;
   }
 
   return (

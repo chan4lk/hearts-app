@@ -1,6 +1,6 @@
-# Performance Management System
+# Bistec AspireHub
 
-A comprehensive performance management system built with Next.js, Prisma, and PostgreSQL.
+A comprehensive Bistec AspireHub built with Next.js, Prisma, and PostgreSQL.
 
 ## Features
 
@@ -21,12 +21,14 @@ A comprehensive performance management system built with Next.js, Prisma, and Po
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/yourusername/performance-management-system.git
    cd performance-management-system
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
@@ -42,11 +44,13 @@ A comprehensive performance management system built with Next.js, Prisma, and Po
 #### Using Docker (Recommended)
 
 1. Start the database and pgAdmin:
+
    ```bash
    scripts\db-manage.bat start
    ```
 
 2. Access pgAdmin at http://localhost:5050
+
    - Login with admin@example.com / admin
    - Add a new server with these settings:
      - Host: postgres
@@ -74,6 +78,7 @@ A comprehensive performance management system built with Next.js, Prisma, and Po
 ### Running the Application
 
 1. Start the development server:
+
    ```bash
    npm run dev
    ```
@@ -103,12 +108,14 @@ The `scripts\db-manage.bat` script provides several commands for managing the Do
 ## Deploying Infrastructure with Pulumi on Azure
 
 ### Prerequisites
+
 - [Pulumi CLI](https://www.pulumi.com/docs/get-started/install/) installed
 - Azure account and access to create resources
 - Azure CLI installed and logged in (`az login`)
 - Node.js and npm installed
 
 ### Steps
+
 1. **Install dependencies:**
    ```sh
    cd infra
@@ -149,4 +156,4 @@ For more details, see the `infra/README.md` or Pulumi documentation.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details.

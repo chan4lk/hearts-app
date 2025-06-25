@@ -80,7 +80,7 @@ export default function GoalsSection({
                 }`}
               >
                 <BsShield className="w-4 h-4" />
-                <span className="hidden sm:inline">Assigned Goals</span>
+                <span className="hidden sm:inline">My Assigned Goals</span>
                 <span className="sm:hidden">Assigned</span>
                 <span className="bg-white/10 px-1.5 py-0.5 rounded text-xs ml-1">
                   {assignedGoals.length}
@@ -95,7 +95,7 @@ export default function GoalsSection({
                 }`}
               >
                 <BsStars className="w-4 h-4" />
-                <span className="hidden sm:inline">My Created Goals</span>
+                <span className="hidden sm:inline">My Growth Plan</span>
                 <span className="sm:hidden">Created</span>
                 <span className="bg-white/10 px-1.5 py-0.5 rounded text-xs ml-1">
                   {selfCreatedGoals.length}
@@ -185,12 +185,12 @@ export default function GoalsSection({
                   <BsFlag className="w-6 h-6 text-gray-400" />
                 </div>
                 <h3 className="text-base font-medium text-white/90 mb-2">
-                  {activeView === 'assigned' ? 'No assigned goals' : 'No self-created goals'}
+                  {activeView === 'assigned' ? 'No Assigned Goals' : 'No Self-Created Goals'}
                 </h3>
                 <p className="text-sm text-gray-400 mb-4">
                   {activeView === 'assigned' 
-                    ? "You don't have any goals assigned by your manager yet."
-                    : "You haven't created any goals yet."}
+                    ? "You Don't Have Any Goals Assigned by Your Manager Yet."
+                    : "You Haven't Self Created any Goals Yet."}
                 </p>
                 {activeView === 'created' && (
                   <button
@@ -199,7 +199,7 @@ export default function GoalsSection({
                              hover:bg-indigo-400 transition-all group active:scale-[0.98]"
                   >
                     <BsPlus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-                    <span>Create your first goal</span>
+                    <span>Create Your First Goal</span>
                   </button>
                 )}
               </div>

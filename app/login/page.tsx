@@ -165,7 +165,7 @@ function LoginForm() {
             <div className="text-center space-y-2">
               <div className="inline-flex items-center px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 backdrop-blur-sm mb-4">
                 <span className="w-2 h-2 rounded-full bg-indigo-400 mr-2 animate-ping"></span>
-                <span className="text-indigo-400 text-sm font-medium">Performance Portal</span>
+                <span className="text-indigo-400 text-sm font-medium">Bistec AspireHub Portal</span>
               </div>
               <h1 className="text-3xl font-bold">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-indigo-400 to-blue-400 animate-gradient">
@@ -206,7 +206,7 @@ function LoginForm() {
             {/* Footer Text */}
             <div className="text-center">
               <p className="text-xs text-gray-500">
-                Access your performance dashboard securely with Microsoft
+                Access your performance Dashboard Securely with Microsoft
               </p>
             </div>
           </div>

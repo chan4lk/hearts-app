@@ -7,6 +7,8 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { toast } from 'sonner';
 import { Toaster } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import LoadingComponent from '@/app/components/LoadingScreen';
+
 import type { IconType } from 'react-icons';
 import { BsPeople, BsFilter, BsArrowUpRight, BsGear, BsBell, BsBullseye, BsCheckCircle, BsClock, BsPause, BsFileText } from 'react-icons/bs';
 import {
@@ -347,18 +349,7 @@ function AdminGoalSettingPageContent() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="relative"
-        >
-          <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full"></div>
-          <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-600 rounded-full animate-pulse"></div>
-        </motion.div>
-      </div>
-    );
+    return <LoadingComponent />;
   }
 
   const containerVariants = {
@@ -462,18 +453,7 @@ function AdminGoalSettingPageContent() {
 
 export default function AdminGoalSettingPage() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="relative"
-        >
-          <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full"></div>
-          <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-600 rounded-full animate-pulse"></div>
-        </motion.div>
-      </div>
-    }>
+    <Suspense fallback={<LoadingComponent />}>
       <DashboardLayout type="admin">
         <Toaster 
           position="top-center"

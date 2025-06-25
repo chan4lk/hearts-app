@@ -1,62 +1,88 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
-const LoadingScreen = () => {
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+  type: 'admin' | 'employee' | 'manager';
+}
+
+const DashboardLayout = ({ children, type }: DashboardLayoutProps) => {
+  return <div className={`dashboard-${type}`}>{children}</div>;
+};
+
+const LoadingComponent = () => {
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-[#0B1120] via-[#132145] to-[#1E1B4B] z-50 flex items-center justify-center">
-      {/* Background Effects */}
+    <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10"></div>
-        
-        {/* Animated circles */}
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl animate-pulse-slow"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl animate-pulse-medium"></div>
-        
-        {/* Floating particles */}
-        <div className="absolute inset-0">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className={`absolute w-2 h-2 bg-indigo-400 rounded-full animate-float-particle-${i + 1}`}
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${i * 0.2}s`
-              }}
-            ></div>
-          ))}
-        </div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-violet-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="relative z-10 flex flex-col items-center">
-        {/* Loading Animation */}
+      {/* Loading content */}
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4">
+        {/* Main spinner */}
         <div className="relative">
-          {/* Outer rotating ring */}
-          <div className="w-24 h-24 rounded-full border-4 border-t-indigo-500 border-r-purple-500 border-b-blue-500 border-l-transparent animate-spin"></div>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="w-16 h-16 rounded-xl bg-gradient-to-br from-violet-500 via-fuchsia-500 to-indigo-500 p-[2px]"
+          >
+            <div className="w-full h-full rounded-xl bg-slate-50 dark:bg-gray-900"></div>
+          </motion.div>
           
-          {/* Inner pulsing circle */}
-          <div className="absolute inset-0 m-auto w-16 h-16 bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-500 rounded-full animate-pulse-fast flex items-center justify-center">
-            <div className="w-12 h-12 rounded-full bg-[#0B1120] flex items-center justify-center">
-              <span className="text-2xl animate-bounce">📈</span>
-            </div>
-          </div>
+          {/* Orbital elements */}
+          <motion.div
+            animate={{ rotate: -360 }}
+            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            className="absolute -inset-8 border border-violet-500/30 rounded-full"
+          />
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+            className="absolute -inset-16 border border-indigo-500/20 rounded-full"
+          />
+          
+          {/* Floating dots */}
+          <motion.div
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute -top-2 -right-2 w-2 h-2 bg-violet-500 rounded-full"
+          />
+          <motion.div
+            animate={{ scale: [1.2, 1, 1.2] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute -bottom-2 -left-2 w-2 h-2 bg-fuchsia-500 rounded-full"
+          />
         </div>
 
-        {/* Loading Text */}
-        <div className="mt-8 text-center">
-          <h2 className="text-2xl font-bold mb-2">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 animate-gradient">
-              Loading...
-            </span>
-          </h2>
-          <div className="flex items-center gap-1.5 text-gray-400">
-            <div className="w-2 h-2 rounded-full bg-indigo-500 animate-loading-dot-1"></div>
-            <div className="w-2 h-2 rounded-full bg-purple-500 animate-loading-dot-2"></div>
-            <div className="w-2 h-2 rounded-full bg-blue-500 animate-loading-dot-3"></div>
-          </div>
+        {/* Loading text */}
+        <motion.div
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="mt-8 text-center"
+        >
+          <div className="text-lg font-medium text-gray-800 dark:text-white">Loading</div>
+          <div className="text-sm text-gray-600 dark:text-gray-400">Please wait while we prepare your content</div>
+        </motion.div>
+
+        {/* Progress bar */}
+        <div className="mt-6 w-48 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <motion.div
+            initial={{ x: "-100%" }}
+            animate={{ x: "100%" }}
+            transition={{ 
+              duration: 1.5, 
+              repeat: Infinity, 
+              ease: "easeInOut"
+            }}
+            className="h-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-indigo-500"
+          />
         </div>
       </div>
     </div>
   );
 };
 
-export default LoadingScreen; 
+export default LoadingComponent;

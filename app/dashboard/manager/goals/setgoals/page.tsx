@@ -20,25 +20,14 @@ import { GoalModal } from './components/modals/CreateGoalModal';
 import { ViewGoalModal } from './components/modals/ViewGoalModal';
 import { DeleteGoalModal } from './components/modals/DeleteGoalModal';
 import GoalTemplates from '@/app/components/shared/GoalTemplates';
+import LoadingComponent from '@/app/components/LoadingScreen';
+
 
 // Styles and Types
 import { colors } from './components/styles/colors';
 import { GoalFormData, GoalStats, User, Goal } from './components/types';
 
-function LoadingSpinner() {
-  return (
-    <div className={`flex items-center justify-center min-h-screen bg-gradient-to-br ${colors.background.gradient}`}>
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-        className="relative"
-      >
-        <div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full"></div>
-        <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-600 rounded-full animate-pulse"></div>
-      </motion.div>
-    </div>
-  );
-}
+
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
   return (
@@ -244,7 +233,7 @@ function ManagerGoalSettingPageContent() {
   }
 
   if (loading) {
-    return <LoadingSpinner />;
+    return <LoadingComponent />;
   }
 
   return (
@@ -357,7 +346,7 @@ function ManagerGoalSettingPageContent() {
 export default function ManagerGoalSettingPage() {
   return (
     <DashboardLayout type="manager">
-      <Suspense fallback={<LoadingSpinner />}>
+      <Suspense fallback={<LoadingComponent />}>
         <ManagerGoalSettingPageContent />
       </Suspense>
     </DashboardLayout>

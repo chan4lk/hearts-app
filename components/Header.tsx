@@ -60,7 +60,7 @@ const Header: React.FC<HeaderProps> = ({ userName, children }) => {
             </Link>
             <Link href="/" className="group hidden sm:block">
               <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 group-hover:from-indigo-300 group-hover:via-purple-300 group-hover:to-pink-300 transition-all duration-300">
-                Performance Management
+              Bistec AspireHub
               </span>
             </Link>
           </div>

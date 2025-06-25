@@ -127,7 +127,7 @@ model Notification {
 
 model SystemSettings {
   id                   Int      @id @default(1)
-  systemName           String   @default("Performance Management System")
+  systemName           String   @default("Bistec AspireHub")
   theme                String   @default("dark")
   notificationSettings Json
   reviewSettings       Json

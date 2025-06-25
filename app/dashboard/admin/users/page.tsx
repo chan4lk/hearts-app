@@ -7,6 +7,7 @@ import { BsPeople, BsCheckCircle, BsPersonBadge, BsBuilding } from 'react-icons/
 import { Toaster } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
+import LoadingComponent from '@/app/components/LoadingScreen';
 import UserTable from './components/UserTable';
 import UserForm from './components/UserForm';
 import UserDetails from './components/UserDetails';
@@ -22,6 +23,8 @@ export default function UsersPage() {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [managers, setManagers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -201,17 +204,7 @@ export default function UsersPage() {
   };
 
   if (isLoading) {
-    return (
-      <DashboardLayout type="admin">
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full"
-          />
-        </div>
-      </DashboardLayout>
-    );
+    return <LoadingComponent />;
   }
 
   const statsCards = [

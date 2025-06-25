@@ -23,7 +23,7 @@ export default function Footer() {
               </Link>
             </div>
             <p className="text-sm text-gray-400 text-center">
-              © {new Date().getFullYear()} Performance Management System. All rights reserved.
+              © {new Date().getFullYear()} Bistec AspireHub. All rights reserved.
             </p>
           </div>
         </div>
