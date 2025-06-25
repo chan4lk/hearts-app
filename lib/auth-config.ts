@@ -104,11 +104,6 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = user.role as Role;
         token.activeRole = user.role as Role; // Initialize activeRole with base role
-        
-        // Store the initial role in session storage
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('activeRole', user.role as string);
-        }
       }
       return token;
     },
@@ -141,38 +136,47 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
+  jwt: {
+    secret: process.env.NEXTAUTH_SECRET,
+  },
+  useSecureCookies: false, // Set to false for development
+  secret: process.env.NEXTAUTH_SECRET,
   cookies: {
     sessionToken: {
-      name: process.env.NODE_ENV === 'production' 
-        ? '__Secure-next-auth.session-token' 
-        : 'next-auth.session-token',
+      name: 'next-auth.session-token',
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // Set to false for development
       }
     },
     callbackUrl: {
-      name: process.env.NODE_ENV === 'production' 
-        ? '__Secure-next-auth.callback-url' 
-        : 'next-auth.callback-url',
+      name: 'next-auth.callback-url',
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // Set to false for development
       }
     },
     csrfToken: {
-      name: process.env.NODE_ENV === 'production' 
-        ? '__Host-next-auth.csrf-token' 
-        : 'next-auth.csrf-token',
+      name: 'next-auth.csrf-token',
       options: {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // Set to false for development
+      }
+    },
+    state: {
+      name: 'next-auth.state',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: false, // Set to false for development
+        maxAge: 900, // 15 minutes
       }
     }
   },

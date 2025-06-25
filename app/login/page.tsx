@@ -1,6 +1,6 @@
 "use client";
 
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
@@ -22,6 +22,7 @@ const DynamicFooter = dynamic(() => import('@/components/Footer'), {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -36,11 +37,10 @@ function LoginForm() {
       setIsTransitioning(true);
       console.log('[Login] Starting Azure AD login process');
       
-      // Always redirect to /api/auth/session after login
-      // We'll handle the final redirect after checking the role
+      // Redirect to dashboard after successful login
       await signIn('azure-ad', {
         redirect: true,
-        callbackUrl: '/api/auth/session'
+        callbackUrl: '/dashboard'
       });
     } catch (error) {
       console.error('[Login] Error during Azure login:', error);
@@ -58,53 +58,55 @@ function LoginForm() {
       console.error('[Login] Error from auth provider:', error);
       toast.error('Authentication failed. Please try again.');
       setIsTransitioning(false);
+      setIsLoading(false);
       return;
     }
     
-    // Check if we're already authenticated
-    const checkSession = async () => {
-      try {
-        console.log('[Login] Checking session...');
-        const response = await fetch('/api/auth/session');
-        const session = await response.json();
-        
-        if (session?.user) {
-          console.log(`[Login] User authenticated with role: ${session.user.role}`);
-          setIsTransitioning(true);
-          
-          // Determine redirect path based on role
-          let redirectPath = '/dashboard';
-          
-          if (session.user.role === 'ADMIN') {
-            redirectPath = '/dashboard/admin';
-          } else if (session.user.role === 'MANAGER') {
-            redirectPath = '/dashboard/manager';
-          } else {
-            redirectPath = '/dashboard/employee';
-          }
-          
-          // Store the initial role
-          localStorage.setItem('activeRole', session.user.role);
-          
-          console.log(`[Login] Redirecting to: ${redirectPath}`);
-          router.push(redirectPath);
-        } else {
-          console.log('[Login] No active session found');
-          setIsTransitioning(false);
-        }
-      } catch (err) {
-        console.error('[Login] Error checking session:', err);
-        setIsTransitioning(false);
+    // If user is already authenticated, redirect to appropriate dashboard
+    if (status === 'authenticated' && session?.user) {
+      console.log(`[Login] User authenticated with role: ${session.user.role}`);
+      setIsTransitioning(true);
+      
+      // Determine redirect path based on role
+      let redirectPath = '/dashboard';
+      
+      if (session.user.role === 'ADMIN') {
+        redirectPath = '/dashboard/admin';
+      } else if (session.user.role === 'MANAGER') {
+        redirectPath = '/dashboard/manager';
+      } else {
+        redirectPath = '/dashboard/employee';
       }
-    };
-    
-    if (mounted) {
-      checkSession();
+      
+      // Store the initial role
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('activeRole', session.user.role);
+      }
+      
+      console.log(`[Login] Redirecting to: ${redirectPath}`);
+      router.push(redirectPath);
+    } else if (status === 'unauthenticated') {
+      setIsTransitioning(false);
+      setIsLoading(false);
     }
-  }, [mounted, router, searchParams]);
+  }, [session, status, router, searchParams]);
 
   if (!mounted) {
     return null;
+  }
+
+  // Show loading state while checking session
+  if (status === 'loading' || isTransitioning) {
+    return (
+      <main className="flex flex-col min-h-screen bg-gradient-to-br from-[#0B1120] via-[#132145] to-[#1E1B4B]">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-indigo-400">Loading...</p>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   return (

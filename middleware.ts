@@ -21,7 +21,10 @@ const canAccessRole = (userRole: Role, targetRole: Role): boolean => {
 };
 
 export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request });
+  const token = await getToken({ 
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET 
+  });
 
   // If there's no token, redirect to login
   if (!token) {
@@ -36,6 +39,17 @@ export async function middleware(request: NextRequest) {
 
   // Check if the current path requires role-based access
   const path = request.nextUrl.pathname;
+  
+  // Handle the base /dashboard route - redirect to appropriate role dashboard
+  if (path === '/dashboard') {
+    if (baseRole === 'ADMIN') {
+      return NextResponse.redirect(new URL('/dashboard/admin', request.url));
+    } else if (baseRole === 'MANAGER') {
+      return NextResponse.redirect(new URL('/dashboard/manager', request.url));
+    } else {
+      return NextResponse.redirect(new URL('/dashboard/employee', request.url));
+    }
+  }
   
   // Extract the target role from the path
   const targetRole = path.split('/')[2]?.toUpperCase() as Role;
@@ -59,6 +73,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/dashboard',
     '/dashboard/:path*',
     '/api/admin/:path*',
     '/api/manager/:path*',

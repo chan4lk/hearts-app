@@ -33,9 +33,27 @@ function SettingsProvider({ children }: { children: React.ReactNode }) {
         setSettings(data);
         document.title = data.systemName;
         document.documentElement.classList.toggle('dark', data.theme === 'dark');
+      } else if (response.status === 401) {
+        // User is not authenticated, use default settings
+        console.log('User not authenticated, using default settings');
+        setSettings({
+          systemName: 'Performance Management System',
+          theme: 'dark',
+        });
+        document.title = 'Performance Management System';
+        document.documentElement.classList.toggle('dark', true);
+      } else {
+        console.error('Failed to fetch settings:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Failed to fetch settings:', error);
+      // Use default settings on error
+      setSettings({
+        systemName: 'Performance Management System',
+        theme: 'dark',
+      });
+      document.title = 'Performance Management System';
+      document.documentElement.classList.toggle('dark', true);
     } finally {
       setLoading(false);
     }
@@ -88,7 +106,10 @@ export function useSettings() {
 // 4. Update the main Providers component
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider>
+    <SessionProvider 
+      refetchInterval={0}
+      refetchOnWindowFocus={false}
+    >
       <SettingsProvider>{children}</SettingsProvider>
     </SessionProvider>
   );
