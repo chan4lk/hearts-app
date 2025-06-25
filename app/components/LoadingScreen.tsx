@@ -12,7 +12,7 @@ const DashboardLayout = ({ children, type }: DashboardLayoutProps) => {
 
 const LoadingComponent = () => {
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="fixed inset-0 w-full h-full z-[9999] bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-violet-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
@@ -21,7 +21,7 @@ const LoadingComponent = () => {
       </div>
 
       {/* Loading content */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4">
+      <div className="fixed inset-0 flex flex-col items-center justify-center min-h-screen w-full p-4">
         {/* Main spinner */}
         <div className="relative">
           <motion.div
