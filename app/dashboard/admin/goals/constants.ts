@@ -1,11 +1,12 @@
-import { BsRocket, BsLightbulb, BsAward, BsGraphUp, BsStars, BsBriefcase } from 'react-icons/bs';
+import { BsRocket, BsLightbulb, BsAward, BsGraphUp, BsStars, BsBriefcase, BsSpeedometer2 } from 'react-icons/bs';
 
 export const CATEGORIES = [
   { value: 'PROFESSIONAL', label: 'Professional Development' },
   { value: 'TECHNICAL', label: 'Technical Skills' },
   { value: 'LEADERSHIP', label: 'Leadership' },
   { value: 'PERSONAL', label: 'Personal Growth' },
-  { value: 'TRAINING', label: 'Training' }
+  { value: 'TRAINING', label: 'Training' },
+  { value: 'KPIS', label: 'Key Performance Indicators' }
 ] as const;
 
 export const GOAL_TEMPLATES = [
@@ -74,6 +75,17 @@ export const GOAL_TEMPLATES = [
     subtitle: 'Professional Certification',
     bgGradient: 'from-rose-500/10 to-transparent',
     bgColor: 'bg-[#2a1a20]'
+  },
+  {
+    id: 'performance-metrics',
+    title: 'Performance Metrics',
+    category: 'KPIS',
+    icon: BsSpeedometer2,
+    iconColor: 'text-cyan-400',
+    description: 'Achieve [KPI Target] for [Metric] by [Date] with [Specific Actions]',
+    subtitle: 'Performance Excellence',
+    bgGradient: 'from-cyan-500/10 to-transparent',
+    bgColor: 'bg-[#1a252a]'
   }
 ] as const;
 
