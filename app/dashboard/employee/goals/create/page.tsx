@@ -7,12 +7,13 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import LoadingComponent from '@/app/components/LoadingScreen';
 import { SelfCreateGoalModal } from '@/app/components/shared/SelfCreateGoalModal';
 import { BsPlus } from 'react-icons/bs';
-import { GoalTemplates } from './components/GoalTemplates';
+import GoalTemplates from '@/app/components/shared/GoalTemplates';
 import { HeroSection } from './components/HeroSection';
 import { GoalsList } from './components/GoalsList';
 import { GoalDetailsModal } from './components/modals/GoalDetailsModal';
 import { Goal, NewGoal } from './types';
 import { useSession } from 'next-auth/react';
+import { CATEGORIES } from '@/app/components/shared/constants';
 
 function GoalsPageContent() {
   const router = useRouter();
@@ -225,8 +226,13 @@ function GoalsPageContent() {
             animate="visible"
             className="w-full space-y-4"
           >
-            <GoalTemplates onSelectTemplate={(goal) => {
-              setNewGoal(goal);
+            <GoalTemplates onSelect={(template) => {
+              setNewGoal({
+                title: template.title,
+                description: template.description,
+                category: template.category,
+                dueDate: new Date().toISOString().split('T')[0]
+              });
               setIsCreateModalOpen(true);
             }} />
           </motion.div>

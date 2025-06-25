@@ -1,5 +1,5 @@
 import { BsPeople, BsChevronDown, BsPersonCircle } from 'react-icons/bs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { motion } from 'framer-motion';
 
 interface User {

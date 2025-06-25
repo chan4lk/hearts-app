@@ -8,11 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { BsListTask, BsPeople, BsCalendar, BsX, BsArrowCounterclockwise, BsPlus, BsRobot, BsLightning, BsPencil } from 'react-icons/bs';
 import { toast } from 'sonner';
 import { User, GoalFormData } from '../types';
-import { CATEGORIES } from '../constants';
+import { CATEGORIES } from '@/app/components/shared/constants';
 import { AIGoalSuggestions } from '@/app/components/shared/AIGoalSuggestions';
 import { showToast } from '@/app/utils/toast';
+import React from 'react';
 
-interface GoalModalProps {
+interface CreateGoalModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (formData: GoalFormData) => Promise<void>;
@@ -24,7 +25,7 @@ interface GoalModalProps {
   initialData?: GoalFormData;
 }
 
-export function GoalModal({
+export function CreateGoalModal({
   isOpen,
   onClose,
   onSubmit,
@@ -34,7 +35,7 @@ export function GoalModal({
   setFormData,
   mode = 'create',
   initialData
-}: GoalModalProps) {
+}: CreateGoalModalProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [context, setContext] = useState('');
   const [initialEditData, setInitialEditData] = useState<GoalFormData | null>(null);
@@ -185,7 +186,10 @@ export function GoalModal({
                 <SelectContent className="bg-[#1a1b1e] border-gray-800/50">
                   {CATEGORIES.map((category) => (
                     <SelectItem key={category.value} value={category.value} className="text-white text-xs">
-                      <div className="flex items-center gap-1.5">{category.icon}<span>{category.label}</span></div>
+                      <div className="flex items-center gap-1.5">
+                        {React.createElement(category.icon, { className: category.iconColor })}
+                        <span>{category.label}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>

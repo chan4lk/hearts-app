@@ -1,5 +1,5 @@
 import { Goal } from '../types';
-import { getStatusBadge } from '../constants';
+import { CATEGORIES } from '@/app/components/shared/constants';
 import { Badge } from '@/components/ui/badge';
 import { BsRocket, BsLightbulb, BsAward, BsGraphUp, BsBriefcase, BsListTask, BsX, BsStars } from 'react-icons/bs';
 import { User, Calendar } from 'lucide-react';
@@ -13,6 +13,24 @@ interface GoalModalProps {
 }
 
 export function GoalModal({ goal, onClose }: GoalModalProps) {
+  const getStatusColor = () => {
+    switch (goal.status) {
+      case 'PENDING': return 'bg-yellow-500/5 border-yellow-500/20 text-yellow-400';
+      case 'COMPLETED': return 'bg-green-500/5 border-green-500/20 text-green-400';
+      case 'APPROVED': return 'bg-blue-500/5 border-blue-500/20 text-blue-400';
+      case 'REJECTED': return 'bg-red-500/5 border-red-500/20 text-red-400';
+      case 'DRAFT': return 'bg-gray-500/5 border-gray-500/20 text-gray-400';
+      default: return 'bg-gray-500/5 border-gray-500/20 text-gray-400';
+    }
+  };
+
+  const getCategoryIcon = () => {
+    const category = CATEGORIES.find(c => c.value === goal.category);
+    if (!category) return null;
+    const IconComponent = category.icon;
+    return <IconComponent className={`h-4 w-4 ${category.iconColor}`} />;
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }}
@@ -24,29 +42,13 @@ export function GoalModal({ goal, onClose }: GoalModalProps) {
       <div className="bg-[#4a5681]/90 px-3 py-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="p-1 rounded-md bg-[#c3935a]">
-            {goal.category === 'PROFESSIONAL' && <BsRocket className="h-3 w-3 text-white" />}
-            {goal.category === 'TECHNICAL' && <BsLightbulb className="h-3 w-3 text-white" />}
-            {goal.category === 'LEADERSHIP' && <BsAward className="h-3 w-3 text-white" />}
-            {goal.category === 'PERSONAL' && <BsGraphUp className="h-3 w-3 text-white" />}
-            {goal.category === 'TRAINING' && <BsBriefcase className="h-3 w-3 text-white" />}
+            {getCategoryIcon()}
           </div>
           <h2 className="text-xs font-medium text-white tracking-wide truncate">{goal.title}</h2>
         </div>
         <div className="flex items-center gap-2">
-          <Badge 
-            variant={getStatusBadge(goal.status)}
-            className={`text-[10px] px-1.5 py-0.5 ${
-              goal.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-              goal.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-              goal.status === 'APPROVED' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-              goal.status === 'REJECTED' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-              'bg-gray-500/10 text-gray-400 border-gray-500/20'
-            }`}
-          >
-            <div className="flex items-center gap-1">
-              <BsStars className="h-2 w-2" />
-              <span>{goal.status}</span>
-            </div>
+          <Badge variant="outline" className={`px-2 py-0.5 text-xs font-medium ${getStatusColor()}`}>
+            {goal.status}
           </Badge>
           <button
             onClick={onClose}

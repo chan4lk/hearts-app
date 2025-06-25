@@ -1,34 +1,31 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/app/components/ui/button';
+import { Badge } from '@/app/components/ui/badge';
 import { BsEye, BsX, BsPencil, BsCalendar, BsListTask } from 'react-icons/bs';
-import { User } from 'lucide-react';
+import { User, Calendar } from 'lucide-react';
 import { Goal } from '../types';
-import { CATEGORIES } from '../constants';
+import { CATEGORIES } from '@/app/components/shared/constants';
+import { Dialog, DialogContent } from "@/app/components/ui/dialog";
 
 interface ViewGoalModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  onCloseAction: () => void;
   goal: Goal | null;
-  onEdit: () => void;
+  onEditAction: () => void;
 }
 
 export function ViewGoalModal({
   isOpen,
-  onClose,
+  onCloseAction: onClose,
   goal,
-  onEdit
+  onEditAction: onEdit
 }: ViewGoalModalProps) {
   if (!isOpen || !goal) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div 
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className="relative z-10 bg-gradient-to-br from-[#1a1b1e] to-[#2a2b2e] w-full max-w-md shadow-2xl border border-gray-800/50 rounded-xl overflow-hidden">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="bg-[#1a1b1e] text-white border-gray-800/50 p-0 gap-0 max-w-md">
         {/* Header */}
         <div className="flex items-center justify-between px-3 py-2 border-b border-gray-800/50 bg-black/20">
           <div className="flex items-center gap-2">
@@ -125,7 +122,7 @@ export function ViewGoalModal({
             </Button>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 } 

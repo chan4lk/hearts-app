@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { User } from '../types';
-import { CATEGORIES } from '../constants';
+import { CATEGORIES } from '@/app/components/shared/constants';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -182,38 +182,44 @@ export function GoalForm({
                 </div>
 
                 {/* Category Field */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-medium text-slate-200 flex items-center gap-1">
-                    <BsTag className="h-3 w-3 text-emerald-400" /> Category
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                    <BsTag className="h-4 w-4 text-purple-500 dark:text-purple-400" />
+                    Category
                   </label>
                   <Select
                     value={formData.category}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
                   >
-                    <SelectTrigger className={`bg-slate-800/50 border-slate-600/50 text-white text-[10px] h-7 rounded-lg focus:border-emerald-400/50 focus:ring-emerald-400/20 transition-all duration-200 ${
-                      errors.category ? 'border-red-400/50 ring-red-400/20' : ''
+                    <SelectTrigger className={`bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 ${
+                      errors.category ? 'border-red-500 dark:border-red-400' : ''
                     }`}>
-                      <SelectValue placeholder="Choose category" />
+                      <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-800 border-slate-600/50 rounded-lg">
-                      {CATEGORIES.map((category) => (
-                        <SelectItem 
-                          key={category.value} 
-                          value={category.value}
-                          className="text-white text-[10px] hover:bg-slate-700/50 focus:bg-slate-700/50"
-                        >
-                          <div className="flex items-center gap-1">
-                            {category.value === 'PROFESSIONAL' && <BsBriefcase className="h-3 w-3 text-blue-400" />}
-                            {category.value === 'TECHNICAL' && <BsLightbulb className="h-3 w-3 text-amber-400" />}
-                            {category.value === 'LEADERSHIP' && <BsAward className="h-3 w-3 text-purple-400" />}
-                            {category.value === 'PERSONAL' && <BsGraphUp className="h-3 w-3 text-green-400" />}
-                            {category.value === 'TRAINING' && <BsRocket className="h-3 w-3 text-rose-400" />}
-                            {category.label}
-                          </div>
-                        </SelectItem>
-                      ))}
+                      {CATEGORIES.map((category: { value: string; label: string; icon: any; iconColor: string }) => {
+                        const IconComponent = category.icon;
+                        return (
+                          <SelectItem 
+                            key={category.value} 
+                            value={category.value}
+                            className="text-white text-[10px] hover:bg-slate-700/50 focus:bg-slate-700/50"
+                          >
+                            <div className="flex items-center gap-1">
+                              <IconComponent className={`h-3 w-3 ${category.iconColor}`} />
+                              <span>{category.label}</span>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
+                  {errors.category && (
+                    <p className="text-sm text-red-500 dark:text-red-400 flex items-center gap-1 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded">
+                      <BsInfoCircle className="h-4 w-4" />
+                      {errors.category}
+                    </p>
+                  )}
                 </div>
               </div>
 

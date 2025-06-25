@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { BsExclamationTriangle } from 'react-icons/bs';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/app/components/ui/button';
 import { showToast } from '@/app/utils/toast';
 
 // Layout
@@ -16,18 +16,16 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { HeroSection } from './components/sections/HeroSection';
 import { StatsSection } from './components/sections/StatsSection';
 import { GoalList } from './components/sections/GoalList';
-import { GoalModal } from './components/modals/CreateGoalModal';
+import { CreateGoalModal } from './components/modals/CreateGoalModal';
 import { ViewGoalModal } from './components/modals/ViewGoalModal';
 import { DeleteGoalModal } from './components/modals/DeleteGoalModal';
 import GoalTemplates from '@/app/components/shared/GoalTemplates';
+import { CATEGORIES } from '@/app/components/shared/constants';
 import LoadingComponent from '@/app/components/LoadingScreen';
-
 
 // Styles and Types
 import { colors } from './components/styles/colors';
 import { GoalFormData, GoalStats, User, Goal } from './components/types';
-
-
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
   return (
@@ -290,7 +288,7 @@ function ManagerGoalSettingPageContent() {
         />
 
         {/* Modals */}
-        <GoalModal
+        <CreateGoalModal
           isOpen={isCreateModalOpen || isEditModalOpen}
           onClose={() => {
             if (isEditModalOpen) {
@@ -310,9 +308,9 @@ function ManagerGoalSettingPageContent() {
 
         <ViewGoalModal
           isOpen={isViewModalOpen}
-          onClose={() => setIsViewModalOpen(false)}
+          onCloseAction={() => setIsViewModalOpen(false)}
           goal={viewedGoal}
-          onEdit={() => {
+          onEditAction={() => {
             if (viewedGoal) {
               setFormData({
                 title: viewedGoal.title,

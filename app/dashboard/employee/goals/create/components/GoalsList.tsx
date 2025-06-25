@@ -1,8 +1,17 @@
 import { motion } from 'framer-motion';
 import { BsListTask } from 'react-icons/bs';
 import { Goal } from '../types';
-import { CATEGORIES, STATUSES } from '../constants';
+import { CATEGORIES } from '@/app/components/shared/constants';
 import { useSession } from 'next-auth/react';
+
+const STATUSES = [
+  { value: 'all', label: 'All Goals' },
+  { value: 'PENDING', label: 'Pending' },
+  { value: 'COMPLETED', label: 'Completed' },
+  { value: 'APPROVED', label: 'Approved' },
+  { value: 'REJECTED', label: 'Rejected' },
+  { value: 'DRAFT', label: 'Draft' }
+] as const;
 
 interface GoalsListProps {
   goals: Goal[];

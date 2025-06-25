@@ -6,40 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { BsListTask, BsCalendar, BsX, BsArrowCounterclockwise, BsRobot, BsLightning, BsBriefcase, BsLightningCharge, BsGraphUp, BsBook, BsHeart } from 'react-icons/bs';
 import { AIGoalSuggestions } from '@/app/components/shared/AIGoalSuggestions';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CATEGORIES } from './constants';
 
-// Define categories that match the Prisma schema
-const CATEGORIES = [
-  {
-    value: 'PROFESSIONAL',
-    label: 'Professional Development',
-    icon: BsBriefcase,
-    color: 'from-blue-500 to-indigo-500'
-  },
-  {
-    value: 'TECHNICAL',
-    label: 'Technical Skills',
-    icon: BsLightningCharge,
-    color: 'from-purple-500 to-pink-500'
-  },
-  {
-    value: 'LEADERSHIP',
-    label: 'Leadership',
-    icon: BsGraphUp,
-    color: 'from-emerald-500 to-teal-500'
-  },
-  {
-    value: 'PERSONAL',
-    label: 'Personal Growth',
-    icon: BsHeart,
-    color: 'from-rose-500 to-red-500'
-  },
-  {
-    value: 'TRAINING',
-    label: 'Training',
-    icon: BsBook,
-    color: 'from-amber-500 to-orange-500'
-  }
-];
+
+
 
 export interface SelfCreateGoalModalProps {
   isOpen: boolean;

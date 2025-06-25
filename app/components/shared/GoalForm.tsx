@@ -172,22 +172,21 @@ export function GoalForm({
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent className="bg-white dark:bg-gray-800 dark:border-gray-600">
-              {CATEGORIES.map((category) => (
-                <SelectItem 
-                  key={category.value} 
-                  value={category.value}
-                  className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700"
-                >
-                  <div className="flex items-center gap-2">
-                    {category.value === 'PROFESSIONAL' && <BsBriefcase className="h-4 w-4 text-blue-500 dark:text-blue-400" />}
-                    {category.value === 'TECHNICAL' && <BsLightbulb className="h-4 w-4 text-amber-500 dark:text-amber-400" />}
-                    {category.value === 'LEADERSHIP' && <BsAward className="h-4 w-4 text-purple-500 dark:text-purple-400" />}
-                    {category.value === 'PERSONAL' && <BsGraphUp className="h-4 w-4 text-green-500 dark:text-green-400" />}
-                    {category.value === 'TRAINING' && <BsRocket className="h-4 w-4 text-rose-500 dark:text-rose-400" />}
-                    {category.label}
-                  </div>
-                </SelectItem>
-              ))}
+              {CATEGORIES.map((category) => {
+                const IconComponent = category.icon;
+                return (
+                  <SelectItem 
+                    key={category.value} 
+                    value={category.value}
+                    className="dark:text-gray-100 dark:hover:bg-gray-700 dark:focus:bg-gray-700"
+                  >
+                    <div className="flex items-center gap-2">
+                      <IconComponent className={`h-4 w-4 ${category.iconColor}`} />
+                      {category.label}
+                    </div>
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
           {errors.category && (

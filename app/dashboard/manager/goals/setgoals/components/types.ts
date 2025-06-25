@@ -7,25 +7,21 @@ export interface User {
   position?: string;
 }
 
+export interface Employee {
+  id: string;
+  name: string;
+  email: string;
+}
+
 export interface Goal {
   id: string;
   title: string;
   description: string;
-  status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'DRAFT';
-  dueDate: string;
   category: string;
-  createdAt: string;
-  updatedAt: string;
-  employee: {
-    id: string;
-    name: string;
-    email: string;
-  } | null;
-  manager: {
-    id: string;
-    name: string;
-    email: string;
-  } | null;
+  status: 'DRAFT' | 'PENDING' | 'APPROVED' | 'COMPLETED' | 'REJECTED';
+  dueDate: string;
+  employee?: User;
+  manager?: User;
 }
 
 export interface GoalStats {

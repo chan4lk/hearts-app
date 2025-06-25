@@ -1,10 +1,10 @@
 import { Goal } from './types';
-import { getStatusBadge } from './constants';
+import { getStatusBadge, CATEGORIES } from './constants';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { User, Calendar } from 'lucide-react';
-import { BsRocket, BsLightbulb, BsAward, BsGraphUp, BsBriefcase, BsEye, BsPencil, BsTrash } from 'react-icons/bs';
+import { BsEye, BsPencil, BsTrash } from 'react-icons/bs';
 
 interface GoalCardProps {
   goal: Goal;
@@ -14,17 +14,8 @@ interface GoalCardProps {
 }
 
 export function GoalCard({ goal, onView, onEdit, onDelete }: GoalCardProps) {
-  const getCategoryIcon = () => {
-    const iconClass = "h-4 w-4";
-    switch (goal.category) {
-      case 'PROFESSIONAL': return <BsRocket className={`${iconClass} text-blue-400`} />;
-      case 'TECHNICAL': return <BsLightbulb className={`${iconClass} text-amber-400`} />;
-      case 'LEADERSHIP': return <BsAward className={`${iconClass} text-purple-400`} />;
-      case 'PERSONAL': return <BsGraphUp className={`${iconClass} text-emerald-400`} />;
-      case 'TRAINING': return <BsBriefcase className={`${iconClass} text-rose-400`} />;
-      default: return null;
-    }
-  };
+  const category = CATEGORIES.find(c => c.value === goal.category);
+  const IconComponent = category?.icon;
 
   const getStatusColor = () => {
     switch (goal.status) {
@@ -46,7 +37,7 @@ export function GoalCard({ goal, onView, onEdit, onDelete }: GoalCardProps) {
         {/* Header Section */}
         <div className="flex items-start gap-2">
           <div className="flex-shrink-0 p-1.5 rounded bg-gray-800/50 border border-gray-700/30">
-            {getCategoryIcon()}
+            {IconComponent && <IconComponent className={`h-4 w-4 ${category?.iconColor}`} />}
           </div>
           
           <div className="flex-1 min-w-0">
@@ -58,12 +49,12 @@ export function GoalCard({ goal, onView, onEdit, onDelete }: GoalCardProps) {
                 {goal.status}
               </Badge>
               <span className="text-[10px] text-gray-500">•</span>
-              <span className="text-[10px] text-gray-400">{goal.category}</span>
+              <span className="text-[10px] text-gray-400">{category?.label || goal.category}</span>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-0.5 ml-1">
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <Button
               variant="ghost"
               size="icon"
