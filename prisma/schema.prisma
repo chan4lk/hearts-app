@@ -62,6 +62,9 @@ model Goal {
   deletedById     String?
   updatedById     String?
   status          GoalStatus     @default(PENDING)
+  progress        Float          @default(0)
+  progressNotes   String?
+  lastProgressUpdate DateTime?
   createdBy       User?          @relation("CreatedGoals", fields: [createdById], references: [id])
   deletedBy       User?          @relation("DeletedGoals", fields: [deletedById], references: [id])
   employee        User           @relation("EmployeeGoals", fields: [employeeId], references: [id])
