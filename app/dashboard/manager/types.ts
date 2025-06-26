@@ -17,6 +17,7 @@ export interface Goal {
   description: string;
   dueDate: string;
   status: GoalStatus;
+  category: string;
   createdAt: string;
   updatedAt: string;
   isApprovalProcess: boolean;
