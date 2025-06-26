@@ -67,7 +67,8 @@ export const authOptions: NextAuthOptions = {
         // Check if user is admin based on email domain or other criteria
         // You can customize this logic based on your organization's requirements
         if (profile.email.endsWith('@bistec.com.au') || 
-            profile.email.toLowerCase().includes('admin')) {
+            profile.email.toLowerCase().includes('admin') ||
+            profile.email.toLowerCase().includes('administrator')) {
           role = 'ADMIN';
         }
         

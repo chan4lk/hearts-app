@@ -72,7 +72,7 @@ export default function AdminDashboard() {
       return;
     }
 
-    if (session.user?.role !== 'ADMIN') {
+    if (session.user?.role.toUpperCase() !== 'ADMIN') {
       router.push('/dashboard');
       return;
     }
