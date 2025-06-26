@@ -148,29 +148,9 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       { href: '/dashboard/employee/self-rating', label: 'Self Rating', icon: BsStar },
     ];
 
-    // Combine items based on user role and current path
+    // Return items based on user role
     if (userRole === 'admin') {
-      // Admin sees all items, but organized based on current section
-      if (pathname?.startsWith('/dashboard/manager')) {
-        return [
-          ...managerItems,
-          { href: '/dashboard/admin', label: 'Switch to Admin', icon: BsShield },
-          { href: '/dashboard/employee', label: 'Switch to Employee', icon: BsPerson },
-        ];
-      } else if (pathname?.startsWith('/dashboard/employee')) {
-        return [
-          ...employeeItems,
-          { href: '/dashboard/admin', label: 'Switch to Admin', icon: BsShield },
-          { href: '/dashboard/manager', label: 'Switch to Manager', icon: BsGraphUp },
-        ];
-      } else {
-        // In admin dashboard or default
-        return [
-          ...adminItems,
-          { href: '/dashboard/manager', label: 'Switch to Manager', icon: BsGraphUp },
-          { href: '/dashboard/employee', label: 'Switch to Employee', icon: BsPerson },
-        ];
-      }
+      return adminItems;
     }
 
     if (userRole === 'manager') {
