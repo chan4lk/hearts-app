@@ -1,190 +1,210 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { BsStarFill, BsChevronDown } from "react-icons/bs";
+import { BsChevronDown, BsCalendar, BsTag, BsStarFill } from "react-icons/bs";
 import { Label } from "@/components/ui/label";
 import { GoalWithRating } from "../types";
 import { useState } from "react";
-import {
-  RATING_COLORS,
-  RATING_HOVER_COLORS,
-  RATING_LABELS,
-  RATING_DESCRIPTIONS,
-  STATUS_COLORS
-} from "../constants";
+import { CATEGORIES } from '@/app/components/shared/constants';
+import { RATING_LABELS, RATING_DESCRIPTIONS } from "../constants";
+
+type CategoryType = typeof CATEGORIES[0];
+type ViewMode = 'grid' | 'list';
 
 interface GoalCardProps {
   goal: GoalWithRating;
   submitting: Record<string, boolean>;
   handleSelfRating: (goalId: string, value: number) => void;
+  viewMode?: ViewMode;
 }
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: { 
-    opacity: 1, 
-    y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      mass: 0.5
-    }
-  }
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
 };
 
-const detailsVariants = {
-  hidden: { height: 0, opacity: 0 },
-  visible: { 
-    height: "auto", 
-    opacity: 1,
-    transition: {
-      height: {
-        type: "spring",
-        stiffness: 100,
-        damping: 20
-      },
-      opacity: { duration: 0.2 }
-    }
-  }
-};
+export function GoalCard({ goal, submitting, handleSelfRating, viewMode = 'list' }: GoalCardProps) {
+  const [showDetails, setShowDetails] = useState(false);
+  const categoryConfig = CATEGORIES.find(c => c.value === goal.category) ?? CATEGORIES[0];
+  const Icon = categoryConfig.icon;
 
-export function GoalCard({ goal, submitting, handleSelfRating }: GoalCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const isGridView = viewMode === 'grid';
 
   return (
     <motion.div
       variants={itemVariants}
-      whileHover={{ y: -2 }}
-      className="group relative bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 overflow-hidden"
+      className={`w-full rounded-xl shadow-sm overflow-hidden group ${
+        isGridView 
+          ? `h-[280px] flex flex-col relative ${categoryConfig.bgColor} hover:shadow-xl hover:shadow-${categoryConfig.iconColor}/10 transition-all duration-300` 
+          : 'bg-white dark:bg-gray-800'
+      }`}
     >
-      {/* Status Indicator Line */}
-      <div className={`absolute top-0 left-0 w-full h-0.5 ${
-        STATUS_COLORS[goal.status as keyof typeof STATUS_COLORS].replace('text-', 'bg-').replace('dark:text-', 'dark:bg-')
-      }`} />
+      {/* Grid View Background Effects */}
+      {isGridView && (
+        <>
+          <div className={`absolute inset-0 bg-gradient-to-br opacity-20 ${categoryConfig.color}`} />
+          <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl transform translate-x-16 -translate-y-16" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full blur-3xl transform -translate-x-16 translate-y-16" />
+        </>
+      )}
 
-      {/* Main Content - Clickable Area */}
-      <div 
-        className="p-4 cursor-pointer"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        {/* Header Section */}
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="text-base font-medium text-gray-900 dark:text-white truncate">{goal.title}</h3>
-              <motion.div
-                animate={{ rotate: isExpanded ? 180 : 0 }}
-                transition={{ duration: 0.2 }}
-                className="text-gray-400"
-              >
-                <BsChevronDown className="w-3.5 h-3.5" />
-              </motion.div>
+      {/* Main Card Content */}
+      <div className={`relative p-4 ${isGridView ? 'flex-1 flex flex-col z-10' : ''}`}>
+        {/* Header */}
+        <div className={`flex items-start justify-between gap-4 ${isGridView ? 'mb-3' : ''}`}>
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className={`p-2 rounded-lg ${categoryConfig.iconColor} bg-opacity-20 backdrop-blur-xl
+              ring-1 ring-white/20 shadow-lg transform transition-transform duration-300
+              ${isGridView ? 'group-hover:scale-110 group-hover:rotate-[10deg]' : ''}`}>
+              <Icon className="w-5 h-5" />
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">
-              {goal.description}
-            </p>
+            <div className="flex-1 min-w-0">
+              <h3 className={`text-base font-medium truncate ${
+                isGridView 
+                  ? 'text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-white/70' 
+                  : 'text-gray-900 dark:text-white'
+              }`}>
+                {goal.title}
+              </h3>
+              <div className="flex items-center gap-2 mt-1">
+                <span className={`px-2 py-0.5 text-xs font-medium rounded-full
+                  ${goal.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' :
+                  goal.status === 'PENDING' ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300' :
+                  goal.status === 'REJECTED' ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300' :
+                  'bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-300'}`}>
+                  {goal.status}
+                </span>
+                <span className={`text-xs ${isGridView ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'}`}>
+                  Due {new Date(goal.dueDate).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
           </div>
-          <span className={`shrink-0 text-[10px] px-2 py-1 rounded-full uppercase tracking-wider font-medium ${
-            STATUS_COLORS[goal.status as keyof typeof STATUS_COLORS]
-          }`}>
-            {goal.status}
-          </span>
+          {!isGridView && (
+            <button
+              onClick={() => setShowDetails(!showDetails)}
+              className="text-gray-400 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              <motion.div
+                animate={{ rotate: showDetails ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <BsChevronDown className="w-4 h-4" />
+              </motion.div>
+            </button>
+          )}
         </div>
 
+        {/* Description */}
+        <p className={`text-sm line-clamp-2 ${
+          isGridView 
+            ? 'mb-4 flex-1 text-white/80' 
+            : 'mt-3 text-gray-600 dark:text-gray-300'
+        }`}>
+          {goal.description}
+        </p>
+
         {/* Rating Section */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label className="text-xs font-medium text-gray-600 dark:text-gray-400">Self Rating</Label>
-            <div className="flex gap-1" onClick={e => e.stopPropagation()}>
-              {[1, 2, 3, 4, 5].map((rating) => (
-                <motion.button
-                  key={rating}
-                  whileHover={{ scale: 1.15 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => handleSelfRating(goal.id, rating)}
-                  disabled={submitting[goal.id]}
-                  className={`w-7 h-7 rounded transition-all duration-200 ${
-                    goal.rating?.score === rating
-                      ? RATING_COLORS[rating as keyof typeof RATING_COLORS]
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500'
-                  } ${RATING_HOVER_COLORS[rating as keyof typeof RATING_HOVER_COLORS]} hover:shadow-md flex items-center justify-center`}
-                >
-                  <BsStarFill className="w-3 h-3" />
-                </motion.button>
-              ))}
+        <div className={`${isGridView ? 'pt-4' : 'mt-4 pt-4'} border-t ${
+          isGridView ? 'border-white/10' : 'border-gray-100 dark:border-gray-700'
+        }`}>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <Label className={`text-sm ${
+                isGridView ? 'text-white/90' : 'text-gray-700 dark:text-gray-300'
+              }`}>
+                {goal.rating?.score ? 'Your Rating' : 'Rate Your Progress'}
+              </Label>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((rating) => (
+                  <button
+                    key={rating}
+                    onClick={() => handleSelfRating(goal.id, rating)}
+                    disabled={submitting[goal.id]}
+                    className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors ${
+                      isGridView
+                        ? goal.rating?.score === rating
+                          ? 'bg-white/20 text-yellow-300'
+                          : 'bg-white/5 text-white/40 hover:bg-white/10'
+                        : goal.rating?.score === rating
+                          ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-300'
+                          : 'bg-gray-50 text-gray-400 hover:bg-gray-100 dark:bg-gray-700/50 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <BsStarFill className="w-4 h-4" />
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {goal.rating?.score && (
+              <div className={`text-sm ${
+                isGridView ? 'text-white/70' : 'text-gray-600 dark:text-gray-300'
+              }`}>
+                {RATING_DESCRIPTIONS[goal.rating.score as keyof typeof RATING_DESCRIPTIONS]}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Grid View Additional Info */}
+        {isGridView && (
+          <div className="mt-3 flex items-center gap-4 text-xs text-white/60">
+            <div className="flex items-center gap-1.5">
+              <BsCalendar className="w-3 h-3" />
+              <span>Created {new Date(goal.createdAt).toLocaleDateString()}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <BsTag className="w-3 h-3" />
+              <span>{goal.category}</span>
             </div>
           </div>
+        )}
+      </div>
 
-          {goal.rating?.score && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              className="pt-2 border-t border-gray-100 dark:border-gray-700"
+      {/* Expandable Details - Only in List View */}
+      {!isGridView && (
+        <AnimatePresence>
+          {showDetails && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
             >
-              <div className="flex items-start gap-2">
-                <div className={`w-1 h-1 rounded-full mt-1.5 ${
-                  RATING_COLORS[goal.rating.score as keyof typeof RATING_COLORS].replace('text-', 'bg-').replace('dark:text-', 'dark:bg-')
-                }`} />
-                <div>
-                  <p className={`text-xs font-medium ${RATING_COLORS[goal.rating.score as keyof typeof RATING_COLORS]}`}>
-                    {RATING_LABELS[goal.rating.score as keyof typeof RATING_LABELS]}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
-                    {RATING_DESCRIPTIONS[goal.rating.score as keyof typeof RATING_DESCRIPTIONS]}
-                  </p>
+              <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700">
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">Details</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <BsCalendar className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-600 dark:text-gray-300">
+                          Created on {new Date(goal.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <BsTag className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-600 dark:text-gray-300">
+                          {goal.category}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {goal.rating?.comments && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">Comments</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        {goal.rating.comments}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
           )}
-        </div>
-      </div>
-
-      {/* Expandable Details Section */}
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            variants={detailsVariants}
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
-            className="border-t border-gray-100 dark:border-gray-700"
-          >
-            <div className="p-4 space-y-4">
-              <div>
-                <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Description</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                  {goal.description}
-                </p>
-              </div>
-              
-              <div>
-                <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Additional Details</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Created</p>
-                    <p className="text-sm text-gray-900 dark:text-white">
-                      {new Date(goal.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Due Date</p>
-                    <p className="text-sm text-gray-900 dark:text-white">
-                      {new Date(goal.dueDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {goal.rating?.comments && (
-                <div>
-                  <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Rating Comments</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                    {goal.rating.comments}
-                  </p>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>
+      )}
     </motion.div>
   );
-} 
+}

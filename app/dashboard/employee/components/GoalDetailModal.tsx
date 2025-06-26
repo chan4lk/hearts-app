@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, BsArrowRight } from 'react-icons/bs';
+import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, BsArrowRight, BsChevronDown, BsChevronUp } from 'react-icons/bs';
 import { Goal } from './types';
 import { IconType } from 'react-icons';
 import { showToast } from '@/app/utils/toast';
@@ -20,7 +20,11 @@ type StatusConfig = {
 
 export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDetailModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
+  const [shouldShowExpandButton, setShouldShowExpandButton] = useState(false);
+  const [expandedHeight, setExpandedHeight] = useState<number>(0);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -43,6 +47,25 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDet
       document.removeEventListener('keydown', handleEscape);
     };
   }, [onClose]);
+
+  useEffect(() => {
+    // Check if description content height exceeds the collapsed height
+    const checkDescriptionHeight = () => {
+      if (descriptionRef.current) {
+        const scrollHeight = descriptionRef.current.scrollHeight;
+        setExpandedHeight(scrollHeight);
+        const isContentTall = scrollHeight > 100; // 100px is our collapsed height
+        setShouldShowExpandButton(isContentTall);
+      }
+    };
+
+    checkDescriptionHeight();
+    window.addEventListener('resize', checkDescriptionHeight);
+    
+    return () => {
+      window.removeEventListener('resize', checkDescriptionHeight);
+    };
+  }, [goal.description]);
 
   const getStatusConfig = (status: string): StatusConfig => {
     const configs: Record<string, StatusConfig> = {
@@ -143,7 +166,47 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDet
             animate={{ opacity: 1, y: 0 }}
             className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-3.5"
           >
-            <p className="text-sm text-white/90 leading-relaxed">{goal.description}</p>
+            <div className="relative">
+              <div 
+                className={`transition-all duration-300 ease-in-out ${
+                  !isDescriptionExpanded ? 'overflow-hidden' : ''
+                }`}
+                style={{
+                  maxHeight: isDescriptionExpanded ? `${expandedHeight}px` : '100px'
+                }}
+              >
+                <p 
+                  ref={descriptionRef}
+                  className="text-sm text-white/90 leading-relaxed"
+                >
+                  {goal.description}
+                </p>
+              </div>
+              
+              {/* Gradient Fade Effect */}
+              {!isDescriptionExpanded && shouldShowExpandButton && (
+                <div 
+                  className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-gray-900 to-transparent pointer-events-none"
+                />
+              )}
+              
+              {/* Show More/Less Button */}
+              {shouldShowExpandButton && (
+                <button
+                  onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                  className="flex items-center justify-center w-full gap-1.5 mt-2 py-2 text-xs font-medium
+                           text-gray-400 hover:text-white transition-colors rounded-lg
+                           hover:bg-white/5 active:bg-white/10"
+                >
+                  <span>{isDescriptionExpanded ? 'Show Less' : 'Show More'}</span>
+                  <BsChevronDown 
+                    className={`w-3.5 h-3.5 transition-transform duration-300 ${
+                      isDescriptionExpanded ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+              )}
+            </div>
           </motion.div>
 
           {/* Info Grid */}

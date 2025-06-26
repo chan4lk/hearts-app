@@ -17,9 +17,19 @@ export interface Rating {
   goalId: string;
 }
 
-export interface GoalWithRating extends Goal {
-  rating?: Rating;
-  dueDate: string | Date;
+export interface GoalWithRating {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  dueDate: string;
+  createdAt: string;
+  category: string;
+  rating?: {
+    id: string;
+    score: number;
+    comments?: string;
+  };
 }
 
 export interface Stats {
@@ -28,7 +38,7 @@ export interface Stats {
   average: string;
 }
 
-export type ViewMode = 'list' | 'grid';
+export type ViewMode = 'grid' | 'list';
 export type FilterStatus = 'all' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED';
 export type RatingStatus = 'all' | 'rated' | 'unrated';
 export type FilterRating = 'all' | '1' | '2' | '3' | '4' | '5'; 

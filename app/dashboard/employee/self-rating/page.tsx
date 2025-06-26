@@ -200,31 +200,30 @@ export default function SelfRatingPage() {
             setRatingStatus={setRatingStatus}
           />
 
-          {/* Goals List */}
+          {/* Goals Grid */}
           <motion.div 
-            variants={{
-              hidden: { opacity: 0 },
-              visible: {
-                opacity: 1,
-                transition: {
-                  staggerChildren: 0.1
-                }
-              }
-            }}
+            layout
             className={`grid gap-6 ${
               viewMode === 'grid' 
-                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' 
+                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
                 : 'grid-cols-1'
             }`}
           >
-            {filteredGoals.map((goal) => (
-              <GoalCard
-                key={goal.id}
-                goal={goal}
-                submitting={submitting}
-                handleSelfRating={handleSelfRating}
-              />
-            ))}
+            {filteredGoals.length === 0 ? (
+              <div className="col-span-full bg-white dark:bg-gray-800 rounded-xl p-8 text-center">
+                <p className="text-gray-500 dark:text-gray-400">No goals match the selected filters.</p>
+              </div>
+            ) : (
+              filteredGoals.map((goal) => (
+                <GoalCard
+                  key={goal.id}
+                  goal={goal}
+                  submitting={submitting}
+                  handleSelfRating={handleSelfRating}
+                  viewMode={viewMode}
+                />
+              ))
+            )}
           </motion.div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { BsCalendar, BsTag, BsXCircle, BsCheckCircle, BsClock, BsGear, BsTrash } from 'react-icons/bs';
+import { BsCalendar, BsTag, BsXCircle, BsCheckCircle, BsClock, BsGear, BsTrash, BsChevronDown } from 'react-icons/bs';
 import { Goal } from '../../types';
+import { useState, useRef, useEffect } from 'react';
 
 interface GoalDetailsModalProps {
   goal: Goal | null;
@@ -42,6 +43,27 @@ export const GoalDetailsModal = ({ goal, isOpen, onClose, onEdit = () => {}, onD
 
   const canEdit = true;
   const canDelete = true;
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
+  const [shouldShowExpandButton, setShouldShowExpandButton] = useState(false);
+  const [expandedHeight, setExpandedHeight] = useState<number>(0);
+
+  useEffect(() => {
+    const checkDescriptionHeight = () => {
+      if (descriptionRef.current) {
+        const scrollHeight = descriptionRef.current.scrollHeight;
+        setExpandedHeight(scrollHeight);
+        const isContentTall = scrollHeight > 100;
+        setShouldShowExpandButton(isContentTall);
+      }
+    };
+
+    if (isOpen) {
+      checkDescriptionHeight();
+      window.addEventListener('resize', checkDescriptionHeight);
+      return () => window.removeEventListener('resize', checkDescriptionHeight);
+    }
+  }, [isOpen, goal?.description]);
 
   return (
     <AnimatePresence>
@@ -54,103 +76,127 @@ export const GoalDetailsModal = ({ goal, isOpen, onClose, onEdit = () => {}, onD
             onClick={onClose}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
           />
-          <div className="fixed inset-0 flex items-center justify-center p-4 z-50" onClick={onClose}>
+          <div className="fixed inset-0 flex items-center justify-center p-3 z-50" onClick={onClose}>
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               onClick={e => e.stopPropagation()}
-              className="w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-white dark:bg-gray-800 rounded-xl shadow-2xl"
+              className="relative bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl w-full max-w-md mx-auto 
+                       shadow-2xl overflow-hidden transform transition-all"
             >
-              <div className="sticky top-0 z-10 flex items-center justify-between p-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${getStatusColor(goal.status)}`}>
+              {/* Decorative Elements */}
+              <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/10 rounded-full"></div>
+                <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-purple-500/10 rounded-full"></div>
+              </div>
+
+              {/* Header */}
+              <div className="relative px-4 py-3 flex items-start justify-between border-b border-white/10">
+                <div className="flex-1 min-w-0">
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs ${getStatusColor(goal.status)} mb-2`}
+                  >
                     {getStatusIcon(goal.status)}
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{goal.title}</h2>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className={`px-2 py-0.5 rounded-full text-xs ${getStatusColor(goal.status)}`}>
-                        {goal.status}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full text-xs bg-purple-500/10 text-purple-500">
-                        {goal.category}
-                      </span>
-                    </div>
-                  </div>
+                    <span>{goal.status}</span>
+                  </motion.div>
+                  <h2 className="text-base font-medium text-white truncate pr-8">{goal.title}</h2>
                 </div>
                 <div className="flex items-center gap-2">
-                  {canEdit && (
-                    <button
-                      onClick={() => onEdit?.(goal)}
-                      className="p-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
-                      title="Edit Goal"
-                    >
-                      <BsGear className="w-5 h-5 text-blue-500" />
-                    </button>
-                  )}
-                  {canDelete && (
-                    <button
-                      onClick={() => onDelete?.(goal)}
-                      className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900 transition-colors"
-                      title="Delete Goal"
-                    >
-                      <BsTrash className="w-5 h-5 text-red-500" />
-                    </button>
-                  )}
-                  <button
+                  
+                 
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
                     onClick={onClose}
-                    className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    className="text-gray-400 hover:text-white transition-colors p-1.5 hover:bg-white/10 rounded-full -mr-1"
                   >
-                    <BsXCircle className="w-5 h-5 text-gray-500" />
-                  </button>
+                    <BsXCircle className="w-5 h-5" />
+                  </motion.button>
                 </div>
               </div>
 
-              <div className="p-4 space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</h3>
-                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
-                    <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{goal.description}</p>
+              {/* Content */}
+              <div className="px-4 pb-4 space-y-3 max-h-[calc(85vh-200px)] overflow-y-auto">
+                {/* Description Card */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-3.5"
+                >
+                  <div className="relative">
+                    <div 
+                      className={`transition-all duration-300 ease-in-out ${
+                        !isDescriptionExpanded ? 'overflow-hidden' : ''
+                      }`}
+                      style={{
+                        maxHeight: isDescriptionExpanded ? `${expandedHeight}px` : '100px'
+                      }}
+                    >
+                      <p 
+                        ref={descriptionRef}
+                        className="text-sm text-white/90 leading-relaxed whitespace-pre-wrap"
+                      >
+                        {goal.description}
+                      </p>
+                    </div>
+                    
+                    {/* Gradient Fade Effect */}
+                    {!isDescriptionExpanded && shouldShowExpandButton && (
+                      <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-gray-900 to-transparent pointer-events-none" />
+                    )}
+                    
+                    {/* Show More/Less Button */}
+                    {shouldShowExpandButton && (
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                        className="flex items-center justify-center w-full gap-1.5 mt-2 py-2 text-xs font-medium
+                                 text-gray-400 hover:text-white transition-colors rounded-xl
+                                 hover:bg-white/5 active:bg-white/10"
+                      >
+                        <span>{isDescriptionExpanded ? 'Show Less' : 'Show More'}</span>
+                        <BsChevronDown 
+                          className={`w-3.5 h-3.5 transition-transform duration-300 ${
+                            isDescriptionExpanded ? 'rotate-180' : ''
+                          }`}
+                        />
+                      </motion.button>
+                    )}
                   </div>
-                </div>
+                </motion.div>
 
+                {/* Info Grid */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
-                    <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
-                      <BsCalendar className="w-4 h-4 text-gray-400" />
-                      <span>Due Date</span>
+                  <motion.div 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-3"
+                  >
+                    <div className="flex items-center gap-2 text-gray-300 mb-1.5">
+                      <BsCalendar className="w-3.5 h-3.5" />
+                      <span className="text-xs font-medium">Due Date</span>
                     </div>
-                    <p className="mt-1 text-sm font-medium text-gray-900 dark:text-white">
-                      {formatDate(goal.dueDate)}
-                    </p>
-                  </div>
+                    <p className="text-sm text-white/90">{formatDate(goal.dueDate)}</p>
+                  </motion.div>
 
-                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
-                    <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
-                      <BsTag className="w-4 h-4 text-gray-400" />
-                      <span>Category</span>
+                  <motion.div 
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-3"
+                  >
+                    <div className="flex items-center gap-2 text-gray-300 mb-1.5">
+                      <BsTag className="w-3.5 h-3.5" />
+                      <span className="text-xs font-medium">Category</span>
                     </div>
-                    <p className="mt-1 text-sm font-medium text-gray-900 dark:text-white">
-                      {goal.category}
-                    </p>
-                  </div>
+                    <p className="text-sm text-white/90">{goal.category}</p>
+                  </motion.div>
                 </div>
 
-                {goal.progress !== undefined && (
-                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Progress</span>
-                      <span className="text-xs font-semibold text-gray-900 dark:text-white">{goal.progress}%</span>
-                    </div>
-                    <div className="h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-300"
-                        style={{ width: `${goal.progress}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
+                
               </div>
             </motion.div>
           </div>
