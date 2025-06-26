@@ -6,7 +6,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 // 1. Create Settings Context
 interface Settings {
   systemName: string;
-  theme: string;
+  theme: 'dark';  // Force theme to always be dark
 }
 
 interface SettingsContextType {
@@ -25,14 +25,22 @@ function SettingsProvider({ children }: { children: React.ReactNode }) {
   });
   const [loading, setLoading] = useState(true);
 
+  // Force dark theme on mount
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+  }, []);
+
   const fetchSettings = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/settings');
       if (response.ok) {
         const data = await response.json();
-        setSettings(data);
+        setSettings({
+          systemName: data.systemName,
+          theme: 'dark' // Always keep theme dark
+        } as Settings);
         document.title = data.systemName;
-        document.documentElement.classList.toggle('dark', data.theme === 'dark');
+        document.documentElement.classList.add('dark');
       }
     } catch (error) {
       console.error('Failed to fetch settings:', error);
@@ -46,15 +54,17 @@ function SettingsProvider({ children }: { children: React.ReactNode }) {
   }, [fetchSettings]);
 
   const updateSettings = async (newSettings: Partial<Settings>) => {
-    // Optimistic update
     const oldSettings = settings;
-    const updatedSettings = { ...settings, ...newSettings };
+    const updatedSettings: Settings = { 
+      ...settings, 
+      ...newSettings,
+      theme: 'dark' // Always keep theme dark
+    };
     setSettings(updatedSettings);
     document.title = updatedSettings.systemName;
-    document.documentElement.classList.toggle('dark', updatedSettings.theme === 'dark');
+    document.documentElement.classList.add('dark');
 
     try {
-      // API call is still made to persist changes
       await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -62,10 +72,8 @@ function SettingsProvider({ children }: { children: React.ReactNode }) {
       });
     } catch (error) {
       console.error('Failed to update settings:', error);
-      // Revert on error
       setSettings(oldSettings);
       document.title = oldSettings.systemName;
-      document.documentElement.classList.toggle('dark', oldSettings.theme === 'dark');
     }
   };
 

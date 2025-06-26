@@ -2,6 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Force permanent dark theme */
+:root {
+  color-scheme: dark;
+}
+
+html {
+  background: rgb(var(--background-start-rgb));
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+    to bottom,
+    rgb(var(--background-start-rgb)),
+    rgb(var(--background-end-rgb))
+  );
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 11, 17, 32;
+  --background-end-rgb: 30, 27, 75;
+}
+
 @keyframes blob {
   0% {
     transform: translate(0px, 0px) scale(1);
@@ -118,19 +146,4 @@
 .animate-float-particle-5 { animation: float-particle 4.8s ease-in-out infinite; }
 .animate-float-particle-6 { animation: float-particle 5s ease-in-out infinite; }
 .animate-float-particle-7 { animation: float-particle 5.2s ease-in-out infinite; }
-.animate-float-particle-8 { animation: float-particle 5.4s ease-in-out infinite; }
-
-:root {
-  --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 11, 17, 32;
-  --background-end-rgb: 30, 27, 75;
-}
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-    to bottom,
-    rgb(var(--background-start-rgb)),
-    rgb(var(--background-end-rgb))
-  );
-} 
+.animate-float-particle-8 { animation: float-particle 5.4s ease-in-out infinite; } 
