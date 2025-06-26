@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ReactNode, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import { IconType } from 'react-icons';
 
 import { 
   BsGrid, 
@@ -42,6 +43,12 @@ interface Settings {
   timezone: string;
   dateFormat: string;
   timeFormat: string;
+}
+
+interface NavItem {
+  href: string;
+  icon: IconType;
+  label: string;
 }
 
 export default function DashboardLayout({ children, type }: DashboardLayoutProps) {
@@ -118,31 +125,105 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
     };
   }, []);
 
-  const getNavItems = () => {
-    switch (type) {
-      case 'employee':
+  const getNavItems = (): NavItem[] => {
+    const userRole = session?.user?.role?.toLowerCase();
+
+    // Define all possible navigation items grouped by functionality
+    const adminItems: NavItem[] = [
+      { href: '/dashboard/admin', label: 'Admin Dashboard', icon: BsShield },
+      { href: '/dashboard/admin/users', label: 'Manage Users', icon: BsPeople },
+      { href: '/dashboard/admin/goals', label: 'Goal Settings', icon: BsGear },
+    ];
+
+    const managerItems: NavItem[] = [
+      { href: '/dashboard/manager', label: 'Manager Dashboard', icon: BsGraphUp },
+      { href: '/dashboard/manager/goals/approve-goals', label: 'Goal Approvals', icon: BsClipboardData },
+      { href: '/dashboard/manager/goals/setgoals', label: 'Set Team Goals', icon: BsBullseye },
+      { href: '/dashboard/manager/rate-employees', label: 'Rate Team', icon: BsStar },
+    ];
+
+    const employeeItems: NavItem[] = [
+      { href: '/dashboard/employee', label: 'Employee Dashboard', icon: BsPerson },
+      { href: '/dashboard/employee/goals/create', label: 'My Goals', icon: BsBullseye },
+      { href: '/dashboard/employee/self-rating', label: 'Self Rating', icon: BsStar },
+    ];
+
+    // Combine items based on user role and current path
+    if (userRole === 'admin') {
+      // Admin sees all items, but organized based on current section
+      if (pathname?.startsWith('/dashboard/manager')) {
         return [
-          { href: '/dashboard/employee', icon: BsGrid, label: 'Dashboard' },
-          { href: '/dashboard/employee/goals/create', icon: BsBullseye, label: 'Goals Create' },
-          { href: '/dashboard/employee/self-rating', icon: BsStar, label: 'Self Rating' },
+          ...managerItems,
+          { href: '/dashboard/admin', label: 'Switch to Admin', icon: BsShield },
+          { href: '/dashboard/employee', label: 'Switch to Employee', icon: BsPerson },
         ];
-      case 'manager':
+      } else if (pathname?.startsWith('/dashboard/employee')) {
         return [
-          { href: '/dashboard/manager', icon: BsGrid, label: 'Dashboard' },
-          { href: '/dashboard/manager/goals/approve-goals', icon: BsBullseye, label: 'Goal Approvals' },
-          { href: '/dashboard/manager/goals/setgoals', icon: BsBullseye, label: 'Set Goals' },
-          { href: '/dashboard/manager/rate-employees', icon: BsStar, label: 'Manager Ratings' },
+          ...employeeItems,
+          { href: '/dashboard/admin', label: 'Switch to Admin', icon: BsShield },
+          { href: '/dashboard/manager', label: 'Switch to Manager', icon: BsGraphUp },
         ];
-      case 'admin':
+      } else {
+        // In admin dashboard or default
         return [
-          { href: '/dashboard/admin', label: 'Dashboard', icon: BsGrid },
-          { href: '/dashboard/admin/users', label: 'Users', icon: BsPeople },
-          { href: '/dashboard/admin/goals', icon: BsBullseye, label: 'Set Goals' },
+          ...adminItems,
+          { href: '/dashboard/manager', label: 'Switch to Manager', icon: BsGraphUp },
+          { href: '/dashboard/employee', label: 'Switch to Employee', icon: BsPerson },
         ];
-      default:
-        return [];
+      }
     }
+
+    if (userRole === 'manager') {
+      if (pathname?.startsWith('/dashboard/employee')) {
+        return [
+          ...employeeItems,
+          { href: '/dashboard/manager', label: 'Back to Manager', icon: BsGraphUp },
+        ];
+      }
+      return [
+        ...managerItems,
+        { href: '/dashboard/employee', label: 'Switch to Employee', icon: BsPerson },
+      ];
+    }
+
+    // Employee only sees employee items
+    return employeeItems;
   };
+
+  const hasAccessToDashboard = (): boolean => {
+    const userRole = session?.user?.role?.toLowerCase();
+    const currentPath = pathname || '';
+    
+    // Admin has access to everything
+    if (userRole === 'admin') {
+      return true;
+    }
+
+    // Manager has access to manager and employee paths
+    if (userRole === 'manager') {
+      return currentPath.startsWith('/dashboard/employee') || 
+             currentPath.startsWith('/dashboard/manager');
+    }
+
+    // Employee has access to only employee paths
+    return currentPath.startsWith('/dashboard/employee');
+  };
+
+  // Update the useEffect to handle path changes
+  useEffect(() => {
+    if (status === 'authenticated' && !hasAccessToDashboard()) {
+      const userRole = session?.user?.role?.toLowerCase();
+      let redirectPath = '/dashboard/employee';
+      
+      if (userRole === 'admin') {
+        redirectPath = '/dashboard/admin';
+      } else if (userRole === 'manager') {
+        redirectPath = '/dashboard/manager';
+      }
+      
+      router.push(redirectPath);
+    }
+  }, [status, pathname, session]);
 
   const navItems = getNavItems();
   const portalTitle = type.charAt(0).toUpperCase() + type.slice(1) + ' Portal';
@@ -503,8 +584,44 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                     </div>
                   </div>
                   
+                  {/* Available Dashboards Section */}
+                  <div className="px-3 py-2 border-t border-gray-700/30">
+                    <h3 className="text-xs font-medium text-gray-400 mb-2">Available Dashboards</h3>
+                    {/* Employee Dashboard - Available to all */}
+                    <Link
+                      href="/dashboard/employee"
+                      className="group flex items-center w-full px-2 py-1.5 text-sm text-gray-300 hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-transparent hover:text-blue-400 rounded-lg transition-all duration-300"
+                    >
+                      <BsGrid className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:translate-x-1" />
+                      <span>Employee Dashboard</span>
+                    </Link>
+
+                    {/* Manager Dashboard - Available to managers and admins */}
+                    {(session?.user?.role === 'MANAGER' || session?.user?.role === 'ADMIN') && (
+                      <Link
+                        href="/dashboard/manager"
+                        className="group flex items-center w-full px-2 py-1.5 text-sm text-gray-300 hover:bg-gradient-to-r hover:from-indigo-500/10 hover:to-transparent hover:text-indigo-400 rounded-lg transition-all duration-300"
+                      >
+                        <BsShield className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:translate-x-1" />
+                        <span>Manager Dashboard</span>
+                      </Link>
+                    )}
+
+                    {/* Admin Dashboard - Available only to admins */}
+                    {session?.user?.role === 'ADMIN' && (
+                      <Link
+                        href="/dashboard/admin"
+                        className="group flex items-center w-full px-2 py-1.5 text-sm text-gray-300 hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-transparent hover:text-purple-400 rounded-lg transition-all duration-300"
+                      >
+                        <BsGear className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:translate-x-1" />
+                        <span>Admin Dashboard</span>
+                      </Link>
+                    )}
+                  </div>
+                  
                   <div className="h-px bg-gradient-to-r from-transparent via-gray-200/20 dark:via-gray-700/20 to-transparent"></div>
                   
+                  {/* Sign Out Button */}
                   <motion.button 
                     whileHover={{ x: 4 }}
                     onClick={handleSignOut}

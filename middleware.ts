@@ -1,5 +1,6 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import { hasAccess, getDefaultRedirectPath, UserRole } from "./app/utils/roleAccess";
 
 export default withAuth(
   function middleware(req) {
@@ -18,7 +19,7 @@ export default withAuth(
     const cookies = req.cookies.getAll();
     console.log(`Cookies: ${JSON.stringify(cookies.map(c => ({ name: c.name, value: c.name.includes('token') ? '[REDACTED]' : c.value })))}`);
 
-    // Allow access to register and login pages
+    // Allow access to public routes
     if (path === '/register' || path === '/login' || path === '/error') {
       console.log(`[Middleware] Allowing access to: ${path}`);
       return NextResponse.next();
@@ -39,20 +40,10 @@ export default withAuth(
     }
 
     // Role-based access control
-    if (path.startsWith("/dashboard/admin")) {
-      if (token.role !== "ADMIN") {
-        console.log(`[Middleware] Unauthorized access attempt to admin dashboard by role: ${token.role}`);
-        return NextResponse.redirect(new URL("/dashboard/employee", req.url));
-      }
-    } else if (path.startsWith("/dashboard/manager")) {
-      if (token.role !== "MANAGER") {
-        console.log(`[Middleware] Unauthorized access attempt to manager dashboard by role: ${token.role}`);
-        return NextResponse.redirect(new URL("/dashboard/employee", req.url));
-      }
-    } else if (path.startsWith("/dashboard/employee")) {
-      // Allow all authenticated users to access employee dashboard
-      console.log(`[Middleware] Allowing access to employee dashboard for role: ${token.role}`);
-      return NextResponse.next();
+    const userRole = token.role.toLowerCase() as UserRole;
+    if (!hasAccess(userRole, path)) {
+      console.log(`[Middleware] Unauthorized access attempt to ${path} by role: ${userRole}`);
+      return NextResponse.redirect(new URL(getDefaultRedirectPath(userRole), req.url));
     }
 
     return NextResponse.next();

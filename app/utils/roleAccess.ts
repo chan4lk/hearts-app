@@ -1,0 +1,141 @@
+import { IconType } from 'react-icons';
+import { 
+  BsGrid, 
+  BsBullseye,
+  BsStar,
+  BsChat,
+  BsBarChart,
+  BsPerson,
+  BsGear,
+  BsShield,
+  BsGraphUp,
+  BsClipboardData,
+  BsBell,
+  BsPeople
+} from 'react-icons/bs';
+
+export type UserRole = 'employee' | 'manager' | 'admin';
+
+export interface NavItem {
+  href: string;
+  icon: IconType;
+  label: string;
+  roles: UserRole[];
+}
+
+export const ALL_NAV_ITEMS: NavItem[] = [
+  // Dashboard items
+  {
+    href: '/dashboard/employee',
+    icon: BsGrid,
+    label: 'Employee Dashboard',
+    roles: ['employee', 'manager', 'admin']
+  },
+  {
+    href: '/dashboard/manager',
+    icon: BsGrid,
+    label: 'Manager Dashboard',
+    roles: ['manager', 'admin']
+  },
+  {
+    href: '/dashboard/admin',
+    icon: BsGrid,
+    label: 'Admin Dashboard',
+    roles: ['admin']
+  },
+
+  // Employee items
+  {
+    href: '/dashboard/employee/goals/create',
+    icon: BsBullseye,
+    label: 'Create Goals',
+    roles: ['employee', 'manager', 'admin']
+  },
+  {
+    href: '/dashboard/employee/self-rating',
+    icon: BsStar,
+    label: 'Self Rating',
+    roles: ['employee', 'manager', 'admin']
+  },
+
+  // Manager items
+  {
+    href: '/dashboard/manager/goals/approve-goals',
+    icon: BsClipboardData,
+    label: 'Goal Approvals',
+    roles: ['manager', 'admin']
+  },
+  {
+    href: '/dashboard/manager/goals/setgoals',
+    icon: BsBullseye,
+    label: 'Set Goals',
+    roles: ['manager', 'admin']
+  },
+  {
+    href: '/dashboard/manager/rate-employees',
+    icon: BsStar,
+    label: 'Rate Employees',
+    roles: ['manager', 'admin']
+  },
+
+  // Admin items
+  {
+    href: '/dashboard/admin/users',
+    icon: BsPeople,
+    label: 'Manage Users',
+    roles: ['admin']
+  },
+  {
+    href: '/dashboard/admin/goals',
+    icon: BsBullseye,
+    label: 'Goal Settings',
+    roles: ['admin']
+  }
+];
+
+export const getNavItemsByRole = (role: UserRole): NavItem[] => {
+  return ALL_NAV_ITEMS.filter(item => item.roles.includes(role));
+};
+
+export const hasAccess = (role: UserRole, path: string): boolean => {
+  // Always allow access to error and auth pages
+  if (path.startsWith('/error') || path.startsWith('/auth')) {
+    return true;
+  }
+
+  // Check if the path matches any nav items the role has access to
+  return ALL_NAV_ITEMS.some(item => 
+    item.roles.includes(role) && 
+    (path === item.href || path.startsWith(`${item.href}/`))
+  );
+};
+
+export const getDefaultRedirectPath = (role: UserRole): string => {
+  switch (role) {
+    case 'admin':
+      return '/dashboard/admin';
+    case 'manager':
+      return '/dashboard/manager';
+    case 'employee':
+      return '/dashboard/employee';
+    default:
+      return '/login';
+  }
+};
+
+export const getRoleBasedTitle = (role: UserRole): string => {
+  return `${role.charAt(0).toUpperCase() + role.slice(1)} Portal`;
+};
+
+export const getRoleColor = (role: UserRole): string => {
+  switch (role) {
+    case 'admin':
+      return 'text-purple-500 bg-purple-100 dark:text-purple-300 dark:bg-purple-900/20';
+    case 'manager':
+      return 'text-blue-500 bg-blue-100 dark:text-blue-300 dark:bg-blue-900/20';
+    case 'employee':
+      return 'text-green-500 bg-green-100 dark:text-green-300 dark:bg-green-900/20';
+    default:
+      return 'text-gray-500 bg-gray-100 dark:text-gray-300 dark:bg-gray-900/20';
+  }
+}; 
