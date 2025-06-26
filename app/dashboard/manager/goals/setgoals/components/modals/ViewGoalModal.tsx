@@ -2,7 +2,7 @@
 
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
-import { BsEye, BsX, BsPencil, BsCalendar, BsListTask } from 'react-icons/bs';
+import { BsEye, BsPencil, BsCalendar, BsListTask, BsTrash } from 'react-icons/bs';
 import { User, Calendar } from 'lucide-react';
 import { Goal } from '../types';
 import { CATEGORIES } from '@/app/components/shared/constants';
@@ -13,13 +13,15 @@ interface ViewGoalModalProps {
   onCloseAction: () => void;
   goal: Goal | null;
   onEditAction: () => void;
+  onDeleteAction?: (goalId: string) => void;
 }
 
 export function ViewGoalModal({
   isOpen,
   onCloseAction: onClose,
   goal,
-  onEditAction: onEdit
+  onEditAction: onEdit,
+  onDeleteAction: onDelete
 }: ViewGoalModalProps) {
   if (!isOpen || !goal) return null;
 
@@ -48,12 +50,6 @@ export function ViewGoalModal({
               </Badge>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-white/40 hover:text-white/70 transition-colors"
-          >
-            <BsX className="h-4 w-4" />
-          </button>
         </div>
 
         <div className="p-3 space-y-2">
@@ -104,21 +100,33 @@ export function ViewGoalModal({
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-1.5 pt-2 border-t border-gray-800/50">
+          <div className="flex justify-end gap-2 pt-2 border-t border-gray-800/50 p-3">
             <Button
               variant="outline"
               onClick={onClose}
-              className="h-6 px-2 text-[10px] bg-transparent hover:bg-gray-800/50 border-gray-700/50 text-white/60 hover:text-white/90"
+              className="h-8 px-3 text-xs bg-transparent hover:bg-gray-800/50 border-gray-700/50 text-white/60 hover:text-white/90"
             >
-              Close
+              Cancel
             </Button>
+            {onDelete && (
+              <Button
+                variant="outline"
+                onClick={() => onDelete(goal.id)}
+                className="h-8 px-3 text-xs bg-gradient-to-r from-red-500/10 to-red-600/10 hover:from-red-500/20 hover:to-red-600/20 
+                  border-red-500/30 text-red-400 hover:text-red-300 transition-all duration-200 hover:scale-105 active:scale-95"
+              >
+                <BsTrash className="w-3 h-3 mr-1.5" />
+                Delete
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={onEdit}
-              className="h-6 px-2 text-[10px] bg-gradient-to-r from-[#4c49ed]/10 to-[#6366f1]/10 hover:from-[#4c49ed]/20 hover:to-[#6366f1]/20 border-indigo-500/30 text-indigo-400 hover:text-indigo-300 transition-all duration-200 hover:scale-105 active:scale-95"
+              className="h-8 px-3 text-xs bg-gradient-to-r from-[#4c49ed]/10 to-[#6366f1]/10 hover:from-[#4c49ed]/20 hover:to-[#6366f1]/20 
+                border-indigo-500/30 text-indigo-400 hover:text-indigo-300 transition-all duration-200 hover:scale-105 active:scale-95"
             >
-              <BsPencil className="w-2.5 h-2.5 mr-1" />
-              Edit Goal
+              <BsPencil className="w-3 h-3 mr-1.5" />
+              Edit
             </Button>
           </div>
         </div>

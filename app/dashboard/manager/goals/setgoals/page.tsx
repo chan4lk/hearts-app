@@ -352,6 +352,11 @@ function ManagerGoalSettingPageContent() {
               }, 100);
             }
           }}
+          onDeleteAction={(goalId) => {
+            setGoalToDelete(goalId);
+            setIsViewModalOpen(false);
+            setIsDeleteModalOpen(true);
+          }}
         />
 
         <DeleteGoalModal
