@@ -45,19 +45,43 @@ export const authOptions: NextAuthOptions = {
       profile: async (profile) => {
         console.log('Azure AD profile:', JSON.stringify(profile, null, 2));
         
-        // Always fetch or create the user in the database
-        const user = await prisma.user.upsert({
-          where: { email: profile.email },
-          update: { name: profile.name },
-          create: {
+        // Check if user exists first
+        let existingUser = await prisma.user.findUnique({
+          where: { email: profile.email }
+        });
+
+        // If user exists, don't change their role
+        if (existingUser) {
+          console.log(`Existing user found with role: ${existingUser.role}`);
+          return {
+            id: existingUser.id,
+            name: existingUser.name,
+            email: existingUser.email,
+            role: existingUser.role
+          };
+        }
+
+        // For new users, determine role based on email domain or Azure AD groups
+        let role: Role = 'EMPLOYEE';
+        
+        // Check if user is admin based on email domain or other criteria
+        // You can customize this logic based on your organization's requirements
+        if (profile.email.endsWith('@bistec.com.au') || 
+            profile.email.toLowerCase().includes('admin')) {
+          role = 'ADMIN';
+        }
+        
+        // Create new user with determined role
+        const user = await prisma.user.create({
+          data: {
             email: profile.email,
             name: profile.name,
             password: 'azure-ad-auth', // Placeholder for Azure AD users
-            role: 'EMPLOYEE', // Default role for new users
+            role: role,
           },
         });
 
-        console.log(`User role from database: ${user.role}`);
+        console.log(`New user created with role: ${user.role}`);
         
         return {
           id: user.id,
