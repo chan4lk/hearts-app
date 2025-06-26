@@ -20,6 +20,10 @@ interface GoalModalsProps {
   onCreate: (data: any) => Promise<void>;
   onUpdate: (data: any) => Promise<void>;
   onDelete: () => Promise<void>;
+  setSelectedGoal: (goal: Goal | null) => void;
+  setGoalToDelete: (goal: Goal | null) => void;
+  setIsEditModalOpen: (isOpen: boolean) => void;
+  setIsDeleteModalOpen: (isOpen: boolean) => void;
 }
 
 export function GoalModals({
@@ -38,7 +42,11 @@ export function GoalModals({
   onCloseDelete,
   onCreate,
   onUpdate,
-  onDelete
+  onDelete,
+  setSelectedGoal,
+  setGoalToDelete,
+  setIsEditModalOpen,
+  setIsDeleteModalOpen
 }: GoalModalsProps) {
   return (
     <>
@@ -84,8 +92,16 @@ export function GoalModals({
           <GoalModal
             goal={viewedGoal}
             onClose={onCloseView}
-            onEdit={() => {}}
-            onDelete={() => {}}
+            onEdit={(goal) => {
+              onCloseView();
+              setIsEditModalOpen(true);
+              setSelectedGoal(goal);
+            }}
+            onDelete={(goalId) => {
+              onCloseView();
+              setIsDeleteModalOpen(true);
+              setGoalToDelete(viewedGoal);
+            }}
           />
         </div>
       )}

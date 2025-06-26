@@ -469,6 +469,10 @@ function AdminGoalSettingPageContent() {
           onCreate={handleCreate}
           onUpdate={handleUpdate}
           onDelete={handleConfirmDelete}
+          setSelectedGoal={setSelectedGoal}
+          setGoalToDelete={setGoalToDelete}
+          setIsEditModalOpen={setIsEditModalOpen}
+          setIsDeleteModalOpen={setIsDeleteModalOpen}
         />
       </div>
     </div>
