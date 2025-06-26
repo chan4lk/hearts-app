@@ -3,9 +3,9 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { BsExclamationTriangle } from 'react-icons/bs';
+import { BsExclamationTriangle, BsArrowUpRight } from 'react-icons/bs';
 import { Button } from '@/app/components/ui/button';
 import { showToast } from '@/app/utils/toast';
 
@@ -72,6 +72,7 @@ function ManagerGoalSettingPageContent() {
   });
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [goalToDelete, setGoalToDelete] = useState<string | null>(null);
+  const [showTemplates, setShowTemplates] = useState(false);
 
   useEffect(() => {
     if (!session) {
@@ -248,17 +249,42 @@ function ManagerGoalSettingPageContent() {
         <StatsSection stats={stats} />
         
         {/* Goal Templates Section */}
-        <div className={`${colors.background.primary} backdrop-blur-xl rounded-2xl p-6 shadow-lg border ${colors.border.light}`}>
-          <h3 className={`text-xl font-bold ${colors.text.primary} mb-4`}>Goal Templates</h3>
-          <GoalTemplates onSelect={(template) => {
-            setFormData(prev => ({
-              ...prev,
-              title: template.title,
-              description: template.description,
-              category: template.category
-            }));
-            setIsCreateModalOpen(true);
-          }} />
+        <div className="space-y-4">
+          {/* View Templates Button */}
+          <motion.button
+            onClick={() => setShowTemplates(!showTemplates)}
+            className="w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-4 
+              shadow-md border border-white/10 dark:border-gray-700/30 
+              hover:bg-white/90 dark:hover:bg-gray-700/80 transition-all duration-300
+              text-gray-900 dark:text-white font-medium flex items-center justify-center gap-2"
+          >
+            {showTemplates ? 'Hide Templates' : 'View Templates'}
+            <BsArrowUpRight className={`transform transition-transform duration-300 ${showTemplates ? 'rotate-180' : ''}`} />
+          </motion.button>
+
+          <AnimatePresence>
+            {showTemplates && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className={`${colors.background.primary} backdrop-blur-xl rounded-2xl p-6 shadow-lg border ${colors.border.light}`}>
+                  <h3 className={`text-xl font-bold ${colors.text.primary} mb-4`}>Goal Templates</h3>
+                  <GoalTemplates onSelect={(template) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      title: template.title,
+                      description: template.description,
+                      category: template.category
+                    }));
+                    setIsCreateModalOpen(true);
+                  }} />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <GoalList

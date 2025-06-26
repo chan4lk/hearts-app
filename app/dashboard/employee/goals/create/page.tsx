@@ -2,11 +2,11 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import LoadingComponent from '@/app/components/LoadingScreen';
 import { SelfCreateGoalModal } from '@/app/components/shared/SelfCreateGoalModal';
-import { BsPlus } from 'react-icons/bs';
+import { BsPlus, BsArrowUpRight } from 'react-icons/bs';
 import GoalTemplates from '@/app/components/shared/GoalTemplates';
 import { HeroSection } from './components/HeroSection';
 import { GoalsList } from './components/GoalsList';
@@ -38,6 +38,7 @@ function GoalsPageContent() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [deleteGoal, setDeleteGoal] = useState<Goal | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
 
   // Helper to check if user is admin or manager
   const userIsAdminOrManager = session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER';
@@ -226,15 +227,39 @@ function GoalsPageContent() {
             animate="visible"
             className="w-full space-y-4"
           >
-            <GoalTemplates onSelect={(template) => {
-              setNewGoal({
-                title: template.title,
-                description: template.description,
-                category: template.category,
-                dueDate: new Date().toISOString().split('T')[0]
-              });
-              setIsCreateModalOpen(true);
-            }} />
+            {/* View Templates Button */}
+            <motion.button
+              onClick={() => setShowTemplates(!showTemplates)}
+              className="w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-4 
+                shadow-md border border-white/10 dark:border-gray-700/30 
+                hover:bg-white/90 dark:hover:bg-gray-700/80 transition-all duration-300
+                text-gray-900 dark:text-white font-medium flex items-center justify-center gap-2"
+            >
+              {showTemplates ? 'Hide Templates' : 'View Templates'}
+              <BsArrowUpRight className={`transform transition-transform duration-300 ${showTemplates ? 'rotate-180' : ''}`} />
+            </motion.button>
+
+            {/* Goal Templates */}
+            <AnimatePresence>
+              {showTemplates && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <GoalTemplates onSelect={(template) => {
+                    setNewGoal({
+                      title: template.title,
+                      description: template.description,
+                      category: template.category,
+                      dueDate: new Date().toISOString().split('T')[0]
+                    });
+                    setIsCreateModalOpen(true);
+                  }} />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
 
           {/* Goals List */}

@@ -34,6 +34,7 @@ function AdminGoalSettingPageContent() {
   const [users, setUsers] = useState<UserType[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showTemplates, setShowTemplates] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
@@ -382,13 +383,36 @@ function AdminGoalSettingPageContent() {
           animate="visible"
           className="space-y-4"
         >
+          {/* View Templates Button */}
+          <motion.div variants={itemVariants}>
+            <button
+              onClick={() => setShowTemplates(!showTemplates)}
+              className="w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-4 
+                shadow-md border border-white/10 dark:border-gray-700/30 
+                hover:bg-white/90 dark:hover:bg-gray-700/80 transition-all duration-300
+                text-gray-900 dark:text-white font-medium flex items-center justify-center gap-2"
+            >
+              {showTemplates ? 'Hide Templates' : 'View Templates'}
+              <BsArrowUpRight className={`transform transition-transform duration-300 ${showTemplates ? 'rotate-180' : ''}`} />
+            </button>
+          </motion.div>
 
           {/* Goal Templates */}
-          <motion.div variants={itemVariants}>
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-3 shadow-md border border-white/10 dark:border-gray-700/30">
-              <GoalTemplates onSelect={handleTemplateSelect} />
-            </div>
-          </motion.div>
+          <AnimatePresence>
+            {showTemplates && (
+              <motion.div 
+                variants={itemVariants}
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-3 shadow-md border border-white/10 dark:border-gray-700/30">
+                  <GoalTemplates onSelect={handleTemplateSelect} />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Goal Management Section */}
           <motion.div variants={itemVariants}>
