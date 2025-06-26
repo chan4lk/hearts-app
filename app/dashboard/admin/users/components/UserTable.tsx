@@ -1,6 +1,6 @@
 'use client';
 
-import { BsEye, BsPencil, BsTrash } from 'react-icons/bs';
+import { BsTrash, BsPerson } from 'react-icons/bs';
 import { User } from '../types';
 
 interface UserTableProps {
@@ -11,86 +11,92 @@ interface UserTableProps {
 }
 
 export default function UserTable({ users, onViewDetails, onEdit, onDelete }: UserTableProps) {
+  const getRoleStyles = (role: string) => {
+    switch (role) {
+      case 'ADMIN':
+        return 'from-purple-500/20 to-purple-600/20 hover:from-purple-500/30 hover:to-purple-600/30 border-purple-500/20';
+      case 'MANAGER':
+        return 'from-blue-500/20 to-blue-600/20 hover:from-blue-500/30 hover:to-blue-600/30 border-blue-500/20';
+      default:
+        return 'from-emerald-500/20 to-emerald-600/20 hover:from-emerald-500/30 hover:to-emerald-600/30 border-emerald-500/20';
+    }
+  };
+
+  const getIconStyles = (role: string) => {
+    switch (role) {
+      case 'ADMIN':
+        return 'text-purple-300 bg-purple-500/10';
+      case 'MANAGER':
+        return 'text-blue-300 bg-blue-500/10';
+      default:
+        return 'text-emerald-300 bg-emerald-500/10';
+    }
+  };
+
   return (
-    <div className="bg-white/5 rounded-md overflow-hidden border border-white/5 dark:border-gray-800/30">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-gray-100/5 backdrop-blur-sm">
-              <th className="px-3 py-2 text-left text-[10px] font-medium text-gray-400 uppercase tracking-wider">Name</th>
-              <th className="px-3 py-2 text-left text-[10px] font-medium text-gray-400 uppercase tracking-wider">Email</th>
-              <th className="px-3 py-2 text-left text-[10px] font-medium text-gray-400 uppercase tracking-wider">Role</th>
-              <th className="px-3 py-2 text-left text-[10px] font-medium text-gray-400 uppercase tracking-wider">Status</th>
-              <th className="px-3 py-2 text-left text-[10px] font-medium text-gray-400 uppercase tracking-wider">Manager</th>
-              <th className="px-3 py-2 text-left text-[10px] font-medium text-gray-400 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100/10">
-            {users.map((user) => (
-              <tr 
-                key={user.id} 
-                className="group hover:bg-gray-100/5 transition-colors duration-150"
-              >
-                <td className="px-3 py-2 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="h-7 w-7 rounded bg-gray-100/10 flex items-center justify-center text-gray-400 text-xs font-medium">
-                      {user.name.charAt(0)}
-                    </div>
-                    <div className="ml-2">
-                      <div className="text-sm text-gray-300">{user.name}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-400">{user.email}</td>
-                <td className="px-3 py-2 whitespace-nowrap">
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
-                    user.role === 'ADMIN' ? 'bg-purple-500/10 text-purple-400' :
-                    user.role === 'MANAGER' ? 'bg-blue-500/10 text-blue-400' :
-                    'bg-gray-500/10 text-gray-400'
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto">
+      {users.map((user) => (
+        <div 
+          key={user.id}
+          className={`
+            relative group h-[120px] p-4 rounded-lg border cursor-pointer
+            bg-gradient-to-br backdrop-blur-sm transition-all duration-300
+            hover:shadow-lg hover:shadow-black/5
+            ${getRoleStyles(user.role)}
+          `}
+          onClick={() => onViewDetails(user)}
+        >
+          <div className="flex items-start gap-3 h-full">
+            <div className={`h-10 w-10 rounded-full flex items-center justify-center ring-1 ring-white/10 flex-shrink-0 ${getIconStyles(user.role)}`}>
+              <BsPerson className="w-6 h-6" />
+            </div>
+            
+            <div className="flex flex-col h-full flex-grow min-w-0 justify-between">
+              <div>
+                <h3 className="text-sm font-medium text-gray-100 truncate group-hover:text-white transition-colors">
+                  {user.name}
+                </h3>
+                <p className="text-xs text-gray-400 truncate mt-0.5">{user.email}</p>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    user.role === 'ADMIN' ? 'bg-purple-500/20 text-purple-300' :
+                    user.role === 'MANAGER' ? 'bg-blue-500/20 text-blue-300' :
+                    'bg-emerald-500/20 text-emerald-300'
                   }`}>
                     {user.role}
                   </span>
-                </td>
-                <td className="px-3 py-2 whitespace-nowrap">
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
-                    user.status === 'ACTIVE' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    user.status === 'ACTIVE' ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
                   }`}>
                     {user.status}
                   </span>
-                </td>
-                <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-400">
-                  {user.manager?.name || '-'}
-                </td>
-                <td className="px-3 py-2 whitespace-nowrap">
-                  <div className="flex items-center gap-1 transition-colors duration-150">
-                    <button
-                      onClick={() => onViewDetails(user)}
-                      className="p-1 text-blue-400 hover:bg-blue-500/10 rounded transition-colors"
-                      title="View Details"
-                    >
-                      <BsEye className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => onEdit(user)}
-                      className="p-1 text-yellow-400 hover:bg-yellow-500/10 rounded transition-colors"
-                      title="Edit User"
-                    >
-                      <BsPencil className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => onDelete(user.id)}
-                      className="p-1 text-red-400 hover:bg-red-500/10 rounded transition-colors"
-                      title="Delete User"
-                    >
-                      <BsTrash className="w-3.5 h-3.5" />
-                    </button>
+                </div>
+
+                {user.manager && (
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <span className="text-gray-400">Manager:</span>
+                    <span className="text-gray-300 truncate">{user.manager.name}</span>
                   </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(user.id);
+            }}
+            className="absolute top-2 right-2 p-1.5 text-red-300 hover:bg-red-500/20 rounded transition-colors opacity-0 group-hover:opacity-100"
+            title="Delete User"
+          >
+            <BsTrash className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      ))}
     </div>
   );
 }
