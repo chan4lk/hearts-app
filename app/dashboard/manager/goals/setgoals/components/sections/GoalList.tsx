@@ -140,70 +140,78 @@ export function GoalList({
         ) : (
           <motion.div 
             variants={containerVariants}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4"
           >
             {filteredGoals.map((goal) => {
               const status = (goal.status || 'PENDING') as GoalStatus;
               const statusColor = statusColors[status] || defaultStatusColor;
-              const StatusIcon = statusColor.icon;
               const categoryConfig = getCategoryConfig(goal.category);
+              const Icon = categoryConfig.icon;
 
               return (
-                <motion.div
+                <motion.button
                   key={goal.id}
                   variants={itemVariants}
-                  className="group relative overflow-hidden cursor-pointer"
+                  className="group relative overflow-hidden w-full text-left h-[200px]"
                   onClick={() => onViewGoal(goal)}
                 >
-                  <div className={`relative p-6 rounded-2xl backdrop-blur-xl border border-white/10 
-                    ${categoryConfig.bgColor} transition-all duration-300 hover:shadow-2xl 
-                    hover:shadow-purple-500/10 h-full`}
+                  <div className={`relative h-full p-4 rounded-xl backdrop-blur-xl border border-white/10 transition-all duration-300
+                    ${categoryConfig.bgColor} ${categoryConfig.bgGradient}
+                    hover:shadow-2xl hover:shadow-purple-500/10`}
                   >
                     {/* Decorative Elements */}
-                    <div className={`absolute top-0 right-0 w-full h-full bg-gradient-to-br ${categoryConfig.bgGradient} opacity-20`} />
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl transform translate-x-16 -translate-y-16" />
                     <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full blur-3xl transform -translate-x-16 translate-y-16" />
-
-                    <div className="relative space-y-4">
+                    
+                    <div className="relative h-full flex flex-col">
                       {/* Header */}
-                      <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-xl bg-gradient-to-r ${categoryConfig.bgGradient}
+                      <div className="flex items-start gap-3 mb-2">
+                        <div className={`p-2 rounded-lg ${categoryConfig.iconColor} bg-opacity-20 backdrop-blur-xl
                           ring-1 ring-white/20 shadow-lg transform transition-transform duration-300
-                          group-hover:scale-110 group-hover:rotate-[10deg] ${categoryConfig.bgColor}`}>
-                          {React.createElement(categoryConfig.icon, { className: `w-6 h-6 ${categoryConfig.iconColor}` })}
+                          group-hover:scale-110 group-hover:rotate-[10deg] flex-shrink-0`}>
+                          <Icon className="w-5 h-5" />
                         </div>
-                        <div>
-                          <h3 className={`text-lg font-semibold text-white group-hover:text-transparent 
-                            group-hover:bg-clip-text group-hover:bg-gradient-to-r 
-                            ${status === 'REJECTED' ? 'group-hover:text-red-400' : 'group-hover:text-white'}
-                            transition-all duration-300`}>{goal.title}</h3>
-                          <p className="text-sm text-gray-300/90">{goal.employee?.name}</p>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-base font-semibold text-white group-hover:text-transparent 
+                            group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400
+                            transition-all duration-300 truncate">{goal.title}</h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs text-gray-400 truncate">
+                              {goal.employee?.name}
+                            </span>
+                          </div>
                         </div>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${statusColor.bg} ${statusColor.text} flex items-center gap-1 flex-shrink-0`}>
+                          <statusColor.icon className="w-3 h-3" />
+                          <span>{status.charAt(0) + status.slice(1).toLowerCase()}</span>
+                        </span>
                       </div>
 
                       {/* Description */}
-                      <p className="text-gray-300/80 text-sm leading-relaxed">{goal.description}</p>
+                      <p className="text-gray-400 text-sm leading-relaxed line-clamp-2 mb-auto">{goal.description}</p>
 
-                      {/* Meta Information */}
-                      <div className="flex items-center gap-3 text-sm text-white/70">
-                        <div className="flex items-center gap-2 bg-black/20 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                          <BsCalendar className="w-4 h-4" />
-                          <span>{new Date(goal.dueDate).toLocaleDateString()}</span>
+                      {/* Footer */}
+                      <div className="flex items-center justify-between pt-2 border-t border-white/10 mt-2">
+                        <div className="flex items-center gap-4 text-xs">
+                          <div className="flex items-center gap-1.5 text-gray-400">
+                            <span>Due: {goal.dueDate ? new Date(goal.dueDate).toLocaleDateString() : 'N/A'}</span>
+                          </div>
+                          {goal.createdAt && (
+                            <div className="flex items-center gap-1.5 text-gray-400">
+                              <span>Created: {new Date(goal.createdAt).toLocaleDateString()}</span>
+                            </div>
+                          )}
                         </div>
-                        <span className={`px-3 py-1.5 rounded-full text-sm font-medium 
-                          bg-gradient-to-r ${statusColor.bg} ${statusColor.text} backdrop-blur-sm`}>
-                          {goal.status}
-                        </span>
                       </div>
                     </div>
 
                     {/* Hover Effects */}
-                    <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500
-                      bg-gradient-to-t ${categoryConfig.bgGradient}`} />
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500
+                      bg-gradient-to-t from-purple-950/30 via-transparent to-transparent" />
                     <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500
                       bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.2),transparent_70%)]" />
                   </div>
-                </motion.div>
+                </motion.button>
               );
             })}
           </motion.div>

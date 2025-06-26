@@ -20,6 +20,8 @@ export interface Goal {
   category: string;
   status: 'DRAFT' | 'PENDING' | 'APPROVED' | 'COMPLETED' | 'REJECTED';
   dueDate: string;
+  createdAt: string;
+  updatedAt: string;
   employee?: User;
   manager?: User;
 }
