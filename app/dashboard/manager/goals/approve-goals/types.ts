@@ -21,6 +21,8 @@ export interface Goal {
   approvalProcessId?: string;
   managerId?: string;
   employee: Employee;
+  category: string;
+  employeeComments?: string;
 }
 
 export interface EmployeeStats {
