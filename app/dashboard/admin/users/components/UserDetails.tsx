@@ -1,7 +1,8 @@
 'use client';
 
 import { User } from '../types';
-import { BsX, BsPencil, BsEnvelope, BsPerson, BsShield, BsCheckCircle, BsXCircle, BsCalendar } from 'react-icons/bs';
+import { Role } from '@prisma/client';
+import { BsX, BsPencil, BsEnvelope, BsPerson, BsShield, BsCheckCircle, BsXCircle, BsCalendar, BsPeople } from 'react-icons/bs';
 import { motion } from 'framer-motion';
 
 interface UserDetailsProps {
@@ -10,6 +11,13 @@ interface UserDetailsProps {
   onEdit: () => void;
 }
 
+// Create a mapping for display names
+const ROLE_DISPLAY_NAMES: Record<Role, string> = {
+  [Role.ADMIN]: 'Admin',
+  [Role.MANAGER]: 'Manager',
+  [Role.EMPLOYEE]: 'Employee'
+};
+
 export default function UserDetails({ user, onClose, onEdit }: UserDetailsProps) {
   return (
     <motion.div 
@@ -17,7 +25,7 @@ export default function UserDetails({ user, onClose, onEdit }: UserDetailsProps)
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.2 }}
-      className="relative "
+      className="relative"
     >
       {/* Decorative Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -32,7 +40,10 @@ export default function UserDetails({ user, onClose, onEdit }: UserDetailsProps)
             <div className="p-1.5 bg-indigo-500/20 rounded-lg">
               <BsPerson className="w-4 h-4 text-indigo-400" />
             </div>
-            <h2 className="text-base font-medium text-gray-100">{user.name}</h2>
+            <div>
+              <h2 className="text-base font-medium text-gray-100">{user.name}</h2>
+              <p className="text-sm text-gray-400">{ROLE_DISPLAY_NAMES[user.role as Role]}</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <motion.button
@@ -77,8 +88,13 @@ export default function UserDetails({ user, onClose, onEdit }: UserDetailsProps)
               >
                 <BsShield className="w-4 h-4 text-amber-400 group-hover:text-amber-300 transition-colors" />
                 <div>
-                  <p className="text-xs font-medium text-gray-400 group-hover:text-gray-300">Role</p>
-                  <p className="text-sm text-gray-200">{user.role}</p>
+                  <p className="text-xs font-medium text-gray-400 group-hover:text-gray-300">Role & Permissions</p>
+                  <p className="text-sm text-gray-200">{ROLE_DISPLAY_NAMES[user.role as Role]}</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {user.role === Role.ADMIN && "Full system access"}
+                    {user.role === Role.MANAGER && "Can manage team members and approve goals"}
+                    {user.role === Role.EMPLOYEE && "Can set and track personal goals"}
+                  </p>
                 </div>
               </motion.div>
 
@@ -92,7 +108,7 @@ export default function UserDetails({ user, onClose, onEdit }: UserDetailsProps)
                   <BsXCircle className="w-4 h-4 text-rose-400 group-hover:text-rose-300 transition-colors" />
                 )}
                 <div>
-                  <p className="text-xs font-medium text-gray-400 group-hover:text-gray-300">Status</p>
+                  <p className="text-xs font-medium text-gray-400 group-hover:text-gray-300">Account Status</p>
                   <p className={`text-sm ${
                     user.status === 'ACTIVE' ? 'text-emerald-400 group-hover:text-emerald-300' : 'text-rose-400 group-hover:text-rose-300'
                   }`}>
@@ -103,15 +119,39 @@ export default function UserDetails({ user, onClose, onEdit }: UserDetailsProps)
             </div>
 
             <div className="space-y-3">
-              {user.manager && (
+              {/* Manager Information */}
+              {user.role !== Role.ADMIN && (
                 <motion.div 
                   whileHover={{ scale: 1.02 }}
                   className="flex items-center gap-3 p-3 bg-gray-800/40 rounded-lg hover:bg-gray-800/50 transition-colors group"
                 >
                   <BsPerson className="w-4 h-4 text-blue-400 group-hover:text-blue-300 transition-colors" />
                   <div>
-                    <p className="text-xs font-medium text-gray-400 group-hover:text-gray-300">Manager</p>
-                    <p className="text-sm text-gray-200">{user.manager.name}</p>
+                    <p className="text-xs font-medium text-gray-400 group-hover:text-gray-300">Reports To</p>
+                    {user.manager ? (
+                      <>
+                        <p className="text-sm text-gray-200">{user.manager.name}</p>
+                        <p className="text-xs text-gray-400">{user.manager.email}</p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-gray-400">No manager assigned</p>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Team Size - Only show for managers */}
+              {user.role === Role.MANAGER && (
+                <motion.div 
+                  whileHover={{ scale: 1.02 }}
+                  className="flex items-center gap-3 p-3 bg-gray-800/40 rounded-lg hover:bg-gray-800/50 transition-colors group"
+                >
+                  <BsPeople className="w-4 h-4 text-green-400 group-hover:text-green-300 transition-colors" />
+                  <div>
+                    <p className="text-xs font-medium text-gray-400 group-hover:text-gray-300">Team Size</p>
+                    <p className="text-sm text-gray-200">
+                      {user.employees?.length || 0} team members
+                    </p>
                   </div>
                 </motion.div>
               )}
@@ -122,10 +162,15 @@ export default function UserDetails({ user, onClose, onEdit }: UserDetailsProps)
               >
                 <BsCalendar className="w-4 h-4 text-gray-400 group-hover:text-gray-300 transition-colors" />
                 <div>
-                  <p className="text-xs font-medium text-gray-400 group-hover:text-gray-300">Created</p>
+                  <p className="text-xs font-medium text-gray-400 group-hover:text-gray-300">Account Details</p>
                   <p className="text-sm text-gray-200">
-                    {new Date(user.createdAt).toLocaleDateString()}
+                    Created: {new Date(user.createdAt).toLocaleDateString()}
                   </p>
+                  {user.lastLogin && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      Last login: {new Date(user.lastLogin).toLocaleString()}
+                    </p>
+                  )}
                 </div>
               </motion.div>
             </div>

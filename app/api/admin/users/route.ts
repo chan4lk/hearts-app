@@ -3,6 +3,26 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { Role } from '@prisma/client';
+
+interface CreateUserBody {
+  name: string;
+  email: string;
+  password: string;
+  role: Role;
+  managerId?: string;
+  isActive?: boolean;
+}
+
+interface UpdateUserBody extends Omit<CreateUserBody, 'password'> {
+  id: string;
+  password?: string;
+}
+
+// Helper function to check if a role is managerial
+function isManagerialRole(role: Role): boolean {
+  return role === Role.MANAGER || role === Role.ADMIN;
+}
 
 // GET all users
 export async function GET() {
@@ -63,7 +83,15 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { name, email, password, role, managerId, isActive } = body;
+    const { name, email, password, role, managerId, isActive } = body as CreateUserBody;
+
+    // Validate role is a valid Role enum value
+    if (!Object.values(Role).includes(role)) {
+      return NextResponse.json(
+        { error: 'Invalid role specified' },
+        { status: 400 }
+      );
+    }
 
     if (!name || !email || !password || !role) {
       return NextResponse.json(
@@ -72,22 +100,35 @@ export async function POST(req: Request) {
       );
     }
 
-    // Require manager for employees
-    if (role === 'EMPLOYEE' && !managerId) {
-      return NextResponse.json(
-        { error: 'Manager is required for employees' },
-        { status: 400 }
-      );
-    }
-
     // Check if manager exists if managerId is provided
     if (managerId) {
       const manager = await prisma.user.findUnique({
         where: { id: managerId },
+        select: {
+          id: true,
+          role: true
+        }
       });
-      if (!manager || manager.role !== 'MANAGER') {
+      
+      if (!manager) {
         return NextResponse.json(
-          { error: 'Invalid manager selected' },
+          { error: 'Selected manager does not exist' },
+          { status: 400 }
+        );
+      }
+
+      // Ensure only MANAGER and ADMIN can be managers
+      if (!isManagerialRole(manager.role)) {
+        return NextResponse.json(
+          { error: 'Invalid manager selected. Manager must be a MANAGER or ADMIN' },
+          { status: 400 }
+        );
+      }
+
+      // If the user being created/updated is a MANAGER or ADMIN, ensure their manager is also a MANAGER or ADMIN
+      if (isManagerialRole(role) && !isManagerialRole(manager.role)) {
+        return NextResponse.json(
+          { error: 'Managers and admins cannot be managed by employees' },
           { status: 400 }
         );
       }
@@ -100,7 +141,7 @@ export async function POST(req: Request) {
         email,
         password: hashedPassword,
         role,
-        managerId: role === 'EMPLOYEE' ? managerId : null,
+        managerId,
         isActive: isActive ?? true,
       },
       include: {
@@ -108,7 +149,8 @@ export async function POST(req: Request) {
           select: {
             id: true,
             name: true,
-            email: true
+            email: true,
+            role: true
           }
         }
       }
@@ -139,7 +181,15 @@ export async function PUT(req: Request) {
     }
 
     const body = await req.json();
-    const { id, name, email, password, role, managerId, isActive } = body;
+    const { id, name, email, password, role, managerId, isActive } = body as UpdateUserBody;
+
+    // Validate role is a valid Role enum value
+    if (!Object.values(Role).includes(role)) {
+      return NextResponse.json(
+        { error: 'Invalid role specified' },
+        { status: 400 }
+      );
+    }
 
     if (!id || !name || !email || !role) {
       return NextResponse.json(
@@ -148,22 +198,35 @@ export async function PUT(req: Request) {
       );
     }
 
-    // Require manager for employees
-    if (role === 'EMPLOYEE' && !managerId) {
-      return NextResponse.json(
-        { error: 'Manager is required for employees' },
-        { status: 400 }
-      );
-    }
-
     // Check if manager exists if managerId is provided
     if (managerId) {
       const manager = await prisma.user.findUnique({
         where: { id: managerId },
+        select: {
+          id: true,
+          role: true
+        }
       });
-      if (!manager || manager.role !== 'MANAGER') {
+      
+      if (!manager) {
         return NextResponse.json(
-          { error: 'Invalid manager selected' },
+          { error: 'Selected manager does not exist' },
+          { status: 400 }
+        );
+      }
+
+      // Ensure only MANAGER and ADMIN can be managers
+      if (!isManagerialRole(manager.role)) {
+        return NextResponse.json(
+          { error: 'Invalid manager selected. Manager must be a MANAGER or ADMIN' },
+          { status: 400 }
+        );
+      }
+
+      // If the user being created/updated is a MANAGER or ADMIN, ensure their manager is also a MANAGER or ADMIN
+      if (isManagerialRole(role) && !isManagerialRole(manager.role)) {
+        return NextResponse.json(
+          { error: 'Managers and admins cannot be managed by employees' },
           { status: 400 }
         );
       }
@@ -177,11 +240,38 @@ export async function PUT(req: Request) {
       );
     }
 
+    // Check for circular manager relationships
+    if (managerId) {
+      const potentialManager = await prisma.user.findUnique({
+        where: { id: managerId },
+        include: {
+          manager: true
+        }
+      });
+
+      // Check if the user being updated is in the manager chain of the potential manager
+      let currentManager = potentialManager?.manager;
+      while (currentManager) {
+        if (currentManager.id === id) {
+          return NextResponse.json(
+            { error: 'Circular manager relationship detected' },
+            { status: 400 }
+          );
+        }
+        currentManager = await prisma.user.findUnique({
+          where: { id: currentManager.id },
+          include: {
+            manager: true
+          }
+        }).then(user => user?.manager || null);
+      }
+    }
+
     const updateData: any = {
       name,
       email,
       role,
-      managerId: role === 'EMPLOYEE' ? managerId : null,
+      managerId,
       isActive,
     };
 
@@ -197,20 +287,15 @@ export async function PUT(req: Request) {
           select: {
             id: true,
             name: true,
-            email: true
+            email: true,
+            role: true
           }
         }
       }
     });
 
     return NextResponse.json(user);
-  } catch (error: any) {
-    if (error.code === 'P2002') {
-      return NextResponse.json(
-        { error: 'Email already exists' },
-        { status: 400 }
-      );
-    }
+  } catch (error) {
     console.error('Error updating user:', error);
     return NextResponse.json(
       { error: 'Internal server error' },

@@ -16,6 +16,7 @@ import StatsCard from './components/StatsCard';
 import HeroSection from './components/HeroSection';
 import BackgroundElements from './components/BackgroundElements';
 import { User, FormData, Filters } from './types';
+import { Role } from '@prisma/client';
 import { showToast } from '@/app/utils/toast';
 
 export default function UsersPage() {
@@ -61,12 +62,16 @@ export default function UsersPage() {
         email: user.email,
         role: user.role,
         manager: user.manager,
+        employees: user.employees,
         createdAt: user.createdAt,
         lastLogin: user.lastLogin,
         status: user.isActive ? 'ACTIVE' : 'INACTIVE'
       }));
+
       setUsers(transformedUsers);
-      setManagers(transformedUsers.filter((user: User) => user.role === 'MANAGER'));
+      setManagers(transformedUsers.filter((user: User) => 
+        user.role === Role.MANAGER || user.role === Role.ADMIN
+      ));
       setLastRefresh(new Date());
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -107,11 +112,21 @@ export default function UsersPage() {
     const matchesManager = filters.manager === '' || 
       (user.manager && user.manager.id === filters.manager);
 
+    // If current user is a manager, only show their employees and other managers
+    if (session?.user?.role === Role.MANAGER && session.user.id) {
+      return (user.manager?.id === session.user.id) || user.role === Role.MANAGER;
+    }
+
     return matchesSearch && matchesRole && matchesStatus && matchesManager;
   });
 
   const handleCreateUser = async (formData: FormData) => {
     try {
+      console.log('Creating user with data:', {
+        ...formData,
+        password: '[REDACTED]'
+      });
+
       const response = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -120,22 +135,38 @@ export default function UsersPage() {
           email: formData.email,
           password: formData.password,
           role: formData.role,
-          managerId: formData.role === 'EMPLOYEE' ? formData.managerId : null,
+          managerId: formData.managerId || null,
           isActive: formData.status === 'ACTIVE'
         }),
       });
 
+      const data = await response.json();
+      
       if (!response.ok) {
-        const data = await response.json();
+        console.error('Failed to create user:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: data.error
+        });
         throw new Error(data.error || 'Failed to create user');
       }
 
-      const newUser = await response.json();
-      setUsers(prev => [newUser, ...prev]);
+      console.log('User created successfully:', {
+        ...data,
+        password: undefined
+      });
+
+      setUsers(prev => [data, ...prev]);
+      // Update managers list if the new user is a manager or admin
+      if (data.role === Role.MANAGER || data.role === Role.ADMIN) {
+        setManagers(prev => [data, ...prev]);
+      }
       setIsFormOpen(false);
       showToast.user.created();
-    } catch (error) {
-      showToast.error('Failed to create user', error);
+    } catch (error: any) {
+      const errorMessage = error.message || 'Failed to create user';
+      showToast.user.error(errorMessage);
+      console.error('Error creating user:', error);
     }
   };
 
@@ -276,6 +307,8 @@ export default function UsersPage() {
                   <UserFilters
                     onFilterChange={setFilters}
                     onSearch={setSearchTerm}
+                    managers={managers}
+                    currentUserRole={session?.user.role as Role}
                   />
                 </div>
               </div>
