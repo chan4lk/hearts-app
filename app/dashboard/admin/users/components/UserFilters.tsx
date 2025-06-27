@@ -27,6 +27,7 @@ export default function UserFilters({ onFilterChange, onSearch, managers, curren
   });
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
   // Filter available roles based on current user's role
   const availableRoles = Object.values(Role).filter(role => {
@@ -51,88 +52,52 @@ export default function UserFilters({ onFilterChange, onSearch, managers, curren
     onFilterChange(newFilters);
   };
 
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+  };
+
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-col md:flex-row gap-3">
+    <div className="space-y-3">
+      {/* Search and Filters Row */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
         {/* Search Bar */}
-        <div className="flex-1 relative group">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-            <BsSearch className="h-3.5 w-3.5 text-gray-400 group-focus-within:text-indigo-500 transition-colors duration-200" />
-          </div>
+        <div className="relative flex-1">
           <input
             type="text"
-            placeholder="Search users..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-xl bg-white/60 dark:bg-gray-800/60 text-sm text-gray-700 dark:text-gray-200 border border-gray-200/80 dark:border-gray-700/80 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:focus:ring-indigo-500/40 focus:border-indigo-500/40 transition-all duration-200 placeholder-gray-400 dark:placeholder-gray-500"
+            onChange={(e) => handleSearch(e.target.value)}
+            className="w-full pl-9 pr-3 py-2.5 sm:py-2 bg-black/20 rounded-lg text-sm text-white placeholder-gray-400"
+            placeholder="Search users..."
           />
+          <BsSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         </div>
 
-        {/* Filters */}
-        <div className="flex gap-3">
-          {/* Role Filter */}
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-              <BsFunnel className="h-3.5 w-3.5 text-gray-400 group-focus-within:text-indigo-500 transition-colors duration-200" />
-            </div>
-            <select
-              value={filters.role}
-              onChange={(e) => handleFilterChange('role', e.target.value)}
-              className="pl-10 pr-10 py-2 rounded-xl bg-white/60 dark:bg-gray-800/60 text-sm text-gray-700 dark:text-gray-200 border border-gray-200/80 dark:border-gray-700/80 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:focus:ring-indigo-500/40 focus:border-indigo-500/40 transition-all duration-200 appearance-none cursor-pointer hover:bg-white/80 dark:hover:bg-gray-800/80"
-            >
-              <option value="">All Roles</option>
-              {availableRoles.map((role) => (
-                <option key={role} value={role}>
-                  {ROLE_DISPLAY_NAMES[role]}
-                </option>
-              ))}
-            </select>
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <BsFilter className="h-3.5 w-3.5 text-gray-400" />
-            </div>
-          </div>
+        {/* Role Filter */}
+        <select
+          value={filters.role}
+          onChange={(e) => handleFilterChange('role', e.target.value)}
+          className="w-full sm:w-40 px-3 py-2.5 sm:py-2 bg-black/20 rounded-lg text-sm text-white"
+        >
+          <option value="">All Roles</option>
+          {availableRoles.map((role) => (
+            <option key={role} value={role}>
+              {ROLE_DISPLAY_NAMES[role as Role]}
+            </option>
+          ))}
+        </select>
 
-          {/* Manager Filter */}
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-              <BsPerson className="h-3.5 w-3.5 text-gray-400 group-focus-within:text-indigo-500 transition-colors duration-200" />
-            </div>
-            <select
-              value={filters.manager}
-              onChange={(e) => handleFilterChange('manager', e.target.value)}
-              className="pl-10 pr-10 py-2 rounded-xl bg-white/60 dark:bg-gray-800/60 text-sm text-gray-700 dark:text-gray-200 border border-gray-200/80 dark:border-gray-700/80 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:focus:ring-indigo-500/40 focus:border-indigo-500/40 transition-all duration-200 appearance-none cursor-pointer hover:bg-white/80 dark:hover:bg-gray-800/80"
-            >
-              <option value="">All Managers</option>
-              {managers.map((manager) => (
-                <option key={manager.id} value={manager.id}>
-                  {manager.name} ({ROLE_DISPLAY_NAMES[manager.role]})
-                </option>
-              ))}
-            </select>
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <BsFilter className="h-3.5 w-3.5 text-gray-400" />
-            </div>
-          </div>
+        {/* Status Filter */}
+        <select
+          value={filters.status}
+          onChange={(e) => handleFilterChange('status', e.target.value)}
+          className="w-full sm:w-40 px-3 py-2.5 sm:py-2 bg-black/20 rounded-lg text-sm text-white"
+        >
+          <option value="">All Status</option>
+          <option value="ACTIVE">Active</option>
+          <option value="INACTIVE">Inactive</option>
+        </select>
 
-          {/* Status Filter */}
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-              <BsFunnel className="h-3.5 w-3.5 text-gray-400 group-focus-within:text-indigo-500 transition-colors duration-200" />
-            </div>
-            <select
-              value={filters.status}
-              onChange={(e) => handleFilterChange('status', e.target.value)}
-              className="pl-10 pr-10 py-2 rounded-xl bg-white/60 dark:bg-gray-800/60 text-sm text-gray-700 dark:text-gray-200 border border-gray-200/80 dark:border-gray-700/80 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:focus:ring-indigo-500/40 focus:border-indigo-500/40 transition-all duration-200 appearance-none cursor-pointer hover:bg-white/80 dark:hover:bg-gray-800/80"
-            >
-              <option value="">All Status</option>
-              <option value="ACTIVE">Active</option>
-              <option value="INACTIVE">Inactive</option>
-            </select>
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <BsFilter className="h-3.5 w-3.5 text-gray-400" />
-            </div>
-          </div>
-        </div>
+       
       </div>
 
       {/* Active Filters */}

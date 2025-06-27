@@ -5,27 +5,19 @@ export interface User {
   name: string;
   email: string;
   role: Role;
-  manager?: {
-    id: string;
-    name: string;
-    email: string;
-  } | null;
-  employees?: {
-    id: string;
-    name: string;
-    email: string;
-  }[];
+  status: 'ACTIVE' | 'INACTIVE';
+  manager?: User | null;
+  employees?: User[];
   createdAt: string;
   lastLogin?: string;
-  status: 'ACTIVE' | 'INACTIVE';
 }
 
 export interface FormData {
   name: string;
   email: string;
-  password: string;
-  newPassword: string;
-  confirmPassword: string;
+  password?: string;
+  newPassword?: string;
+  confirmPassword?: string;
   role: Role;
   managerId: string;
   status: 'ACTIVE' | 'INACTIVE';

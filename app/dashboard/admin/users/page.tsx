@@ -347,7 +347,8 @@ export default function UsersPage() {
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className=" backdrop-blur-xl rounded-2xl p-6 shadow-2xl  border border-white/20 dark:border-gray-700/30"
+                transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                className="bg-gray-900/95 backdrop-blur-xl rounded-lg sm:rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-6 shadow-xl sm:shadow-2xl border border-white/20 dark:border-gray-700/30 transform-gpu"
               >
                 <UserForm
                   initialData={selectedUser || undefined}
@@ -374,7 +375,7 @@ export default function UsersPage() {
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-2xl w-full max-w-2xl border border-white/20 dark:border-gray-700/30 overflow-hidden"
+                className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-2xl max-w-2xl border border-white/20 dark:border-gray-700/30 overflow-hidden"
               >
                 <UserDetails
                   user={selectedUser}
