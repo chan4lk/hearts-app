@@ -347,7 +347,7 @@ export default function UsersPage() {
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-2xl w-full max-w-2xl border border-white/20 dark:border-gray-700/30"
+                className=" backdrop-blur-xl rounded-2xl p-6 shadow-2xl  border border-white/20 dark:border-gray-700/30"
               >
                 <UserForm
                   initialData={selectedUser || undefined}

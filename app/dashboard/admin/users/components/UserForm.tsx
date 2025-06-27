@@ -122,23 +122,23 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
       initial={{ scale: 0.95, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       exit={{ scale: 0.95, opacity: 0 }}
-      className="bg-gray-800 "
+      className="w-full max-w-[240px] min-w-[280px] sm:min-w-[240px]"
     >
-      <div className="p-3">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="p-1 bg-blue-600 rounded">
-            <BsPerson className="w-4 h-4 text-white" />
+      <div>
+        <div className="flex items-center gap-1.5 mb-2">
+          <div className="p-0.5 bg-blue-600 rounded">
+            <BsPerson className="w-4 h-4" />
           </div>
           <h2 className="text-sm font-medium text-white">
             {initialData ? 'Edit User' : 'Create User'}
           </h2>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-2">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-2">
           {/* Name Field */}
-          <div className="space-y-1">
-            <label className="flex items-center gap-1 text-xs font-medium text-gray-300">
-              <BsPerson className="w-3 h-3" />
+          <div>
+            <label className="flex items-center gap-2 mb-1.5 sm:mb-1 text-sm text-gray-400">
+              <BsPerson className="w-4 h-4" />
               Name
             </label>
             <input
@@ -146,23 +146,17 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className={`w-full px-2 py-1.5 bg-gray-700 border rounded text-xs text-white placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-transparent ${
+              className={`w-full px-3 py-2 sm:py-1.5 bg-black/20 rounded text-sm sm:text-[11px] text-white placeholder-gray-400 ${
                 errors.name ? 'border-red-500' : 'border-gray-600'
               }`}
-              placeholder="Enter name"
+              placeholder="Name"
             />
-            {errors.name && (
-              <p className="text-xs text-red-400 flex items-center gap-1">
-                <span className="w-1 h-1 bg-red-400 rounded-full"></span>
-                {errors.name}
-              </p>
-            )}
           </div>
 
           {/* Email Field */}
-          <div className="space-y-1">
-            <label className="flex items-center gap-1 text-xs font-medium text-gray-300">
-              <BsEnvelope className="w-3 h-3" />
+          <div>
+            <label className="flex items-center gap-2 mb-1.5 sm:mb-1 text-sm text-gray-400">
+              <BsEnvelope className="w-4 h-4" />
               Email
             </label>
             <input
@@ -170,24 +164,18 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
               required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className={`w-full px-2 py-1.5 bg-gray-700 border rounded text-xs text-white placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-transparent ${
+              className={`w-full px-3 py-2 sm:py-1.5 bg-black/20 rounded text-sm sm:text-[11px] text-white placeholder-gray-400 ${
                 errors.email ? 'border-red-500' : 'border-gray-600'
               }`}
               placeholder="Email"
             />
-            {errors.email && (
-              <p className="text-xs text-red-400 flex items-center gap-1">
-                <span className="w-1 h-1 bg-red-400 rounded-full"></span>
-                {errors.email}
-              </p>
-            )}
           </div>
 
           {/* Password Field */}
           {!initialData && (
-            <div className="space-y-1">
-              <label className="flex items-center gap-1 text-xs font-medium text-gray-300">
-                <BsLock className="w-3 h-3" />
+            <div>
+              <label className="flex items-center gap-2 mb-1.5 sm:mb-1 text-sm text-gray-400">
+                <BsLock className="w-4 h-4" />
                 Password
               </label>
               <input
@@ -195,30 +183,24 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
                 required={!initialData}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className={`w-full px-2 py-1.5 bg-gray-700 border rounded text-xs text-white placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-transparent ${
+                className={`w-full px-3 py-2 sm:py-1.5 bg-black/20 rounded text-sm sm:text-[11px] text-white placeholder-gray-400 ${
                   errors.password ? 'border-red-500' : 'border-gray-600'
                 }`}
                 placeholder="Min 8 chars"
               />
-              {errors.password && (
-                <p className="text-xs text-red-400 flex items-center gap-1">
-                  <span className="w-1 h-1 bg-red-400 rounded-full"></span>
-                  {errors.password}
-                </p>
-              )}
             </div>
           )}
 
           {/* Role Field */}
-          <div className="space-y-1">
-            <label className="flex items-center gap-1 text-xs font-medium text-gray-300">
-              {getRoleIcon(formData.role)}
+          <div>
+            <label className="flex items-center gap-2 mb-1.5 sm:mb-1 text-sm text-gray-400">
+              <BsPersonBadge className="w-4 h-4" />
               Role
             </label>
             <select
               value={formData.role}
               onChange={(e) => handleRoleChange(e.target.value)}
-              className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-xs text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 sm:py-1.5 bg-black/20 rounded text-sm sm:text-[11px] text-white"
             >
               <option value="EMPLOYEE">👤 Employee</option>
               <option value="MANAGER">👔 Manager</option>
@@ -228,15 +210,15 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
 
           {/* Manager Field */}
           {shouldShowManagerField && (
-            <div className="space-y-1">
-              <label className="flex items-center gap-1 text-xs font-medium text-gray-300">
-                <BsPersonCheck className="w-3 h-3" />
+            <div>
+              <label className="flex items-center gap-2 mb-1.5 sm:mb-1 text-sm text-gray-400">
+                <BsPersonCheck className="w-4 h-4" />
                 Manager
               </label>
               <select
                 value={formData.managerId}
                 onChange={(e) => setFormData({ ...formData, managerId: e.target.value })}
-                className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-xs text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 sm:py-1.5 bg-black/20 rounded text-sm sm:text-[11px] text-white"
               >
                 <option value="">Select</option>
                 {availableManagers.map((manager) => (
@@ -249,18 +231,15 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
           )}
 
           {/* Status Field */}
-          <div className="space-y-1">
-            <label className="flex items-center gap-1 text-xs font-medium text-gray-300">
-              {formData.status === 'ACTIVE' ? 
-                <BsToggleOn className="w-3 h-3 text-green-400" /> : 
-                <BsToggleOff className="w-3 h-3 text-red-400" />
-              }
+          <div>
+            <label className="flex items-center gap-2 mb-1.5 sm:mb-1 text-sm text-gray-400">
+              <span className="text-green-500">✓</span>
               Status
             </label>
             <select
               value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value as 'ACTIVE' | 'INACTIVE' })}
-              className="w-full px-2 py-1.5 bg-gray-700 border border-gray-600 rounded text-xs text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 sm:py-1.5 bg-black/20 rounded text-sm sm:text-[11px] text-white"
             >
               <option value="ACTIVE">✅ Active</option>
               <option value="INACTIVE">❌ Inactive</option>
@@ -268,17 +247,17 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-2 mt-3">
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 px-2 py-1.5 text-xs font-medium text-gray-300 bg-gray-700 border border-gray-600 rounded hover:bg-gray-600"
+              className="flex-1 px-4 py-2.5 sm:py-1.5 text-sm sm:text-[11px] font-medium text-gray-300 bg-black/20 rounded"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 px-2 py-1.5 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700"
+              className="flex-1 px-4 py-2.5 sm:py-1.5 text-sm sm:text-[11px] font-medium text-white bg-blue-600 rounded"
             >
               {initialData ? 'Update' : 'Create'}
             </button>
