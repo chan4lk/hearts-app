@@ -1,14 +1,14 @@
 'use client';
 
 import { User } from '../types';
-import { Role } from '@prisma/client';
+import { Role } from '.prisma/client';
 import { BsX, BsPencil, BsEnvelope, BsPerson, BsShield, BsCheckCircle, BsXCircle, BsCalendar, BsPeople } from 'react-icons/bs';
 import { motion } from 'framer-motion';
 
 interface UserDetailsProps {
   user: User;
-  onClose: () => void;
-  onEdit: () => void;
+  onCloseAction: () => void;
+  onEditAction: () => void;
 }
 
 // Create a mapping for display names
@@ -18,7 +18,7 @@ const ROLE_DISPLAY_NAMES: Record<Role, string> = {
   [Role.EMPLOYEE]: 'Employee'
 };
 
-export default function UserDetails({ user, onClose, onEdit }: UserDetailsProps) {
+export default function UserDetails({ user, onCloseAction, onEditAction }: UserDetailsProps) {
   return (
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }}
@@ -50,7 +50,7 @@ export default function UserDetails({ user, onClose, onEdit }: UserDetailsProps)
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={onClose}
+              onClick={onCloseAction}
               className="text-gray-400 hover:text-gray-300 p-0.5 sm:p-1.5 hover:bg-gray-500/10 rounded transition-colors"
               title="Close"
             >
@@ -172,7 +172,7 @@ export default function UserDetails({ user, onClose, onEdit }: UserDetailsProps)
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={onClose}
+              onClick={onCloseAction}
               className="px-1.5 sm:px-3 py-0.5 sm:py-1.5 text-[10px] sm:text-sm font-medium text-gray-300 bg-gray-800/70 rounded hover:bg-gray-800/90 transition-colors"
             >
               Close
@@ -180,7 +180,7 @@ export default function UserDetails({ user, onClose, onEdit }: UserDetailsProps)
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={onEdit}
+              onClick={onEditAction}
               className="px-1.5 sm:px-3 py-0.5 sm:py-1.5 text-[10px] sm:text-sm font-medium text-white bg-indigo-500/80 rounded hover:bg-indigo-500 transition-colors flex items-center gap-0.5 sm:gap-1"
             >
               <BsPencil className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />

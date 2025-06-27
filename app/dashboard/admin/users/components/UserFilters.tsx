@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 import { Filters } from '../types';
 import { BsSearch, BsFilter, BsFunnel, BsPerson } from 'react-icons/bs';
-import { Role } from '@prisma/client';
+import { Role } from '.prisma/client';
 
 interface UserFiltersProps {
-  onFilterChange: (filters: Filters) => void;
-  onSearch: (searchTerm: string) => void;
+  onFilterChangeAction: (filters: Filters) => void;
+  onSearchAction: (searchTerm: string) => void;
   managers: Array<{ id: string; name: string; role: Role }>;
   currentUserRole?: Role;
 }
@@ -19,7 +19,7 @@ const ROLE_DISPLAY_NAMES: Record<Role, string> = {
   [Role.EMPLOYEE]: 'Employee'
 };
 
-export default function UserFilters({ onFilterChange, onSearch, managers, currentUserRole }: UserFiltersProps) {
+export default function UserFilters({ onFilterChangeAction, onSearchAction, managers, currentUserRole }: UserFiltersProps) {
   const [filters, setFilters] = useState<Filters>({
     role: '',
     status: '',
@@ -40,16 +40,16 @@ export default function UserFilters({ onFilterChange, onSearch, managers, curren
 
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
-      onSearch(searchTerm);
+      onSearchAction(searchTerm);
     }, 300);
 
     return () => clearTimeout(debounceTimer);
-  }, [searchTerm, onSearch]);
+  }, [searchTerm, onSearchAction]);
 
   const handleFilterChange = (name: keyof Filters, value: string) => {
     const newFilters = { ...filters, [name]: value };
     setFilters(newFilters);
-    onFilterChange(newFilters);
+    onFilterChangeAction(newFilters);
   };
 
   const handleSearch = (value: string) => {
@@ -79,9 +79,9 @@ export default function UserFilters({ onFilterChange, onSearch, managers, curren
           className="w-full sm:w-40 px-3 py-2.5 sm:py-2 bg-black/20 rounded-lg text-sm text-white"
         >
           <option value="">All Roles</option>
-          {availableRoles.map((role) => (
-            <option key={role} value={role}>
-              {ROLE_DISPLAY_NAMES[role as Role]}
+          {availableRoles.map((role: Role) => (
+            <option key={role.toString()} value={role}>
+              {ROLE_DISPLAY_NAMES[role]}
             </option>
           ))}
         </select>
@@ -96,8 +96,6 @@ export default function UserFilters({ onFilterChange, onSearch, managers, curren
           <option value="ACTIVE">Active</option>
           <option value="INACTIVE">Inactive</option>
         </select>
-
-       
       </div>
 
       {/* Active Filters */}

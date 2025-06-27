@@ -16,7 +16,7 @@ import StatsCard from './components/StatsCard';
 import HeroSection from './components/HeroSection';
 import BackgroundElements from './components/BackgroundElements';
 import { User, FormData, Filters } from './types';
-import { Role } from '@prisma/client';
+import { Role } from '.prisma/client';
 import { showToast } from '@/app/utils/toast';
 
 export default function UsersPage() {
@@ -113,7 +113,7 @@ export default function UsersPage() {
       (user.manager && user.manager.id === filters.manager);
 
     // If current user is a manager, only show their employees and other managers
-    if (session?.user?.role === Role.MANAGER && session.user.id) {
+    if (session?.user?.role === Role.MANAGER && session?.user?.id) {
       return (user.manager?.id === session.user.id) || user.role === Role.MANAGER;
     }
 
@@ -174,6 +174,18 @@ export default function UsersPage() {
     if (!selectedUser) return;
 
     try {
+      // Determine managerId based on role and current selection
+      const managerId = formData.role === Role.EMPLOYEE && formData.managerId ? formData.managerId : null;
+
+      console.log('Updating user with data:', {
+        id: selectedUser.id,
+        name: formData.name,
+        email: formData.email,
+        role: formData.role,
+        managerId,
+        isActive: formData.status === 'ACTIVE'
+      });
+
       const response = await fetch('/api/admin/users', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -181,19 +193,21 @@ export default function UsersPage() {
           id: selectedUser.id,
           name: formData.name,
           email: formData.email,
-          role: formData.role,
-          managerId: formData.role === 'EMPLOYEE' ? formData.managerId : null,
-          isActive: formData.status === 'ACTIVE',
-          password: formData.newPassword || undefined
+          role: formData.role as Role,
+          managerId,
+          isActive: formData.status === 'ACTIVE'
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Update failed with error:', errorData);
         throw new Error(errorData.error || 'Failed to update user');
       }
 
       const updatedUser = await response.json();
+      console.log('Successfully updated user:', updatedUser);
+      
       setUsers(prev => prev.map(user => 
         user.id === updatedUser.id ? updatedUser : user
       ));
@@ -201,6 +215,7 @@ export default function UsersPage() {
       setSelectedUser(null);
       showToast.user.updated();
     } catch (error) {
+      console.error('Error in handleUpdateUser:', error);
       showToast.error('Failed to update user', error);
     }
   };
@@ -305,10 +320,10 @@ export default function UsersPage() {
               <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/30">
                 <div className="p-4">
                   <UserFilters
-                    onFilterChange={setFilters}
-                    onSearch={setSearchTerm}
+                    onFilterChangeAction={setFilters}
+                    onSearchAction={setSearchTerm}
                     managers={managers}
-                    currentUserRole={session?.user.role as Role}
+                    currentUserRole={session?.user?.role as Role}
                   />
                 </div>
               </div>
@@ -353,8 +368,8 @@ export default function UsersPage() {
                 <UserForm
                   initialData={selectedUser || undefined}
                   managers={managers}
-                  onSubmit={selectedUser ? handleUpdateUser : handleCreateUser}
-                  onCancel={() => {
+                  onSubmitAction={selectedUser ? handleUpdateUser : handleCreateUser}
+                  onCancelAction={() => {
                     setSelectedUser(null);
                     setIsFormOpen(false);
                   }}
@@ -379,11 +394,11 @@ export default function UsersPage() {
               >
                 <UserDetails
                   user={selectedUser}
-                  onClose={() => {
+                  onCloseAction={() => {
                     setSelectedUser(null);
                     setIsDetailsOpen(false);
                   }}
-                  onEdit={() => {
+                  onEditAction={() => {
                     setIsDetailsOpen(false);
                     setIsFormOpen(true);
                   }}

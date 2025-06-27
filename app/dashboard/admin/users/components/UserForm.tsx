@@ -2,19 +2,19 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { User, FormData } from '../types';
-import { Role } from '@prisma/client';
+import { Role } from '.prisma/client';
 import { BsArrowCounterclockwise, BsEye, BsShield, BsPerson, BsEnvelope, BsLock, BsPersonBadge, BsPersonCheck, BsToggleOn, BsToggleOff } from 'react-icons/bs';
 import { motion } from 'framer-motion';
 
 interface UserFormProps {
   initialData?: User;
   managers: User[];
-  onSubmit: (data: FormData) => Promise<void>;
-  onCancel: () => void;
+  onSubmitAction: (data: FormData) => Promise<void>;
+  onCancelAction: () => void;
   isEditing: boolean;
 }
 
-export default function UserForm({ initialData, managers, onSubmit, onCancel, isEditing }: UserFormProps) {
+export default function UserForm({ initialData, managers, onSubmitAction, onCancelAction, isEditing }: UserFormProps) {
   const formRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState<FormData>({
     name: initialData?.name || '',
@@ -69,10 +69,10 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
     if (validateForm()) {
       if (!initialData) {
         // For new users, include all fields
-        await onSubmit(formData);
+        await onSubmitAction(formData);
       } else {
         // For existing users, only submit name, role, managerId, and status
-        await onSubmit({
+        await onSubmitAction({
           name: formData.name,
           role: formData.role,
           managerId: formData.managerId,
@@ -106,7 +106,7 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (formRef.current && !formRef.current.contains(event.target as Node)) {
-        onCancel();
+        onCancelAction();
       }
     }
 
@@ -114,7 +114,7 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [onCancel]);
+  }, [onCancelAction]);
 
   return (
     <motion.div 
@@ -261,7 +261,7 @@ export default function UserForm({ initialData, managers, onSubmit, onCancel, is
           <div className="flex gap-1.5 sm:gap-2 mt-2 sm:mt-2">
             <button
               type="button"
-              onClick={onCancel}
+              onClick={onCancelAction}
               className="flex-1 px-3 py-1 sm:px-4 sm:py-1.5 text-[11px] font-medium text-gray-300 bg-black/20 rounded-sm sm:rounded"
             >
               Cancel

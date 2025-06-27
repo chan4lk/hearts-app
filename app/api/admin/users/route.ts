@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { Role } from '@prisma/client';
+import { Role, Prisma, PrismaClient } from '.prisma/client';
 
 interface CreateUserBody {
   name: string;
@@ -177,14 +177,18 @@ export async function PUT(req: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user || session.user.role !== 'ADMIN') {
+      console.log('Update failed: Unauthorized user', session?.user);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await req.json();
+    console.log('Received update request with body:', body);
+    
     const { id, name, email, password, role, managerId, isActive } = body as UpdateUserBody;
 
     // Validate role is a valid Role enum value
     if (!Object.values(Role).includes(role)) {
+      console.log('Update failed: Invalid role', role);
       return NextResponse.json(
         { error: 'Invalid role specified' },
         { status: 400 }
@@ -192,6 +196,7 @@ export async function PUT(req: Request) {
     }
 
     if (!id || !name || !email || !role) {
+      console.log('Update failed: Missing required fields', { id, name, email, role });
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -209,6 +214,7 @@ export async function PUT(req: Request) {
       });
       
       if (!manager) {
+        console.log('Update failed: Manager not found', managerId);
         return NextResponse.json(
           { error: 'Selected manager does not exist' },
           { status: 400 }
@@ -217,6 +223,7 @@ export async function PUT(req: Request) {
 
       // Ensure only MANAGER and ADMIN can be managers
       if (!isManagerialRole(manager.role)) {
+        console.log('Update failed: Invalid manager role', manager.role);
         return NextResponse.json(
           { error: 'Invalid manager selected. Manager must be a MANAGER or ADMIN' },
           { status: 400 }
@@ -225,6 +232,7 @@ export async function PUT(req: Request) {
 
       // If the user being created/updated is a MANAGER or ADMIN, ensure their manager is also a MANAGER or ADMIN
       if (isManagerialRole(role) && !isManagerialRole(manager.role)) {
+        console.log('Update failed: Manager role mismatch', { userRole: role, managerRole: manager.role });
         return NextResponse.json(
           { error: 'Managers and admins cannot be managed by employees' },
           { status: 400 }
@@ -263,7 +271,7 @@ export async function PUT(req: Request) {
           include: {
             manager: true
           }
-        }).then(user => user?.manager || null);
+        }).then((user: { manager: any } | null) => user?.manager || null);
       }
     }
 
@@ -271,13 +279,16 @@ export async function PUT(req: Request) {
       name,
       email,
       role,
-      managerId,
       isActive,
     };
 
-    if (password) {
-      updateData.password = await bcrypt.hash(password, 10);
+    // Only include managerId in updateData if it's explicitly provided or needs to be nulled
+    if (managerId !== undefined) {
+      // If role is not EMPLOYEE, or managerId is empty, set to null
+      updateData.managerId = (role === Role.EMPLOYEE && managerId) ? managerId : null;
     }
+
+    console.log('Attempting to update user with data:', updateData);
 
     const user = await prisma.user.update({
       where: { id },
@@ -294,11 +305,17 @@ export async function PUT(req: Request) {
       }
     });
 
+    console.log('Successfully updated user:', user);
     return NextResponse.json(user);
-  } catch (error) {
-    console.error('Error updating user:', error);
+  } catch (error: any) {
+    console.error('Error updating user:', {
+      error,
+      code: error.code,
+      message: error.message,
+      stack: error.stack
+    });
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: error.message || 'Internal server error' },
       { status: 500 }
     );
   }
@@ -337,7 +354,7 @@ export async function DELETE(request: Request) {
 
     try {
       // Delete related records first
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">) => {
         // First, delete all ratings associated with the user
         await tx.rating.deleteMany({
           where: {
