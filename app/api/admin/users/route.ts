@@ -24,6 +24,20 @@ function isManagerialRole(role: Role): boolean {
   return role === Role.MANAGER || role === Role.ADMIN;
 }
 
+// Helper function to check if a manager can manage a given role
+function canManage(managerRole: Role, userRole: Role): boolean {
+  if (userRole === Role.ADMIN) {
+    return managerRole === Role.ADMIN; // Only ADMIN can manage ADMIN
+  }
+  if (userRole === Role.MANAGER) {
+    return managerRole === Role.ADMIN || managerRole === Role.MANAGER; // ADMIN or MANAGER can manage MANAGER
+  }
+  if (userRole === Role.EMPLOYEE) {
+    return managerRole === Role.ADMIN || managerRole === Role.MANAGER; // ADMIN or MANAGER can manage EMPLOYEE
+  }
+  return false;
+}
+
 // GET all users
 export async function GET() {
   try {
@@ -48,7 +62,8 @@ export async function GET() {
           select: {
             id: true,
             name: true,
-            email: true
+            email: true,
+            role: true
           }
         },
         employees: {
@@ -117,18 +132,9 @@ export async function POST(req: Request) {
         );
       }
 
-      // Ensure only MANAGER and ADMIN can be managers
-      if (!isManagerialRole(manager.role)) {
+      if (!canManage(manager.role, role)) {
         return NextResponse.json(
-          { error: 'Invalid manager selected. Manager must be a MANAGER or ADMIN' },
-          { status: 400 }
-        );
-      }
-
-      // If the user being created/updated is a MANAGER or ADMIN, ensure their manager is also a MANAGER or ADMIN
-      if (isManagerialRole(role) && !isManagerialRole(manager.role)) {
-        return NextResponse.json(
-          { error: 'Managers and admins cannot be managed by employees' },
+          { error: `A user with role ${role} can only be managed by: ${role === Role.ADMIN ? 'ADMIN' : 'ADMIN or MANAGER'}` },
           { status: 400 }
         );
       }
@@ -221,20 +227,10 @@ export async function PUT(req: Request) {
         );
       }
 
-      // Ensure only MANAGER and ADMIN can be managers
-      if (!isManagerialRole(manager.role)) {
-        console.log('Update failed: Invalid manager role', manager.role);
-        return NextResponse.json(
-          { error: 'Invalid manager selected. Manager must be a MANAGER or ADMIN' },
-          { status: 400 }
-        );
-      }
-
-      // If the user being created/updated is a MANAGER or ADMIN, ensure their manager is also a MANAGER or ADMIN
-      if (isManagerialRole(role) && !isManagerialRole(manager.role)) {
+      if (!canManage(manager.role, role)) {
         console.log('Update failed: Manager role mismatch', { userRole: role, managerRole: manager.role });
         return NextResponse.json(
-          { error: 'Managers and admins cannot be managed by employees' },
+          { error: `A user with role ${role} can only be managed by: ${role === Role.ADMIN ? 'ADMIN' : 'ADMIN or MANAGER'}` },
           { status: 400 }
         );
       }
@@ -284,8 +280,7 @@ export async function PUT(req: Request) {
 
     // Only include managerId in updateData if it's explicitly provided or needs to be nulled
     if (managerId !== undefined) {
-      // If role is not EMPLOYEE, or managerId is empty, set to null
-      updateData.managerId = (role === Role.EMPLOYEE && managerId) ? managerId : null;
+      updateData.managerId = managerId || null;
     }
 
     console.log('Attempting to update user with data:', updateData);

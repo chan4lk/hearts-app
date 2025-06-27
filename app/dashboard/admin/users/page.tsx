@@ -175,7 +175,7 @@ export default function UsersPage() {
 
     try {
       // Determine managerId based on role and current selection
-      const managerId = formData.role === Role.EMPLOYEE && formData.managerId ? formData.managerId : null;
+      const managerId = formData.managerId || null;
 
       console.log('Updating user with data:', {
         id: selectedUser.id,

@@ -2,8 +2,23 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
-import { Role } from '@prisma/client';
+import { Role, User as PrismaUser } from '.prisma/client';
 import bcrypt from 'bcryptjs';
+
+// Define the type for user with relations
+type UserWithRelations = PrismaUser & {
+  manager: {
+    id: string;
+    name: string;
+    email: string;
+    role: Role;
+  } | null;
+  employees: {
+    id: string;
+    name: string;
+    role: Role;
+  }[];
+};
 
 export async function GET() {
   try {
@@ -24,20 +39,42 @@ export async function GET() {
       where: {
         isActive: true
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        department: true,
-        position: true
+      include: {
+        manager: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true
+          }
+        },
+        employees: {
+          select: {
+            id: true,
+            name: true,
+            role: true
+          }
+        }
       },
       orderBy: {
         name: 'asc'
       }
     });
 
-    return NextResponse.json({ users });
+    // Transform the data to match our frontend types
+    const transformedUsers = users.map((user: UserWithRelations) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      status: user.isActive ? 'ACTIVE' : 'INACTIVE',
+      manager: user.manager,
+      managedUsers: user.employees,
+      department: user.department,
+      position: user.position
+    }));
+
+    return NextResponse.json({ users: transformedUsers });
   } catch (error) {
     console.error('Error fetching users:', error);
     return NextResponse.json(

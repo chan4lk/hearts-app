@@ -77,8 +77,15 @@ export default function UserTable({ users, onViewDetails, onEdit, onDelete }: Us
 
                 {user.manager && (
                   <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs">
-                    <span className="text-gray-400">Manager:</span>
+                    <span className="text-gray-400">Assigned Manager:</span>
                     <span className="text-gray-300 truncate">{user.manager.name}</span>
+                    <span className={`ml-1 px-1 rounded text-[9px] ${
+                      user.manager.role === 'ADMIN' ? 'bg-purple-500/20 text-purple-300' :
+                      user.manager.role === 'MANAGER' ? 'bg-blue-500/20 text-blue-300' :
+                      'bg-emerald-500/20 text-emerald-300'
+                    }`}>
+                      {user.manager.role}
+                    </span>
                   </div>
                 )}
               </div>

@@ -1,12 +1,19 @@
 import { Role } from '.prisma/client';
 
+export interface UserManager {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+}
+
 export interface User {
   id: string;
   name: string;
   email: string;
   role: Role;
   status: 'ACTIVE' | 'INACTIVE';
-  manager?: User | null;
+  manager?: UserManager | null;
   employees?: User[];
   createdAt: string;
   lastLogin?: string;

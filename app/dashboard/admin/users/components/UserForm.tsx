@@ -14,6 +14,13 @@ interface UserFormProps {
   isEditing: boolean;
 }
 
+function canBeManager(managerRole: Role, userRole: Role) {
+  if (userRole === Role.ADMIN) return managerRole === Role.ADMIN;
+  if (userRole === Role.MANAGER) return managerRole === Role.ADMIN || managerRole === Role.MANAGER;
+  if (userRole === Role.EMPLOYEE) return managerRole === Role.ADMIN || managerRole === Role.MANAGER;
+  return false;
+}
+
 export default function UserForm({ initialData, managers, onSubmitAction, onCancelAction, isEditing }: UserFormProps) {
   const formRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState<FormData>({
@@ -58,10 +65,8 @@ export default function UserForm({ initialData, managers, onSubmitAction, onCanc
 
   // Filter out the current user from available managers to prevent self-assignment
   const availableManagers = managers.filter(manager => 
-    // Exclude the current user from the manager list
     (!initialData || manager.id !== initialData.id) &&
-    // Only show managers and admins as potential managers
-    (manager.role === Role.MANAGER || manager.role === Role.ADMIN)
+    canBeManager(manager.role, formData.role)
   );
 
   const handleSubmit = async (e: React.FormEvent) => {

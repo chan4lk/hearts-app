@@ -119,7 +119,7 @@ export default function UserDetails({ user, onCloseAction, onEditAction }: UserD
                 >
                   <BsPerson className="w-2.5 h-2.5 sm:w-4 sm:h-4 text-blue-400 group-hover:text-blue-300 transition-colors" />
                   <div>
-                    <p className="text-[10px] sm:text-xs font-medium text-gray-400 group-hover:text-gray-300">Reports To</p>
+                    <p className="text-[10px] sm:text-xs font-medium text-gray-400 group-hover:text-gray-300">Assigned To</p>
                     {user.manager ? (
                       <>
                         <p className="text-[11px] sm:text-sm text-gray-200">{user.manager.name}</p>
@@ -132,8 +132,8 @@ export default function UserDetails({ user, onCloseAction, onEditAction }: UserD
                 </motion.div>
               )}
 
-              {/* Team Size - Only show for managers */}
-              {user.role === Role.MANAGER && (
+              {/* Team Size - Show for managers and admins */}
+              {(user.role === Role.MANAGER || user.role === Role.ADMIN) && (
                 <motion.div 
                   whileHover={{ scale: 1.02 }}
                   className="flex items-center gap-1.5 sm:gap-3 p-1.5 sm:p-3 bg-gray-800/40 rounded hover:bg-gray-800/50 transition-colors group"
@@ -144,6 +144,7 @@ export default function UserDetails({ user, onCloseAction, onEditAction }: UserD
                     <p className="text-[11px] sm:text-sm text-gray-200">
                       {user.employees?.length || 0} team members
                     </p>
+                    
                   </div>
                 </motion.div>
               )}
