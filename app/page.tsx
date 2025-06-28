@@ -31,7 +31,7 @@ export default async function Home() {
               </h1>
               
               <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-              AzpireHub helps organizations streamline employee management, set meaningful goals, 
+              AspireHub helps organizations streamline employee management, set meaningful goals, 
               and track progress with powerful analytics and intuitive dashboards.              </p>
 
               <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
