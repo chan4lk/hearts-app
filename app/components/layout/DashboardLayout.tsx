@@ -137,6 +137,11 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
     const userRole = session?.user?.role as Role;
     const currentPath = pathname || '';
     
+    // Admin has access to all dashboards
+    if (userRole === Role.ADMIN) {
+      return true;
+    }
+    
     return hasAccess(userRole, currentPath);
   };
 
@@ -145,16 +150,14 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
     if (status === 'authenticated' && !hasAccessToDashboard()) {
       const userRole = session?.user?.role as Role;
       
-      // For admin users, don't redirect unless they're accessing a non-dashboard path
-      if (userRole === 'ADMIN' && pathname.startsWith('/dashboard/')) {
+      // For admin users, don't redirect at all
+      if (userRole === Role.ADMIN) {
         return;
       }
       
       // For other roles, redirect to their default dashboard if they don't have access
       let redirectPath = '/dashboard/employee';
-      if (userRole === 'ADMIN') {
-        redirectPath = '/dashboard/admin';
-      } else if (userRole === 'MANAGER') {
+      if (userRole === Role.MANAGER) {
         redirectPath = '/dashboard/manager';
       }
       
