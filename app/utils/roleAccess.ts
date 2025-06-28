@@ -103,40 +103,33 @@ export const getNavItemsByRole = (role: Role): NavItem[] => {
   return ALL_NAV_ITEMS.filter(item => item.roles.includes(role));
 };
 
-const ROLE_HIERARCHY = {
-  ADMIN: ['ADMIN', 'MANAGER', 'EMPLOYEE'],
-  MANAGER: ['MANAGER', 'EMPLOYEE'],
-  EMPLOYEE: ['EMPLOYEE']
-};
+// Define role access levels
+const ROLE_ACCESS = {
+  [Role.ADMIN]: {
+    canAccess: ['/dashboard/admin', '/dashboard/manager', '/dashboard/employee'],
+    defaultPath: '/dashboard/admin'
+  },
+  [Role.MANAGER]: {
+    canAccess: ['/dashboard/manager', '/dashboard/employee'],
+    defaultPath: '/dashboard/manager'
+  },
+  [Role.EMPLOYEE]: {
+    canAccess: ['/dashboard/employee'],
+    defaultPath: '/dashboard/employee'
+  }
+} as const;
 
 export const hasAccess = (role: Role, path: string): boolean => {
-  const allowedRoles = ROLE_HIERARCHY[role] || [];
+  // Get the role's access configuration
+  const roleConfig = ROLE_ACCESS[role];
+  if (!roleConfig) return false;
 
-  // Check path against role permissions
-  if (path.startsWith('/dashboard/admin')) {
-    return allowedRoles.includes('ADMIN');
-  }
-
-  if (path.startsWith('/dashboard/manager')) {
-    return allowedRoles.includes('MANAGER');
-  }
-
-  if (path.startsWith('/dashboard/employee')) {
-    return allowedRoles.includes('EMPLOYEE');
-  }
-
-  // Default to false for unknown paths
-  return false;
+  // Check if the path starts with any of the allowed paths
+  return roleConfig.canAccess.some(allowedPath => path.startsWith(allowedPath));
 };
 
 export const getDefaultRedirectPath = (role: Role): string => {
-  const dashboardPaths = {
-    ADMIN: '/dashboard/admin',
-    MANAGER: '/dashboard/manager',
-    EMPLOYEE: '/dashboard/employee'
-  };
-
-  return dashboardPaths[role] || dashboardPaths.EMPLOYEE;
+  return ROLE_ACCESS[role]?.defaultPath || ROLE_ACCESS[Role.EMPLOYEE].defaultPath;
 };
 
 export const getRoleBasedTitle = (role: Role): string => {

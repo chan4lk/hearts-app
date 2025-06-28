@@ -20,14 +20,6 @@ export default withAuth(
     console.log(`[Middleware] Token present: ${!!token}`);
     console.log(`[Middleware] User role: ${token?.role || 'none'}`);
 
-    // If on login page and user is authenticated, redirect to appropriate dashboard
-    if (path === '/login' && token) {
-      const userRole = token.role as Role;
-      const redirectPath = getDefaultRedirectPath(userRole);
-      console.log(`[Middleware] Redirecting authenticated user from login to: ${redirectPath}`);
-      return NextResponse.redirect(new URL(redirectPath, req.url));
-    }
-
     // Allow access to public routes
     if (path === '/register' || path === '/login' || path === '/error') {
       console.log(`[Middleware] Allowing access to public route: ${path}`);
@@ -48,9 +40,15 @@ export default withAuth(
       return NextResponse.redirect(loginUrl);
     }
 
-    // Role-based access control
     const userRole = token.role as Role;
-    
+
+    // If on login page and authenticated, redirect to appropriate dashboard
+    if (path === '/login') {
+      const redirectPath = getDefaultRedirectPath(userRole);
+      console.log(`[Middleware] Redirecting authenticated user from login to: ${redirectPath}`);
+      return NextResponse.redirect(new URL(redirectPath, req.url));
+    }
+
     // If accessing root dashboard, redirect to role-specific dashboard
     if (path === '/dashboard') {
       const defaultPath = getDefaultRedirectPath(userRole);
@@ -58,12 +56,14 @@ export default withAuth(
       return NextResponse.redirect(new URL(defaultPath, req.url));
     }
 
-    // Check access permissions
-    if (!hasAccess(userRole, path)) {
-      console.log(`[Middleware] Unauthorized access to ${path} by role: ${userRole}`);
-      const defaultPath = getDefaultRedirectPath(userRole);
-      console.log(`[Middleware] Redirecting to default path: ${defaultPath}`);
-      return NextResponse.redirect(new URL(defaultPath, req.url));
+    // Check access permissions for dashboard routes
+    if (path.startsWith('/dashboard/')) {
+      if (!hasAccess(userRole, path)) {
+        console.log(`[Middleware] Unauthorized access to ${path} by role: ${userRole}`);
+        const defaultPath = getDefaultRedirectPath(userRole);
+        console.log(`[Middleware] Redirecting to default path: ${defaultPath}`);
+        return NextResponse.redirect(new URL(defaultPath, req.url));
+      }
     }
 
     return NextResponse.next();
