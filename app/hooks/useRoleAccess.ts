@@ -7,11 +7,17 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export function useRoleAccess() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const router = useRouter();
 
   useEffect(() => {
     if (status === 'loading') return;
+
+    // Force session update to get latest role
+    const updateSession = async () => {
+      await update();
+    };
+    updateSession();
 
     if (!session?.user) {
       console.log('[useRoleAccess] No session, redirecting to login');
@@ -28,7 +34,7 @@ export function useRoleAccess() {
       console.log(`[useRoleAccess] Redirecting to: ${defaultPath}`);
       router.push(defaultPath);
     }
-  }, [session, status, router]);
+  }, [session, status, router, update]);
 
   const isLoading = status === 'loading';
 

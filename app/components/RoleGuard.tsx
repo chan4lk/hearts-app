@@ -14,10 +14,16 @@ interface RoleGuardProps {
 
 export default function RoleGuard({ children, allowedRoles, redirectPath }: RoleGuardProps) {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
 
   useEffect(() => {
     if (status === 'loading') return;
+
+    // Force session update to get latest role
+    const updateSession = async () => {
+      await update();
+    };
+    updateSession();
 
     if (!session?.user) {
       console.log('[RoleGuard] No session, redirecting to login');
@@ -33,7 +39,7 @@ export default function RoleGuard({ children, allowedRoles, redirectPath }: Role
       console.log(`[RoleGuard] Redirecting to: ${defaultPath}`);
       router.push(defaultPath);
     }
-  }, [session, status, router, allowedRoles, redirectPath]);
+  }, [session, status, router, allowedRoles, redirectPath, update]);
 
   if (status === 'loading' || !session?.user) {
     return null;
