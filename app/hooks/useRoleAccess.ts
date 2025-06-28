@@ -5,10 +5,12 @@ import { hasAccess, getDefaultRedirectPath, getNavItemsByRole } from '@/app/util
 import { Role } from '@prisma/client';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 export function useRoleAccess() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -26,15 +28,14 @@ export function useRoleAccess() {
     }
 
     const userRole = session.user.role as Role;
-    const currentPath = window.location.pathname;
 
-    if (!hasAccess(userRole, currentPath)) {
-      console.log(`[useRoleAccess] User role ${userRole} does not have access to ${currentPath}`);
+    if (!hasAccess(userRole, pathname)) {
+      console.log(`[useRoleAccess] User role ${userRole} does not have access to ${pathname}`);
       const defaultPath = getDefaultRedirectPath(userRole);
       console.log(`[useRoleAccess] Redirecting to: ${defaultPath}`);
       router.push(defaultPath);
     }
-  }, [session, status, router, update]);
+  }, [session, status, router, update, pathname]);
 
   const isLoading = status === 'loading';
 
@@ -53,6 +54,6 @@ export function useRoleAccess() {
     isLoading,
     role: userRole,
     hasAccess: (path: string) => hasAccess(userRole, path),
-    navItems: getNavItemsByRole(userRole),
+    navItems: getNavItemsByRole(userRole, pathname),
   };
 } 
