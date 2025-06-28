@@ -7,6 +7,8 @@ import { ReactNode, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { IconType } from 'react-icons';
+import { Role } from '@prisma/client';
+import { hasAccess } from '@/app/utils/roleAccess';
 
 import { 
   BsGrid, 
@@ -95,7 +97,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
   }, []);
 
   const getNavItems = (): NavItem[] => {
-    const userRole = session?.user?.role?.toLowerCase();
+    const userRole = session?.user?.role as Role;
 
     // Define all possible navigation items grouped by functionality
     const adminItems: NavItem[] = [
@@ -118,21 +120,12 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
     ];
 
     // Return items based on user role
-    if (userRole === 'admin') {
-      return adminItems;
+    if (userRole === Role.ADMIN) {
+      return [...adminItems, ...managerItems, ...employeeItems];
     }
 
-    if (userRole === 'manager') {
-      if (pathname?.startsWith('/dashboard/employee')) {
-        return [
-          ...employeeItems,
-          { href: '/dashboard/manager', label: 'Back to Manager', icon: BsGraphUp },
-        ];
-      }
-      return [
-        ...managerItems,
-        { href: '/dashboard/employee', label: 'Switch to Employee', icon: BsPerson },
-      ];
+    if (userRole === Role.MANAGER) {
+      return [...managerItems, ...employeeItems];
     }
 
     // Employee only sees employee items
@@ -140,33 +133,21 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
   };
 
   const hasAccessToDashboard = (): boolean => {
-    const userRole = session?.user?.role?.toLowerCase();
+    const userRole = session?.user?.role as Role;
     const currentPath = pathname || '';
     
-    // Admin has access to everything
-    if (userRole === 'admin') {
-      return true;
-    }
-
-    // Manager has access to manager and employee paths
-    if (userRole === 'manager') {
-      return currentPath.startsWith('/dashboard/employee') || 
-             currentPath.startsWith('/dashboard/manager');
-    }
-
-    // Employee has access to only employee paths
-    return currentPath.startsWith('/dashboard/employee');
+    return hasAccess(userRole, currentPath);
   };
 
   // Update the useEffect to handle path changes
   useEffect(() => {
     if (status === 'authenticated' && !hasAccessToDashboard()) {
-      const userRole = session?.user?.role?.toLowerCase();
+      const userRole = session?.user?.role as Role;
       let redirectPath = '/dashboard/employee';
       
-      if (userRole === 'admin') {
+      if (userRole === Role.ADMIN) {
         redirectPath = '/dashboard/admin';
-      } else if (userRole === 'manager') {
+      } else if (userRole === Role.MANAGER) {
         redirectPath = '/dashboard/manager';
       }
       

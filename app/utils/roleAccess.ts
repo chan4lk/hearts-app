@@ -35,19 +35,19 @@ export const ALL_NAV_ITEMS: NavItem[] = [
     href: '/dashboard/employee',
     icon: BsGrid,
     label: 'Employee Dashboard',
-    roles: ['EMPLOYEE', 'MANAGER', 'ADMIN']
+    roles: [Role.EMPLOYEE, Role.MANAGER, Role.ADMIN]
   },
   {
     href: '/dashboard/manager',
     icon: BsGrid,
     label: 'Manager Dashboard',
-    roles: ['MANAGER', 'ADMIN']
+    roles: [Role.MANAGER, Role.ADMIN]
   },
   {
     href: '/dashboard/admin',
     icon: BsGrid,
     label: 'Admin Dashboard',
-    roles: ['ADMIN']
+    roles: [Role.ADMIN]
   },
 
   // Employee items
@@ -55,13 +55,13 @@ export const ALL_NAV_ITEMS: NavItem[] = [
     href: '/dashboard/employee/goals/create',
     icon: BsBullseye,
     label: 'Create Goals',
-    roles: ['EMPLOYEE', 'MANAGER', 'ADMIN']
+    roles: [Role.EMPLOYEE, Role.MANAGER, Role.ADMIN]
   },
   {
     href: '/dashboard/employee/self-rating',
     icon: BsStar,
     label: 'Self Rating',
-    roles: ['EMPLOYEE', 'MANAGER', 'ADMIN']
+    roles: [Role.EMPLOYEE, Role.MANAGER, Role.ADMIN]
   },
 
   // Manager items
@@ -69,19 +69,19 @@ export const ALL_NAV_ITEMS: NavItem[] = [
     href: '/dashboard/manager/goals/approve-goals',
     icon: BsClipboardData,
     label: 'Goal Approvals',
-    roles: ['MANAGER', 'ADMIN']
+    roles: [Role.MANAGER, Role.ADMIN]
   },
   {
     href: '/dashboard/manager/goals/setgoals',
     icon: BsBullseye,
     label: 'Set Goals',
-    roles: ['MANAGER', 'ADMIN']
+    roles: [Role.MANAGER, Role.ADMIN]
   },
   {
     href: '/dashboard/manager/rate-employees',
     icon: BsStar,
     label: 'Rate Employees',
-    roles: ['MANAGER', 'ADMIN']
+    roles: [Role.MANAGER, Role.ADMIN]
   },
 
   // Admin items
@@ -89,13 +89,13 @@ export const ALL_NAV_ITEMS: NavItem[] = [
     href: '/dashboard/admin/users',
     icon: BsPeople,
     label: 'Manage Users',
-    roles: ['ADMIN']
+    roles: [Role.ADMIN]
   },
   {
     href: '/dashboard/admin/goals',
     icon: BsBullseye,
     label: 'Goal Settings',
-    roles: ['ADMIN']
+    roles: [Role.ADMIN]
   }
 ];
 
@@ -104,16 +104,24 @@ export const getNavItemsByRole = (role: Role): NavItem[] => {
 };
 
 export const hasAccess = (role: Role, path: string): boolean => {
-  // Always allow access to error and auth pages
-  if (path.startsWith('/error') || path.startsWith('/auth')) {
-    return true;
+  // Admin has access to everything
+  if (role === ('ADMIN' as Role)) return true;
+
+  // Check path against role permissions
+  if (path.startsWith('/dashboard/admin')) {
+    return role === ('ADMIN' as Role);
   }
 
-  // Check if the path matches any nav items the role has access to
-  return ALL_NAV_ITEMS.some(item => 
-    item.roles.includes(role) && 
-    (path === item.href || path.startsWith(`${item.href}/`))
-  );
+  if (path.startsWith('/dashboard/manager')) {
+    return role === ('ADMIN' as Role) || role === ('MANAGER' as Role);
+  }
+
+  if (path.startsWith('/dashboard/employee')) {
+    return true; // All roles have access to employee dashboard
+  }
+
+  // Default to false for unknown paths
+  return false;
 };
 
 export const getDefaultRedirectPath = (role: Role): string => {
@@ -126,11 +134,11 @@ export const getRoleBasedTitle = (role: Role): string => {
 
 export const getRoleColor = (role: Role): string => {
   switch (role) {
-    case 'ADMIN':
+    case Role.ADMIN:
       return 'text-purple-500 bg-purple-100 dark:text-purple-300 dark:bg-purple-900/20';
-    case 'MANAGER':
+    case Role.MANAGER:
       return 'text-blue-500 bg-blue-100 dark:text-blue-300 dark:bg-blue-900/20';
-    case 'EMPLOYEE':
+    case Role.EMPLOYEE:
       return 'text-green-500 bg-green-100 dark:text-green-300 dark:bg-green-900/20';
     default:
       return 'text-gray-500 bg-gray-100 dark:text-gray-300 dark:bg-gray-900/20';

@@ -23,7 +23,7 @@ export default withAuth(
     // If on login page and user is authenticated, redirect to appropriate dashboard
     if (path === '/login' && token) {
       const userRole = token.role as Role;
-      const redirectPath = ROLE_DASHBOARD_MAP[userRole] || ROLE_DASHBOARD_MAP.EMPLOYEE;
+      const redirectPath = getDefaultRedirectPath(userRole);
       console.log(`[Middleware] Redirecting authenticated user from login to: ${redirectPath}`);
       return NextResponse.redirect(new URL(redirectPath, req.url));
     }
@@ -52,7 +52,7 @@ export default withAuth(
     const userRole = token.role as Role;
     if (!hasAccess(userRole, path)) {
       console.log(`[Middleware] Unauthorized access to ${path} by role: ${userRole}`);
-      const defaultPath = ROLE_DASHBOARD_MAP[userRole] || ROLE_DASHBOARD_MAP.EMPLOYEE;
+      const defaultPath = getDefaultRedirectPath(userRole);
       console.log(`[Middleware] Redirecting to default path: ${defaultPath}`);
       return NextResponse.redirect(new URL(defaultPath, req.url));
     }
@@ -61,14 +61,7 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token, req }) => {
-        const path = req.nextUrl.pathname;
-        // Allow access to public pages without authentication
-        if (path === '/register' || path === '/login' || path === '/error') {
-          return true;
-        }
-        return !!token;
-      },
+      authorized: ({ token }) => !!token,
     },
     pages: {
       signIn: "/login",
