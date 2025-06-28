@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { Role } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -14,30 +15,49 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (session.user.role !== 'MANAGER') {
+    if (session.user.role !== Role.ADMIN && session.user.role !== Role.MANAGER) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    // Fetch employees assigned to the current manager
+    // For admin, get all employees
+    // For manager, get only assigned employees
+    const whereClause = session.user.role === Role.MANAGER
+      ? {
+          managerId: session.user.id,
+          role: Role.EMPLOYEE
+        }
+      : {
+          role: Role.EMPLOYEE
+        };
+
     const employees = await prisma.user.findMany({
-      where: {
-        managerId: session.user.id,
-        role: 'EMPLOYEE'
-      },
+      where: whereClause,
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
         department: true,
-        position: true
+        position: true,
+        manager: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
       },
       orderBy: {
         name: 'asc'
       }
     });
 
-    return NextResponse.json({ employees });
+    return NextResponse.json({ 
+      employees: employees.map(emp => ({
+        ...emp,
+        manager: session.user.role === Role.MANAGER ? undefined : emp.manager
+      }))
+    });
   } catch (error) {
     console.error('Error fetching assigned employees:', error);
     return NextResponse.json(
