@@ -39,7 +39,7 @@ export default withAuth(
     if (!token) {
       console.log(`[Middleware] No auth token, redirecting to login`);
       const loginUrl = new URL("/login", req.url);
-      loginUrl.searchParams.set("callbackUrl", path);
+      loginUrl.searchParams.set("callbackUrl", encodeURIComponent(path));
       return NextResponse.redirect(loginUrl);
     }
 
@@ -60,8 +60,8 @@ export default withAuth(
       return NextResponse.redirect(new URL(redirectPath, req.url));
     }
 
-    // If accessing root dashboard, redirect to role-specific dashboard
-    if (path === '/dashboard') {
+    // If accessing root or dashboard root, redirect to role-specific dashboard
+    if (path === '/' || path === '/dashboard') {
       const defaultPath = getDefaultRedirectPath(userRole);
       console.log(`[Middleware] Redirecting to role-specific dashboard:`, {
         role: userRole,
@@ -84,9 +84,24 @@ export default withAuth(
         console.log(`[Middleware] Access denied, redirecting:`, {
           role: userRole,
           from: path,
-          to: defaultPath
+          to: defaultPath,
+          reason: 'Insufficient permissions'
         });
         return NextResponse.redirect(new URL(defaultPath, req.url));
+      }
+
+      // If trying to access a dashboard root, redirect to the specific dashboard
+      const dashboardRoots = ['/dashboard/admin', '/dashboard/manager', '/dashboard/employee'];
+      if (dashboardRoots.includes(path)) {
+        const defaultPath = getDefaultRedirectPath(userRole);
+        if (path !== defaultPath) {
+          console.log(`[Middleware] Redirecting from dashboard root:`, {
+            role: userRole,
+            from: path,
+            to: defaultPath
+          });
+          return NextResponse.redirect(new URL(defaultPath, req.url));
+        }
       }
     }
 
@@ -115,6 +130,7 @@ export default withAuth(
 
 export const config = {
   matcher: [
+    "/",
     "/dashboard/:path*",
     "/api/((?!auth).)*",  // Block all API routes except auth
     "/login",

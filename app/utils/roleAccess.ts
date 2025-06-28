@@ -106,15 +106,43 @@ export const getNavItemsByRole = (role: Role): NavItem[] => {
 // Define role access levels
 const ROLE_ACCESS = {
   'ADMIN': {
-    canAccess: ['/dashboard/admin', '/dashboard/manager', '/dashboard/employee'],
+    canAccess: [
+      '/dashboard/admin',
+      '/dashboard/admin/users',
+      '/dashboard/admin/goals',
+      '/dashboard/manager',
+      '/dashboard/manager/goals',
+      '/dashboard/manager/goals/approve-goals',
+      '/dashboard/manager/goals/setgoals',
+      '/dashboard/manager/rate-employees',
+      '/dashboard/employee',
+      '/dashboard/employee/goals',
+      '/dashboard/employee/goals/create',
+      '/dashboard/employee/self-rating'
+    ],
     defaultPath: '/dashboard/admin'
   },
   'MANAGER': {
-    canAccess: ['/dashboard/manager', '/dashboard/employee'],
+    canAccess: [
+      '/dashboard/manager',
+      '/dashboard/manager/goals',
+      '/dashboard/manager/goals/approve-goals',
+      '/dashboard/manager/goals/setgoals',
+      '/dashboard/manager/rate-employees',
+      '/dashboard/employee',
+      '/dashboard/employee/goals',
+      '/dashboard/employee/goals/create',
+      '/dashboard/employee/self-rating'
+    ],
     defaultPath: '/dashboard/manager'
   },
   'EMPLOYEE': {
-    canAccess: ['/dashboard/employee'],
+    canAccess: [
+      '/dashboard/employee',
+      '/dashboard/employee/goals',
+      '/dashboard/employee/goals/create',
+      '/dashboard/employee/self-rating'
+    ],
     defaultPath: '/dashboard/employee'
   }
 } as const;
@@ -134,7 +162,16 @@ export const hasAccess = (role: Role, path: string): boolean => {
   }
 
   // Check if the path starts with any of the allowed paths
-  const hasAccess = roleConfig.canAccess.some(allowedPath => path.startsWith(allowedPath));
+  const hasAccess = roleConfig.canAccess.some(allowedPath => {
+    const pathMatches = path.startsWith(allowedPath);
+    console.log('[roleAccess] Checking path match:', {
+      allowedPath,
+      requestPath: path,
+      matches: pathMatches
+    });
+    return pathMatches;
+  });
+
   console.log('[roleAccess] Access check result:', {
     role,
     path,
