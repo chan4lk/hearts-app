@@ -227,6 +227,12 @@ export const hasAccess = (role: Role, path: string): boolean => {
     availablePaths: ROLE_ACCESS[role]?.canAccess || []
   });
 
+  // For admin role, allow access to all dashboard paths
+  if (role === 'ADMIN' && path.startsWith('/dashboard/')) {
+    console.log('[roleAccess] Admin access granted:', { path });
+    return true;
+  }
+
   // Get the role's access configuration
   const roleConfig = ROLE_ACCESS[role];
   if (!roleConfig) {
@@ -234,13 +240,7 @@ export const hasAccess = (role: Role, path: string): boolean => {
     return false;
   }
 
-  // For admin role, allow access to all dashboard paths
-  if (role === 'ADMIN' && path.startsWith('/dashboard/')) {
-    console.log('[roleAccess] Admin access granted:', { path });
-    return true;
-  }
-
-  // For other roles, check specific path access
+  // For non-admin roles, check specific path access
   const hasAccess = roleConfig.canAccess.some(allowedPath => {
     const pathMatches = path.startsWith(allowedPath);
     console.log('[roleAccess] Checking path match:', {

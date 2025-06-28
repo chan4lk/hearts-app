@@ -79,46 +79,24 @@ export default withAuth(
         hasAccess: hasRouteAccess
       });
 
-      if (!hasRouteAccess) {
-        // For admin users, try to preserve the current dashboard context
-        if (userRole === 'ADMIN') {
-          const currentContext = path.split('/')[2]; // Get 'admin', 'manager', or 'employee'
-          const defaultContextPath = `/dashboard/${currentContext}`;
-          console.log(`[Middleware] Preserving admin context:`, {
-            role: userRole,
-            from: path,
-            to: defaultContextPath,
-            context: currentContext
-          });
-          return NextResponse.redirect(new URL(defaultContextPath, req.url));
-        }
-
-        // For other roles, redirect to their default dashboard
-        const defaultPath = getDefaultRedirectPath(userRole);
-        console.log(`[Middleware] Access denied, redirecting:`, {
-          role: userRole,
-          from: path,
-          to: defaultPath,
-          reason: 'Insufficient permissions'
+      // If access is granted (including admin access), proceed
+      if (hasRouteAccess) {
+        console.log(`[Middleware] Access granted:`, {
+          path,
+          role: userRole
         });
-        return NextResponse.redirect(new URL(defaultPath, req.url));
+        return NextResponse.next();
       }
 
-      // Only redirect dashboard roots for non-admin users
-      if (userRole !== 'ADMIN') {
-        const dashboardRoots = ['/dashboard/admin', '/dashboard/manager', '/dashboard/employee'];
-        if (dashboardRoots.includes(path)) {
-          const defaultPath = getDefaultRedirectPath(userRole);
-          if (path !== defaultPath) {
-            console.log(`[Middleware] Redirecting non-admin from dashboard root:`, {
-              role: userRole,
-              from: path,
-              to: defaultPath
-            });
-            return NextResponse.redirect(new URL(defaultPath, req.url));
-          }
-        }
-      }
+      // If access is denied, redirect to default dashboard
+      const defaultPath = getDefaultRedirectPath(userRole);
+      console.log(`[Middleware] Access denied, redirecting:`, {
+        role: userRole,
+        from: path,
+        to: defaultPath,
+        reason: 'Insufficient permissions'
+      });
+      return NextResponse.redirect(new URL(defaultPath, req.url));
     }
 
     console.log(`[Middleware] Access granted:`, {
