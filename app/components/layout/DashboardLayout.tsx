@@ -98,7 +98,39 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
 
   const getNavItems = (): NavItem[] => {
     const userRole = session?.user?.role as Role;
-    return getNavItemsByRole(userRole, pathname);
+    const currentContext = type; // Use the current dashboard type
+
+    // Define navigation items for each role
+    const adminItems: NavItem[] = [
+      { href: '/dashboard/admin', label: 'Admin Overview', icon: BsShield },
+      { href: '/dashboard/admin/users', label: 'Manage Users', icon: BsPeople },
+      { href: '/dashboard/admin/goals', label: 'Goal Settings', icon: BsGear },
+    ];
+
+    const managerItems: NavItem[] = [
+      { href: '/dashboard/manager', label: 'Manager Overview', icon: BsGraphUp },
+      { href: '/dashboard/manager/goals/approve-goals', label: 'Goal Approvals', icon: BsClipboardData },
+      { href: '/dashboard/manager/goals/setgoals', label: 'Set Team Goals', icon: BsBullseye },
+      { href: '/dashboard/manager/rate-employees', label: 'Rate Team', icon: BsStar },
+    ];
+
+    const employeeItems: NavItem[] = [
+      { href: '/dashboard/employee', label: 'Employee Overview', icon: BsPerson },
+      { href: '/dashboard/employee/goals/create', label: 'My Goals', icon: BsBullseye },
+      { href: '/dashboard/employee/self-rating', label: 'Self Rating', icon: BsStar },
+    ];
+
+    // Return items based on current dashboard type
+    switch (currentContext) {
+      case 'admin':
+        return adminItems;
+      case 'manager':
+        return managerItems;
+      case 'employee':
+        return employeeItems;
+      default:
+        return employeeItems;
+    }
   };
 
   const hasAccessToDashboard = (): boolean => {
@@ -484,12 +516,13 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                   
                   {/* Available Dashboards Section */}
                   <div className="px-3 py-2 border-t border-gray-700/30">
-                    <h3 className="text-xs font-medium text-gray-400 mb-2">Available Dashboards</h3>
+                    <h3 className="text-xs font-medium text-gray-400 mb-2">Switch Dashboard</h3>
                     
                     {/* Employee Dashboard - Available to all */}
                     <Link
                       href="/dashboard/employee"
-                      className="group flex items-center w-full px-2 py-1.5 text-sm text-gray-300 hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-transparent hover:text-blue-400 rounded-lg transition-all duration-300"
+                      className={`group flex items-center w-full px-2 py-1.5 text-sm text-gray-300 hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-transparent hover:text-blue-400 rounded-lg transition-all duration-300 ${type === 'employee' ? 'bg-blue-500/10 text-blue-400' : ''}`}
+                      onClick={() => setIsUserMenuOpen(false)}
                     >
                       <BsPerson className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:translate-x-1" />
                       <span>Employee Dashboard</span>
@@ -499,7 +532,8 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                     {(session?.user?.role === Role.MANAGER || session?.user?.role === Role.ADMIN) && (
                       <Link
                         href="/dashboard/manager"
-                        className="group flex items-center w-full px-2 py-1.5 text-sm text-gray-300 hover:bg-gradient-to-r hover:from-indigo-500/10 hover:to-transparent hover:text-indigo-400 rounded-lg transition-all duration-300"
+                        className={`group flex items-center w-full px-2 py-1.5 text-sm text-gray-300 hover:bg-gradient-to-r hover:from-indigo-500/10 hover:to-transparent hover:text-indigo-400 rounded-lg transition-all duration-300 ${type === 'manager' ? 'bg-indigo-500/10 text-indigo-400' : ''}`}
+                        onClick={() => setIsUserMenuOpen(false)}
                       >
                         <BsGraphUp className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:translate-x-1" />
                         <span>Manager Dashboard</span>
@@ -510,7 +544,8 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                     {session?.user?.role === Role.ADMIN && (
                       <Link
                         href="/dashboard/admin"
-                        className="group flex items-center w-full px-2 py-1.5 text-sm text-gray-300 hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-transparent hover:text-purple-400 rounded-lg transition-all duration-300"
+                        className={`group flex items-center w-full px-2 py-1.5 text-sm text-gray-300 hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-transparent hover:text-purple-400 rounded-lg transition-all duration-300 ${type === 'admin' ? 'bg-purple-500/10 text-purple-400' : ''}`}
+                        onClick={() => setIsUserMenuOpen(false)}
                       >
                         <BsShield className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:translate-x-1" />
                         <span>Admin Dashboard</span>
