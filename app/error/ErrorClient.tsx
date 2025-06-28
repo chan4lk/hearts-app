@@ -5,12 +5,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import type { FC } from 'react';
 
 // Dynamic imports for header and footer
 const DynamicHeader = dynamic(() => import('@/components/Header'), { ssr: false });
 const DynamicFooter = dynamic(() => import('@/components/Footer'), { ssr: false });
 
-export default function ErrorClient() {
+const ErrorClient: FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [mounted, setMounted] = useState(false);
@@ -70,4 +71,6 @@ export default function ErrorClient() {
       </Suspense>
     </main>
   );
-} 
+}
+
+export default ErrorClient; 
