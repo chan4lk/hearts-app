@@ -14,7 +14,7 @@ export default withAuth(
 
     // If on login page and user is authenticated, redirect to appropriate dashboard
     if (path === '/login' && token) {
-      const userRole = token.role.toLowerCase() as UserRole;
+      const userRole = token.role.toUpperCase() as UserRole;
       const redirectPath = getDefaultRedirectPath(userRole);
       console.log(`[Middleware] Redirecting authenticated user from login to: ${redirectPath}`);
       return NextResponse.redirect(new URL(redirectPath, req.url));
@@ -41,7 +41,7 @@ export default withAuth(
     }
 
     // Role-based access control
-    const userRole = token.role.toLowerCase() as UserRole;
+    const userRole = token.role.toUpperCase() as UserRole;
     if (!hasAccess(userRole, path)) {
       console.log(`[Middleware] Unauthorized access to ${path} by role: ${userRole}`);
       const defaultPath = getDefaultRedirectPath(userRole);

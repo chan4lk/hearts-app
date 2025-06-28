@@ -41,10 +41,11 @@ function LoginForm() {
 
     if (session?.user) {
       console.log('[Login] User session detected:', session.user);
-      const role = session.user.role.toLowerCase();
-      const redirectPath = role === 'admin' 
+      // Convert role to uppercase to match database enum
+      const role = session.user.role.toUpperCase();
+      const redirectPath = role === 'ADMIN' 
         ? '/dashboard/admin'
-        : role === 'manager'
+        : role === 'MANAGER'
           ? '/dashboard/manager'
           : '/dashboard/employee';
       

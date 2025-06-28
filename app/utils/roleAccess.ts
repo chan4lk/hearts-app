@@ -14,7 +14,7 @@ import {
   BsPeople
 } from 'react-icons/bs';
 
-export type UserRole = 'employee' | 'manager' | 'admin';
+export type UserRole = 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
 
 export interface NavItem {
   href: string;
@@ -29,19 +29,19 @@ export const ALL_NAV_ITEMS: NavItem[] = [
     href: '/dashboard/employee',
     icon: BsGrid,
     label: 'Employee Dashboard',
-    roles: ['employee', 'manager', 'admin']
+    roles: ['EMPLOYEE', 'MANAGER', 'ADMIN']
   },
   {
     href: '/dashboard/manager',
     icon: BsGrid,
     label: 'Manager Dashboard',
-    roles: ['manager', 'admin']
+    roles: ['MANAGER', 'ADMIN']
   },
   {
     href: '/dashboard/admin',
     icon: BsGrid,
     label: 'Admin Dashboard',
-    roles: ['admin']
+    roles: ['ADMIN']
   },
 
   // Employee items
@@ -49,13 +49,13 @@ export const ALL_NAV_ITEMS: NavItem[] = [
     href: '/dashboard/employee/goals/create',
     icon: BsBullseye,
     label: 'Create Goals',
-    roles: ['employee', 'manager', 'admin']
+    roles: ['EMPLOYEE', 'MANAGER', 'ADMIN']
   },
   {
     href: '/dashboard/employee/self-rating',
     icon: BsStar,
     label: 'Self Rating',
-    roles: ['employee', 'manager', 'admin']
+    roles: ['EMPLOYEE', 'MANAGER', 'ADMIN']
   },
 
   // Manager items
@@ -63,19 +63,19 @@ export const ALL_NAV_ITEMS: NavItem[] = [
     href: '/dashboard/manager/goals/approve-goals',
     icon: BsClipboardData,
     label: 'Goal Approvals',
-    roles: ['manager', 'admin']
+    roles: ['MANAGER', 'ADMIN']
   },
   {
     href: '/dashboard/manager/goals/setgoals',
     icon: BsBullseye,
     label: 'Set Goals',
-    roles: ['manager', 'admin']
+    roles: ['MANAGER', 'ADMIN']
   },
   {
     href: '/dashboard/manager/rate-employees',
     icon: BsStar,
     label: 'Rate Employees',
-    roles: ['manager', 'admin']
+    roles: ['MANAGER', 'ADMIN']
   },
 
   // Admin items
@@ -83,13 +83,13 @@ export const ALL_NAV_ITEMS: NavItem[] = [
     href: '/dashboard/admin/users',
     icon: BsPeople,
     label: 'Manage Users',
-    roles: ['admin']
+    roles: ['ADMIN']
   },
   {
     href: '/dashboard/admin/goals',
     icon: BsBullseye,
     label: 'Goal Settings',
-    roles: ['admin']
+    roles: ['ADMIN']
   }
 ];
 
@@ -112,11 +112,11 @@ export const hasAccess = (role: UserRole, path: string): boolean => {
 
 export const getDefaultRedirectPath = (role: UserRole): string => {
   switch (role) {
-    case 'admin':
+    case 'ADMIN':
       return '/dashboard/admin';
-    case 'manager':
+    case 'MANAGER':
       return '/dashboard/manager';
-    case 'employee':
+    case 'EMPLOYEE':
       return '/dashboard/employee';
     default:
       return '/login';
@@ -124,16 +124,16 @@ export const getDefaultRedirectPath = (role: UserRole): string => {
 };
 
 export const getRoleBasedTitle = (role: UserRole): string => {
-  return `${role.charAt(0).toUpperCase() + role.slice(1)} Portal`;
+  return `${role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()} Portal`;
 };
 
 export const getRoleColor = (role: UserRole): string => {
   switch (role) {
-    case 'admin':
+    case 'ADMIN':
       return 'text-purple-500 bg-purple-100 dark:text-purple-300 dark:bg-purple-900/20';
-    case 'manager':
+    case 'MANAGER':
       return 'text-blue-500 bg-blue-100 dark:text-blue-300 dark:bg-blue-900/20';
-    case 'employee':
+    case 'EMPLOYEE':
       return 'text-green-500 bg-green-100 dark:text-green-300 dark:bg-green-900/20';
     default:
       return 'text-gray-500 bg-gray-100 dark:text-gray-300 dark:bg-gray-900/20';

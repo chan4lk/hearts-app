@@ -36,12 +36,9 @@ export const authOptions: NextAuthOptions = {
         params: {
           scope: "openid profile email offline_access",
           response_type: "code",
-          // Remove 'consent' to prevent asking for consent every time
-          // Only prompt when necessary
           prompt: "select_account"
         }
       },
-      // Add explicit configuration for production environment
       profile: async (profile, tokens) => {
         console.log('Azure AD profile:', JSON.stringify(profile, null, 2));
         console.log('Azure AD tokens:', JSON.stringify(tokens, null, 2));
@@ -316,4 +313,4 @@ export async function hasRole(role: string): Promise<boolean> {
 export async function logout() {
   const cookieStore = cookies();
   cookieStore.delete('token');
-}
+} 
