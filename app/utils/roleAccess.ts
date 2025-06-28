@@ -27,80 +27,147 @@ export interface NavItem {
   icon: IconType;
   label: string;
   roles: Role[];
+  context?: 'admin' | 'manager' | 'employee';  // Which dashboard context this item belongs to
 }
 
-export const ALL_NAV_ITEMS: NavItem[] = [
-  // Dashboard items
-  {
-    href: '/dashboard/employee',
-    icon: BsGrid,
-    label: 'Employee Dashboard',
-    roles: [Role.EMPLOYEE, Role.MANAGER, Role.ADMIN]
-  },
-  {
-    href: '/dashboard/manager',
-    icon: BsGrid,
-    label: 'Manager Dashboard',
-    roles: [Role.MANAGER, Role.ADMIN]
-  },
+// Navigation items grouped by dashboard context
+const ADMIN_NAV_ITEMS: NavItem[] = [
   {
     href: '/dashboard/admin',
     icon: BsGrid,
-    label: 'Admin Dashboard',
-    roles: [Role.ADMIN]
+    label: 'Admin Overview',
+    roles: [Role.ADMIN],
+    context: 'admin'
   },
-
-  // Employee items
-  {
-    href: '/dashboard/employee/goals/create',
-    icon: BsBullseye,
-    label: 'Create Goals',
-    roles: [Role.EMPLOYEE, Role.MANAGER, Role.ADMIN]
-  },
-  {
-    href: '/dashboard/employee/self-rating',
-    icon: BsStar,
-    label: 'Self Rating',
-    roles: [Role.EMPLOYEE, Role.MANAGER, Role.ADMIN]
-  },
-
-  // Manager items
-  {
-    href: '/dashboard/manager/goals/approve-goals',
-    icon: BsClipboardData,
-    label: 'Goal Approvals',
-    roles: [Role.MANAGER, Role.ADMIN]
-  },
-  {
-    href: '/dashboard/manager/goals/setgoals',
-    icon: BsBullseye,
-    label: 'Set Goals',
-    roles: [Role.MANAGER, Role.ADMIN]
-  },
-  {
-    href: '/dashboard/manager/rate-employees',
-    icon: BsStar,
-    label: 'Rate Employees',
-    roles: [Role.MANAGER, Role.ADMIN]
-  },
-
-  // Admin items
   {
     href: '/dashboard/admin/users',
     icon: BsPeople,
     label: 'Manage Users',
-    roles: [Role.ADMIN]
+    roles: [Role.ADMIN],
+    context: 'admin'
   },
   {
     href: '/dashboard/admin/goals',
     icon: BsBullseye,
     label: 'Goal Settings',
-    roles: [Role.ADMIN]
+    roles: [Role.ADMIN],
+    context: 'admin'
   }
 ];
 
-export const getNavItemsByRole = (role: Role): NavItem[] => {
-  return ALL_NAV_ITEMS.filter(item => item.roles.includes(role));
+const MANAGER_NAV_ITEMS: NavItem[] = [
+  {
+    href: '/dashboard/manager',
+    icon: BsGrid,
+    label: 'Manager Overview',
+    roles: [Role.MANAGER, Role.ADMIN],
+    context: 'manager'
+  },
+  {
+    href: '/dashboard/manager/goals/approve-goals',
+    icon: BsClipboardData,
+    label: 'Goal Approvals',
+    roles: [Role.MANAGER, Role.ADMIN],
+    context: 'manager'
+  },
+  {
+    href: '/dashboard/manager/goals/setgoals',
+    icon: BsBullseye,
+    label: 'Set Goals',
+    roles: [Role.MANAGER, Role.ADMIN],
+    context: 'manager'
+  },
+  {
+    href: '/dashboard/manager/rate-employees',
+    icon: BsStar,
+    label: 'Rate Employees',
+    roles: [Role.MANAGER, Role.ADMIN],
+    context: 'manager'
+  }
+];
+
+const EMPLOYEE_NAV_ITEMS: NavItem[] = [
+  {
+    href: '/dashboard/employee',
+    icon: BsGrid,
+    label: 'Employee Overview',
+    roles: [Role.EMPLOYEE, Role.MANAGER, Role.ADMIN],
+    context: 'employee'
+  },
+  {
+    href: '/dashboard/employee/goals/create',
+    icon: BsBullseye,
+    label: 'Create Goals',
+    roles: [Role.EMPLOYEE, Role.MANAGER, Role.ADMIN],
+    context: 'employee'
+  },
+  {
+    href: '/dashboard/employee/self-rating',
+    icon: BsStar,
+    label: 'Self Rating',
+    roles: [Role.EMPLOYEE, Role.MANAGER, Role.ADMIN],
+    context: 'employee'
+  }
+];
+
+// Dashboard switcher items for admin
+const DASHBOARD_SWITCHER: NavItem[] = [
+  {
+    href: '/dashboard/admin',
+    icon: BsShield,
+    label: 'Switch to Admin',
+    roles: [Role.ADMIN]
+  },
+  {
+    href: '/dashboard/manager',
+    icon: BsGraphUp,
+    label: 'Switch to Manager',
+    roles: [Role.MANAGER, Role.ADMIN]
+  },
+  {
+    href: '/dashboard/employee',
+    icon: BsPerson,
+    label: 'Switch to Employee',
+    roles: [Role.EMPLOYEE, Role.MANAGER, Role.ADMIN]
+  }
+];
+
+export const getNavItemsByRole = (role: Role, currentPath: string): NavItem[] => {
+  // Determine current dashboard context
+  let context: 'admin' | 'manager' | 'employee' = 'employee';
+  if (currentPath.startsWith('/dashboard/admin')) {
+    context = 'admin';
+  } else if (currentPath.startsWith('/dashboard/manager')) {
+    context = 'manager';
+  }
+
+  // For admin users, show context-specific navigation plus dashboard switcher
+  if (role === 'ADMIN') {
+    const contextItems = (() => {
+      switch (context) {
+        case 'admin':
+          return ADMIN_NAV_ITEMS;
+        case 'manager':
+          return MANAGER_NAV_ITEMS;
+        case 'employee':
+          return EMPLOYEE_NAV_ITEMS;
+      }
+    })();
+
+    return [
+      ...contextItems,
+      { href: '', label: 'Switch Dashboard', icon: BsGrid, roles: [Role.ADMIN] }, // Divider
+      ...DASHBOARD_SWITCHER
+    ];
+  }
+
+  // For other roles, show their allowed navigation items
+  const allowedItems = [
+    ...(role === 'MANAGER' ? MANAGER_NAV_ITEMS : []),
+    ...EMPLOYEE_NAV_ITEMS
+  ].filter(item => item.roles.includes(role));
+
+  return allowedItems;
 };
 
 // Define role access levels

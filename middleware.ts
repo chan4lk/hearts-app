@@ -80,6 +80,20 @@ export default withAuth(
       });
 
       if (!hasRouteAccess) {
+        // For admin users, try to preserve the current dashboard context
+        if (userRole === 'ADMIN') {
+          const currentContext = path.split('/')[2]; // Get 'admin', 'manager', or 'employee'
+          const defaultContextPath = `/dashboard/${currentContext}`;
+          console.log(`[Middleware] Preserving admin context:`, {
+            role: userRole,
+            from: path,
+            to: defaultContextPath,
+            context: currentContext
+          });
+          return NextResponse.redirect(new URL(defaultContextPath, req.url));
+        }
+
+        // For other roles, redirect to their default dashboard
         const defaultPath = getDefaultRedirectPath(userRole);
         console.log(`[Middleware] Access denied, redirecting:`, {
           role: userRole,
