@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { IconType } from 'react-icons';
 import { Role } from '@prisma/client';
-import { hasAccess } from '@/app/utils/roleAccess';
+import { hasAccess, getNavItemsByRole } from '@/app/utils/roleAccess';
 
 import { 
   BsGrid, 
@@ -98,63 +98,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
 
   const getNavItems = (): NavItem[] => {
     const userRole = session?.user?.role as Role;
-    const currentContext = pathname.split('/')[2] || type; // Get current dashboard context
-
-    // Define all possible navigation items grouped by functionality
-    const adminItems: NavItem[] = [
-      { href: '/dashboard/admin', label: 'Admin Overview', icon: BsShield },
-      { href: '/dashboard/admin/users', label: 'Manage Users', icon: BsPeople },
-      { href: '/dashboard/admin/goals', label: 'Goal Settings', icon: BsGear },
-    ];
-
-    const managerItems: NavItem[] = [
-      { href: '/dashboard/manager', label: 'Manager Overview', icon: BsGraphUp },
-      { href: '/dashboard/manager/goals/approve-goals', label: 'Goal Approvals', icon: BsClipboardData },
-      { href: '/dashboard/manager/goals/setgoals', label: 'Set Team Goals', icon: BsBullseye },
-      { href: '/dashboard/manager/rate-employees', label: 'Rate Team', icon: BsStar },
-    ];
-
-    const employeeItems: NavItem[] = [
-      { href: '/dashboard/employee', label: 'Employee Overview', icon: BsPerson },
-      { href: '/dashboard/employee/goals/create', label: 'My Goals', icon: BsBullseye },
-      { href: '/dashboard/employee/self-rating', label: 'Self Rating', icon: BsStar },
-    ];
-
-    // For admin users, show context-specific items plus dashboard switcher
-    if (userRole === 'ADMIN') {
-      const contextItems = (() => {
-        switch (currentContext) {
-          case 'admin':
-            return adminItems;
-          case 'manager':
-            return managerItems;
-          case 'employee':
-            return employeeItems;
-          default:
-            return adminItems;
-        }
-      })();
-
-      // Add dashboard switcher
-      const switcherItems = [
-        { href: '/dashboard/admin', label: 'Switch to Admin', icon: BsShield },
-        { href: '/dashboard/manager', label: 'Switch to Manager', icon: BsGraphUp },
-        { href: '/dashboard/employee', label: 'Switch to Employee', icon: BsPerson },
-      ];
-
-      return [
-        ...contextItems,
-        { href: '', label: '──────────', icon: BsGrid }, // Divider
-        ...switcherItems
-      ];
-    }
-
-    // For other roles, show their allowed items
-    if (userRole === 'MANAGER') {
-      return [...managerItems, ...employeeItems];
-    }
-
-    return employeeItems;
+    return getNavItemsByRole(userRole, pathname);
   };
 
   const hasAccessToDashboard = (): boolean => {
@@ -541,33 +485,34 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                   {/* Available Dashboards Section */}
                   <div className="px-3 py-2 border-t border-gray-700/30">
                     <h3 className="text-xs font-medium text-gray-400 mb-2">Available Dashboards</h3>
+                    
                     {/* Employee Dashboard - Available to all */}
                     <Link
                       href="/dashboard/employee"
                       className="group flex items-center w-full px-2 py-1.5 text-sm text-gray-300 hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-transparent hover:text-blue-400 rounded-lg transition-all duration-300"
                     >
-                      <BsGrid className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:translate-x-1" />
+                      <BsPerson className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:translate-x-1" />
                       <span>Employee Dashboard</span>
                     </Link>
 
-                    {/* Manager Dashboard - Available to managers and admins */}
+                    {/* Manager Dashboard - Only for managers and admins */}
                     {(session?.user?.role === Role.MANAGER || session?.user?.role === Role.ADMIN) && (
                       <Link
                         href="/dashboard/manager"
                         className="group flex items-center w-full px-2 py-1.5 text-sm text-gray-300 hover:bg-gradient-to-r hover:from-indigo-500/10 hover:to-transparent hover:text-indigo-400 rounded-lg transition-all duration-300"
                       >
-                        <BsShield className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:translate-x-1" />
+                        <BsGraphUp className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:translate-x-1" />
                         <span>Manager Dashboard</span>
                       </Link>
                     )}
 
-                    {/* Admin Dashboard - Available only to admins */}
+                    {/* Admin Dashboard - Only for admins */}
                     {session?.user?.role === Role.ADMIN && (
                       <Link
                         href="/dashboard/admin"
                         className="group flex items-center w-full px-2 py-1.5 text-sm text-gray-300 hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-transparent hover:text-purple-400 rounded-lg transition-all duration-300"
                       >
-                        <BsGear className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:translate-x-1" />
+                        <BsShield className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:translate-x-1" />
                         <span>Admin Dashboard</span>
                       </Link>
                     )}
