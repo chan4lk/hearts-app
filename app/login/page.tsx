@@ -139,7 +139,7 @@ function LoginForm() {
     <main className="flex flex-col min-h-screen bg-gradient-to-br from-[#0B1120] via-[#132145] to-[#1E1B4B]">
       
       <Suspense fallback={<div className="h-14 bg-[#0f172a]/50 backdrop-blur-sm border-b border-indigo-500/20" />}>
-        <DynamicHeader />
+        <DynamicHeader userName="" />
       </Suspense>
 
       <div className="flex-1 flex items-center justify-center px-4 py-6 sm:py-8 md:py-12 mt-20 relative overflow-hidden">
