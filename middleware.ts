@@ -50,6 +50,15 @@ export default withAuth(
 
     // Role-based access control
     const userRole = token.role as Role;
+    
+    // If accessing root dashboard, redirect to role-specific dashboard
+    if (path === '/dashboard') {
+      const defaultPath = getDefaultRedirectPath(userRole);
+      console.log(`[Middleware] Redirecting to default dashboard: ${defaultPath}`);
+      return NextResponse.redirect(new URL(defaultPath, req.url));
+    }
+
+    // Check access permissions
     if (!hasAccess(userRole, path)) {
       console.log(`[Middleware] Unauthorized access to ${path} by role: ${userRole}`);
       const defaultPath = getDefaultRedirectPath(userRole);
