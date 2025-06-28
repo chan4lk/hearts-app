@@ -10,16 +10,16 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
- {/* Logo */}
- <a href="/" className="group relative transform hover:scale-105 transition-all duration-300">
-              <div className="relative">
-                <img
-                  src="/logo.png"
-                  alt="Bistec Logo"
-                  className="h-12 w-auto object-contain glow-effect transition-all duration-300"
-                />
+              <div className="group relative transform hover:scale-105 transition-all duration-300">
+                <div className="relative">
+                  <img
+                    src="/logo.png"
+                    alt="Bistec Logo"
+                    className="h-12 w-auto object-contain glow-effect transition-all duration-300"
+                  />
+                </div>
               </div>
-            </a>              <span className="text-2xl font-bold text-foreground">AspireHub</span>
+              <span className="text-2xl font-bold text-foreground">AspireHub</span>
             </Link>
             <p className="text-muted-foreground text-sm">
               Elevating team performance through seamless goal management.

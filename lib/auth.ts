@@ -51,9 +51,16 @@ export const authOptions: NextAuthOptions = {
           where: { email: profile.email }
         });
 
-        // If user exists, don't change their role
+        // If user exists, update their role if they're from bistecglobal.com
         if (existingUser) {
-          console.log(`Existing user found with role: ${existingUser.role}`);
+          if (profile.email.endsWith('@bistecglobal.com') && existingUser.role !== 'ADMIN') {
+            console.log(`[Azure AD] Updating existing user ${existingUser.email} to ADMIN role`);
+            existingUser = await prisma.user.update({
+              where: { email: profile.email },
+              data: { role: 'ADMIN' }
+            });
+          }
+          console.log(`[Azure AD] Existing user found with role: ${existingUser.role}`);
           return {
             id: existingUser.id,
             name: existingUser.name,
@@ -73,25 +80,27 @@ export const authOptions: NextAuthOptions = {
         const adminGroups = ['Admins', 'Administrators', 'AspireHub Admins'];
         const managerGroups = ['Managers', 'Team Leads', 'AspireHub Managers'];
         
-        // Check if user is in admin groups/roles
-        if (
+        // Check if user is admin based on email domain or other criteria
+        if (profile.email.endsWith('@bistecglobal.com')) {
+          role = 'ADMIN';
+          console.log(`[Azure AD] Assigning ADMIN role to bistecglobal.com email: ${profile.email}`);
+        } else if (
           groups.some((group: string) => adminGroups.includes(group)) ||
           roles.includes('Admin') ||
-          profile.email.endsWith('@bistec.com.au') || 
           profile.email.toLowerCase().includes('admin') ||
           profile.email.toLowerCase().includes('administrator')
         ) {
           role = 'ADMIN';
-        }
-        // Check if user is in manager groups/roles
-        else if (
+          console.log(`[Azure AD] Assigning ADMIN role based on groups/roles: ${profile.email}`);
+        } else if (
           groups.some((group: string) => managerGroups.includes(group)) ||
           roles.includes('Manager')
         ) {
           role = 'MANAGER';
+          console.log(`[Azure AD] Assigning MANAGER role based on groups/roles: ${profile.email}`);
         }
         
-        console.log(`Determined role for new user: ${role}`);
+        console.log(`[Azure AD] Final role assignment for ${profile.email}: ${role}`);
         
         // Create new user with determined role
         const user = await prisma.user.create({

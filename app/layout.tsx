@@ -8,6 +8,7 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Bistec AspireHub',
   description: 'A system for managing employee performance and goals',
+  
 };
 
 export default function RootLayout({

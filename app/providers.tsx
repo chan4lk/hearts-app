@@ -1,7 +1,7 @@
 'use client';
 
 import { SessionProvider } from 'next-auth/react';
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 // 1. Create Settings Context
 interface Settings {
@@ -12,73 +12,27 @@ interface Settings {
 interface SettingsContextType {
   settings: Settings;
   loading: boolean;
-  updateSettings: (newSettings: Partial<Settings>) => Promise<void>;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 // 2. Create a Settings Provider
 function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const [settings, setSettings] = useState<Settings>({
-    systemName: 'Performance Management',
+  const [settings] = useState<Settings>({
+    systemName: 'Bistec AspireHub',
     theme: 'dark',
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Force dark theme on mount
   useEffect(() => {
     document.documentElement.classList.add('dark');
-  }, []);
-
-  const fetchSettings = useCallback(async () => {
-    try {
-      const response = await fetch('/api/admin/settings');
-      if (response.ok) {
-        const data = await response.json();
-        setSettings({
-          systemName: data.systemName,
-          theme: 'dark' // Always keep theme dark
-        } as Settings);
-        document.title = data.systemName;
-        document.documentElement.classList.add('dark');
-      }
-    } catch (error) {
-      console.error('Failed to fetch settings:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchSettings();
-  }, [fetchSettings]);
-
-  const updateSettings = async (newSettings: Partial<Settings>) => {
-    const oldSettings = settings;
-    const updatedSettings: Settings = { 
-      ...settings, 
-      ...newSettings,
-      theme: 'dark' // Always keep theme dark
-    };
-    setSettings(updatedSettings);
-    document.title = updatedSettings.systemName;
-    document.documentElement.classList.add('dark');
-
-    try {
-      await fetch('/api/admin/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedSettings),
-      });
-    } catch (error) {
-      console.error('Failed to update settings:', error);
-      setSettings(oldSettings);
-      document.title = oldSettings.systemName;
-    }
-  };
+    document.title = settings.systemName;
+    setLoading(false);
+  }, [settings.systemName]);
 
   return (
-    <SettingsContext.Provider value={{ settings, loading, updateSettings }}>
+    <SettingsContext.Provider value={{ settings, loading }}>
       {children}
     </SettingsContext.Provider>
   );

@@ -53,13 +53,13 @@ interface NavItem {
 
 export default function DashboardLayout({ children, type }: DashboardLayoutProps) {
   const { data: session, status } = useSession();
-  const { settings, updateSettings } = useSettings();
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname() || '';
+  const { settings } = useSettings();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const userMenuRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -68,48 +68,17 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
 
   // Close mobile menu when clicking outside
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    const handleClickOutside = (event: MouseEvent) => {
       if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
         setIsMobileMenuOpen(false);
       }
-    }
-
-    if (isMobileMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
+    };
     
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isMobileMenuOpen]);
-
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        // Only fetch admin settings if user is an admin
-        if (type === 'admin') {
-          const response = await fetch('/api/admin/settings');
-          if (!response.ok) {
-            if (response.status === 401) {
-              console.log('Not authorized to access admin settings');
-              return;
-            }
-            throw new Error('Failed to fetch settings');
-          }
-          const data = await response.json();
-          if (data && typeof data === 'object') {
-            await updateSettings(data);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching settings:', error);
-      }
-    };
-
-    if (status === 'authenticated') {
-      fetchSettings();
-    }
-  }, [type, status, updateSettings]);
 
   // Close user menu when clicking outside
   useEffect(() => {
