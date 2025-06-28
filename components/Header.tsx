@@ -25,7 +25,7 @@ const AzureLogo = ({ className = "" }) => (
 );
 
 
-const Header = ({ userName }: { userName: string }) => {
+const Header = ({ userName }: { userName?: string }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
