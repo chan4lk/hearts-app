@@ -104,20 +104,22 @@ export const getNavItemsByRole = (role: Role): NavItem[] => {
 };
 
 export const hasAccess = (role: Role, path: string): boolean => {
+  const roleStr = role as string;
+
   // Admin has access to everything
-  if (role === ('ADMIN' as Role)) return true;
+  if (roleStr === 'ADMIN') return true;
 
   // Check path against role permissions
   if (path.startsWith('/dashboard/admin')) {
-    return role === ('ADMIN' as Role);
+    return roleStr === 'ADMIN';
   }
 
   if (path.startsWith('/dashboard/manager')) {
-    return role === ('ADMIN' as Role) || role === ('MANAGER' as Role);
+    return ['ADMIN', 'MANAGER'].includes(roleStr);
   }
 
   if (path.startsWith('/dashboard/employee')) {
-    return true; // All roles have access to employee dashboard
+    return ['ADMIN', 'MANAGER', 'EMPLOYEE'].includes(roleStr);
   }
 
   // Default to false for unknown paths
@@ -125,7 +127,17 @@ export const hasAccess = (role: Role, path: string): boolean => {
 };
 
 export const getDefaultRedirectPath = (role: Role): string => {
-  return ROLE_DASHBOARD_MAP[role] || ROLE_DASHBOARD_MAP.EMPLOYEE;
+  const roleStr = role as string;
+  switch (roleStr) {
+    case 'ADMIN':
+      return '/dashboard/admin';
+    case 'MANAGER':
+      return '/dashboard/manager';
+    case 'EMPLOYEE':
+      return '/dashboard/employee';
+    default:
+      return '/dashboard/employee';
+  }
 };
 
 export const getRoleBasedTitle = (role: Role): string => {
