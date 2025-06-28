@@ -98,37 +98,62 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
 
   const getNavItems = (): NavItem[] => {
     const userRole = session?.user?.role as Role;
+    const currentContext = pathname.split('/')[2] || type; // Get current dashboard context
 
     // Define all possible navigation items grouped by functionality
     const adminItems: NavItem[] = [
-      { href: '/dashboard/admin', label: 'Admin Dashboard', icon: BsShield },
+      { href: '/dashboard/admin', label: 'Admin Overview', icon: BsShield },
       { href: '/dashboard/admin/users', label: 'Manage Users', icon: BsPeople },
       { href: '/dashboard/admin/goals', label: 'Goal Settings', icon: BsGear },
     ];
 
     const managerItems: NavItem[] = [
-      { href: '/dashboard/manager', label: 'Manager Dashboard', icon: BsGraphUp },
+      { href: '/dashboard/manager', label: 'Manager Overview', icon: BsGraphUp },
       { href: '/dashboard/manager/goals/approve-goals', label: 'Goal Approvals', icon: BsClipboardData },
       { href: '/dashboard/manager/goals/setgoals', label: 'Set Team Goals', icon: BsBullseye },
       { href: '/dashboard/manager/rate-employees', label: 'Rate Team', icon: BsStar },
     ];
 
     const employeeItems: NavItem[] = [
-      { href: '/dashboard/employee', label: 'Employee Dashboard', icon: BsPerson },
+      { href: '/dashboard/employee', label: 'Employee Overview', icon: BsPerson },
       { href: '/dashboard/employee/goals/create', label: 'My Goals', icon: BsBullseye },
       { href: '/dashboard/employee/self-rating', label: 'Self Rating', icon: BsStar },
     ];
 
-    // Return items based on user role
-    if (userRole === Role.ADMIN) {
-      return [...adminItems, ...managerItems, ...employeeItems];
+    // For admin users, show context-specific items plus dashboard switcher
+    if (userRole === 'ADMIN') {
+      const contextItems = (() => {
+        switch (currentContext) {
+          case 'admin':
+            return adminItems;
+          case 'manager':
+            return managerItems;
+          case 'employee':
+            return employeeItems;
+          default:
+            return adminItems;
+        }
+      })();
+
+      // Add dashboard switcher
+      const switcherItems = [
+        { href: '/dashboard/admin', label: 'Switch to Admin', icon: BsShield },
+        { href: '/dashboard/manager', label: 'Switch to Manager', icon: BsGraphUp },
+        { href: '/dashboard/employee', label: 'Switch to Employee', icon: BsPerson },
+      ];
+
+      return [
+        ...contextItems,
+        { href: '', label: '──────────', icon: BsGrid }, // Divider
+        ...switcherItems
+      ];
     }
 
-    if (userRole === Role.MANAGER) {
+    // For other roles, show their allowed items
+    if (userRole === 'MANAGER') {
       return [...managerItems, ...employeeItems];
     }
 
-    // Employee only sees employee items
     return employeeItems;
   };
 
@@ -143,11 +168,17 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
   useEffect(() => {
     if (status === 'authenticated' && !hasAccessToDashboard()) {
       const userRole = session?.user?.role as Role;
-      let redirectPath = '/dashboard/employee';
       
-      if (userRole === Role.ADMIN) {
+      // For admin users, don't redirect unless they're accessing a non-dashboard path
+      if (userRole === 'ADMIN' && pathname.startsWith('/dashboard/')) {
+        return;
+      }
+      
+      // For other roles, redirect to their default dashboard if they don't have access
+      let redirectPath = '/dashboard/employee';
+      if (userRole === 'ADMIN') {
         redirectPath = '/dashboard/admin';
-      } else if (userRole === Role.MANAGER) {
+      } else if (userRole === 'MANAGER') {
         redirectPath = '/dashboard/manager';
       }
       
@@ -163,14 +194,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
     // Remove trailing slashes for consistent comparison
     const cleanPath = pathname.replace(/\/$/, '');
     const cleanHref = href.replace(/\/$/, '');
-
-    // For dashboard pages, check if we're on the exact dashboard path
-    if (cleanHref.endsWith('/dashboard/' + type)) {
-      return cleanPath === cleanHref;
-    }
-
-    // For all other pages, check if we're in that section
-    return cleanPath.includes(cleanHref);
+    return cleanPath.startsWith(cleanHref);
   };
 
   const handleSignOut = async () => {

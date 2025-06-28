@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { signOut } from 'next-auth/react';
+import { getNavItemsByRole } from '@/app/utils/roleAccess';
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -12,16 +13,20 @@ export default function Navigation() {
 
   if (!session) return null;
 
-  const isActive = (path: string) => pathname === path;
+  const isActive = (path: string) => pathname.startsWith(path);
 
-  const menuItems = [
-    { path: '/dashboard', label: 'Dashboard' },
-    { path: '/goals', label: 'Goals' },
-    ...(session.user.role === 'ADMIN' ? [
-      { path: '/admin/users', label: 'Users' },
-      { path: '/admin/settings', label: 'Settings' },
-    ] : []),
-  ];
+  // Get navigation items based on role and current path
+  const navItems = getNavItemsByRole(session.user.role, pathname);
+
+  // Group navigation items by context
+  const groupedNavItems = navItems.reduce((acc, item) => {
+    const context = item.context || 'other';
+    if (!acc[context]) {
+      acc[context] = [];
+    }
+    acc[context].push(item);
+    return acc;
+  }, {} as Record<string, typeof navItems>);
 
   return (
     <nav className="bg-white shadow">
@@ -32,16 +37,17 @@ export default function Navigation() {
               <span className="text-xl font-bold text-indigo-600">PMS</span>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              {menuItems.map((item) => (
+              {navItems.map((item) => (
                 <Link
-                  key={item.path}
-                  href={item.path}
+                  key={item.href}
+                  href={item.href}
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                    isActive(item.path)
+                    isActive(item.href)
                       ? 'border-indigo-500 text-gray-900'
                       : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                   }`}
                 >
+                  <item.icon className="h-5 w-5 mr-2" />
                   {item.label}
                 </Link>
               ))}
