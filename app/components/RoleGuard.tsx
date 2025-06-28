@@ -1,47 +1,41 @@
-import { useSession } from 'next-auth/react';
+'use client';
+
 import { useRouter } from 'next/navigation';
 import { ReactNode, useEffect } from 'react';
-import { hasAccess, getDefaultRedirectPath, UserRole } from '@/app/utils/roleAccess';
+import { hasAccess, getDefaultRedirectPath } from '@/app/utils/roleAccess';
+import { Role } from '@prisma/client';
+import { useSession } from 'next-auth/react';
 
 interface RoleGuardProps {
   children: ReactNode;
-  allowedRoles: UserRole[];
+  allowedRoles: Role[];
+  redirectPath?: string;
 }
 
-export default function RoleGuard({ children, allowedRoles }: RoleGuardProps) {
-  const { data: session, status } = useSession();
+export default function RoleGuard({ children, allowedRoles, redirectPath }: RoleGuardProps) {
   const router = useRouter();
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     if (status === 'loading') return;
 
-    if (!session) {
+    if (!session?.user) {
+      console.log('[RoleGuard] No session, redirecting to login');
       router.push('/login');
       return;
     }
 
-    const userRole = session.user.role.toLowerCase() as UserRole;
-    const currentPath = window.location.pathname;
-
-    if (!hasAccess(userRole, currentPath)) {
-      router.push(getDefaultRedirectPath(userRole));
+    const userRole = session.user.role as Role;
+    
+    if (!allowedRoles.includes(userRole)) {
+      console.log(`[RoleGuard] User role ${userRole} not in allowed roles:`, allowedRoles);
+      const defaultPath = redirectPath || getDefaultRedirectPath(userRole);
+      console.log(`[RoleGuard] Redirecting to: ${defaultPath}`);
+      router.push(defaultPath);
     }
-  }, [session, status, router]);
+  }, [session, status, router, allowedRoles, redirectPath]);
 
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  if (!session) {
-    return null;
-  }
-
-  const userRole = session.user.role.toLowerCase() as UserRole;
-  if (!allowedRoles.includes(userRole)) {
+  if (status === 'loading' || !session?.user) {
     return null;
   }
 

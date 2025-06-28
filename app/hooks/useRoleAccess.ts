@@ -1,38 +1,52 @@
+'use client';
+
 import { useSession } from 'next-auth/react';
-import { useRouter, usePathname } from 'next/navigation';
+import { hasAccess, getDefaultRedirectPath, getNavItemsByRole } from '@/app/utils/roleAccess';
+import { Role } from '@prisma/client';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { hasAccess, getDefaultRedirectPath, UserRole, getNavItemsByRole } from '@/app/utils/roleAccess';
 
 export function useRoleAccess() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const pathname = usePathname();
-
-  const userRole = session?.user?.role?.toLowerCase() as UserRole;
-  const isLoading = status === 'loading';
-  const isAuthenticated = !!session;
 
   useEffect(() => {
-    if (isLoading) return;
+    if (status === 'loading') return;
 
-    if (!isAuthenticated) {
+    if (!session?.user) {
+      console.log('[useRoleAccess] No session, redirecting to login');
       router.push('/login');
       return;
     }
 
-    if (!hasAccess(userRole, pathname || '')) {
-      router.push(getDefaultRedirectPath(userRole));
-    }
-  }, [isAuthenticated, isLoading, userRole, pathname, router]);
+    const userRole = session.user.role as Role;
+    const currentPath = window.location.pathname;
 
-  const navItems = userRole ? getNavItemsByRole(userRole) : [];
+    if (!hasAccess(userRole, currentPath)) {
+      console.log(`[useRoleAccess] User role ${userRole} does not have access to ${currentPath}`);
+      const defaultPath = getDefaultRedirectPath(userRole);
+      console.log(`[useRoleAccess] Redirecting to: ${defaultPath}`);
+      router.push(defaultPath);
+    }
+  }, [session, status, router]);
+
+  const isLoading = status === 'loading';
+
+  if (!session?.user) {
+    return {
+      isLoading,
+      role: null as Role | null,
+      hasAccess: () => false,
+      navItems: [],
+    };
+  }
+
+  const userRole = session.user.role as Role;
 
   return {
-    userRole,
     isLoading,
-    isAuthenticated,
-    navItems,
+    role: userRole,
     hasAccess: (path: string) => hasAccess(userRole, path),
-    getDefaultPath: () => getDefaultRedirectPath(userRole),
+    navItems: getNavItemsByRole(userRole),
   };
 } 
