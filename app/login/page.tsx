@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import LoadingComponent from '@/app/components/LoadingPage';
+import { Role } from '@prisma/client';
 
 // Add dynamic import for client-side components
 const DynamicHeader = dynamic(() => import('@/components/Header'), { 
@@ -22,6 +23,13 @@ const DynamicFooter = dynamic(() => import('@/components/Footer'), {
   loading: () => <div className="h-16 bg-[#0f172a]/50 backdrop-blur-sm border-t border-indigo-500/20" />,
   suspense: true
 });
+
+// Map database roles to dashboard paths
+const ROLE_DASHBOARD_MAP: Record<Role, string> = {
+  ADMIN: '/dashboard/admin',
+  MANAGER: '/dashboard/manager',
+  EMPLOYEE: '/dashboard/employee'
+};
 
 function LoginForm() {
   const router = useRouter();
@@ -40,16 +48,19 @@ function LoginForm() {
     if (status === 'loading') return;
 
     if (session?.user) {
-      console.log('[Login] User session detected:', session.user);
-      // Convert role to uppercase to match database enum
-      const role = session.user.role.toUpperCase();
-      const redirectPath = role === 'ADMIN' 
-        ? '/dashboard/admin'
-        : role === 'MANAGER'
-          ? '/dashboard/manager'
-          : '/dashboard/employee';
+      console.log('[Login] User session detected:', {
+        id: session.user.id,
+        email: session.user.email,
+        role: session.user.role
+      });
+
+      // Get the role from session and ensure it's a valid Role type
+      const userRole = session.user.role as Role;
       
-      console.log(`[Login] Redirecting authenticated user to: ${redirectPath}`);
+      // Get the dashboard path from our map, fallback to employee dashboard
+      const redirectPath = ROLE_DASHBOARD_MAP[userRole] || ROLE_DASHBOARD_MAP.EMPLOYEE;
+      
+      console.log(`[Login] Role "${userRole}" maps to dashboard: ${redirectPath}`);
       router.push(redirectPath);
     }
   }, [session, status, router]);

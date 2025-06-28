@@ -1,6 +1,14 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
-import { hasAccess, getDefaultRedirectPath, UserRole } from "./app/utils/roleAccess";
+import { hasAccess, getDefaultRedirectPath } from "./app/utils/roleAccess";
+import { Role } from "@prisma/client";
+
+// Map database roles to dashboard paths
+const ROLE_DASHBOARD_MAP: Record<Role, string> = {
+  ADMIN: '/dashboard/admin',
+  MANAGER: '/dashboard/manager',
+  EMPLOYEE: '/dashboard/employee'
+};
 
 export default withAuth(
   function middleware(req) {
@@ -14,8 +22,8 @@ export default withAuth(
 
     // If on login page and user is authenticated, redirect to appropriate dashboard
     if (path === '/login' && token) {
-      const userRole = token.role.toUpperCase() as UserRole;
-      const redirectPath = getDefaultRedirectPath(userRole);
+      const userRole = token.role as Role;
+      const redirectPath = ROLE_DASHBOARD_MAP[userRole] || ROLE_DASHBOARD_MAP.EMPLOYEE;
       console.log(`[Middleware] Redirecting authenticated user from login to: ${redirectPath}`);
       return NextResponse.redirect(new URL(redirectPath, req.url));
     }
@@ -41,10 +49,10 @@ export default withAuth(
     }
 
     // Role-based access control
-    const userRole = token.role.toUpperCase() as UserRole;
+    const userRole = token.role as Role;
     if (!hasAccess(userRole, path)) {
       console.log(`[Middleware] Unauthorized access to ${path} by role: ${userRole}`);
-      const defaultPath = getDefaultRedirectPath(userRole);
+      const defaultPath = ROLE_DASHBOARD_MAP[userRole] || ROLE_DASHBOARD_MAP.EMPLOYEE;
       console.log(`[Middleware] Redirecting to default path: ${defaultPath}`);
       return NextResponse.redirect(new URL(defaultPath, req.url));
     }

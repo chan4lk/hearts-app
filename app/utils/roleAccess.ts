@@ -1,4 +1,5 @@
 import { IconType } from 'react-icons';
+import { Role } from '@prisma/client';
 import { 
   BsGrid, 
   BsBullseye,
@@ -14,13 +15,18 @@ import {
   BsPeople
 } from 'react-icons/bs';
 
-export type UserRole = 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
+// Map database roles to dashboard paths
+export const ROLE_DASHBOARD_MAP: Record<Role, string> = {
+  ADMIN: '/dashboard/admin',
+  MANAGER: '/dashboard/manager',
+  EMPLOYEE: '/dashboard/employee'
+};
 
 export interface NavItem {
   href: string;
   icon: IconType;
   label: string;
-  roles: UserRole[];
+  roles: Role[];
 }
 
 export const ALL_NAV_ITEMS: NavItem[] = [
@@ -93,11 +99,11 @@ export const ALL_NAV_ITEMS: NavItem[] = [
   }
 ];
 
-export const getNavItemsByRole = (role: UserRole): NavItem[] => {
+export const getNavItemsByRole = (role: Role): NavItem[] => {
   return ALL_NAV_ITEMS.filter(item => item.roles.includes(role));
 };
 
-export const hasAccess = (role: UserRole, path: string): boolean => {
+export const hasAccess = (role: Role, path: string): boolean => {
   // Always allow access to error and auth pages
   if (path.startsWith('/error') || path.startsWith('/auth')) {
     return true;
@@ -110,24 +116,15 @@ export const hasAccess = (role: UserRole, path: string): boolean => {
   );
 };
 
-export const getDefaultRedirectPath = (role: UserRole): string => {
-  switch (role) {
-    case 'ADMIN':
-      return '/dashboard/admin';
-    case 'MANAGER':
-      return '/dashboard/manager';
-    case 'EMPLOYEE':
-      return '/dashboard/employee';
-    default:
-      return '/login';
-  }
+export const getDefaultRedirectPath = (role: Role): string => {
+  return ROLE_DASHBOARD_MAP[role] || ROLE_DASHBOARD_MAP.EMPLOYEE;
 };
 
-export const getRoleBasedTitle = (role: UserRole): string => {
+export const getRoleBasedTitle = (role: Role): string => {
   return `${role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()} Portal`;
 };
 
-export const getRoleColor = (role: UserRole): string => {
+export const getRoleColor = (role: Role): string => {
   switch (role) {
     case 'ADMIN':
       return 'text-purple-500 bg-purple-100 dark:text-purple-300 dark:bg-purple-900/20';
