@@ -16,9 +16,12 @@ export default withAuth(
     const path = req.nextUrl.pathname;
     
     // Debug information
-    console.log(`[Middleware] Path: ${path}`);
-    console.log(`[Middleware] Token present: ${!!token}`);
-    console.log(`[Middleware] User role: ${token?.role || 'none'}`);
+    console.log(`[Middleware] Processing request:`, {
+      path,
+      hasToken: !!token,
+      userRole: token?.role || 'none',
+      userId: token?.id || 'none'
+    });
 
     // Allow access to public routes
     if (path === '/register' || path === '/login' || path === '/error') {
@@ -41,36 +44,68 @@ export default withAuth(
     }
 
     const userRole = token.role as Role;
+    console.log(`[Middleware] Processing role-based access:`, {
+      role: userRole,
+      path,
+      userId: token.id
+    });
 
     // If on login page and authenticated, redirect to appropriate dashboard
     if (path === '/login') {
       const redirectPath = getDefaultRedirectPath(userRole);
-      console.log(`[Middleware] Redirecting authenticated user from login to: ${redirectPath}`);
+      console.log(`[Middleware] Redirecting from login to dashboard:`, {
+        role: userRole,
+        redirectPath
+      });
       return NextResponse.redirect(new URL(redirectPath, req.url));
     }
 
     // If accessing root dashboard, redirect to role-specific dashboard
     if (path === '/dashboard') {
       const defaultPath = getDefaultRedirectPath(userRole);
-      console.log(`[Middleware] Redirecting to default dashboard: ${defaultPath}`);
+      console.log(`[Middleware] Redirecting to role-specific dashboard:`, {
+        role: userRole,
+        defaultPath
+      });
       return NextResponse.redirect(new URL(defaultPath, req.url));
     }
 
     // Check access permissions for dashboard routes
     if (path.startsWith('/dashboard/')) {
-      if (!hasAccess(userRole, path)) {
-        console.log(`[Middleware] Unauthorized access to ${path} by role: ${userRole}`);
+      const hasRouteAccess = hasAccess(userRole, path);
+      console.log(`[Middleware] Checking dashboard access:`, {
+        role: userRole,
+        path,
+        hasAccess: hasRouteAccess
+      });
+
+      if (!hasRouteAccess) {
         const defaultPath = getDefaultRedirectPath(userRole);
-        console.log(`[Middleware] Redirecting to default path: ${defaultPath}`);
+        console.log(`[Middleware] Access denied, redirecting:`, {
+          role: userRole,
+          from: path,
+          to: defaultPath
+        });
         return NextResponse.redirect(new URL(defaultPath, req.url));
       }
     }
 
+    console.log(`[Middleware] Access granted:`, {
+      role: userRole,
+      path
+    });
     return NextResponse.next();
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token,
+      authorized: ({ token }) => {
+        const isAuthorized = !!token;
+        console.log(`[Middleware] Authorization check:`, {
+          hasToken: !!token,
+          isAuthorized
+        });
+        return isAuthorized;
+      },
     },
     pages: {
       signIn: "/login",

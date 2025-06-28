@@ -40,24 +40,25 @@ export const authOptions: NextAuthOptions = {
         }
       },
       profile: async (profile, tokens) => {
-        console.log('Azure AD profile:', JSON.stringify(profile, null, 2));
-        console.log('Azure AD tokens:', JSON.stringify(tokens, null, 2));
+        console.log('[Azure AD] Processing profile:', {
+          email: profile.email,
+          name: profile.name,
+          groups: profile.groups || [],
+          roles: profile.roles || []
+        });
         
         // Check if user exists first
         let existingUser = await prisma.user.findUnique({
           where: { email: profile.email }
         });
 
-        // If user exists, update their role if they're from bistecglobal.com
+        // If user exists, don't automatically update their role
         if (existingUser) {
-          if (profile.email.endsWith('@bistecglobal.com') && existingUser.role !== 'ADMIN') {
-            console.log(`[Azure AD] Updating existing user ${existingUser.email} to ADMIN role`);
-            existingUser = await prisma.user.update({
-              where: { email: profile.email },
-              data: { role: 'ADMIN' }
-            });
-          }
-          console.log(`[Azure AD] Existing user found with role: ${existingUser.role}`);
+          console.log(`[Azure AD] Existing user found:`, {
+            id: existingUser.id,
+            email: existingUser.email,
+            role: existingUser.role
+          });
           return {
             id: existingUser.id,
             name: existingUser.name,
@@ -83,9 +84,7 @@ export const authOptions: NextAuthOptions = {
           console.log(`[Azure AD] Assigning ADMIN role to bistecglobal.com email: ${profile.email}`);
         } else if (
           groups.some((group: string) => adminGroups.includes(group)) ||
-          roles.includes('Admin') ||
-          profile.email.toLowerCase().includes('admin') ||
-          profile.email.toLowerCase().includes('administrator')
+          roles.includes('Admin')
         ) {
           role = 'ADMIN';
           console.log(`[Azure AD] Assigning ADMIN role based on groups/roles: ${profile.email}`);
@@ -95,9 +94,11 @@ export const authOptions: NextAuthOptions = {
         ) {
           role = 'MANAGER';
           console.log(`[Azure AD] Assigning MANAGER role based on groups/roles: ${profile.email}`);
+        } else {
+          console.log(`[Azure AD] Assigning default EMPLOYEE role: ${profile.email}`);
         }
         
-        console.log(`[Azure AD] Final role assignment for ${profile.email}: ${role}`);
+        console.log(`[Azure AD] Creating new user with role: ${role}`);
         
         // Create new user with determined role
         const user = await prisma.user.create({
@@ -109,7 +110,11 @@ export const authOptions: NextAuthOptions = {
           },
         });
 
-        console.log(`New user created with role: ${user.role}`);
+        console.log(`[Azure AD] New user created:`, {
+          id: user.id,
+          email: user.email,
+          role: user.role
+        });
         
         return {
           id: user.id,
@@ -211,6 +216,15 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
+        console.log('[session] Initial session data:', {
+          email: session.user.email,
+          role: session.user.role
+        });
+        console.log('[session] Token data:', {
+          id: token.id,
+          role: token.role
+        });
+
         // Ensure the session user has the correct type
         const sessionUser = session.user as User & { role?: Role };
         
@@ -230,7 +244,8 @@ export const authOptions: NextAuthOptions = {
             sessionUser.role = dbUser.role;
             console.log(`[session] Updated session with database values:`, {
               id: dbUser.id,
-              role: dbUser.role
+              role: dbUser.role,
+              email: sessionUser.email
             });
           } else {
             console.error(`[session] User not found in database: ${sessionUser.email}`);
@@ -238,6 +253,12 @@ export const authOptions: NextAuthOptions = {
         } catch (error) {
           console.error('[session] Error fetching user data from database:', error);
         }
+
+        console.log('[session] Final session data:', {
+          id: sessionUser.id,
+          email: sessionUser.email,
+          role: sessionUser.role
+        });
       }
       return session;
     },

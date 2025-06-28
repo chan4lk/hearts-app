@@ -105,31 +105,53 @@ export const getNavItemsByRole = (role: Role): NavItem[] => {
 
 // Define role access levels
 const ROLE_ACCESS = {
-  [Role.ADMIN]: {
+  'ADMIN': {
     canAccess: ['/dashboard/admin', '/dashboard/manager', '/dashboard/employee'],
     defaultPath: '/dashboard/admin'
   },
-  [Role.MANAGER]: {
+  'MANAGER': {
     canAccess: ['/dashboard/manager', '/dashboard/employee'],
     defaultPath: '/dashboard/manager'
   },
-  [Role.EMPLOYEE]: {
+  'EMPLOYEE': {
     canAccess: ['/dashboard/employee'],
     defaultPath: '/dashboard/employee'
   }
 } as const;
 
 export const hasAccess = (role: Role, path: string): boolean => {
+  console.log('[roleAccess] Checking access:', {
+    role,
+    path,
+    availablePaths: ROLE_ACCESS[role]?.canAccess || []
+  });
+
   // Get the role's access configuration
   const roleConfig = ROLE_ACCESS[role];
-  if (!roleConfig) return false;
+  if (!roleConfig) {
+    console.log('[roleAccess] No role configuration found:', { role });
+    return false;
+  }
 
   // Check if the path starts with any of the allowed paths
-  return roleConfig.canAccess.some(allowedPath => path.startsWith(allowedPath));
+  const hasAccess = roleConfig.canAccess.some(allowedPath => path.startsWith(allowedPath));
+  console.log('[roleAccess] Access check result:', {
+    role,
+    path,
+    hasAccess,
+    allowedPaths: roleConfig.canAccess
+  });
+
+  return hasAccess;
 };
 
 export const getDefaultRedirectPath = (role: Role): string => {
-  return ROLE_ACCESS[role]?.defaultPath || ROLE_ACCESS[Role.EMPLOYEE].defaultPath;
+  console.log('[roleAccess] Getting default path:', {
+    role,
+    defaultPath: ROLE_ACCESS[role]?.defaultPath || ROLE_ACCESS['EMPLOYEE'].defaultPath
+  });
+
+  return ROLE_ACCESS[role]?.defaultPath || ROLE_ACCESS['EMPLOYEE'].defaultPath;
 };
 
 export const getRoleBasedTitle = (role: Role): string => {
