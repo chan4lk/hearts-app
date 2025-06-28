@@ -14,6 +14,7 @@ import { StatsSection } from "./components/StatsSection";
 import { FiltersSection } from "./components/FiltersSection";
 import { GoalCard } from "./components/GoalCard";
 import { GoalWithRating, ViewMode, FilterStatus, RatingStatus, FilterRating } from "./types";
+import { Role } from '@prisma/client';
 
 export default function SelfRatingPage() {
   const { data: session, status } = useSession();
@@ -37,7 +38,7 @@ export default function SelfRatingPage() {
       return;
     }
 
-    if (session.user?.role !== 'EMPLOYEE' && session.user?.role !== 'MANAGER') {
+    if (session.user?.role !== Role.EMPLOYEE && session.user?.role !== Role.MANAGER) {
       toast.error('You do not have permission to access this page');
       router.push('/dashboard');
       return;

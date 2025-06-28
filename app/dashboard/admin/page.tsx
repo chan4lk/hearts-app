@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import LoadingComponent from '@/app/components/LoadingScreen';
+import { Role } from '@prisma/client';
 
 
 interface DashboardStats {
@@ -72,7 +73,7 @@ export default function AdminDashboard() {
       return;
     }
 
-    if (session.user?.role.toUpperCase() !== 'ADMIN') {
+    if (session.user?.role !== Role.ADMIN) {
       router.push('/dashboard');
       return;
     }

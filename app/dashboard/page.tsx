@@ -3,6 +3,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Role } from '@prisma/client';
+import { getDefaultRedirectPath } from '@/app/utils/roleAccess';
 
 export default function DashboardRedirect() {
   const { data: session, status, update } = useSession();
@@ -32,19 +33,7 @@ export default function DashboardRedirect() {
         sessionId: session.user.id
       });
 
-      let targetDashboard = '/dashboard/employee';
-      
-      if (userRole === 'ADMIN') {
-        console.log('[Dashboard] Role is ADMIN');
-        targetDashboard = '/dashboard/admin';
-      } else if (userRole === 'MANAGER') {
-        console.log('[Dashboard] Role is MANAGER');
-        targetDashboard = '/dashboard/manager';
-      } else {
-        console.log('[Dashboard] Role is EMPLOYEE');
-        targetDashboard = '/dashboard/employee';
-      }
-
+      const targetDashboard = getDefaultRedirectPath(userRole);
       console.log(`[Dashboard] Redirecting to: ${targetDashboard}`);
       router.replace(targetDashboard);
     };

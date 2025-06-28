@@ -527,7 +527,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                     </Link>
 
                     {/* Manager Dashboard - Available to managers and admins */}
-                    {(session?.user?.role === 'MANAGER' || session?.user?.role === 'ADMIN') && (
+                    {(session?.user?.role === Role.MANAGER || session?.user?.role === Role.ADMIN) && (
                       <Link
                         href="/dashboard/manager"
                         className="group flex items-center w-full px-2 py-1.5 text-sm text-gray-300 hover:bg-gradient-to-r hover:from-indigo-500/10 hover:to-transparent hover:text-indigo-400 rounded-lg transition-all duration-300"
@@ -538,7 +538,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                     )}
 
                     {/* Admin Dashboard - Available only to admins */}
-                    {session?.user?.role === 'ADMIN' && (
+                    {session?.user?.role === Role.ADMIN && (
                       <Link
                         href="/dashboard/admin"
                         className="group flex items-center w-full px-2 py-1.5 text-sm text-gray-300 hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-transparent hover:text-purple-400 rounded-lg transition-all duration-300"
