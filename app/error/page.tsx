@@ -1,11 +1,11 @@
 // Server Component
 import { Suspense } from 'react';
 import ErrorClient from './ErrorClient';
-import LoadingComponent from '../components/LoadingPage';
+import Loading from './loading';
 
 export default function ErrorPage() {
   return (
-    <Suspense fallback={<LoadingComponent />}>
+    <Suspense fallback={<Loading />}>
       <ErrorClient />
     </Suspense>
   );
