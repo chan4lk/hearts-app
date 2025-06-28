@@ -107,14 +107,17 @@ export const getNavItemsByRole = (role: Role): NavItem[] => {
 const ROLE_ACCESS = {
   'ADMIN': {
     canAccess: [
+      // Admin paths
       '/dashboard/admin',
       '/dashboard/admin/users',
       '/dashboard/admin/goals',
+      // Manager paths - full access
       '/dashboard/manager',
       '/dashboard/manager/goals',
       '/dashboard/manager/goals/approve-goals',
       '/dashboard/manager/goals/setgoals',
       '/dashboard/manager/rate-employees',
+      // Employee paths - full access
       '/dashboard/employee',
       '/dashboard/employee/goals',
       '/dashboard/employee/goals/create',
@@ -124,11 +127,13 @@ const ROLE_ACCESS = {
   },
   'MANAGER': {
     canAccess: [
+      // Manager paths
       '/dashboard/manager',
       '/dashboard/manager/goals',
       '/dashboard/manager/goals/approve-goals',
       '/dashboard/manager/goals/setgoals',
       '/dashboard/manager/rate-employees',
+      // Employee paths - full access
       '/dashboard/employee',
       '/dashboard/employee/goals',
       '/dashboard/employee/goals/create',
@@ -138,6 +143,7 @@ const ROLE_ACCESS = {
   },
   'EMPLOYEE': {
     canAccess: [
+      // Employee paths only
       '/dashboard/employee',
       '/dashboard/employee/goals',
       '/dashboard/employee/goals/create',
@@ -161,7 +167,13 @@ export const hasAccess = (role: Role, path: string): boolean => {
     return false;
   }
 
-  // Check if the path starts with any of the allowed paths
+  // For admin role, allow access to all dashboard paths
+  if (role === 'ADMIN' && path.startsWith('/dashboard/')) {
+    console.log('[roleAccess] Admin access granted:', { path });
+    return true;
+  }
+
+  // For other roles, check specific path access
   const hasAccess = roleConfig.canAccess.some(allowedPath => {
     const pathMatches = path.startsWith(allowedPath);
     console.log('[roleAccess] Checking path match:', {

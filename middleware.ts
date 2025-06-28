@@ -90,17 +90,19 @@ export default withAuth(
         return NextResponse.redirect(new URL(defaultPath, req.url));
       }
 
-      // If trying to access a dashboard root, redirect to the specific dashboard
-      const dashboardRoots = ['/dashboard/admin', '/dashboard/manager', '/dashboard/employee'];
-      if (dashboardRoots.includes(path)) {
-        const defaultPath = getDefaultRedirectPath(userRole);
-        if (path !== defaultPath) {
-          console.log(`[Middleware] Redirecting from dashboard root:`, {
-            role: userRole,
-            from: path,
-            to: defaultPath
-          });
-          return NextResponse.redirect(new URL(defaultPath, req.url));
+      // Only redirect dashboard roots for non-admin users
+      if (userRole !== 'ADMIN') {
+        const dashboardRoots = ['/dashboard/admin', '/dashboard/manager', '/dashboard/employee'];
+        if (dashboardRoots.includes(path)) {
+          const defaultPath = getDefaultRedirectPath(userRole);
+          if (path !== defaultPath) {
+            console.log(`[Middleware] Redirecting non-admin from dashboard root:`, {
+              role: userRole,
+              from: path,
+              to: defaultPath
+            });
+            return NextResponse.redirect(new URL(defaultPath, req.url));
+          }
         }
       }
     }
