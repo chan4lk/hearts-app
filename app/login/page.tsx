@@ -1,6 +1,6 @@
 "use client";
 
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
@@ -25,6 +25,7 @@ const DynamicFooter = dynamic(() => import('@/components/Footer'), {
 
 function LoginForm() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -34,110 +35,56 @@ function LoginForm() {
     setMounted(true);
   }, []);
 
+  // Handle session state changes
+  useEffect(() => {
+    if (status === 'loading') return;
+
+    if (session?.user) {
+      console.log('[Login] User session detected:', session.user);
+      const role = session.user.role.toLowerCase();
+      const redirectPath = role === 'admin' 
+        ? '/dashboard/admin'
+        : role === 'manager'
+          ? '/dashboard/manager'
+          : '/dashboard/employee';
+      
+      console.log(`[Login] Redirecting authenticated user to: ${redirectPath}`);
+      router.push(redirectPath);
+    }
+  }, [session, status, router]);
+
   const handleAzureLogin = async () => {
     try {
-      // Set a flag to prevent redirect loops
-      sessionStorage.setItem('isRedirecting', 'true');
-      
       setIsLoading(true);
       setIsTransitioning(true);
       console.log('[Login] Starting Azure AD login process');
       
-      // Get the callbackUrl from search params or determine based on role
-      let callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+      // Get the callbackUrl from search params or use default
+      const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
       
-      // Ensure we're not redirecting back to login
-      if (callbackUrl.includes('/login')) {
-        callbackUrl = '/dashboard';
-      }
-      
-      console.log(`[Login] Using callback URL: ${callbackUrl}`);
-      
-      // Use redirect: true for production environment
-      // This lets NextAuth handle the complete OAuth flow
       await signIn('azure-ad', {
         redirect: true,
         callbackUrl: callbackUrl
       });
-      
-      // The code below won't execute with redirect:true
-      // It's kept as a fallback
     } catch (error) {
       console.error('[Login] Error during Azure login:', error);
-      toast.error('An error occurred during Azure login');
+      toast.error('An error occurred during login. Please try again.');
       setIsLoading(false);
       setIsTransitioning(false);
-      // Clear the redirecting flag on error
-      sessionStorage.removeItem('isRedirecting');
     }
   };
-  
-  // Handle callback URL parameter and session check
-  useEffect(() => {
-    const callbackUrl = searchParams.get('callbackUrl');
-    const error = searchParams.get('error');
-    
-    if (error) {
-      console.error('[Login] Error from auth provider:', error);
-      toast.error('Authentication failed. Please try again.');
-      setIsTransitioning(false);
-    }
-    
-    // Check if we're already authenticated
-    const checkSession = async () => {
-      try {
-        console.log('[Login] Checking session...');
-        const response = await fetch('/api/auth/session');
-        const session = await response.json();
-        
-        console.log('[Login] Session data:', JSON.stringify(session));
-        
-        if (session?.user) {
-          console.log(`[Login] User authenticated with role: ${session.user.role}`);
-          setIsTransitioning(true);
-          
-          // Determine redirect path based on role
-          let redirectPath = '/dashboard';
-          
-          if (session.user.role === 'ADMIN') {
-            redirectPath = '/dashboard/admin';
-          } else if (session.user.role === 'MANAGER') {
-            redirectPath = '/dashboard/manager';
-          } else {
-            redirectPath = '/dashboard/employee';
-          }
-          
-          console.log(`[Login] Redirecting to: ${redirectPath}`);
-          // Use direct window location change instead of router.push
-          if (!sessionStorage.getItem('isRedirecting')) {
-            sessionStorage.setItem('isRedirecting', 'true');
-            // Add a small delay to show the loading animation
-            setTimeout(() => {
-              window.location.href = redirectPath;
-            }, 1500);
-          }
-        } else {
-          console.log('[Login] No active session found');
-          setIsTransitioning(false);
-        }
-      } catch (err) {
-        console.error('[Login] Error checking session:', err);
-        setIsTransitioning(false);
-      }
-    };
-    
-    if (mounted) {
-      checkSession();
-    }
-  }, [mounted, router, searchParams]);
 
-  if (!mounted) {
-    return null;
+  if (!mounted || status === 'loading') {
+    return <LoadingComponent />;
+  }
+
+  // If user is already authenticated, show loading
+  if (session?.user) {
+    return <LoadingComponent />;
   }
 
   return (
     <main className="flex flex-col min-h-screen bg-gradient-to-br from-[#0B1120] via-[#132145] to-[#1E1B4B]">
-      
       <Suspense fallback={<div className="h-14 bg-[#0f172a]/50 backdrop-blur-sm border-b border-indigo-500/20" />}>
         <DynamicHeader userName="" />
       </Suspense>
