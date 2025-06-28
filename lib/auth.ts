@@ -216,27 +216,26 @@ export const authOptions: NextAuthOptions = {
         
         // Update session with token data
         sessionUser.id = token.id as string;
-        sessionUser.role = token.role as Role;
+        
+        // Always fetch the latest role from the database
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: sessionUser.email },
+            select: { role: true }
+          });
+          
+          if (dbUser) {
+            sessionUser.role = dbUser.role;
+            console.log(`[session] Updated session role from database: ${dbUser.role}`);
+          } else {
+            console.error(`[session] User not found in database: ${sessionUser.email}`);
+          }
+        } catch (error) {
+          console.error('[session] Error fetching user role from database:', error);
+        }
         
         // Log the session details for debugging
-        console.log(`[session] User session created with role: ${sessionUser.role}`);
-        
-        // Fallback to fetch role from the database if missing
-        if (!sessionUser.role && sessionUser.email) {
-          try {
-            const dbUser = await prisma.user.findUnique({
-              where: { email: sessionUser.email },
-              select: { role: true }
-            });
-            
-            if (dbUser) {
-              sessionUser.role = dbUser.role;
-              console.log(`[session] Updated session role from database: ${dbUser.role}`);
-            }
-          } catch (error) {
-            console.error('[session] Error fetching user role from database:', error);
-          }
-        }
+        console.log(`[session] Final session role: ${sessionUser.role}`);
       }
       return session;
     },
