@@ -42,22 +42,68 @@ export const authOptions: NextAuthOptions = {
         }
       },
       // Add explicit configuration for production environment
-      profile: async (profile) => {
+      profile: async (profile, tokens) => {
         console.log('Azure AD profile:', JSON.stringify(profile, null, 2));
+        console.log('Azure AD tokens:', JSON.stringify(tokens, null, 2));
         
-        // Always fetch or create the user in the database
-        const user = await prisma.user.upsert({
-          where: { email: profile.email },
-          update: { name: profile.name },
-          create: {
+        // Check if user exists first
+        let existingUser = await prisma.user.findUnique({
+          where: { email: profile.email }
+        });
+
+        // If user exists, don't change their role
+        if (existingUser) {
+          console.log(`Existing user found with role: ${existingUser.role}`);
+          return {
+            id: existingUser.id,
+            name: existingUser.name,
+            email: existingUser.email,
+            role: existingUser.role
+          };
+        }
+
+        // For new users, determine role based on Azure AD groups/roles
+        let role: Role = 'EMPLOYEE';
+        
+        // Check Azure AD groups if available
+        const groups = profile.groups || [];
+        const roles = profile.roles || [];
+        
+        // You can configure these group/role names in your Azure AD
+        const adminGroups = ['Admins', 'Administrators', 'AspireHub Admins'];
+        const managerGroups = ['Managers', 'Team Leads', 'AspireHub Managers'];
+        
+        // Check if user is in admin groups/roles
+        if (
+          groups.some((group: string) => adminGroups.includes(group)) ||
+          roles.includes('Admin') ||
+          profile.email.endsWith('@bistec.com.au') || 
+          profile.email.toLowerCase().includes('admin') ||
+          profile.email.toLowerCase().includes('administrator')
+        ) {
+          role = 'ADMIN';
+        }
+        // Check if user is in manager groups/roles
+        else if (
+          groups.some((group: string) => managerGroups.includes(group)) ||
+          roles.includes('Manager')
+        ) {
+          role = 'MANAGER';
+        }
+        
+        console.log(`Determined role for new user: ${role}`);
+        
+        // Create new user with determined role
+        const user = await prisma.user.create({
+          data: {
             email: profile.email,
             name: profile.name,
             password: 'azure-ad-auth', // Placeholder for Azure AD users
-            role: 'EMPLOYEE', // Default role for new users
+            role: role,
           },
         });
 
-        console.log(`User role from database: ${user.role}`);
+        console.log(`New user created with role: ${user.role}`);
         
         return {
           id: user.id,
@@ -261,4 +307,4 @@ export async function hasRole(role: string): Promise<boolean> {
 export async function logout() {
   const cookieStore = cookies();
   cookieStore.delete('token');
-} 
+}
