@@ -24,7 +24,7 @@ export default withAuth(
     });
 
     // Allow access to public routes
-    if (path === '/register' || path === '/login' || path === '/error') {
+    if (path === '/register' || path === '/login' || path === '/error' || path === '/') {
       console.log(`[Middleware] Allowing access to public route: ${path}`);
       return NextResponse.next();
     }
@@ -60,8 +60,8 @@ export default withAuth(
       return NextResponse.redirect(new URL(redirectPath, req.url));
     }
 
-    // If accessing root or dashboard root, redirect to role-specific dashboard
-    if (path === '/' || path === '/dashboard') {
+    // If accessing dashboard root, redirect to role-specific dashboard
+    if (path === '/dashboard') {
       const defaultPath = getDefaultRedirectPath(userRole);
       console.log(`[Middleware] Redirecting to role-specific dashboard:`, {
         role: userRole,
@@ -124,7 +124,6 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    "/",
     "/dashboard/:path*",
     "/api/((?!auth).)*",  // Block all API routes except auth
     "/login",
