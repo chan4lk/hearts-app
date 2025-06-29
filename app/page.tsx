@@ -12,7 +12,7 @@ export default async function Home() {
       
       <main className="flex-grow flex flex-col">
         {/* Hero Section */}
-        <section className="flex-1 flex items-center justify-center relative min-h-[calc(100vh-4rem)] px-4 sm:px-6 py-16 sm:py-20 md:py-24 overflow-hidden">
+        <section className="flex-1 flex items-center justify-center relative min-h-[calc(100vh-4rem)] px-4 sm:px-6 py-16 sm:py-20 md:py-24 overflow-hidden mt-10">
           {/* Animated Background Elements */}
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute w-[300px] sm:w-[400px] md:w-[500px] h-[300px] sm:h-[400px] md:h-[500px] -top-24 sm:-top-32 md:-top-48 -left-24 sm:-left-32 md:-left-48 bg-purple-500/30 rounded-full blur-3xl animate-pulse-slow"></div>
