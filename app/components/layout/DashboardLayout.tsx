@@ -11,15 +11,15 @@ import { Role } from '@prisma/client';
 import { hasAccess, getNavItemsByRole } from '@/app/utils/roleAccess';
 
 import { 
-  BsGrid, 
+  BsGrid1X2Fill as BsGrid, 
   BsBullseye,
   BsStar,
-  BsChat,
-  BsBarChart,
+  BsChatDots as BsChat,
+  BsBarChartLine as BsBarChart,
   BsPerson,
   BsGear,
-  BsShield,
-  BsGraphUp,
+  BsShieldFill as BsShield,
+  BsGraphUpArrow as BsGraphUp,
   BsClipboardData,
   BsBell,
   BsPeople,
@@ -102,20 +102,20 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
 
     // Define navigation items for each role
     const adminItems: NavItem[] = [
-      { href: '/dashboard/admin', label: 'Admin Overview', icon: BsShield },
+      { href: '/dashboard/admin', label: 'Overview', icon: BsShield },
       { href: '/dashboard/admin/users', label: 'Manage Users', icon: BsPeople },
       { href: '/dashboard/admin/goals', label: 'Goal Settings', icon: BsGear },
     ];
 
     const managerItems: NavItem[] = [
-      { href: '/dashboard/manager', label: 'Manager Overview', icon: BsGraphUp },
+      { href: '/dashboard/manager', label: 'Overview', icon: BsGraphUp },
       { href: '/dashboard/manager/goals/approve-goals', label: 'Goal Approvals', icon: BsClipboardData },
       { href: '/dashboard/manager/goals/setgoals', label: 'Set Team Goals', icon: BsBullseye },
       { href: '/dashboard/manager/rate-employees', label: 'Rate Team', icon: BsStar },
     ];
 
     const employeeItems: NavItem[] = [
-      { href: '/dashboard/employee', label: 'Employee Overview', icon: BsPerson },
+      { href: '/dashboard/employee', label: 'Overview', icon: BsPerson },
       { href: '/dashboard/employee/goals/create', label: 'My Goals', icon: BsBullseye },
       { href: '/dashboard/employee/self-rating', label: 'Self Rating', icon: BsStar },
     ];
@@ -168,12 +168,13 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
   const navItems = getNavItems();
   const portalTitle = type.charAt(0).toUpperCase() + type.slice(1) + ' Portal';
 
-  // Function to check if current path matches or is a sub-path of nav item
+  // Function to check if current path matches exactly
   const isPathActive = (href: string) => {
     // Remove trailing slashes for consistent comparison
     const cleanPath = pathname.replace(/\/$/, '');
     const cleanHref = href.replace(/\/$/, '');
-    return cleanPath.startsWith(cleanHref);
+    // Only return true if paths match exactly
+    return cleanPath === cleanHref;
   };
 
   const handleSignOut = async () => {
@@ -239,21 +240,21 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                       href={item.href}
                       className={`group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
                         isActive
-                          ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/20'
+                          ? 'bg-gradient-to-r from-purple-800 to-purple-900 text-white shadow-lg shadow-purple-900/30'
                           : 'text-gray-400 hover:text-white'
                       }`}
                     >
                       <span className="flex items-center space-x-3 relative z-10 w-full">
                         {/* Animated background hover effect */}
                         {!isActive && (
-                          <div className="absolute inset-0 bg-gradient-to-r from-[#2d2f36] to-[#2d2f36]/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg transform group-hover:scale-105" />
+                          <div className="absolute inset-0 bg-gradient-to-r from-gray-800 to-gray-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg transform group-hover:scale-105" />
                         )}
                         
                         {/* Active indicator with glow */}
                         {isActive && (
                           <>
-                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
-                            <div className="absolute inset-0 bg-white/5 rounded-lg backdrop-blur-sm" />
+                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-purple-400 rounded-full shadow-[0_0_8px_rgba(167,139,250,0.5)]" />
+                            <div className="absolute inset-0 bg-purple-500/5 rounded-lg backdrop-blur-sm" />
                           </>
                         )}
                         
@@ -261,16 +262,16 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                         <span className="relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:translate-x-1">
                           <item.icon className={`text-xl ${
                             isActive 
-                              ? 'transform rotate-0 drop-shadow-[0_0_3px_rgba(255,255,255,0.5)]' 
-                              : 'group-hover:rotate-6 group-hover:text-blue-400'
+                              ? 'transform rotate-0 drop-shadow-[0_0_3px_rgba(167,139,250,0.5)]' 
+                              : 'group-hover:rotate-6 group-hover:text-purple-400'
                           } transition-all duration-300`} />
                         </span>
                         
                         {/* Label with enhanced slide and glow effect */}
                         <span className={`relative z-10 transform transition-all duration-300 group-hover:translate-x-1 ${
                           isActive 
-                            ? 'font-medium drop-shadow-[0_0_2px_rgba(255,255,255,0.3)]' 
-                            : 'group-hover:text-blue-400'
+                            ? 'font-medium drop-shadow-[0_0_2px_rgba(167,139,250,0.3)]' 
+                            : 'group-hover:text-purple-400'
                         }`}>
                           {item.label}
                         </span>
@@ -278,8 +279,8 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                         {/* Decorative elements */}
                         {isActive && (
                           <>
-                            <div className="absolute top-1 right-2 w-1.5 h-1.5 bg-white rounded-full opacity-30 animate-pulse" />
-                            <div className="absolute bottom-1 right-4 w-1 h-1 bg-white rounded-full opacity-20 animate-pulse delay-100" />
+                            <div className="absolute top-1 right-2 w-1.5 h-1.5 bg-purple-400 rounded-full opacity-30 animate-pulse" />
+                            <div className="absolute bottom-1 right-4 w-1 h-1 bg-purple-400 rounded-full opacity-20 animate-pulse delay-100" />
                           </>
                         )}
                       </span>
@@ -345,21 +346,21 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                   href={item.href}
                   className={`group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
                     isActive
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/20'
+                      ? 'bg-gradient-to-r from-purple-800 to-purple-900 text-white shadow-lg shadow-purple-900/30'
                       : 'text-gray-400 hover:text-white'
                   }`}
                 >
                   <span className="flex items-center space-x-3 relative z-10 w-full">
                     {/* Animated background hover effect */}
                     {!isActive && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#2d2f36] to-[#2d2f36]/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg transform group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-gray-800 to-gray-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg transform group-hover:scale-105" />
                     )}
                     
                     {/* Active indicator with glow */}
                     {isActive && (
                       <>
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
-                        <div className="absolute inset-0 bg-white/5 rounded-lg backdrop-blur-sm" />
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-purple-400 rounded-full shadow-[0_0_8px_rgba(167,139,250,0.5)]" />
+                        <div className="absolute inset-0 bg-purple-500/5 rounded-lg backdrop-blur-sm" />
                       </>
                     )}
                     
@@ -367,16 +368,16 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                     <span className="relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:translate-x-1">
                       <item.icon className={`text-xl ${
                         isActive 
-                          ? 'transform rotate-0 drop-shadow-[0_0_3px_rgba(255,255,255,0.5)]' 
-                          : 'group-hover:rotate-6 group-hover:text-blue-400'
+                          ? 'transform rotate-0 drop-shadow-[0_0_3px_rgba(167,139,250,0.5)]' 
+                          : 'group-hover:rotate-6 group-hover:text-purple-400'
                       } transition-all duration-300`} />
                     </span>
                     
                     {/* Label with enhanced slide and glow effect */}
                     <span className={`relative z-10 transform transition-all duration-300 group-hover:translate-x-1 ${
                       isActive 
-                        ? 'font-medium drop-shadow-[0_0_2px_rgba(255,255,255,0.3)]' 
-                        : 'group-hover:text-blue-400'
+                        ? 'font-medium drop-shadow-[0_0_2px_rgba(167,139,250,0.3)]' 
+                        : 'group-hover:text-purple-400'
                     }`}>
                       {item.label}
                     </span>
@@ -384,8 +385,8 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                     {/* Decorative elements */}
                     {isActive && (
                       <>
-                        <div className="absolute top-1 right-2 w-1.5 h-1.5 bg-white rounded-full opacity-30 animate-pulse" />
-                        <div className="absolute bottom-1 right-4 w-1 h-1 bg-white rounded-full opacity-20 animate-pulse delay-100" />
+                        <div className="absolute top-1 right-2 w-1.5 h-1.5 bg-purple-400 rounded-full opacity-30 animate-pulse" />
+                        <div className="absolute bottom-1 right-4 w-1 h-1 bg-purple-400 rounded-full opacity-20 animate-pulse delay-100" />
                       </>
                     )}
                   </span>
@@ -516,48 +517,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Available Dashboards Section */}
-                  <div className="px-3 py-2 border-t border-gray-700/30">
-                    <h3 className="text-xs font-medium text-gray-400 mb-2">Switch Dashboard</h3>
-                    
-                    {/* Employee Dashboard - Available to all */}
-                    <Link
-                      href="/dashboard/employee"
-                      className={`group flex items-center w-full px-2 py-1.5 text-sm text-gray-300 hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-transparent hover:text-blue-400 rounded-lg transition-all duration-300 ${type === 'employee' ? 'bg-blue-500/10 text-blue-400' : ''}`}
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      <BsPerson className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:translate-x-1" />
-                      <span>Employee Dashboard</span>
-                    </Link>
-
-                    {/* Manager Dashboard - Only for managers and admins */}
-                    {(session?.user?.role === Role.MANAGER || session?.user?.role === Role.ADMIN) && (
-                      <Link
-                        href="/dashboard/manager"
-                        className={`group flex items-center w-full px-2 py-1.5 text-sm text-gray-300 hover:bg-gradient-to-r hover:from-indigo-500/10 hover:to-transparent hover:text-indigo-400 rounded-lg transition-all duration-300 ${type === 'manager' ? 'bg-indigo-500/10 text-indigo-400' : ''}`}
-                        onClick={() => setIsUserMenuOpen(false)}
-                      >
-                        <BsGraphUp className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:translate-x-1" />
-                        <span>Manager Dashboard</span>
-                      </Link>
-                    )}
-
-                    {/* Admin Dashboard - Only for admins */}
-                    {session?.user?.role === Role.ADMIN && (
-                      <Link
-                        href="/dashboard/admin"
-                        className={`group flex items-center w-full px-2 py-1.5 text-sm text-gray-300 hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-transparent hover:text-purple-400 rounded-lg transition-all duration-300 ${type === 'admin' ? 'bg-purple-500/10 text-purple-400' : ''}`}
-                        onClick={() => setIsUserMenuOpen(false)}
-                      >
-                        <BsShield className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:translate-x-1" />
-                        <span>Admin Dashboard</span>
-                      </Link>
-                    )}
-                  </div>
-                  
-                  <div className="h-px bg-gradient-to-r from-transparent via-gray-200/20 dark:via-gray-700/20 to-transparent"></div>
-                  
+                 
                   {/* Sign Out Button */}
                   <motion.button 
                     whileHover={{ x: 4 }}
