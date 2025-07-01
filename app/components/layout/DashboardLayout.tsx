@@ -7,7 +7,6 @@ import { ReactNode, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { IconType } from 'react-icons';
-import { Role } from '@prisma/client';
 import { hasAccess, getNavItemsByRole } from '@/app/utils/roleAccess';
 
 import { 
@@ -97,7 +96,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
   }, []);
 
   const getNavItems = (): NavItem[] => {
-    const userRole = session?.user?.role as Role;
+    const userRole = session?.user?.role;
     const currentContext = type; // Use the current dashboard type
 
     // Define navigation items for each role
@@ -134,11 +133,11 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
   };
 
   const hasAccessToDashboard = (): boolean => {
-    const userRole = session?.user?.role as Role;
+    const userRole = session?.user?.role;
     const currentPath = pathname || '';
     
     // Admin has access to all dashboards
-    if (userRole === Role.ADMIN) {
+    if (userRole === 'ADMIN') {
       return true;
     }
     
@@ -148,16 +147,16 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
   // Update the useEffect to handle path changes
   useEffect(() => {
     if (status === 'authenticated' && !hasAccessToDashboard()) {
-      const userRole = session?.user?.role as Role;
+      const userRole = session?.user?.role;
       
       // For admin users, don't redirect at all
-      if (userRole === Role.ADMIN) {
+      if (userRole === 'ADMIN') {
         return;
       }
       
       // For other roles, redirect to their default dashboard if they don't have access
       let redirectPath = '/dashboard/employee';
-      if (userRole === Role.MANAGER) {
+      if (userRole === 'MANAGER') {
         redirectPath = '/dashboard/manager';
       }
       
@@ -518,6 +517,26 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                     </div>
                   </div>
                  
+                  {/* Manager: Employee Dashboard and Manager Dashboard Links */}
+                  {session?.user?.role === 'MANAGER' && (
+                    <div className="flex flex-col gap-2 mt-3">
+                      <Link
+                        href="/dashboard/employee"
+                        className="block w-full px-3 py-2 rounded-md text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-800/60 transition-all duration-200 text-center"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        Employee Dashboard
+                      </Link>
+                      <Link
+                        href="/dashboard/manager"
+                        className="block w-full px-3 py-2 rounded-md text-sm font-medium text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-800/60 transition-all duration-200 text-center"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        Manager Dashboard
+                      </Link>
+                    </div>
+                  )}
+
                   {/* Sign Out Button */}
                   <motion.button 
                     whileHover={{ x: 4 }}

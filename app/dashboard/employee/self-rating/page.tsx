@@ -14,7 +14,6 @@ import { StatsSection } from "./components/StatsSection";
 import { FiltersSection } from "./components/FiltersSection";
 import { GoalCard } from "./components/GoalCard";
 import { GoalWithRating, ViewMode, FilterStatus, RatingStatus, FilterRating } from "./types";
-import { Role } from '@prisma/client';
 
 export default function SelfRatingPage() {
   const { data: session, status } = useSession();
@@ -38,7 +37,7 @@ export default function SelfRatingPage() {
       return;
     }
 
-    if (session.user?.role !== Role.EMPLOYEE && session.user?.role !== Role.MANAGER) {
+    if (session.user?.role !== 'EMPLOYEE' && session.user?.role !== 'MANAGER') {
       toast.error('You do not have permission to access this page');
       router.push('/dashboard');
       return;
@@ -181,8 +180,13 @@ export default function SelfRatingPage() {
   }
 
   return (
-    <DashboardLayout type={getLayoutType(session?.user?.role)}>
+    <DashboardLayout type="employee">
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        {session?.user?.role === 'MANAGER' && (
+          <div className="mb-4 p-3 rounded bg-blue-900/80 text-blue-200 border border-blue-400 text-center">
+            You are performing self-rating as a Manager. These ratings will be tracked as your own.
+          </div>
+        )}
         <BackgroundElements />
 
         <div className="relative z-10 p-6 space-y-8">

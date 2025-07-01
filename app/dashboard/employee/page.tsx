@@ -10,15 +10,25 @@ import { Goal, GoalStats } from './components/types';
 import { BsGear, BsBell, BsSearch } from 'react-icons/bs';
 import { showToast } from '@/app/utils/toast';
 import LoadingComponent from '@/app/components/LoadingScreen';
+import { useSession } from 'next-auth/react';
 
 
 export default function EmployeeDashboard() {
+  const { data: session, status } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+
+  // Redirect if not employee or manager
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session || (session.user.role !== 'EMPLOYEE' && session.user.role !== 'MANAGER')) {
+      window.location.href = '/';
+    }
+  }, [session, status]);
 
   // Load goals from the database
   useEffect(() => {
@@ -134,8 +144,12 @@ export default function EmployeeDashboard() {
         <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
         
         <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
-          {/* Compact Header */}
-          
+          {/* Show info if manager is using employee dashboard */}
+          {session?.user?.role === 'MANAGER' && (
+            <div className="mb-4 p-3 rounded bg-blue-900/80 text-blue-200 border border-blue-400 text-center">
+              You are viewing the Employee Dashboard as a Manager. You can create goals and perform self-rating here.
+            </div>
+          )}
 
           {/* Stats Section */}
           <motion.div

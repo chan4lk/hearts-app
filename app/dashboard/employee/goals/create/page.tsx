@@ -18,7 +18,7 @@ import { CATEGORIES } from '@/app/components/shared/constants';
 function GoalsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [loading, setLoading] = useState(true);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [selectedStatus, setSelectedStatus] = useState('all');
@@ -42,6 +42,13 @@ function GoalsPageContent() {
 
   // Helper to check if user is admin or manager
   const userIsAdminOrManager = session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER';
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session || (session.user.role !== 'EMPLOYEE' && session.user.role !== 'MANAGER')) {
+      window.location.href = '/';
+    }
+  }, [session, status]);
 
   useEffect(() => {
     fetchGoals();
@@ -185,6 +192,13 @@ function GoalsPageContent() {
   return (
     <DashboardLayout type="employee">
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        {/* Show info if manager is using goal creation */}
+        {session?.user?.role === 'MANAGER' && (
+          <div className="mb-4 p-3 rounded bg-blue-900/80 text-blue-200 border border-blue-400 text-center">
+            You are creating goals as a Manager. These goals will be tracked as your own.
+          </div>
+        )}
+
         {/* Background Elements */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
