@@ -13,6 +13,7 @@ interface GoalsSectionProps {
   onGoalClick: (goal: Goal) => void;
   onEditGoal?: (goal: Goal) => void;
   onDeleteGoal?: (goalId: string) => void;
+  userRole?: string;
 }
 
 type ViewType = 'assigned' | 'created';
@@ -35,9 +36,10 @@ export default function GoalsSection({
   onGoalClick,
   onEditGoal,
   onDeleteGoal,
+  userRole,
 }: GoalsSectionProps) {
   const router = useRouter();
-  const [activeView, setActiveView] = useState<ViewType>('assigned');
+  const [activeView, setActiveView] = useState<ViewType>(userRole === 'ADMIN' ? 'created' : 'assigned');
 
   // Separate assigned and self-created goals
   const assignedGoals = goals.filter(goal => goal.manager && goal.manager.id !== goal.employee.id);

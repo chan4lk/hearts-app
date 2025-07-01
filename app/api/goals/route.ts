@@ -117,7 +117,6 @@ export async function GET(req: Request) {
     const goals = await prisma.goal.findMany({
       where: {
         employeeId: session.user.id,
-        managerId: { not: session.user.id }, // Exclude self-created goals
         status: { not: 'DELETED' }
       },
       include: {

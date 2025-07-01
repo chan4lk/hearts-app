@@ -56,7 +56,19 @@ export default function EmployeeDashboard() {
           }
         });
         
-        setGoals(Array.from(uniqueGoals.values()));
+        // Only include goals where the employee is the current user
+        const userId = session?.user?.id;
+        const filteredGoals = Array.from(uniqueGoals.values()).filter(goal => {
+          // Some APIs return employee as object, some as employeeId
+          if (goal.employee && goal.employee.id) {
+            return goal.employee.id === userId;
+          }
+          if (goal.employeeId) {
+            return goal.employeeId === userId;
+          }
+          return false;
+        });
+        setGoals(filteredGoals);
       } catch (error) {
         showToast.error('Goals Loading Error', error);
       } finally {
@@ -65,7 +77,7 @@ export default function EmployeeDashboard() {
     };
 
     fetchGoals();
-  }, []);
+  }, [session]);
 
   const filteredGoals = goals.filter(goal => {
     const matchesSearch = goal.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -182,6 +194,7 @@ export default function EmployeeDashboard() {
                 setSelectedGoal(goal);
                 setShowDetailModal(true);
               }}
+              userRole={session?.user?.role}
             />
           </motion.div>
 
