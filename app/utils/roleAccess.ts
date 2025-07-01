@@ -1,5 +1,8 @@
 import { IconType } from 'react-icons';
-import { Role } from '@prisma/client';
+
+// Define Role type locally
+export type Role = 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
+
 import { 
   BsGrid, 
   BsBullseye,
@@ -36,21 +39,21 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
     href: '/dashboard/admin',
     icon: BsGrid,
     label: 'Admin Overview',
-    roles: [Role.ADMIN],
+    roles: ['ADMIN'],
     context: 'admin'
   },
   {
     href: '/dashboard/admin/users',
     icon: BsPeople,
     label: 'Manage Users',
-    roles: [Role.ADMIN],
+    roles: ['ADMIN'],
     context: 'admin'
   },
   {
     href: '/dashboard/admin/goals',
     icon: BsBullseye,
     label: 'Goal Settings',
-    roles: [Role.ADMIN],
+    roles: ['ADMIN'],
     context: 'admin'
   }
 ];
@@ -60,28 +63,28 @@ const MANAGER_NAV_ITEMS: NavItem[] = [
     href: '/dashboard/manager',
     icon: BsGrid,
     label: 'Manager Overview',
-    roles: [Role.MANAGER, Role.ADMIN],
+    roles: ['MANAGER', 'ADMIN'],
     context: 'manager'
   },
   {
     href: '/dashboard/manager/goals/approve-goals',
     icon: BsClipboardData,
     label: 'Goal Approvals',
-    roles: [Role.MANAGER, Role.ADMIN],
+    roles: ['MANAGER', 'ADMIN'],
     context: 'manager'
   },
   {
     href: '/dashboard/manager/goals/setgoals',
     icon: BsBullseye,
     label: 'Set Goals',
-    roles: [Role.MANAGER, Role.ADMIN],
+    roles: ['MANAGER', 'ADMIN'],
     context: 'manager'
   },
   {
     href: '/dashboard/manager/rate-employees',
     icon: BsStar,
     label: 'Rate Employees',
-    roles: [Role.MANAGER, Role.ADMIN],
+    roles: ['MANAGER', 'ADMIN'],
     context: 'manager'
   }
 ];
@@ -91,21 +94,21 @@ const EMPLOYEE_NAV_ITEMS: NavItem[] = [
     href: '/dashboard/employee',
     icon: BsGrid,
     label: 'Employee Overview',
-    roles: [Role.EMPLOYEE, Role.MANAGER, Role.ADMIN],
+    roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
     context: 'employee'
   },
   {
     href: '/dashboard/employee/goals/create',
     icon: BsBullseye,
     label: 'Create Goals',
-    roles: [Role.EMPLOYEE, Role.MANAGER, Role.ADMIN],
+    roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
     context: 'employee'
   },
   {
     href: '/dashboard/employee/self-rating',
     icon: BsStar,
     label: 'Self Rating',
-    roles: [Role.EMPLOYEE, Role.MANAGER, Role.ADMIN],
+    roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
     context: 'employee'
   }
 ];
@@ -116,19 +119,19 @@ const DASHBOARD_SWITCHER: NavItem[] = [
     href: '/dashboard/admin',
     icon: BsShield,
     label: 'Switch to Admin',
-    roles: [Role.ADMIN]
+    roles: ['ADMIN']
   },
   {
     href: '/dashboard/manager',
     icon: BsGraphUp,
     label: 'Switch to Manager',
-    roles: [Role.MANAGER, Role.ADMIN]
+    roles: ['MANAGER', 'ADMIN']
   },
   {
     href: '/dashboard/employee',
     icon: BsPerson,
     label: 'Switch to Employee',
-    roles: [Role.EMPLOYEE, Role.MANAGER, Role.ADMIN]
+    roles: ['EMPLOYEE', 'MANAGER', 'ADMIN']
   }
 ];
 
@@ -156,7 +159,7 @@ export const getNavItemsByRole = (role: Role, currentPath: string): NavItem[] =>
 
     return [
       ...contextItems,
-      { href: '', label: 'Switch Dashboard', icon: BsGrid, roles: [Role.ADMIN] }, // Divider
+      { href: '', label: 'Switch Dashboard', icon: BsGrid, roles: ['ADMIN'] }, // Divider
       ...DASHBOARD_SWITCHER
     ];
   }
@@ -171,7 +174,10 @@ export const getNavItemsByRole = (role: Role, currentPath: string): NavItem[] =>
 };
 
 // Define role access levels
-const ROLE_ACCESS = {
+const ROLE_ACCESS: Record<Role, {
+  canAccess: string[];
+  defaultPath: string;
+}> = {
   'ADMIN': {
     canAccess: [
       // Admin paths
@@ -241,7 +247,7 @@ export const hasAccess = (role: Role, path: string): boolean => {
   }
 
   // For non-admin roles, check specific path access
-  const hasAccess = roleConfig.canAccess.some(allowedPath => {
+  const hasAccess = roleConfig.canAccess.some((allowedPath: string) => {
     const pathMatches = path.startsWith(allowedPath);
     console.log('[roleAccess] Checking path match:', {
       allowedPath,
@@ -276,11 +282,11 @@ export const getRoleBasedTitle = (role: Role): string => {
 
 export const getRoleColor = (role: Role): string => {
   switch (role) {
-    case Role.ADMIN:
+    case 'ADMIN':
       return 'text-purple-500 bg-purple-100 dark:text-purple-300 dark:bg-purple-900/20';
-    case Role.MANAGER:
+    case 'MANAGER':
       return 'text-blue-500 bg-blue-100 dark:text-blue-300 dark:bg-blue-900/20';
-    case Role.EMPLOYEE:
+    case 'EMPLOYEE':
       return 'text-green-500 bg-green-100 dark:text-green-300 dark:bg-green-900/20';
     default:
       return 'text-gray-500 bg-gray-100 dark:text-gray-300 dark:bg-gray-900/20';

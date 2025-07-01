@@ -52,6 +52,8 @@ interface NavItem {
   label: string;
 }
 
+type Role = 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
+
 export default function DashboardLayout({ children, type }: DashboardLayoutProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -133,14 +135,13 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
   };
 
   const hasAccessToDashboard = (): boolean => {
-    const userRole = session?.user?.role;
+    const userRole = session?.user?.role as Role | undefined;
     const currentPath = pathname || '';
-    
     // Admin has access to all dashboards
     if (userRole === 'ADMIN') {
       return true;
     }
-    
+    if (!userRole) return false;
     return hasAccess(userRole, currentPath);
   };
 

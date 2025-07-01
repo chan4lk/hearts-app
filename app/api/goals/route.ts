@@ -4,7 +4,34 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { Goal, GoalStatus, User, Prisma } from '@prisma/client';
+
+// Define GoalStatus enum locally
+export enum GoalStatus {
+  DRAFT = 'DRAFT',
+  PENDING = 'PENDING',
+  MODIFIED = 'MODIFIED',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  COMPLETED = 'COMPLETED',
+  DELETED = 'DELETED',
+}
+
+// Define Goal type locally (minimal, extend as needed)
+export type Goal = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  dueDate: Date;
+  status: GoalStatus;
+  employeeId: string;
+  managerId: string | null;
+  createdById: string;
+  updatedById: string;
+  createdAt: Date;
+  updatedAt: Date;
+  managerComments?: string;
+};
 
 type GoalWithRelations = Goal & {
   category: string;
@@ -26,13 +53,13 @@ type StatusTransitions = {
 };
 
 const validTransitions: StatusTransitions = {
-  DRAFT: ['PENDING'],
-  PENDING: ['APPROVED', 'REJECTED', 'MODIFIED'],
-  MODIFIED: ['PENDING'],
-  APPROVED: ['COMPLETED'],
-  REJECTED: ['DRAFT'],
-  COMPLETED: [],
-  DELETED: []
+  [GoalStatus.DRAFT]: [GoalStatus.PENDING],
+  [GoalStatus.PENDING]: [GoalStatus.APPROVED, GoalStatus.REJECTED, GoalStatus.MODIFIED],
+  [GoalStatus.MODIFIED]: [GoalStatus.PENDING],
+  [GoalStatus.APPROVED]: [GoalStatus.COMPLETED],
+  [GoalStatus.REJECTED]: [GoalStatus.DRAFT],
+  [GoalStatus.COMPLETED]: [],
+  [GoalStatus.DELETED]: []
 };
 
 export async function GET(req: Request) {
@@ -72,12 +99,12 @@ export async function GET(req: Request) {
       // Calculate statistics
       const stats = {
         total: goals.length,
-        completed: goals.filter(g => g.status === 'COMPLETED').length,
-        pending: goals.filter(g => g.status === 'PENDING').length,
-        inProgress: goals.filter(g => g.status === 'APPROVED').length,
-        draft: goals.filter(g => g.status === 'DRAFT').length,
-        rejected: goals.filter(g => g.status === 'REJECTED').length,
-        modified: goals.filter(g => g.status === 'MODIFIED').length
+        completed: goals.filter((g: GoalWithRelations) => g.status === 'COMPLETED').length,
+        pending: goals.filter((g: GoalWithRelations) => g.status === 'PENDING').length,
+        inProgress: goals.filter((g: GoalWithRelations) => g.status === 'APPROVED').length,
+        draft: goals.filter((g: GoalWithRelations) => g.status === 'DRAFT').length,
+        rejected: goals.filter((g: GoalWithRelations) => g.status === 'REJECTED').length,
+        modified: goals.filter((g: GoalWithRelations) => g.status === 'MODIFIED').length
       };
 
       return NextResponse.json({ 
@@ -117,12 +144,12 @@ export async function GET(req: Request) {
     // Calculate statistics
     const stats = {
       total: goals.length,
-      completed: goals.filter(g => g.status === 'COMPLETED').length,
-      pending: goals.filter(g => g.status === 'PENDING').length,
-      inProgress: goals.filter(g => g.status === 'APPROVED').length,
-      draft: goals.filter(g => g.status === 'DRAFT').length,
-      rejected: goals.filter(g => g.status === 'REJECTED').length,
-      modified: goals.filter(g => g.status === 'MODIFIED').length
+      completed: goals.filter((g: GoalWithRelations) => g.status === 'COMPLETED').length,
+      pending: goals.filter((g: GoalWithRelations) => g.status === 'PENDING').length,
+      inProgress: goals.filter((g: GoalWithRelations) => g.status === 'APPROVED').length,
+      draft: goals.filter((g: GoalWithRelations) => g.status === 'DRAFT').length,
+      rejected: goals.filter((g: GoalWithRelations) => g.status === 'REJECTED').length,
+      modified: goals.filter((g: GoalWithRelations) => g.status === 'MODIFIED').length
     };
 
     return NextResponse.json({ 
@@ -322,7 +349,7 @@ export async function PATCH(request: Request) {
     const isGoalEmployee = goal.employeeId === session.user.id;
 
     // Prepare update data
-    const updateData: Prisma.GoalUpdateInput = {
+    const updateData: any = {
       updatedAt: new Date(),
       updatedBy: {
         connect: {
