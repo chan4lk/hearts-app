@@ -96,6 +96,14 @@ export default function ManagerDashboard() {
     fetchData();
   }, [session?.user?.email]);
 
+  // Add session/role check
+  useEffect(() => {
+    if (!session) return;
+    if (!['MANAGER', 'ADMIN'].includes(session.user.role)) {
+      window.location.href = '/login';
+    }
+  }, [session]);
+
   const handleGoalClick = (goal: Goal) => {
     setSelectedGoalDetails(goal);
   };
@@ -123,6 +131,12 @@ export default function ManagerDashboard() {
   return (
     <DashboardLayout type="manager">
       <div className="min-h-screen bg-gray-900 p-4">
+        {/* Show info if admin is using manager dashboard */}
+        {session?.user?.role === 'ADMIN' && (
+          <div className="mb-4 p-3 rounded bg-purple-900/80 text-purple-200 border border-purple-400 text-center">
+            You are viewing the Manager Dashboard as an <b>Admin</b>. You can use all manager features here.
+          </div>
+        )}
         <div className="max-w-7xl mx-auto space-y-4">
           {/* Stats Section */}
           <StatsDisplay stats={stats} />

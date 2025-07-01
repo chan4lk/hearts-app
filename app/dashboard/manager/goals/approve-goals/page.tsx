@@ -33,12 +33,10 @@ export default function ApproveGoalsPage() {
       router.push('/login');
       return;
     }
-
-    if (session.user?.role !== 'MANAGER') {
+    if (!['MANAGER', 'ADMIN'].includes(session.user.role)) {
       router.push('/dashboard');
       return;
     }
-
     fetchGoals();
   }, [session, router]);
 
@@ -147,6 +145,12 @@ export default function ApproveGoalsPage() {
   return (
     <DashboardLayout type="manager">
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        {/* Show info if admin is using manager dashboard */}
+        {session?.user?.role === 'ADMIN' && (
+          <div className="mb-4 p-3 rounded bg-purple-900/80 text-purple-200 border border-purple-400 text-center">
+            You are viewing the Manager Dashboard as an <b>Admin</b>. You can use all manager features here.
+          </div>
+        )}
         <div className="relative z-10 p-4 space-y-4">
           <HeroSection />
           
