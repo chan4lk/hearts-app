@@ -5,7 +5,6 @@ import { prisma } from './prisma';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 import { verify } from 'jsonwebtoken';
-import { Role, User } from '@prisma/client';
 
 declare module 'next-auth' {
   interface User {
@@ -24,6 +23,15 @@ declare module 'next-auth/jwt' {
     id: string;
     role: Role;
   }
+}
+
+export type Role = 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: Role;
 }
 
 export const authOptions: NextAuthOptions = {

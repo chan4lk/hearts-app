@@ -6,7 +6,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 // Define GoalStatus enum locally
-export enum GoalStatus {
+enum GoalStatus {
   DRAFT = 'DRAFT',
   PENDING = 'PENDING',
   MODIFIED = 'MODIFIED',
@@ -17,7 +17,7 @@ export enum GoalStatus {
 }
 
 // Define Goal type locally (minimal, extend as needed)
-export type Goal = {
+type Goal = {
   id: string;
   title: string;
   description: string;
@@ -99,12 +99,12 @@ export async function GET(req: Request) {
       // Calculate statistics
       const stats = {
         total: goals.length,
-        completed: goals.filter((g: GoalWithRelations) => g.status === 'COMPLETED').length,
-        pending: goals.filter((g: GoalWithRelations) => g.status === 'PENDING').length,
-        inProgress: goals.filter((g: GoalWithRelations) => g.status === 'APPROVED').length,
-        draft: goals.filter((g: GoalWithRelations) => g.status === 'DRAFT').length,
-        rejected: goals.filter((g: GoalWithRelations) => g.status === 'REJECTED').length,
-        modified: goals.filter((g: GoalWithRelations) => g.status === 'MODIFIED').length
+        completed: goals.filter((g: any) => g.status === 'COMPLETED').length,
+        pending: goals.filter((g: any) => g.status === 'PENDING').length,
+        inProgress: goals.filter((g: any) => g.status === 'APPROVED').length,
+        draft: goals.filter((g: any) => g.status === 'DRAFT').length,
+        rejected: goals.filter((g: any) => g.status === 'REJECTED').length,
+        modified: goals.filter((g: any) => g.status === 'MODIFIED').length
       };
 
       return NextResponse.json({ 
@@ -143,12 +143,12 @@ export async function GET(req: Request) {
     // Calculate statistics
     const stats = {
       total: goals.length,
-      completed: goals.filter((g: GoalWithRelations) => g.status === 'COMPLETED').length,
-      pending: goals.filter((g: GoalWithRelations) => g.status === 'PENDING').length,
-      inProgress: goals.filter((g: GoalWithRelations) => g.status === 'APPROVED').length,
-      draft: goals.filter((g: GoalWithRelations) => g.status === 'DRAFT').length,
-      rejected: goals.filter((g: GoalWithRelations) => g.status === 'REJECTED').length,
-      modified: goals.filter((g: GoalWithRelations) => g.status === 'MODIFIED').length
+      completed: goals.filter((g: any) => g.status === 'COMPLETED').length,
+      pending: goals.filter((g: any) => g.status === 'PENDING').length,
+      inProgress: goals.filter((g: any) => g.status === 'APPROVED').length,
+      draft: goals.filter((g: any) => g.status === 'DRAFT').length,
+      rejected: goals.filter((g: any) => g.status === 'REJECTED').length,
+      modified: goals.filter((g: any) => g.status === 'MODIFIED').length
     };
 
     return NextResponse.json({ 
