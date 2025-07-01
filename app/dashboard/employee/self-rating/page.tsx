@@ -31,18 +31,15 @@ export default function SelfRatingPage() {
 
   useEffect(() => {
     if (status === 'loading') return;
-
     if (!session) {
       router.push('/login');
       return;
     }
-
-    if (session.user?.role !== 'EMPLOYEE' && session.user?.role !== 'MANAGER') {
+    if (!['EMPLOYEE', 'MANAGER', 'ADMIN'].includes(session.user.role)) {
       toast.error('You do not have permission to access this page');
       router.push('/dashboard');
       return;
     }
-
     fetchGoals();
   }, [session, router, status]);
 
@@ -182,6 +179,11 @@ export default function SelfRatingPage() {
   return (
     <DashboardLayout type="employee">
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        {session?.user?.role === 'ADMIN' && (
+          <div className="mb-4 p-3 rounded bg-purple-900/80 text-purple-200 border border-purple-400 text-center">
+            You are performing self-rating as an <b>Admin</b>. You can use all employee features here.
+          </div>
+        )}
         {session?.user?.role === 'MANAGER' && (
           <div className="mb-4 p-3 rounded bg-blue-900/80 text-blue-200 border border-blue-400 text-center">
             You are performing self-rating as a Manager. These ratings will be tracked as your own.

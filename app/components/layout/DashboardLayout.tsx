@@ -521,6 +521,48 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                     </div>
                   </div>
                  
+                  {/* Admin: Admin, Manager, and Employee Dashboard Links */}
+                  {session?.user?.role === 'ADMIN' && (
+                    <div className="flex flex-col gap-2 mt-3">
+                      <Link
+                        href="/dashboard/admin"
+                        className={`flex items-center gap-2 block w-full px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 text-center
+                          ${pathname.startsWith('/dashboard/admin')
+                            ? 'bg-gradient-to-r from-purple-800 to-purple-900 text-white shadow-lg shadow-purple-900/30'
+                            : 'text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-800/60'}
+                        `}
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <BsShield className="text-lg" />
+                        Admin Dashboard
+                      </Link>
+                      <Link
+                        href="/dashboard/manager"
+                        className={`flex items-center gap-2 block w-full px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 text-center
+                          ${pathname.startsWith('/dashboard/manager')
+                            ? 'bg-gradient-to-r from-purple-800 to-purple-900 text-white shadow-lg shadow-purple-900/30'
+                            : 'text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-800/60'}
+                        `}
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <BsGraphUp className="text-lg" />
+                        Manager Dashboard
+                      </Link>
+                      <Link
+                        href="/dashboard/employee"
+                        className={`flex items-center gap-2 block w-full px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 text-center
+                          ${pathname.startsWith('/dashboard/employee')
+                            ? 'bg-gradient-to-r from-purple-800 to-purple-900 text-white shadow-lg shadow-purple-900/30'
+                            : 'text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-800/60'}
+                        `}
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <BsPerson className="text-lg" />
+                        Employee Dashboard
+                      </Link>
+                    </div>
+                  )}
+
                   {/* Manager: Employee Dashboard and Manager Dashboard Links */}
                   {session?.user?.role === 'MANAGER' && (
                     <div className="flex flex-col gap-2 mt-3">
