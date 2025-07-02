@@ -181,12 +181,7 @@ export default function RateEmployeesPage() {
   return (
     <DashboardLayout type="manager">
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        {/* Show info if admin is using manager dashboard */}
-        {session?.user?.role === 'ADMIN' && (
-          <div className="mb-4 p-3 rounded bg-purple-900/80 text-purple-200 border border-purple-400 text-center">
-            You are viewing the Manager Dashboard as an <b>Admin</b>. You can use all manager features here.
-          </div>
-        )}
+        
         {/* Floating Background Elements */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-violet-400/20 to-indigo-400/20 rounded-full blur-3xl"></div>

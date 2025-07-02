@@ -243,12 +243,7 @@ function ManagerGoalSettingPageContent() {
       </div>
 
       <div className="relative z-10 p-6 space-y-8">
-        {/* Show info if admin is using manager dashboard */}
-        {session?.user?.role === 'ADMIN' && (
-          <div className="mb-4 p-3 rounded bg-purple-900/80 text-purple-200 border border-purple-400 text-center">
-            You are viewing the Manager Dashboard as an <b>Admin</b>. You can use all manager features here.
-          </div>
-        )}
+       
         <HeroSection onCreateClick={() => setIsCreateModalOpen(true)} />
         <StatsSection stats={stats} />
         

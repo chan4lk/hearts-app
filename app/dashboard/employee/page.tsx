@@ -156,20 +156,7 @@ export default function EmployeeDashboard() {
         <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
         
         <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
-          {/* Show info if admin is using employee dashboard */}
-          {session?.user?.role === 'ADMIN' && (
-            <div className="mb-4 p-3 rounded bg-purple-900/80 text-purple-200 border border-purple-400 text-center">
-              You are viewing the Employee Dashboard as an <b>Admin</b>. You can use all employee features here.
-            </div>
-          )}
-
-          {/* Show info if manager is using employee dashboard */}
-          {session?.user?.role === 'MANAGER' && (
-            <div className="mb-4 p-3 rounded bg-blue-900/80 text-blue-200 border border-blue-400 text-center">
-              You are viewing the Employee Dashboard as a Manager. You can create goals and perform self-rating here.
-            </div>
-          )}
-
+      
           {/* Stats Section */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}

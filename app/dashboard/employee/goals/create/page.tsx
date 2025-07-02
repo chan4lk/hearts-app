@@ -192,19 +192,10 @@ function GoalsPageContent() {
   return (
     <DashboardLayout type="employee">
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        {/* Show info if admin is using goal creation */}
-        {session?.user?.role === 'ADMIN' && (
-          <div className="mb-4 p-3 rounded bg-purple-900/80 text-purple-200 border border-purple-400 text-center">
-            You are creating goals as an <b>Admin</b>. You can use all employee features here.
-          </div>
-        )}
+        
 
-        {/* Show info if manager is using goal creation */}
-        {session?.user?.role === 'MANAGER' && (
-          <div className="mb-4 p-3 rounded bg-blue-900/80 text-blue-200 border border-blue-400 text-center">
-            You are creating goals as a Manager. These goals will be tracked as your own.
-          </div>
-        )}
+       
+    
 
         {/* Background Elements */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
