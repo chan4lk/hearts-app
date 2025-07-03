@@ -174,6 +174,22 @@ function ManagerGoalSettingPageContent() {
     
     setLoading(true);
     try {
+      // Optimistically update UI first
+      const optimisticGoal = {
+        ...selectedGoal,
+        title: updatedData.title,
+        description: updatedData.description,
+        dueDate: updatedData.dueDate,
+        category: updatedData.category,
+        employee: assignedEmployees.find(emp => emp.id === updatedData.employeeId)
+      };
+      
+      setGoals(prev => prev.map(goal => 
+        goal.id === selectedGoal.id ? optimisticGoal : goal
+      ));
+      setViewedGoal(optimisticGoal);
+      
+      // Make API call
       const response = await fetch(`/api/goals/${selectedGoal.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -183,10 +199,19 @@ function ManagerGoalSettingPageContent() {
       if (!response.ok) throw new Error('Failed to update goal');
 
       const updatedGoal = await response.json();
-      setGoals(prev => prev.map(goal => goal.id === selectedGoal.id ? updatedGoal : goal));
+      
+      // Update with server data
+      setGoals(prev => prev.map(goal => 
+        goal.id === selectedGoal.id ? updatedGoal : goal
+      ));
+      setViewedGoal(updatedGoal);
+      
+      // Close edit modal and show view modal
       setIsEditModalOpen(false);
-      resetForm();
+      setSelectedGoal(null);
+      setIsViewModalOpen(true);
       showToast.goal.updated();
+      
     } catch (error) {
       console.error('Error updating goal:', error);
       showToast.goal.error('Failed to update goal');
@@ -223,6 +248,18 @@ function ManagerGoalSettingPageContent() {
       employeeId: '',
       category: 'PROFESSIONAL'
     });
+  };
+
+  const handleEditGoal = (goal: Goal) => {
+    setSelectedGoal(goal);
+    setFormData({
+      title: goal.title,
+      description: goal.description,
+      dueDate: new Date(goal.dueDate).toISOString().split('T')[0],
+      employeeId: goal.employee?.id || '',
+      category: goal.category
+    });
+    setIsEditModalOpen(true);
   };
 
   if (error) {
@@ -295,17 +332,7 @@ function ManagerGoalSettingPageContent() {
             setViewedGoal(goal);
             setIsViewModalOpen(true);
           }}
-          onEditGoal={(goal) => {
-            setSelectedGoal(goal);
-            setFormData({
-              title: goal.title,
-              description: goal.description,
-              dueDate: new Date(goal.dueDate).toISOString().split('T')[0],
-              employeeId: goal.employee?.id || '',
-              category: goal.category
-            });
-            setIsEditModalOpen(true);
-          }}
+          onEditGoal={handleEditGoal}
           onDeleteGoal={(goalId) => {
             setGoalToDelete(goalId);
             setIsDeleteModalOpen(true);
@@ -316,11 +343,9 @@ function ManagerGoalSettingPageContent() {
         <CreateGoalModal
           isOpen={isCreateModalOpen || isEditModalOpen}
           onClose={() => {
-            if (isEditModalOpen) {
-              setIsEditModalOpen(false);
-            } else {
-              setIsCreateModalOpen(false);
-            }
+            setIsCreateModalOpen(false);
+            setIsEditModalOpen(false);
+            setSelectedGoal(null);
             resetForm();
           }}
           onSubmit={isEditModalOpen ? handleUpdateGoal : handleSubmit}
@@ -329,41 +354,38 @@ function ManagerGoalSettingPageContent() {
           formData={formData}
           setFormData={setFormData}
           mode={isEditModalOpen ? 'edit' : 'create'}
+          initialData={selectedGoal ? {
+            title: selectedGoal.title,
+            description: selectedGoal.description,
+            dueDate: selectedGoal.dueDate,
+            employeeId: selectedGoal.employee?.id || '',
+            category: selectedGoal.category
+          } : undefined}
         />
 
         <ViewGoalModal
           isOpen={isViewModalOpen}
-          onCloseAction={() => setIsViewModalOpen(false)}
+          onCloseAction={() => {
+            setIsViewModalOpen(false);
+            setViewedGoal(null);
+          }}
           goal={viewedGoal}
           onEditAction={() => {
             if (viewedGoal) {
-              setFormData({
-                title: viewedGoal.title,
-                description: viewedGoal.description,
-                dueDate: new Date(viewedGoal.dueDate).toISOString().split('T')[0],
-                employeeId: viewedGoal.employee?.id || '',
-                category: viewedGoal.category
-              });
-              setSelectedGoal(viewedGoal);
+              handleEditGoal(viewedGoal);
               setIsViewModalOpen(false);
-              setTimeout(() => {
-                setIsEditModalOpen(true);
-              }, 100);
             }
           }}
           onDeleteAction={(goalId) => {
-            setGoalToDelete(goalId);
             setIsViewModalOpen(false);
             setIsDeleteModalOpen(true);
+            setGoalToDelete(goalId);
           }}
         />
 
         <DeleteGoalModal
           isOpen={isDeleteModalOpen}
-          onClose={() => {
-            setIsDeleteModalOpen(false);
-            setGoalToDelete(null);
-          }}
+          onClose={() => setIsDeleteModalOpen(false)}
           onConfirm={handleDelete}
         />
       </div>

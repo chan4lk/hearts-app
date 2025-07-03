@@ -119,7 +119,15 @@ export function ViewGoalModal({
                 Delete
               </Button>
             )}
-            
+            <Button
+              variant="outline"
+              onClick={onEdit}
+              className="h-8 px-3 text-xs bg-gradient-to-r from-blue-500/10 to-indigo-600/10 hover:from-blue-500/20 hover:to-indigo-600/20 
+                border-blue-500/30 text-blue-400 hover:text-blue-300 transition-all duration-200 hover:scale-105 active:scale-95"
+            >
+              <BsPencil className="w-3 h-3 mr-1.5" />
+              Edit
+            </Button>
           </div>
         </div>
       </DialogContent>
