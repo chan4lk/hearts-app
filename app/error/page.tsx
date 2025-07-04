@@ -7,8 +7,8 @@ import Link from 'next/link';
 import Loading from './loading';
 
 // Dynamic imports for header and footer
-const DynamicHeader = dynamic(() => import('@/components/Header'), { ssr: false });
-const DynamicFooter = dynamic(() => import('@/components/Footer'), { ssr: false });
+const DynamicHeader = dynamic(() => import('@/app/components/Header'), { ssr: false });
+const DynamicFooter = dynamic(() => import('@/app/components/Footer'), { ssr: false });
 
 import dynamic from 'next/dynamic';
 
