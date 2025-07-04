@@ -50,15 +50,15 @@ export function GoalFormModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-3">
-      <div className="bg-gradient-to-br from-[#1a1b1e] to-[#2a2b2e] rounded-xl w-full max-w-sm shadow-2xl border border-gray-800/50">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-1 sm:p-3">
+      <div className="bg-gradient-to-br from-[#1a1b1e] to-[#2a2b2e] rounded-lg sm:rounded-xl w-full max-w-full sm:max-w-sm shadow-2xl border border-gray-800/50 p-1 sm:p-0 max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-3 py-2 border-b border-gray-800/50 bg-black/20">
+        <div className="flex items-center justify-between px-1 py-1 sm:px-3 sm:py-2 border-b border-gray-800/50 bg-black/20">
           <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 p-1.5 rounded-lg">
-              <BsListTask className="w-3.5 h-3.5 text-amber-400" />
+            <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 p-1 rounded-lg sm:p-1.5">
+              <BsListTask className="w-3 h-3 text-amber-400 sm:w-3.5 sm:h-3.5" />
             </div>
-            <h2 className="text-sm font-medium text-white">{isEditMode ? 'Update Goal' : 'Create Goal'}</h2>
+            <h2 className="text-[11px] sm:text-sm font-medium text-white">{isEditMode ? 'Update Goal' : 'Create Goal'}</h2>
           </div>
           <button
             onClick={onClose}
@@ -69,11 +69,11 @@ export function GoalFormModal({
         </div>
 
         {/* Form */}
-        <form onSubmit={onSubmit} className="p-3 space-y-3 max-h-[80vh] overflow-y-auto">
+        <form onSubmit={onSubmit} className="p-1 sm:p-3 space-y-1 sm:space-y-3 max-h-[80vh] overflow-y-auto">
           {/* Title & Category Row */}
           <div className="space-y-2">
             <div>
-              <label className="block text-[10px] font-medium text-white/70 mb-1">Goal Title</label>
+              <label className="block text-[11px] sm:text-xs font-medium text-white/70 mb-1">Goal Title</label>
               <Input
                 value={formData.title}
                 onChange={(e) => onFormDataChange('title', e.target.value)}
@@ -85,7 +85,7 @@ export function GoalFormModal({
               )}
             </div>
             <div>
-              <label className="block text-[10px] font-medium text-white/70 mb-1">Category</label>
+              <label className="block text-[11px] sm:text-xs font-medium text-white/70 mb-1">Category</label>
               <Select
                 value={formData.category}
                 onValueChange={(value) => onFormDataChange('category', value)}
@@ -111,9 +111,9 @@ export function GoalFormModal({
           </div>
 
           {/* Date & Employee Row */}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
-              <label className="block text-[10px] font-medium text-white/70 mb-1">Due Date</label>
+              <label className="block text-[11px] sm:text-xs font-medium text-white/70 mb-1">Due Date</label>
               <div className="relative">
                 <Input
                   type="date"
@@ -125,7 +125,7 @@ export function GoalFormModal({
               </div>
             </div>
             <div>
-              <label className="block text-[10px] font-medium text-white/70 mb-1">Employee</label>
+              <label className="block text-[11px] sm:text-xs font-medium text-white/70 mb-1">Employee</label>
               <Select
                 value={formData.employeeId}
                 onValueChange={(value) => onFormDataChange('employeeId', value)}
@@ -152,7 +152,7 @@ export function GoalFormModal({
 
           {/* Description */}
           <div>
-            <label className="block text-[10px] font-medium text-white/70 mb-1 flex items-center gap-1">
+            <label className="block text-[11px] sm:text-xs font-medium text-white/70 mb-1 flex items-center gap-1">
               <BsListTask className="h-2.5 w-2.5" /> Description
             </label>
             <Textarea
@@ -172,55 +172,53 @@ export function GoalFormModal({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col gap-1.5 pt-2 border-t border-gray-800/50">
-            <div className="flex gap-1.5">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onReset}
-                className="flex-1 bg-black/20 hover:bg-black/30 border-gray-800/50 text-white/70 text-xs h-7 rounded-lg transition-colors"
-              >
-                <BsArrowCounterclockwise className="h-2.5 w-2.5 mr-1" />
-                Reset
-              </Button>
-              {!isEditMode && onTemplateClick && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onTemplateClick}
-                  className="flex-1 bg-black/20 hover:bg-black/30 border-gray-800/50 text-white/70 text-xs h-7 rounded-lg transition-colors"
-                >
-                  <BsListTask className="h-2.5 w-2.5 mr-1" />
-                  Templates
-                </Button>
-              )}
-              <Button
-                type="submit"
-                disabled={loading}
-                className="flex-1 bg-gradient-to-r from-[#4c49ed]/90 to-[#6366f1]/90 hover:from-[#4644e5] hover:to-[#5b5be6] text-white text-xs h-7 rounded-lg font-medium transition-all duration-200"
-              >
-                {loading ? (
-                  <div className="flex items-center gap-1">
-                    <div className="w-2.5 h-2.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    {isEditMode ? 'Updating...' : 'Creating...'}
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1">
-                    <BsListTask className="h-2.5 w-2.5" />
-                    {isEditMode ? 'Update Goal' : 'Create Goal'}
-                  </div>
-                )}
-              </Button>
-            </div>
+          <div className="flex flex-col sm:flex-row gap-1 sm:gap-1.5 pt-2 border-t border-gray-800/50">
             <Button
               type="button"
               variant="outline"
-              onClick={onClose}
-              className="w-full bg-black/20 hover:bg-black/30 border-gray-800/50 text-white/70 text-xs h-7 rounded-lg transition-colors"
+              onClick={onReset}
+              className="flex-1 bg-black/20 hover:bg-black/30 border-gray-800/50 text-white/70 text-[11px] sm:text-xs h-8 sm:h-7 rounded-lg transition-colors"
             >
-              Cancel
+              <BsArrowCounterclockwise className="h-3 w-3 mr-1 hidden sm:inline" />
+              Reset
+            </Button>
+            {!isEditMode && onTemplateClick && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onTemplateClick}
+                className="flex-1 bg-black/20 hover:bg-black/30 border-gray-800/50 text-white/70 text-[11px] sm:text-xs h-8 sm:h-7 rounded-lg transition-colors"
+              >
+                <BsListTask className="h-3 w-3 mr-1 hidden sm:inline" />
+                Templates
+              </Button>
+            )}
+            <Button
+              type="submit"
+              disabled={loading}
+              className="flex-1 bg-gradient-to-r from-[#4c49ed]/90 to-[#6366f1]/90 hover:from-[#4644e5] hover:to-[#5b5be6] text-white text-[11px] sm:text-xs h-8 sm:h-7 rounded-lg font-medium transition-all duration-200"
+            >
+              {loading ? (
+                <div className="flex items-center gap-1">
+                  <div className="w-2.5 h-2.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  {isEditMode ? 'Updating...' : 'Creating...'}
+                </div>
+              ) : (
+                <div className="flex items-center gap-1">
+                  <BsListTask className="h-2.5 w-2.5" />
+                  {isEditMode ? 'Update Goal' : 'Create Goal'}
+                </div>
+              )}
             </Button>
           </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className="w-full bg-black/20 hover:bg-black/30 border-gray-800/50 text-white/70 text-[11px] sm:text-xs h-8 sm:h-7 rounded-lg transition-colors mt-1"
+          >
+            Cancel
+          </Button>
         </form>
       </div>
     </div>
