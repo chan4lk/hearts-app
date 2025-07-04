@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { User } from '../types';
 import { CATEGORIES } from '@/app/components/shared/constants';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Input } from '@/app/components/ui/input';
+import { Textarea } from '@/app/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
+import { Button } from '@/app/components/ui/button';
+import { Alert, AlertDescription } from '@/app/components/ui/alert';
 import { AIGoalSuggestions } from '@/app/components/shared/AIGoalSuggestions';
 import { z } from 'zod';
 import { 

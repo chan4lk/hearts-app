@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ProgressUpdateForm } from '@/components/ProgressUpdateForm';
-import { Progress } from '@/components/ui/progress';
+import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
+import { ProgressUpdateForm } from '@/app/components/ProgressUpdateForm';
+import { Progress } from '@/app/components/ui/progress';
 
 interface Goal {
   id: string;

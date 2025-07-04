@@ -1,6 +1,6 @@
 import { Goal } from '../types';
 import { CATEGORIES } from '@/app/components/shared/constants';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/app/components/ui/badge';
 import { BsRocket, BsLightbulb, BsAward, BsGraphUp, BsBriefcase, BsListTask, BsX, BsStars, BsCalendar, BsPerson, BsGear, BsTrash } from 'react-icons/bs';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';

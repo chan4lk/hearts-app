@@ -6,19 +6,19 @@ import { useState, useEffect, Suspense } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import dynamic from 'next/dynamic';
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { Label } from "@/app/components/ui/label";
+import { Button } from "@/app/components/ui/button";
 import LoadingComponent from '@/app/components/LoadingPage';
 import { Role } from '@prisma/client';
 
 // Add dynamic import for client-side components
-const DynamicHeader = dynamic(() => import('@/components/Header'), { 
+const DynamicHeader = dynamic(() => import('@/app/components/Header'), { 
   ssr: false,
   loading: () => <div className="h-16 bg-[#0f172a]/50 backdrop-blur-sm border-b border-indigo-500/20" />
 });
 
-const DynamicFooter = dynamic(() => import('@/components/Footer'), { 
+const DynamicFooter = dynamic(() => import('@/app/components/Footer'), { 
   ssr: false,
   loading: () => <div className="h-16 bg-[#0f172a]/50 backdrop-blur-sm border-t border-indigo-500/20" />,
   suspense: true

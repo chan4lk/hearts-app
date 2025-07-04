@@ -12,7 +12,7 @@ import {
   SelectValue,
   SelectContent,
   SelectItem
-} from '@/components/ui/select';
+} from '@/app/components/ui/select';
 import { CATEGORIES } from '@/app/components/shared/constants';
 
 const containerVariants = {

@@ -1,7 +1,7 @@
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { Features } from '@/components/features';
-import { AzureIntegration } from '@/components/azure';
+import Header from '@/app/components/Header';
+import Footer from '@/app/components/Footer';
+import { Features } from '@/app/components/features';
+import { AzureIntegration } from '@/app/components/azure';
 import Link from 'next/link';
 import Image from 'next/image';
 

@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { BsChevronDown, BsCalendar, BsTag, BsStarFill } from "react-icons/bs";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/app/components/ui/label";
 import { GoalWithRating } from "../types";
 import { useState } from "react";
 import { CATEGORIES } from '@/app/components/shared/constants';

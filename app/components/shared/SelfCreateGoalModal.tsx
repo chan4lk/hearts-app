@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { Textarea } from '@/app/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { BsListTask, BsCalendar, BsX, BsArrowCounterclockwise, BsRobot, BsLightning, BsBriefcase, BsLightningCharge, BsGraphUp, BsBook, BsHeart } from 'react-icons/bs';
 import { AIGoalSuggestions } from '@/app/components/shared/AIGoalSuggestions';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -18,9 +18,10 @@ export interface SelfCreateGoalModalProps {
   loading: boolean;
   goal: { title: string; description: string; dueDate: string; category: string };
   setGoal: (goal: { title: string; description: string; dueDate: string; category: string }) => void;
+  isEditing?: boolean;
 }
 
-export function SelfCreateGoalModal({ isOpen, onClose, onSubmit, loading, goal, setGoal }: SelfCreateGoalModalProps) {
+export function SelfCreateGoalModal({ isOpen, onClose, onSubmit, loading, goal, setGoal, isEditing = false }: SelfCreateGoalModalProps) {
   const [context, setContext] = useState('');
   const selectedCategory = CATEGORIES.find(c => c.value === goal.category);
 

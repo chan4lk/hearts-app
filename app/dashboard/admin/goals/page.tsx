@@ -17,7 +17,7 @@ import {
   SelectValue,
   SelectContent,
   SelectItem
-} from '@/components/ui/select';
+} from '@/app/components/ui/select';
 
 import { User as UserType, Goal, GoalStats } from './types';
 import { HeroSection } from './components/HeroSection';
