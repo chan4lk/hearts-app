@@ -65,28 +65,42 @@ export function GoalModals({
 
   useEffect(() => {
     if (selectedGoal && isEditModalOpen) {
-      // Ensure we have all the required fields
-      const newFormData = {
-        title: selectedGoal.title || '',
-        description: selectedGoal.description || '',
-        dueDate: selectedGoal.dueDate ? selectedGoal.dueDate.split('T')[0] : new Date().toISOString().split('T')[0],
-        employeeId: selectedGoal.employee?.id || '',
-        category: selectedGoal.category || 'PROFESSIONAL'
-      };
-      
-      // Log for debugging
-      console.log('Setting form data for edit:', newFormData);
-      console.log('Selected goal:', selectedGoal);
-      
-      // Set the form data
-      setFormData(newFormData);
+      // Add a small delay to ensure modal is fully rendered
+      const timer = setTimeout(() => {
+        // Ensure we have all the required fields
+        const newFormData = {
+          title: selectedGoal.title || '',
+          description: selectedGoal.description || '',
+          dueDate: selectedGoal.dueDate ? selectedGoal.dueDate.split('T')[0] : new Date().toISOString().split('T')[0],
+          employeeId: selectedGoal.employee?.id || '',
+          category: selectedGoal.category || 'PROFESSIONAL'
+        };
+        
+        // Log for debugging
+        console.log('Setting form data for edit:', newFormData);
+        console.log('Selected goal:', selectedGoal);
+        
+        // Set the form data
+        setFormData(newFormData);
+      }, 100);
+
+      return () => clearTimeout(timer);
     }
   }, [selectedGoal, isEditModalOpen]);
 
-  // Separate useEffect for resetting
+  // Separate useEffect for resetting - only when both modals are closed
   useEffect(() => {
     if (!isCreateModalOpen && !isEditModalOpen) {
-      handleReset();
+      // Only reset when both modals are closed
+      setFormData({
+        title: '',
+        description: '',
+        dueDate: new Date().toISOString().split('T')[0],
+        employeeId: '',
+        category: 'PROFESSIONAL'
+      });
+      setContext('');
+      setErrors({});
     }
   }, [isCreateModalOpen, isEditModalOpen]);
 
@@ -196,6 +210,7 @@ export function GoalModals({
         >
           <div className="w-full max-w-2xl mx-4">
             <GoalFormModal
+              key={selectedGoal?.id || 'edit-modal'}
               isOpen={isEditModalOpen}
               onClose={() => {
                 onCloseEdit();

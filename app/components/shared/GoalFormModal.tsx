@@ -47,6 +47,24 @@ export function GoalFormModal({
   onReset,
   onTemplateClick
 }: GoalFormModalProps) {
+  // Add useEffect to log form data changes for debugging
+  React.useEffect(() => {
+    if (isOpen && isEditMode) {
+      console.log('GoalFormModal - Current formData:', formData);
+    }
+  }, [formData, isOpen, isEditMode]);
+
+  // Force re-render when modal opens in edit mode
+  React.useEffect(() => {
+    if (isOpen && isEditMode) {
+      // Force a small delay to ensure the form is properly rendered
+      const timer = setTimeout(() => {
+        console.log('GoalFormModal - Modal opened in edit mode, formData:', formData);
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, isEditMode, formData]);
+
   if (!isOpen) return null;
 
   return (
@@ -87,11 +105,14 @@ export function GoalFormModal({
             <div>
               <label className="block text-[11px] sm:text-xs font-medium text-white/70 mb-1">Category</label>
               <Select
+                key={`category-${formData.category}`}
                 value={formData.category}
                 onValueChange={(value) => onFormDataChange('category', value)}
               >
                 <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20">
-                  <SelectValue>{CATEGORIES.find(c => c.value === formData.category)?.label || 'Select category'}</SelectValue>
+                  <SelectValue placeholder="Select category">
+                    {CATEGORIES.find(c => c.value === formData.category)?.label || 'Select category'}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="bg-[#1a1b1e] border-gray-800/50">
                   {CATEGORIES.map((category) => (
@@ -127,6 +148,7 @@ export function GoalFormModal({
             <div>
               <label className="block text-[11px] sm:text-xs font-medium text-white/70 mb-1">Employee</label>
               <Select
+                key={`employee-${formData.employeeId}`}
                 value={formData.employeeId}
                 onValueChange={(value) => onFormDataChange('employeeId', value)}
               >
