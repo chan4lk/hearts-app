@@ -1,7 +1,8 @@
-import { Goal } from '@/app/components/shared/types';
-import { GoalForm } from './GoalForm';
+import { Goal, GoalFormData } from '@/app/components/shared/types';
+import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
 import { GoalModal } from './GoalModal';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';
+import { useState } from 'react';
 
 interface GoalModalsProps {
   isCreateModalOpen: boolean;
@@ -48,11 +49,40 @@ export function GoalModals({
   setIsEditModalOpen,
   setIsDeleteModalOpen
 }: GoalModalsProps) {
+  const [formData, setFormData] = useState<GoalFormData>({
+    title: '',
+    description: '',
+    dueDate: new Date().toISOString().split('T')[0],
+    employeeId: '',
+    category: 'PROFESSIONAL'
+  });
+  const [context, setContext] = useState('');
+  const [errors, setErrors] = useState<{
+    title?: string;
+    category?: string;
+    employeeId?: string;
+  }>({});
+
+  const handleFormDataChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleReset = () => {
+    setFormData({
+      title: '',
+      description: '',
+      dueDate: new Date().toISOString().split('T')[0],
+      employeeId: '',
+      category: 'PROFESSIONAL'
+    });
+    setContext('');
+  };
+
   return (
     <>
       {isCreateModalOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center "
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               onCloseCreate();
@@ -60,21 +90,22 @@ export function GoalModals({
           }}
         >
           <div className="w-full max-w-2xl mx-4">
-            
-
-            <GoalForm
-              users={users}
-              onSubmit={onCreate}
-              onCancel={onCloseCreate}
+            <GoalFormModal
+              isOpen={isCreateModalOpen}
+              onClose={onCloseCreate}
+              onSubmit={async (e) => {
+                e.preventDefault();
+                await onCreate(formData);
+              }}
+              assignedEmployees={users}
               loading={loading}
-              title="Create Goal"
-              initialData={selectedGoal ? {
-                title: selectedGoal.title,
-                description: selectedGoal.description,
-                dueDate: new Date(selectedGoal.dueDate).toISOString().split('T')[0],
-                employeeId: selectedGoal.employee?.id || '',
-                category: selectedGoal.category
-              } : undefined}
+              formData={formData}
+              onFormDataChange={handleFormDataChange}
+              errors={errors}
+              isEditMode={false}
+              context={context}
+              onContextChange={setContext}
+              onReset={handleReset}
             />
           </div>
         </div>
@@ -116,21 +147,22 @@ export function GoalModals({
           }}
         >
           <div className="w-full max-w-2xl mx-4">
-            
-
-            <GoalForm
-              initialData={{
-                title: selectedGoal.title,
-                description: selectedGoal.description,
-                dueDate: new Date(selectedGoal.dueDate).toISOString().split('T')[0],
-                employeeId: selectedGoal.employee?.id || '',
-                category: selectedGoal.category
+            <GoalFormModal
+              isOpen={isEditModalOpen}
+              onClose={onCloseEdit}
+              onSubmit={async (e) => {
+                e.preventDefault();
+                await onUpdate(formData);
               }}
-              users={users}
-              onSubmit={onUpdate}
-              onCancel={onCloseEdit}
+              assignedEmployees={users}
               loading={loading}
-              title="Update Goal"
+              formData={formData}
+              onFormDataChange={handleFormDataChange}
+              errors={errors}
+              isEditMode={true}
+              context={context}
+              onContextChange={setContext}
+              onReset={handleReset}
             />
           </div>
         </div>
