@@ -1,4 +1,4 @@
-import { BsRocket, BsLightbulb, BsAward, BsGraphUp, BsStars, BsBriefcase, BsLightningCharge, BsBook, BsHeart, BsBarChart, BsCode, BsBug, BsPeople } from 'react-icons/bs';
+import { BsRocket, BsLightbulb, BsAward, BsGraphUp, BsStars, BsBriefcase, BsLightningCharge, BsBook, BsHeart, BsBarChart, BsCode, BsBug, BsPeople, BsMegaphone, BsCalculator, BsGear, BsArrowDown, BsDash, BsArrowUp, BsExclamationTriangle } from 'react-icons/bs';
 
 export const CATEGORIES = [
   {
@@ -309,7 +309,101 @@ export const STATUS_COLORS = {
   APPROVED: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
   REJECTED: 'bg-red-500/10 text-red-600 dark:text-red-400',
   MODIFIED: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400'
-} as const; 
+} as const;
+
+export const DEPARTMENTS = [
+  {
+    value: 'ENGINEERING',
+    label: 'Engineering',
+    icon: 'BsCode',
+    iconColor: 'text-blue-400',
+    color: 'from-blue-500 to-indigo-500'
+  },
+  {
+    value: 'SALES',
+    label: 'Sales',
+    icon: 'BsGraphUp',
+    iconColor: 'text-green-400',
+    color: 'from-green-500 to-emerald-500'
+  },
+  {
+    value: 'MARKETING',
+    label: 'Marketing',
+    icon: 'BsMegaphone',
+    iconColor: 'text-purple-400',
+    color: 'from-purple-500 to-pink-500'
+  },
+  {
+    value: 'HR',
+    label: 'Human Resources',
+    icon: 'BsPeople',
+    iconColor: 'text-amber-400',
+    color: 'from-amber-500 to-orange-500'
+  },
+  {
+    value: 'FINANCE',
+    label: 'Finance',
+    icon: 'BsCalculator',
+    iconColor: 'text-emerald-400',
+    color: 'from-emerald-500 to-teal-500'
+  },
+  {
+    value: 'OPERATIONS',
+    label: 'Operations',
+    icon: 'BsGear',
+    iconColor: 'text-gray-400',
+    color: 'from-gray-500 to-slate-500'
+  },
+  {
+    value: 'CUSTOMER_SUCCESS',
+    label: 'Customer Success',
+    icon: 'BsHeart',
+    iconColor: 'text-rose-400',
+    color: 'from-rose-500 to-red-500'
+  },
+  {
+    value: 'PRODUCT',
+    label: 'Product',
+    icon: 'BsLightbulb',
+    iconColor: 'text-cyan-400',
+    color: 'from-cyan-500 to-blue-500'
+  }
+] as const;
+
+export const PRIORITIES = [
+  {
+    value: 'LOW',
+    label: 'Low',
+    icon: 'BsArrowDown',
+    iconColor: 'text-gray-400',
+    color: 'from-gray-400 to-gray-500',
+    bgColor: 'bg-gray-500/10'
+  },
+  {
+    value: 'MEDIUM',
+    label: 'Medium',
+    icon: 'BsDash',
+    iconColor: 'text-yellow-400',
+    color: 'from-yellow-400 to-orange-500',
+    bgColor: 'bg-yellow-500/10'
+  },
+  {
+    value: 'HIGH',
+    label: 'High',
+    icon: 'BsArrowUp',
+    iconColor: 'text-orange-400',
+    color: 'from-orange-400 to-red-500',
+    bgColor: 'bg-orange-500/10'
+  },
+  {
+    value: 'URGENT',
+    label: 'Urgent',
+    icon: 'BsExclamationTriangle',
+    iconColor: 'text-red-400',
+    color: 'from-red-400 to-red-600',
+    bgColor: 'bg-red-500/10'
+  }
+] as const; 
 
 
 

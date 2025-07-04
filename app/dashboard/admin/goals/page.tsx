@@ -66,6 +66,7 @@ function AdminGoalSettingPageContent() {
   const [viewedGoal, setViewedGoal] = useState<Goal | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
+  const [context, setContext] = useState('');
 
   const getFilteredGoals = (goals: Goal[]) => {
     // Filter out goals where employee is admin (but keep all other goals for admin management)
@@ -181,7 +182,9 @@ function AdminGoalSettingPageContent() {
       const goalData = {
         ...formData,
         dueDate: new Date(formData.dueDate).toISOString(),
-        status: 'DRAFT'
+        status: 'DRAFT',
+        department: formData.department || 'ENGINEERING',
+        priority: formData.priority || 'MEDIUM'
       };
 
       const response = await fetch('/api/goals', {
@@ -390,7 +393,9 @@ function AdminGoalSettingPageContent() {
         description: template.description || '',
         dueDate: new Date().toISOString().split('T')[0],
         employeeId: '',
-        category: template.category
+        category: template.category,
+        department: 'ENGINEERING',
+        priority: 'MEDIUM'
       };
 
       setSelectedGoal({
@@ -531,6 +536,8 @@ function AdminGoalSettingPageContent() {
           setGoalToDelete={setGoalToDelete}
           setIsEditModalOpen={setIsEditModalOpen}
           setIsDeleteModalOpen={setIsDeleteModalOpen}
+          context={context}
+          onContextChange={setContext}
         />
       </div>
     </div>

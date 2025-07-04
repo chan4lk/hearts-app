@@ -57,6 +57,8 @@ model Goal {
   rejectedBy      String?
   managerComments String?
   category        GoalCategory   @default(PROFESSIONAL)
+  department      String         @default("ENGINEERING")
+  priority        String         @default("MEDIUM")
   createdById     String?
   deletedAt       DateTime?
   deletedById     String?

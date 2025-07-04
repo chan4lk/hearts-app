@@ -7,7 +7,7 @@ import { Textarea } from '@/app/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { BsListTask, BsPeople, BsCalendar, BsX, BsArrowCounterclockwise, BsRobot } from 'react-icons/bs';
 import { User } from '@/app/components/shared/types';
-import { CATEGORIES } from './constants';
+import { CATEGORIES, DEPARTMENTS, PRIORITIES } from './constants';
 import { AIGoalSuggestions } from './AIGoalSuggestions';
 
 interface GoalFormModalProps {
@@ -22,9 +22,11 @@ interface GoalFormModalProps {
     dueDate: string;
     employeeId: string;
     category: string;
+    department: string;
+    priority: string;
   };
   onFormDataChange: (field: string, value: string) => void;
-  errors: { title?: string; category?: string; employeeId?: string };
+  errors: { title?: string; category?: string; employeeId?: string; department?: string; priority?: string };
   isEditMode: boolean;
   context: string;
   onContextChange: (value: string) => void;
@@ -127,6 +129,60 @@ export function GoalFormModal({
               </Select>
               {errors.category && (
                 <div className="text-red-400 text-[10px] mt-1 font-semibold animate-pulse">{errors.category}</div>
+              )}
+            </div>
+            <div>
+              <label className="block text-[11px] sm:text-xs font-medium text-white/70 mb-1">Department</label>
+              <Select
+                key={`department-${formData.department}`}
+                value={formData.department}
+                onValueChange={(value) => onFormDataChange('department', value)}
+              >
+                <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20">
+                  <SelectValue placeholder="Select department">
+                    {DEPARTMENTS.find(d => d.value === formData.department)?.label || 'Select department'}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="bg-[#1a1b1e] border-gray-800/50">
+                  {DEPARTMENTS.map((department) => (
+                    <SelectItem key={department.value} value={department.value} className="text-white text-xs">
+                      <div className="flex items-center gap-1.5">
+                        {React.createElement(department.icon, { className: department.iconColor })}
+                        <span>{department.label}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.department && (
+                <div className="text-red-400 text-[10px] mt-1 font-semibold animate-pulse">{errors.department}</div>
+              )}
+            </div>
+            <div>
+              <label className="block text-[11px] sm:text-xs font-medium text-white/70 mb-1">Priority</label>
+              <Select
+                key={`priority-${formData.priority}`}
+                value={formData.priority}
+                onValueChange={(value) => onFormDataChange('priority', value)}
+              >
+                <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20">
+                  <SelectValue placeholder="Select priority">
+                    {PRIORITIES.find(p => p.value === formData.priority)?.label || 'Select priority'}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="bg-[#1a1b1e] border-gray-800/50">
+                  {PRIORITIES.map((priority) => (
+                    <SelectItem key={priority.value} value={priority.value} className="text-white text-xs">
+                      <div className="flex items-center gap-1.5">
+                        {React.createElement(priority.icon, { className: priority.iconColor })}
+                        <span>{priority.label}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.priority && (
+                <div className="text-red-400 text-[10px] mt-1 font-semibold animate-pulse">{errors.priority}</div>
               )}
             </div>
           </div>

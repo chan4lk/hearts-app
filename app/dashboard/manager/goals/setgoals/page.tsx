@@ -58,7 +58,9 @@ function ManagerGoalSettingPageContent() {
     description: '',
     dueDate: new Date().toISOString().split('T')[0],
     employeeId: '',
-    category: 'PROFESSIONAL'
+    category: 'PROFESSIONAL',
+    department: 'ENGINEERING',
+    priority: 'MEDIUM'
   });
   const [stats, setStats] = useState<GoalStats>({
     totalEmployees: 0,
@@ -275,7 +277,9 @@ function ManagerGoalSettingPageContent() {
       description: '',
       dueDate: new Date().toISOString().split('T')[0],
       employeeId: '',
-      category: 'PROFESSIONAL'
+      category: 'PROFESSIONAL',
+      department: 'ENGINEERING',
+      priority: 'MEDIUM'
     });
   };
 
@@ -286,7 +290,9 @@ function ManagerGoalSettingPageContent() {
       description: goal.description,
       dueDate: new Date(goal.dueDate).toISOString().split('T')[0],
       employeeId: goal.employee?.id || '',
-      category: goal.category
+      category: goal.category,
+      department: goal.department || 'ENGINEERING',
+      priority: goal.priority || 'MEDIUM'
     });
     setIsEditModalOpen(true);
   };
@@ -342,7 +348,9 @@ function ManagerGoalSettingPageContent() {
                       ...prev,
                       title: template.title,
                       description: template.description,
-                      category: template.category
+                      category: template.category,
+                      department: 'ENGINEERING',
+                      priority: 'MEDIUM'
                     }));
                     setIsCreateModalOpen(true);
                   }} />
@@ -388,7 +396,9 @@ function ManagerGoalSettingPageContent() {
             description: selectedGoal.description,
             dueDate: selectedGoal.dueDate,
             employeeId: selectedGoal.employee?.id || '',
-            category: selectedGoal.category
+            category: selectedGoal.category,
+            department: selectedGoal.department || 'ENGINEERING',
+            priority: selectedGoal.priority || 'MEDIUM'
           } : undefined}
         />
 

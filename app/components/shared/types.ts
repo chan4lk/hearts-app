@@ -39,6 +39,8 @@ export interface Goal {
   status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'DRAFT'| 'DELETED';
   dueDate: string;
   category: string;
+  department: string;
+  priority: string;
   createdAt: string;
   updatedAt: string;
   progress?: number;
@@ -164,6 +166,8 @@ export interface GoalFormData {
   dueDate: string;
   employeeId: string;
   category: string;
+  department: string;
+  priority: string;
 } 
 
 export interface Stats {

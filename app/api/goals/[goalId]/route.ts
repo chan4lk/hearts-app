@@ -107,7 +107,7 @@ export async function PUT(req: Request, { params }: { params: { goalId: string }
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { title, description, category, dueDate } = await req.json();
+    const { title, description, category, dueDate, department, priority } = await req.json();
 
     // Check if the goal exists
     const existingGoal = await prisma.goal.findUnique({
@@ -146,6 +146,8 @@ export async function PUT(req: Request, { params }: { params: { goalId: string }
         title: title.trim(),
         description: description.trim(),
         category,
+        department: department || 'ENGINEERING',
+        priority: priority || 'MEDIUM',
         dueDate: new Date(dueDate),
         updatedById: session.user.id
       },

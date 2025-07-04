@@ -22,6 +22,8 @@ type Goal = {
   title: string;
   description: string;
   category: string;
+  department: string;
+  priority: string;
   dueDate: Date;
   status: GoalStatus;
   employeeId: string;
@@ -168,7 +170,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { title, description, category, dueDate, employeeId } = await req.json();
+    const { title, description, category, dueDate, employeeId, department, priority } = await req.json();
 
     // Check if user is admin or manager
     const isAdminOrManager = session.user.role === 'ADMIN' || session.user.role === 'MANAGER';
@@ -187,6 +189,8 @@ export async function POST(req: Request) {
         title,
         description,
         category,
+        department: department || 'ENGINEERING',
+        priority: priority || 'MEDIUM',
         dueDate: new Date(dueDate),
         status: isAdminOrManager ? 'DRAFT' : 'PENDING',
         employeeId: isSelfGoal ? session.user.id : employeeId,
@@ -327,7 +331,7 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    const { status, managerComments, title, description, dueDate, category } = body;
+    const { status, managerComments, title, description, dueDate, category, department, priority } = body;
 
     // Check if user is authorized to update the goal
     const goal = await prisma.goal.findUnique({
@@ -389,7 +393,7 @@ export async function PATCH(request: Request) {
     }
 
     // Handle content updates if provided
-    if (title || description || dueDate || category) {
+    if (title || description || dueDate || category || department || priority) {
       // Only allow content updates if:
       // 1. User is admin/manager and goal is in DRAFT or PENDING state
       // 2. User is the employee and goal is in DRAFT state
@@ -407,6 +411,8 @@ export async function PATCH(request: Request) {
       if (description) updateData.description = description;
       if (dueDate) updateData.dueDate = new Date(dueDate);
       if (category) updateData.category = category;
+      if (department) updateData.department = department;
+      if (priority) updateData.priority = priority;
     }
 
     // Update the goal

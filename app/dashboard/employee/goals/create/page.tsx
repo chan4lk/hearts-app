@@ -39,7 +39,9 @@ function GoalsPageContent() {
     description: '',
     dueDate: new Date().toISOString().split('T')[0],
     employeeId: '',
-    category: 'PROFESSIONAL'
+    category: 'PROFESSIONAL',
+    department: 'ENGINEERING',
+    priority: 'MEDIUM'
   });
   const [context, setContext] = useState('');
   const [formErrors, setFormErrors] = useState<{
@@ -118,7 +120,9 @@ function GoalsPageContent() {
         description: '',
         dueDate: new Date().toISOString().split('T')[0],
         employeeId: '',
-        category: 'PROFESSIONAL'
+        category: 'PROFESSIONAL',
+        department: 'ENGINEERING',
+        priority: 'MEDIUM'
       });
     } catch (error) {
       console.error('Error submitting goal:', error);
@@ -138,7 +142,9 @@ function GoalsPageContent() {
       description: goal.description,
       dueDate: goal.dueDate.split('T')[0],
       employeeId: '',
-      category: goal.category
+      category: goal.category,
+      department: goal.department || 'ENGINEERING',
+      priority: goal.priority || 'MEDIUM'
     });
     setIsEditModalOpen(true);
     setSelectedViewGoal(null); // Close details modal
@@ -319,7 +325,9 @@ function GoalsPageContent() {
                       description: template.description,
                       dueDate: new Date().toISOString().split('T')[0],
                       employeeId: '',
-                      category: template.category
+                      category: template.category,
+                      department: 'ENGINEERING',
+                      priority: 'MEDIUM'
                     });
                     setIsCreateModalOpen(true);
                   }} />
@@ -350,7 +358,9 @@ function GoalsPageContent() {
             description: '',
             dueDate: new Date().toISOString().split('T')[0],
             employeeId: '',
-            category: 'PROFESSIONAL'
+            category: 'PROFESSIONAL',
+            department: 'ENGINEERING',
+            priority: 'MEDIUM'
           });
         }}
         onSubmit={async (e) => {
@@ -376,7 +386,9 @@ function GoalsPageContent() {
             description: '',
             dueDate: new Date().toISOString().split('T')[0],
             employeeId: '',
-            category: 'PROFESSIONAL'
+            category: 'PROFESSIONAL',
+            department: 'ENGINEERING',
+            priority: 'MEDIUM'
           });
           setContext('');
         }}
@@ -401,7 +413,9 @@ function GoalsPageContent() {
             description: '',
             dueDate: new Date().toISOString().split('T')[0],
             employeeId: '',
-            category: 'PROFESSIONAL'
+            category: 'PROFESSIONAL',
+            department: 'ENGINEERING',
+            priority: 'MEDIUM'
           });
         }}
         onSubmit={async (e) => {
@@ -427,7 +441,9 @@ function GoalsPageContent() {
             description: '',
             dueDate: new Date().toISOString().split('T')[0],
             employeeId: '',
-            category: 'PROFESSIONAL'
+            category: 'PROFESSIONAL',
+            department: 'ENGINEERING',
+            priority: 'MEDIUM'
           });
           setContext('');
         }}

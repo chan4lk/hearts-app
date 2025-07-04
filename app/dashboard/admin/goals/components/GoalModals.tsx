@@ -25,6 +25,8 @@ interface GoalModalsProps {
   setGoalToDelete: (goal: Goal | null) => void;
   setIsEditModalOpen: (isOpen: boolean) => void;
   setIsDeleteModalOpen: (isOpen: boolean) => void;
+  context?: string;
+  onContextChange?: (value: string) => void;
 }
 
 export function GoalModals({
@@ -47,24 +49,33 @@ export function GoalModals({
   setSelectedGoal,
   setGoalToDelete,
   setIsEditModalOpen,
-  setIsDeleteModalOpen
+  setIsDeleteModalOpen,
+  context = '',
+  onContextChange = () => {}
 }: GoalModalsProps) {
   const [formData, setFormData] = useState<GoalFormData>({
     title: '',
     description: '',
     dueDate: new Date().toISOString().split('T')[0],
     employeeId: '',
-    category: 'PROFESSIONAL'
+    category: 'PROFESSIONAL',
+    department: 'ENGINEERING',
+    priority: 'MEDIUM'
   });
-  const [context, setContext] = useState('');
+  const [localContext, setLocalContext] = useState(context);
   const [errors, setErrors] = useState<{
     title?: string;
     category?: string;
     employeeId?: string;
   }>({});
 
+  // Sync local context with prop
   useEffect(() => {
-    if (selectedGoal && isEditModalOpen) {
+    setLocalContext(context);
+  }, [context]);
+
+  useEffect(() => {
+    if (selectedGoal && (isEditModalOpen || isCreateModalOpen)) {
       // Add a small delay to ensure modal is fully rendered
       const timer = setTimeout(() => {
         // Ensure we have all the required fields
@@ -73,12 +84,15 @@ export function GoalModals({
           description: selectedGoal.description || '',
           dueDate: selectedGoal.dueDate ? selectedGoal.dueDate.split('T')[0] : new Date().toISOString().split('T')[0],
           employeeId: selectedGoal.employee?.id || '',
-          category: selectedGoal.category || 'PROFESSIONAL'
+          category: selectedGoal.category || 'PROFESSIONAL',
+          department: selectedGoal.department || 'ENGINEERING',
+          priority: selectedGoal.priority || 'MEDIUM'
         };
         
         // Log for debugging
-        console.log('Setting form data for edit:', newFormData);
+        console.log('Setting form data:', newFormData);
         console.log('Selected goal:', selectedGoal);
+        console.log('Modal type:', isEditModalOpen ? 'edit' : 'create');
         
         // Set the form data
         setFormData(newFormData);
@@ -86,7 +100,7 @@ export function GoalModals({
 
       return () => clearTimeout(timer);
     }
-  }, [selectedGoal, isEditModalOpen]);
+  }, [selectedGoal, isEditModalOpen, isCreateModalOpen]);
 
   // Separate useEffect for resetting - only when both modals are closed
   useEffect(() => {
@@ -97,9 +111,12 @@ export function GoalModals({
         description: '',
         dueDate: new Date().toISOString().split('T')[0],
         employeeId: '',
-        category: 'PROFESSIONAL'
+        category: 'PROFESSIONAL',
+        department: 'ENGINEERING',
+        priority: 'MEDIUM'
       });
-      setContext('');
+      setLocalContext('');
+      onContextChange('');
       setErrors({});
     }
   }, [isCreateModalOpen, isEditModalOpen]);
@@ -116,7 +133,9 @@ export function GoalModals({
         description: selectedGoal.description || '',
         dueDate: selectedGoal.dueDate ? selectedGoal.dueDate.split('T')[0] : new Date().toISOString().split('T')[0],
         employeeId: selectedGoal.employee?.id || '',
-        category: selectedGoal.category || 'PROFESSIONAL'
+        category: selectedGoal.category || 'PROFESSIONAL',
+        department: selectedGoal.department || 'ENGINEERING',
+        priority: selectedGoal.priority || 'MEDIUM'
       });
     } else {
       // Otherwise, reset to default values
@@ -125,10 +144,13 @@ export function GoalModals({
         description: '',
         dueDate: new Date().toISOString().split('T')[0],
         employeeId: '',
-        category: 'PROFESSIONAL'
+        category: 'PROFESSIONAL',
+        department: 'ENGINEERING',
+        priority: 'MEDIUM'
       });
     }
-    setContext('');
+    setLocalContext('');
+    onContextChange('');
     setErrors({});
   };
 
@@ -163,8 +185,11 @@ export function GoalModals({
               onFormDataChange={handleFormDataChange}
               errors={errors}
               isEditMode={false}
-              context={context}
-              onContextChange={setContext}
+              context={localContext}
+              onContextChange={(value) => {
+                setLocalContext(value);
+                onContextChange(value);
+              }}
               onReset={handleReset}
             />
           </div>
@@ -227,8 +252,11 @@ export function GoalModals({
               onFormDataChange={handleFormDataChange}
               errors={errors}
               isEditMode={true}
-              context={context}
-              onContextChange={setContext}
+              context={localContext}
+              onContextChange={(value) => {
+                setLocalContext(value);
+                onContextChange(value);
+              }}
               onReset={handleReset}
             />
           </div>

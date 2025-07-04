@@ -33,7 +33,7 @@ export function CreateGoalModal({
   const [isGenerating, setIsGenerating] = useState(false);
   const [context, setContext] = useState('');
   const [initialEditData, setInitialEditData] = useState<GoalFormData | null>(null);
-  const [errors, setErrors] = useState<{ title?: string; category?: string; employeeId?: string }>({});
+  const [errors, setErrors] = useState<{ title?: string; category?: string; employeeId?: string; department?: string; priority?: string }>({});
   const [justSubmitted, setJustSubmitted] = useState<'create' | 'update' | null>(null);
 
   useEffect(() => {
@@ -56,6 +56,8 @@ export function CreateGoalModal({
         dueDate: new Date().toISOString().split('T')[0],
         employeeId: '',
         category: 'PROFESSIONAL',
+        department: 'ENGINEERING',
+        priority: 'MEDIUM'
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -143,7 +145,9 @@ export function CreateGoalModal({
         description: '',
         dueDate: new Date().toISOString().split('T')[0],
         employeeId: '',
-        category: 'PROFESSIONAL'
+        category: 'PROFESSIONAL',
+        department: 'ENGINEERING',
+        priority: 'MEDIUM'
       });
       setContext('');
     }
