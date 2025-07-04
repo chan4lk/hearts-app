@@ -358,22 +358,25 @@ function AdminGoalSettingPageContent() {
   };
 
   const handleTemplateSelect = (template: any) => {
-    const newGoal: Goal = {
-      id: '',
+    const newGoal = {
       title: template.title,
       description: template.description,
+      dueDate: new Date().toISOString().split('T')[0],
+      employeeId: '',
+      category: template.category
+    };
+    setSelectedGoal({
+      id: '',
+      ...newGoal,
       status: 'DRAFT',
-      dueDate: new Date().toISOString(),
-      category: template.category,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      employeeId: '',
       managerId: '',
       isApprovalProcess: false,
       employee: null,
       manager: null
-    };
-    setSelectedGoal(newGoal);
+    });
+    setShowTemplates(false);
     setIsCreateModalOpen(true);
   };
 

@@ -29,6 +29,7 @@ interface GoalFormModalProps {
   context: string;
   onContextChange: (value: string) => void;
   onReset: () => void;
+  onTemplateClick?: () => void;
 }
 
 export function GoalFormModal({
@@ -43,7 +44,8 @@ export function GoalFormModal({
   isEditMode,
   context,
   onContextChange,
-  onReset
+  onReset,
+  onTemplateClick
 }: GoalFormModalProps) {
   if (!isOpen) return null;
 
@@ -181,6 +183,17 @@ export function GoalFormModal({
                 <BsArrowCounterclockwise className="h-2.5 w-2.5 mr-1" />
                 Reset
               </Button>
+              {!isEditMode && onTemplateClick && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onTemplateClick}
+                  className="flex-1 bg-black/20 hover:bg-black/30 border-gray-800/50 text-white/70 text-xs h-7 rounded-lg transition-colors"
+                >
+                  <BsListTask className="h-2.5 w-2.5 mr-1" />
+                  Templates
+                </Button>
+              )}
               <Button
                 type="submit"
                 disabled={loading}

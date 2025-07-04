@@ -2,7 +2,7 @@ import { Goal, GoalFormData } from '@/app/components/shared/types';
 import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
 import { GoalModal } from './GoalModal';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface GoalModalsProps {
   isCreateModalOpen: boolean;
@@ -63,6 +63,24 @@ export function GoalModals({
     employeeId?: string;
   }>({});
 
+  useEffect(() => {
+    if (selectedGoal) {
+      setFormData({
+        title: selectedGoal.title,
+        description: selectedGoal.description,
+        dueDate: selectedGoal.dueDate.split('T')[0],
+        employeeId: selectedGoal.employee?.id || '',
+        category: selectedGoal.category
+      });
+    }
+  }, [selectedGoal]);
+
+  useEffect(() => {
+    if (!isCreateModalOpen && !isEditModalOpen) {
+      handleReset();
+    }
+  }, [isCreateModalOpen, isEditModalOpen]);
+
   const handleFormDataChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
@@ -76,6 +94,7 @@ export function GoalModals({
       category: 'PROFESSIONAL'
     });
     setContext('');
+    setErrors({});
   };
 
   return (
@@ -92,7 +111,10 @@ export function GoalModals({
           <div className="w-full max-w-2xl mx-4">
             <GoalFormModal
               isOpen={isCreateModalOpen}
-              onClose={onCloseCreate}
+              onClose={() => {
+                handleReset();
+                onCloseCreate();
+              }}
               onSubmit={async (e) => {
                 e.preventDefault();
                 await onCreate(formData);
@@ -149,7 +171,10 @@ export function GoalModals({
           <div className="w-full max-w-2xl mx-4">
             <GoalFormModal
               isOpen={isEditModalOpen}
-              onClose={onCloseEdit}
+              onClose={() => {
+                handleReset();
+                onCloseEdit();
+              }}
               onSubmit={async (e) => {
                 e.preventDefault();
                 await onUpdate(formData);
