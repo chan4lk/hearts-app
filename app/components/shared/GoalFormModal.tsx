@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { BsListTask, BsPeople, BsCalendar, BsX, BsArrowCounterclockwise, BsRobot } from 'react-icons/bs';
 import { User } from '@/app/components/shared/types';
 import { CATEGORIES } from './constants';
+import { AIGoalSuggestions } from './AIGoalSuggestions';
 
 interface GoalFormModalProps {
   isOpen: boolean;
@@ -156,20 +157,15 @@ export function GoalFormModal({
               value={formData.description}
               onChange={(e) => onFormDataChange('description', e.target.value)}
               placeholder="Describe the goal details..."
-              className="bg-black/20 border-gray-800/50 text-white text-xs min-h-[50px] rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20 resize-none"
+              className="bg-black/20 border-gray-800/50 text-white text-xs min-h-[50px] rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20 resize-none mb-2"
             />
-          </div>
-
-          {/* AI Context */}
-          <div>
-            <label className="block text-[10px] font-medium text-blue-400/90 mb-1 flex items-center gap-1">
-              <BsRobot className="h-2.5 w-2.5" /> AI Context (Optional)
-            </label>
-            <Textarea
-              value={context}
-              onChange={e => onContextChange(e.target.value)}
-              placeholder="Additional context for AI suggestions..."
-              className="bg-black/20 border-gray-800/50 text-white text-xs min-h-[35px] rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20 resize-none"
+            <AIGoalSuggestions
+              category={formData.category}
+              context={context}
+              onSuggestionSelect={(suggestion) => {
+                onFormDataChange('title', suggestion.title);
+                onFormDataChange('description', suggestion.description);
+              }}
             />
           </div>
 
