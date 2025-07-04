@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import LoadingComponent from '@/app/components/LoadingScreen';
-import { SelfCreateGoalModal } from '@/app/components/shared/SelfCreateGoalModal';
 import { BsPlus, BsArrowUpRight } from 'react-icons/bs';
 import GoalTemplates from '@/app/components/shared/GoalTemplates';
 import { HeroSection } from './components/HeroSection';
@@ -14,6 +13,7 @@ import { GoalDetailsModal } from './components/modals/GoalDetailsModal';
 import { Goal, NewGoal } from '@/app/components/shared/types';
 import { useSession, getSession } from 'next-auth/react';
 import { CATEGORIES } from '@/app/components/shared/constants';
+import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
 
 // Helper function to get the auth token
 const getAuthToken = async () => {
@@ -34,12 +34,19 @@ function GoalsPageContent() {
   const [notificationMessage, setNotificationMessage] = useState('');
   const [notificationType, setNotificationType] = useState<'success' | 'error'>('success');
   const [selectedViewGoal, setSelectedViewGoal] = useState<Goal | null>(null);
-  const [newGoal, setNewGoal] = useState<NewGoal>({
+  const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: 'PROFESSIONAL',
-    dueDate: new Date().toISOString().split('T')[0]
+    dueDate: new Date().toISOString().split('T')[0],
+    employeeId: '',
+    category: 'PROFESSIONAL'
   });
+  const [context, setContext] = useState('');
+  const [formErrors, setFormErrors] = useState<{
+    title?: string;
+    category?: string;
+    employeeId?: string;
+  }>({});
   const [editGoal, setEditGoal] = useState<Goal | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [deleteGoal, setDeleteGoal] = useState<Goal | null>(null);
@@ -85,6 +92,10 @@ function GoalsPageContent() {
     setTimeout(() => setShowNotification(false), 3000);
   };
 
+  const handleFormDataChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleSubmit = async (goalData: NewGoal) => {
     setLoading(true);
     try {
@@ -102,11 +113,12 @@ function GoalsPageContent() {
       setIsCreateModalOpen(false);
       showNotificationWithTimeout('Goal created successfully!', 'success');
       fetchGoals();
-      setNewGoal({
+      setFormData({
         title: '',
         description: '',
-        category: 'PROFESSIONAL',
-        dueDate: new Date().toISOString().split('T')[0]
+        dueDate: new Date().toISOString().split('T')[0],
+        employeeId: '',
+        category: 'PROFESSIONAL'
       });
     } catch (error) {
       console.error('Error submitting goal:', error);
@@ -121,11 +133,12 @@ function GoalsPageContent() {
 
   const handleEditGoal = (goal: Goal) => {
     setEditGoal(goal);
-    setNewGoal({
+    setFormData({
       title: goal.title,
       description: goal.description,
-      category: goal.category,
       dueDate: goal.dueDate.split('T')[0],
+      employeeId: '',
+      category: goal.category
     });
     setIsEditModalOpen(true);
     setSelectedViewGoal(null); // Close details modal
@@ -301,11 +314,12 @@ function GoalsPageContent() {
                   transition={{ duration: 0.3 }}
                 >
                   <GoalTemplates onSelect={(template) => {
-                    setNewGoal({
+                    setFormData({
                       title: template.title,
                       description: template.description,
-                      category: template.category,
-                      dueDate: new Date().toISOString().split('T')[0]
+                      dueDate: new Date().toISOString().split('T')[0],
+                      employeeId: '',
+                      category: template.category
                     });
                     setIsCreateModalOpen(true);
                   }} />
@@ -327,21 +341,45 @@ function GoalsPageContent() {
       </div>
 
       {/* Modals */}
-      <SelfCreateGoalModal
+      <GoalFormModal
         isOpen={isCreateModalOpen}
         onClose={() => {
           setIsCreateModalOpen(false);
-          setNewGoal({
+          setFormData({
             title: '',
             description: '',
-            category: 'PROFESSIONAL',
-            dueDate: new Date().toISOString().split('T')[0]
+            dueDate: new Date().toISOString().split('T')[0],
+            employeeId: '',
+            category: 'PROFESSIONAL'
           });
         }}
-        onSubmit={handleSubmit}
+        onSubmit={async (e) => {
+          e.preventDefault();
+          await handleSubmit({
+            title: formData.title,
+            description: formData.description,
+            category: formData.category,
+            dueDate: formData.dueDate
+          });
+        }}
+        assignedEmployees={[]}
         loading={loading}
-        goal={newGoal}
-        setGoal={setNewGoal}
+        formData={formData}
+        onFormDataChange={handleFormDataChange}
+        errors={formErrors}
+        isEditMode={false}
+        context={context}
+        onContextChange={(value) => setContext(value)}
+        onReset={() => {
+          setFormData({
+            title: '',
+            description: '',
+            dueDate: new Date().toISOString().split('T')[0],
+            employeeId: '',
+            category: 'PROFESSIONAL'
+          });
+          setContext('');
+        }}
       />
 
       <GoalDetailsModal
@@ -353,23 +391,46 @@ function GoalsPageContent() {
         userIsAdminOrManager={userIsAdminOrManager}
       />
 
-      <SelfCreateGoalModal
+      <GoalFormModal
         isOpen={isEditModalOpen}
         onClose={() => {
           setIsEditModalOpen(false);
           setEditGoal(null);
-          setNewGoal({
+          setFormData({
             title: '',
             description: '',
-            category: 'PROFESSIONAL',
-            dueDate: new Date().toISOString().split('T')[0]
+            dueDate: new Date().toISOString().split('T')[0],
+            employeeId: '',
+            category: 'PROFESSIONAL'
           });
         }}
-        onSubmit={handleEditSubmit}
+        onSubmit={async (e) => {
+          e.preventDefault();
+          await handleEditSubmit({
+            title: formData.title,
+            description: formData.description,
+            category: formData.category,
+            dueDate: formData.dueDate
+          });
+        }}
+        assignedEmployees={[]}
         loading={loading}
-        goal={newGoal}
-        setGoal={setNewGoal}
-        isEditing={true}
+        formData={formData}
+        onFormDataChange={handleFormDataChange}
+        errors={formErrors}
+        isEditMode={true}
+        context={context}
+        onContextChange={(value) => setContext(value)}
+        onReset={() => {
+          setFormData({
+            title: '',
+            description: '',
+            dueDate: new Date().toISOString().split('T')[0],
+            employeeId: '',
+            category: 'PROFESSIONAL'
+          });
+          setContext('');
+        }}
       />
 
       {/* Delete Confirmation Modal */}
