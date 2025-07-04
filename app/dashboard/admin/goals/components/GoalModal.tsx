@@ -153,6 +153,18 @@ export function GoalModal({ goal, onClose, onEdit, onDelete }: GoalModalProps) {
 
         {/* Content */}
         <div className="px-4 pb-4 space-y-3 max-h-[calc(85vh-200px)] overflow-y-auto">
+          {/* Category */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-2 text-sm text-white/70"
+          >
+            <div className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1.5 rounded-lg">
+              {getCategoryIcon()}
+              <span>{CATEGORIES.find(c => c.value === goal.category)?.label || goal.category}</span>
+            </div>
+          </motion.div>
+
           {/* Description Card */}
           <motion.div 
             initial={{ opacity: 0, y: 10 }}

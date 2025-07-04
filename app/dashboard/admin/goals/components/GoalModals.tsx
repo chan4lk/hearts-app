@@ -65,16 +65,25 @@ export function GoalModals({
 
   useEffect(() => {
     if (selectedGoal) {
-      setFormData({
-        title: selectedGoal.title,
-        description: selectedGoal.description,
-        dueDate: selectedGoal.dueDate.split('T')[0],
+      // Ensure we have all the required fields
+      const newFormData = {
+        title: selectedGoal.title || '',
+        description: selectedGoal.description || '',
+        dueDate: selectedGoal.dueDate ? selectedGoal.dueDate.split('T')[0] : new Date().toISOString().split('T')[0],
         employeeId: selectedGoal.employee?.id || '',
-        category: selectedGoal.category
-      });
+        category: selectedGoal.category || 'PROFESSIONAL'
+      };
+      
+      // Log for debugging
+      console.log('Setting form data:', newFormData);
+      console.log('Selected goal:', selectedGoal);
+      
+      // Set the form data
+      setFormData(newFormData);
     }
   }, [selectedGoal]);
 
+  // Separate useEffect for resetting
   useEffect(() => {
     if (!isCreateModalOpen && !isEditModalOpen) {
       handleReset();
@@ -86,13 +95,25 @@ export function GoalModals({
   };
 
   const handleReset = () => {
-    setFormData({
-      title: '',
-      description: '',
-      dueDate: new Date().toISOString().split('T')[0],
-      employeeId: '',
-      category: 'PROFESSIONAL'
-    });
+    if (selectedGoal && isEditModalOpen) {
+      // If we're in edit mode, keep the selected goal's data
+      setFormData({
+        title: selectedGoal.title || '',
+        description: selectedGoal.description || '',
+        dueDate: selectedGoal.dueDate ? selectedGoal.dueDate.split('T')[0] : new Date().toISOString().split('T')[0],
+        employeeId: selectedGoal.employee?.id || '',
+        category: selectedGoal.category || 'PROFESSIONAL'
+      });
+    } else {
+      // Otherwise, reset to default values
+      setFormData({
+        title: '',
+        description: '',
+        dueDate: new Date().toISOString().split('T')[0],
+        employeeId: '',
+        category: 'PROFESSIONAL'
+      });
+    }
     setContext('');
     setErrors({});
   };
@@ -104,6 +125,8 @@ export function GoalModals({
           className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
+              handleReset();
+              setSelectedGoal(null);
               onCloseCreate();
             }
           }}
@@ -113,6 +136,7 @@ export function GoalModals({
               isOpen={isCreateModalOpen}
               onClose={() => {
                 handleReset();
+                setSelectedGoal(null);
                 onCloseCreate();
               }}
               onSubmit={async (e) => {
@@ -165,6 +189,8 @@ export function GoalModals({
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               onCloseEdit();
+              handleReset();
+              setSelectedGoal(null);
             }
           }}
         >
@@ -172,8 +198,9 @@ export function GoalModals({
             <GoalFormModal
               isOpen={isEditModalOpen}
               onClose={() => {
-                handleReset();
                 onCloseEdit();
+                handleReset();
+                setSelectedGoal(null);
               }}
               onSubmit={async (e) => {
                 e.preventDefault();

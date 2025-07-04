@@ -252,9 +252,9 @@ function AdminGoalSettingPageContent() {
         throw new Error(errorData.error || 'Failed to update goal');
       }
 
-      const updatedGoal = await response.json();
+      const { goal: updatedGoal } = await response.json();
       setGoals(prevGoals => 
-        prevGoals.map(g => g.id === selectedGoal.id ? updatedGoal.goal : g)
+        prevGoals.map(g => g.id === selectedGoal.id ? updatedGoal : g)
       );
 
       setIsEditModalOpen(false);
@@ -353,31 +353,44 @@ function AdminGoalSettingPageContent() {
   };
 
   const handleEdit = (goal: Goal) => {
-    setSelectedGoal(goal);
+    // First open the modal
     setIsEditModalOpen(true);
+
+    // Then set the selected goal on the next tick
+    setTimeout(() => {
+      setSelectedGoal(goal);
+    }, 0);
   };
 
   const handleTemplateSelect = (template: any) => {
-    const newGoal = {
-      title: template.title,
-      description: template.description,
-      dueDate: new Date().toISOString().split('T')[0],
-      employeeId: '',
-      category: template.category
-    };
-    setSelectedGoal({
-      id: '',
-      ...newGoal,
-      status: 'DRAFT',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      managerId: '',
-      isApprovalProcess: false,
-      employee: null,
-      manager: null
-    });
+    // First close the templates view
     setShowTemplates(false);
+
+    // Then open the create modal
     setIsCreateModalOpen(true);
+
+    // Finally set the selected goal with template data
+    setTimeout(() => {
+      const newGoal = {
+        title: template.title || '',
+        description: template.description || '',
+        dueDate: new Date().toISOString().split('T')[0],
+        employeeId: '',
+        category: template.category
+      };
+
+      setSelectedGoal({
+        id: '',
+        ...newGoal,
+        status: 'DRAFT',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        managerId: '',
+        isApprovalProcess: false,
+        employee: null,
+        manager: null
+      });
+    }, 0);
   };
 
   if (loading) {
