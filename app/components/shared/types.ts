@@ -11,13 +11,17 @@ export interface Employee {
   id: string;
   name: string;
   email: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface User {
   id: string;
   name: string;
   email: string;
-  role?: string;
+  role: Role;
   department: string | null;
   position: string | null;
   status: 'ACTIVE' | 'INACTIVE';
@@ -29,6 +33,7 @@ export interface User {
 
 export interface Goal {
   id: string;
+  
   title: string;
   description: string;
   status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'DRAFT'| 'DELETED';
@@ -39,7 +44,11 @@ export interface Goal {
   progress?: number;
   employeeId: string;
   managerId: string;
-  
+  isApprovalProcess: boolean;
+  approvalProcessId?: string;
+
+  reviewedAt?: string;
+
 
 
   managerComments?: string;
@@ -66,6 +75,37 @@ export interface Goal {
     email: string;
   };
 }
+export interface EmployeeStats {
+  id: string;
+  name: string;
+  email: string;
+  totalGoals: number;
+  pendingGoals: number;
+  approvedGoals: number;
+  ratedGoals: number;
+  rejectedGoals: number;
+  isActive: boolean;
+}
+export interface StatusStyle {
+  bg: string;
+  text: string;
+  icon: React.ReactNode;
+  gradient: string;
+}
+
+export interface DashboardStats {
+  employeeGoals: {
+    total: number;
+    draft: number;
+    pending: number;
+    approved: number;
+    rejected: number;
+    modified: number;
+    completed: number;
+  };
+  employeeCount: number;
+  activeEmployees: number;
+} 
  export interface NewGoal {
   title: string;
   description: string;
@@ -168,6 +208,37 @@ export interface Filters {
   role: string;
   manager: string;
   status: string;
+}
+export interface GoalWithRating {
+  id: string;
+  title: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  dueDate: string;
+  managerId?: string | null;
+  employeeId: string;
+  approvedAt?: Date | null;
+  approvedBy?: string | null;
+  rejectedAt?: Date | null;
+  rejectedBy?: string | null;
+  managerComments?: string | null;
+  category: string;
+  createdById?: string | null;
+  deletedAt?: Date | null;
+  deletedById?: string | null;
+  updatedById?: string | null;
+  status: string;
+  rating?: {
+    id: string;
+    score: number;
+    comments?: string;
+  };
+  employee: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }
 
 export type ViewMode = 'grid' | 'list';
