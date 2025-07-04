@@ -68,14 +68,13 @@ function AdminGoalSettingPageContent() {
   const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
 
   const getFilteredGoals = (goals: Goal[]) => {
-    // First filter out self-created goals and admin users
-    const assignedGoals = goals.filter(goal => 
-      goal.manager?.id !== goal.employee?.id && 
+    // Filter out goals where employee is admin (but keep all other goals for admin management)
+    const filteredGoals = goals.filter(goal => 
       goal.employee && users.find(u => u.id === goal.employee?.id)?.role !== 'ADMIN'
     );
     
     // Then apply filters
-    return assignedGoals.filter(goal => {
+    return filteredGoals.filter(goal => {
       const matchesEmployee = selectedEmployee === 'all' || goal.employee?.id === selectedEmployee;
       const matchesStatus = selectedStatus === 'all' || goal.status === selectedStatus;
       return matchesEmployee && matchesStatus;
@@ -236,6 +235,8 @@ function AdminGoalSettingPageContent() {
     if (!selectedGoal) return;
     setLoading(true);
     try {
+      console.log('Updating goal:', selectedGoal.id, 'with data:', formData);
+      
       const goalData = {
         ...formData,
         dueDate: new Date(formData.dueDate).toISOString(),
@@ -247,12 +248,17 @@ function AdminGoalSettingPageContent() {
         body: JSON.stringify(goalData),
       });
 
+      console.log('Update response status:', response.status);
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Update error response:', errorData);
         throw new Error(errorData.error || 'Failed to update goal');
       }
 
       const { goal: updatedGoal } = await response.json();
+      console.log('Updated goal:', updatedGoal);
+      
       setGoals(prevGoals => 
         prevGoals.map(g => g.id === selectedGoal.id ? updatedGoal : g)
       );
@@ -302,15 +308,23 @@ function AdminGoalSettingPageContent() {
   const handleConfirmDelete = async () => {
     if (!goalToDelete) return;
     try {
+      console.log('Deleting goal:', goalToDelete.id);
+      
       const response = await fetch(`/api/goals/${goalToDelete.id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
       });
 
+      console.log('Delete response status:', response.status);
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Delete error response:', errorData);
         throw new Error(errorData.error || 'Failed to delete goal');
       }
+
+      const result = await response.json();
+      console.log('Delete result:', result);
 
       setGoals(prevGoals => prevGoals.filter(goal => goal.id !== goalToDelete.id));
       toast.success('🗑️ Goal deleted successfully!', {

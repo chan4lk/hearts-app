@@ -64,7 +64,7 @@ export function GoalModals({
   }>({});
 
   useEffect(() => {
-    if (selectedGoal) {
+    if (selectedGoal && isEditModalOpen) {
       // Ensure we have all the required fields
       const newFormData = {
         title: selectedGoal.title || '',
@@ -75,13 +75,13 @@ export function GoalModals({
       };
       
       // Log for debugging
-      console.log('Setting form data:', newFormData);
+      console.log('Setting form data for edit:', newFormData);
       console.log('Selected goal:', selectedGoal);
       
       // Set the form data
       setFormData(newFormData);
     }
-  }, [selectedGoal]);
+  }, [selectedGoal, isEditModalOpen]);
 
   // Separate useEffect for resetting
   useEffect(() => {

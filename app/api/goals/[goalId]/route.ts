@@ -11,10 +11,13 @@ export async function GET(req: Request, { params }: { params: { goalId: string }
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Check if user is admin
+    const isAdmin = session.user.role === 'ADMIN';
+    
     const goal = await prisma.goal.findUnique({
       where: {
         id: params.goalId,
-        employeeId: session.user.id,
+        ...(isAdmin ? {} : { employeeId: session.user.id }), // Admin can view any goal
         status: { not: 'DELETED' }
       },
       include: {
@@ -123,14 +126,16 @@ export async function PUT(req: Request, { params }: { params: { goalId: string }
     }
 
     // Check authorization
-    const isAdminOrManager = session.user.role === 'ADMIN' || session.user.role === 'MANAGER';
+    const isAdmin = session.user.role === 'ADMIN';
+    const isManager = session.user.role === 'MANAGER';
     const isGoalEmployee = existingGoal.employeeId === session.user.id;
 
-    // Only allow updates if:
-    // 1. User is the employee and goal is in DRAFT or PENDING state
-    if (!isGoalEmployee || !(existingGoal.status === 'DRAFT' || existingGoal.status === 'PENDING')) {
+    // Allow updates if:
+    // 1. User is ADMIN (can update any goal regardless of status)
+    // 2. User is the employee and goal is in DRAFT or PENDING state
+    if (!isAdmin && (!isGoalEmployee || !(existingGoal.status === 'DRAFT' || existingGoal.status === 'PENDING'))) {
       return NextResponse.json(
-        { error: 'You can only edit goals in DRAFT or PENDING status' },
+        { error: 'You can only edit goals in DRAFT or PENDING status, or you must be an admin' },
         { status: 403 }
       );
     }
@@ -198,14 +203,16 @@ export async function DELETE(req: Request, { params }: { params: { goalId: strin
     }
 
     // Check authorization
-    const isAdminOrManager = session.user.role === 'ADMIN' || session.user.role === 'MANAGER';
+    const isAdmin = session.user.role === 'ADMIN';
+    const isManager = session.user.role === 'MANAGER';
     const isGoalEmployee = existingGoal.employeeId === session.user.id;
 
-    // Only allow deletion if:
-    // 1. User is the employee and goal is in DRAFT or PENDING state
-    if (!isGoalEmployee || !(existingGoal.status === 'DRAFT' || existingGoal.status === 'PENDING')) {
+    // Allow deletion if:
+    // 1. User is ADMIN (can delete any goal regardless of status)
+    // 2. User is the employee and goal is in DRAFT or PENDING state
+    if (!isAdmin && (!isGoalEmployee || !(existingGoal.status === 'DRAFT' || existingGoal.status === 'PENDING'))) {
       return NextResponse.json(
-        { error: 'You can only delete goals in DRAFT or PENDING status' },
+        { error: 'You can only delete goals in DRAFT or PENDING status, or you must be an admin' },
         { status: 403 }
       );
     }
