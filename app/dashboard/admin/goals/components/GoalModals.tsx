@@ -3,6 +3,7 @@ import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
 import { GoalModal } from './GoalModal';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 
 interface GoalModalsProps {
   isCreateModalOpen: boolean;
@@ -53,6 +54,7 @@ export function GoalModals({
   context = '',
   onContextChange = () => {}
 }: GoalModalsProps) {
+  const { data: session } = useSession();
   const [formData, setFormData] = useState<GoalFormData>({
     title: '',
     description: '',
@@ -62,6 +64,16 @@ export function GoalModals({
     department: 'ENGINEERING',
     priority: 'MEDIUM'
   });
+
+  // Filter out only the current admin user (self) from the employee dropdown
+  // Allow assigning goals to other admins, managers, and employees
+  const filteredUsers = users?.filter(user => user.id !== session?.user?.id) || [];
+  
+  // Debug: Log filtering results
+  console.log('GoalModals - Current user ID:', session?.user?.id);
+  console.log('GoalModals - Total users:', users?.length);
+  console.log('GoalModals - Filtered users:', filteredUsers?.length);
+  console.log('GoalModals - Filtered users:', filteredUsers?.map(u => ({ id: u.id, name: u.name, role: u.role })));
   const [localContext, setLocalContext] = useState(context);
   const [errors, setErrors] = useState<{
     title?: string;
@@ -102,6 +114,13 @@ export function GoalModals({
     }
   }, [selectedGoal, isEditModalOpen, isCreateModalOpen]);
 
+  // Force re-render when formData changes
+  useEffect(() => {
+    if (isEditModalOpen && selectedGoal) {
+      console.log('Form data updated:', formData);
+    }
+  }, [formData, isEditModalOpen, selectedGoal]);
+
   // Separate useEffect for resetting - only when both modals are closed
   useEffect(() => {
     if (!isCreateModalOpen && !isEditModalOpen) {
@@ -122,7 +141,12 @@ export function GoalModals({
   }, [isCreateModalOpen, isEditModalOpen]);
 
   const handleFormDataChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    console.log('GoalModals - Form data change:', field, value);
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value };
+      console.log('GoalModals - New form data:', newData);
+      return newData;
+    });
   };
 
   const handleReset = () => {
@@ -179,7 +203,7 @@ export function GoalModals({
                 e.preventDefault();
                 await onCreate(formData);
               }}
-              assignedEmployees={users}
+              assignedEmployees={filteredUsers}
               loading={loading}
               formData={formData}
               onFormDataChange={handleFormDataChange}
@@ -235,7 +259,7 @@ export function GoalModals({
         >
           <div className="w-full max-w-2xl mx-4">
             <GoalFormModal
-              key={selectedGoal?.id || 'edit-modal'}
+              key={`edit-modal-${selectedGoal?.id}-${formData.employeeId}`}
               isOpen={isEditModalOpen}
               onClose={() => {
                 onCloseEdit();
@@ -246,7 +270,7 @@ export function GoalModals({
                 e.preventDefault();
                 await onUpdate(formData);
               }}
-              assignedEmployees={users}
+              assignedEmployees={filteredUsers}
               loading={loading}
               formData={formData}
               onFormDataChange={handleFormDataChange}

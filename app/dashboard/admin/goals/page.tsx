@@ -244,6 +244,9 @@ function AdminGoalSettingPageContent() {
         ...formData,
         dueDate: new Date(formData.dueDate).toISOString(),
       };
+      
+      console.log('Admin page - Sending update data:', goalData);
+      console.log('Admin page - Employee ID being sent:', goalData.employeeId);
 
       const response = await fetch(`/api/goals/${selectedGoal.id}`, {
         method: 'PUT',

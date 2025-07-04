@@ -202,9 +202,11 @@ export function GoalFormModal({
               </div>
             </div>
             <div>
-              <label className="block text-[11px] sm:text-xs font-medium text-white/70 mb-1">Employee</label>
+              <label className="block text-[11px] sm:text-xs font-medium text-white/70 mb-1">
+                Employee
+              </label>
               <Select
-                key={`employee-${formData.employeeId}`}
+                key={`employee-${formData.employeeId}-${isEditMode}`}
                 value={formData.employeeId}
                 onValueChange={(value) => onFormDataChange('employeeId', value)}
               >
@@ -225,6 +227,7 @@ export function GoalFormModal({
               {errors.employeeId && (
                 <div className="text-red-400 text-[10px] mt-1 font-semibold animate-pulse">{errors.employeeId}</div>
               )}
+              
             </div>
           </div>
 

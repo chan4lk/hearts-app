@@ -107,7 +107,11 @@ export async function PUT(req: Request, { params }: { params: { goalId: string }
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { title, description, category, dueDate, department, priority } = await req.json();
+    const body = await req.json();
+    const { title, description, category, dueDate, department, priority, employeeId } = body;
+    
+    console.log('API - Received update data:', body);
+    console.log('API - Employee ID received:', employeeId);
 
     // Check if the goal exists
     const existingGoal = await prisma.goal.findUnique({
@@ -140,17 +144,22 @@ export async function PUT(req: Request, { params }: { params: { goalId: string }
       );
     }
 
+    const updateData = {
+      title: title.trim(),
+      description: description.trim(),
+      category,
+      department: department || 'ENGINEERING',
+      priority: priority || 'MEDIUM',
+      dueDate: new Date(dueDate),
+      employeeId: employeeId || existingGoal.employeeId, // Allow updating employee assignment
+      updatedById: session.user.id
+    };
+    
+    console.log('API - Updating goal with data:', updateData);
+    
     const goal = await prisma.goal.update({
       where: { id: params.goalId },
-      data: {
-        title: title.trim(),
-        description: description.trim(),
-        category,
-        department: department || 'ENGINEERING',
-        priority: priority || 'MEDIUM',
-        dueDate: new Date(dueDate),
-        updatedById: session.user.id
-      },
+      data: updateData,
       include: {
         employee: {
           select: {
