@@ -12,8 +12,14 @@ import { HeroSection } from './components/HeroSection';
 import { GoalsList } from './components/GoalsList';
 import { GoalDetailsModal } from './components/modals/GoalDetailsModal';
 import { Goal, NewGoal } from './types';
-import { useSession } from 'next-auth/react';
+import { useSession, getSession } from 'next-auth/react';
 import { CATEGORIES } from '@/app/components/shared/constants';
+
+// Helper function to get the auth token
+const getAuthToken = async () => {
+  const session = await getSession();
+  return session?.user?.id || '';
+};
 
 function GoalsPageContent() {
   const router = useRouter();
@@ -115,13 +121,13 @@ function GoalsPageContent() {
 
   const handleEditGoal = (goal: Goal) => {
     setEditGoal(goal);
-    setIsEditModalOpen(true);
     setNewGoal({
       title: goal.title,
       description: goal.description,
       category: goal.category,
       dueDate: goal.dueDate.split('T')[0],
     });
+    setIsEditModalOpen(true);
     setSelectedViewGoal(null); // Close details modal
   };
 
@@ -132,24 +138,45 @@ function GoalsPageContent() {
   };
 
   const handleEditSubmit = async (goalData: NewGoal) => {
+    if (!editGoal?.id || !session?.user) return;
     setLoading(true);
     try {
-      const response = await fetch(`/api/goals/${editGoal?.id}`, {
+      const response = await fetch(`/api/goals/${editGoal.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(goalData),
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await getAuthToken()}`
+        },
+        body: JSON.stringify({
+          title: goalData.title.trim(),
+          description: goalData.description.trim(),
+          category: goalData.category,
+          dueDate: goalData.dueDate,
+          employeeId: session.user.id // Add the employee ID
+        }),
       });
+      
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`Failed to update goal: ${errorData.error || response.statusText}`);
+        throw new Error(errorData.error || 'Failed to update goal');
       }
+
+      const { goal } = await response.json();
+      
+      // Update the goals list optimistically
+      const updatedGoals = goals.map(g => 
+        g.id === editGoal.id ? goal : g
+      );
+      setGoals(updatedGoals);
+      
       setIsEditModalOpen(false);
       setEditGoal(null);
       showNotificationWithTimeout('Goal updated successfully!', 'success');
-      fetchGoals();
+      fetchGoals(); // Refresh to get the latest data
     } catch (error) {
+      console.error('Error updating goal:', error);
       showNotificationWithTimeout(
-        `Failed to update goal: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.message : 'Failed to update goal',
         'error'
       );
     } finally {
@@ -158,23 +185,36 @@ function GoalsPageContent() {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteGoal) return;
+    if (!deleteGoal?.id || !session?.user) return;
     setLoading(true);
     try {
       const response = await fetch(`/api/goals/${deleteGoal.id}`, {
         method: 'DELETE',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await getAuthToken()}`
+        }
       });
+      
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`Failed to delete goal: ${errorData.error || response.statusText}`);
+        throw new Error(errorData.error || 'Failed to delete goal');
       }
+
+      const { goal } = await response.json();
+      
+      // Update the goals list optimistically
+      const updatedGoals = goals.filter(g => g.id !== deleteGoal.id);
+      setGoals(updatedGoals);
+      
       setIsDeleteModalOpen(false);
       setDeleteGoal(null);
       showNotificationWithTimeout('Goal deleted successfully!', 'success');
-      fetchGoals();
+      fetchGoals(); // Refresh to get the latest data
     } catch (error) {
+      console.error('Error deleting goal:', error);
       showNotificationWithTimeout(
-        `Failed to delete goal: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.message : 'Failed to delete goal',
         'error'
       );
     } finally {
@@ -289,55 +329,92 @@ function GoalsPageContent() {
       {/* Modals */}
       <SelfCreateGoalModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={() => {
+          setIsCreateModalOpen(false);
+          setNewGoal({
+            title: '',
+            description: '',
+            category: 'PROFESSIONAL',
+            dueDate: new Date().toISOString().split('T')[0]
+          });
+        }}
         onSubmit={handleSubmit}
         loading={loading}
         goal={newGoal}
         setGoal={setNewGoal}
       />
 
-      <SelfCreateGoalModal
-        isOpen={isEditModalOpen}
-        onClose={() => { setIsEditModalOpen(false); setEditGoal(null); }}
-        onSubmit={handleEditSubmit}
-        loading={loading}
-        goal={newGoal}
-        setGoal={setNewGoal}
-      />
-
-      {isDeleteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl w-full max-w-sm">
-            <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Delete Goal</h2>
-            <p className="mb-6 text-gray-700 dark:text-gray-300">Are you sure you want to delete this goal?</p>
-            <div className="flex justify-end gap-2">
-              <button
-                className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
-                onClick={() => setIsDeleteModalOpen(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600"
-                onClick={handleDeleteConfirm}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {loading && <LoadingComponent />}
-
       <GoalDetailsModal
-        goal={selectedViewGoal}
         isOpen={!!selectedViewGoal}
         onClose={() => setSelectedViewGoal(null)}
+        goal={selectedViewGoal}
         onEdit={handleEditGoal}
         onDelete={handleDeleteGoal}
         userIsAdminOrManager={userIsAdminOrManager}
       />
+
+      <SelfCreateGoalModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditGoal(null);
+          setNewGoal({
+            title: '',
+            description: '',
+            category: 'PROFESSIONAL',
+            dueDate: new Date().toISOString().split('T')[0]
+          });
+        }}
+        onSubmit={handleEditSubmit}
+        loading={loading}
+        goal={newGoal}
+        setGoal={setNewGoal}
+        isEditing={true}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {isDeleteModalOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsDeleteModalOpen(false)}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="fixed inset-0 flex items-center justify-center p-4 z-50"
+            >
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm mx-auto shadow-xl">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Delete Goal</h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  Are you sure you want to delete this goal? This action cannot be undone.
+                </p>
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setIsDeleteModalOpen(false)}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDeleteConfirm}
+                    className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {loading && <LoadingComponent />}
     </DashboardLayout>
   );
 }

@@ -124,18 +124,13 @@ export async function PUT(req: Request, { params }: { params: { goalId: string }
 
     // Check authorization
     const isAdminOrManager = session.user.role === 'ADMIN' || session.user.role === 'MANAGER';
-    const isGoalManager = existingGoal.managerId === session.user.id;
     const isGoalEmployee = existingGoal.employeeId === session.user.id;
 
     // Only allow updates if:
-    // 1. User is admin/manager and goal is in DRAFT or PENDING state
-    // 2. User is the employee and goal is in DRAFT state
-    if (
-      !isAdminOrManager && 
-      !(isGoalEmployee && existingGoal.status === 'DRAFT')
-    ) {
+    // 1. User is the employee and goal is in DRAFT or PENDING state
+    if (!isGoalEmployee || !(existingGoal.status === 'DRAFT' || existingGoal.status === 'PENDING')) {
       return NextResponse.json(
-        { error: 'Unauthorized to update this goal' },
+        { error: 'You can only edit goals in DRAFT or PENDING status' },
         { status: 403 }
       );
     }
@@ -147,7 +142,6 @@ export async function PUT(req: Request, { params }: { params: { goalId: string }
         description: description.trim(),
         category,
         dueDate: new Date(dueDate),
-        status: isAdminOrManager ? existingGoal.status : 'PENDING',
         updatedById: session.user.id
       },
       include: {
@@ -205,18 +199,13 @@ export async function DELETE(req: Request, { params }: { params: { goalId: strin
 
     // Check authorization
     const isAdminOrManager = session.user.role === 'ADMIN' || session.user.role === 'MANAGER';
-    const isGoalManager = existingGoal.managerId === session.user.id;
     const isGoalEmployee = existingGoal.employeeId === session.user.id;
 
     // Only allow deletion if:
-    // 1. User is admin/manager and goal is in DRAFT or PENDING state
-    // 2. User is the employee and goal is in DRAFT state
-    if (
-      !isAdminOrManager && 
-      !(isGoalEmployee && existingGoal.status === 'DRAFT')
-    ) {
+    // 1. User is the employee and goal is in DRAFT or PENDING state
+    if (!isGoalEmployee || !(existingGoal.status === 'DRAFT' || existingGoal.status === 'PENDING')) {
       return NextResponse.json(
-        { error: 'Unauthorized to delete this goal' },
+        { error: 'You can only delete goals in DRAFT or PENDING status' },
         { status: 403 }
       );
     }
@@ -248,13 +237,13 @@ export async function DELETE(req: Request, { params }: { params: { goalId: strin
       }
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      message: 'Goal Deleted Successfully',
+      message: 'Goal deleted successfully',
       goal
     });
   } catch (error) {
-    console.error('Error Deleting Goal:', error);
-    return NextResponse.json({ error: 'Failed to Delete Goal' }, { status: 500 });
+    console.error('Error deleting goal:', error);
+    return NextResponse.json({ error: 'Failed to delete goal' }, { status: 500 });
   }
 } 

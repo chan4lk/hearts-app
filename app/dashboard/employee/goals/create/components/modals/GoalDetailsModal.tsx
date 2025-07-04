@@ -41,8 +41,8 @@ const formatDate = (dateString: string) => {
 export const GoalDetailsModal = ({ goal, isOpen, onClose, onEdit = () => {}, onDelete = () => {}, userIsAdminOrManager }: GoalDetailsModalProps) => {
   if (!goal || !isOpen) return null;
 
-  const canEdit = true;
-  const canDelete = true;
+  const canEdit = goal.status === 'DRAFT' || goal.status === 'PENDING';
+  const canDelete = goal.status === 'DRAFT' || goal.status === 'PENDING';
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const descriptionRef = useRef<HTMLParagraphElement>(null);
   const [shouldShowExpandButton, setShouldShowExpandButton] = useState(false);
@@ -106,7 +106,6 @@ export const GoalDetailsModal = ({ goal, isOpen, onClose, onEdit = () => {}, onD
                 </div>
                 <div className="flex items-center gap-2">
                   
-                 
                   <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
@@ -196,7 +195,37 @@ export const GoalDetailsModal = ({ goal, isOpen, onClose, onEdit = () => {}, onD
                   </motion.div>
                 </div>
 
-                
+                {/* Action Buttons */}
+                {canEdit && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center justify-end gap-2 pt-4 mt-4 border-t border-white/10"
+                  >
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => onDelete(goal)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                        bg-gradient-to-r from-red-500/10 to-red-600/10 hover:from-red-500/20 hover:to-red-600/20
+                        text-red-400 hover:text-red-300 border border-red-500/20 transition-all duration-200"
+                    >
+                      <BsTrash className="w-3.5 h-3.5" />
+                      Delete Goal
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => onEdit(goal)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                        bg-gradient-to-r from-blue-500/10 to-indigo-600/10 hover:from-blue-500/20 hover:to-indigo-600/20
+                        text-blue-400 hover:text-blue-300 border border-blue-500/20 transition-all duration-200"
+                    >
+                      <BsGear className="w-3.5 h-3.5" />
+                      Edit Goal
+                    </motion.button>
+                  </motion.div>
+                )}
               </div>
             </motion.div>
           </div>
