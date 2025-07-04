@@ -151,7 +151,7 @@ export default function AdminDashboard() {
                 <h1 className="text-2xl lg:text-3xl font-bold mb-1 bg-gradient-to-r from-white to-indigo-100 bg-clip-text text-transparent">
                   Welcome back, {session?.user?.name}
                 </h1>
-                <p className="text-sm text-indigo-100/90">Your command center for today's operations</p>
+                <p className="text-sm text-indigo-100/90">Here's an overview of your organization's performance metrics and recent activities.</p>
               </div>
             </div>
           </motion.div>

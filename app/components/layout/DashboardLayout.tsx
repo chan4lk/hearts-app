@@ -61,12 +61,18 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
   const { settings } = useSettings();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isPageTransitioning, setIsPageTransitioning] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Close mobile menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
+  }, [pathname]);
+
+  // Reset page transition state when pathname changes
+  useEffect(() => {
+    setIsPageTransitioning(false);
   }, [pathname]);
 
   // Close mobile menu when clicking outside
@@ -235,56 +241,69 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                 {navItems.map((item) => {
                   const isActive = isPathActive(item.href);
                   return (
-                    <Link
+                    <motion.div
                       key={item.href}
-                      href={item.href}
-                      className={`group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
-                        isActive
-                          ? 'bg-gradient-to-r from-purple-800 to-purple-900 text-white shadow-lg shadow-purple-900/30'
-                          : 'text-gray-400 hover:text-white'
-                      }`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ duration: 0.2 }}
                     >
-                      <span className="flex items-center space-x-3 relative z-10 w-full">
-                        {/* Animated background hover effect */}
-                        {!isActive && (
-                          <div className="absolute inset-0 bg-gradient-to-r from-gray-800 to-gray-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg transform group-hover:scale-105" />
-                        )}
-                        
-                        {/* Active indicator with glow */}
-                        {isActive && (
-                          <>
-                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-purple-400 rounded-full shadow-[0_0_8px_rgba(167,139,250,0.5)]" />
-                            <div className="absolute inset-0 bg-purple-500/5 rounded-lg backdrop-blur-sm" />
-                          </>
-                        )}
-                        
-                        {/* Icon with enhanced hover effect */}
-                        <span className="relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:translate-x-1">
-                          <item.icon className={`text-xl ${
+                      <Link
+                        href={item.href}
+                        onClick={() => {
+                          setIsPageTransitioning(true);
+                          // Add a small delay for visual feedback
+                          setTimeout(() => {
+                            setIsPageTransitioning(false);
+                          }, 300);
+                        }}
+                        className={`group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
+                          isActive
+                            ? 'bg-gradient-to-r from-purple-800 to-purple-900 text-white shadow-lg shadow-purple-900/30'
+                            : 'text-gray-400 hover:text-white'
+                        }`}
+                      >
+                        <span className="flex items-center space-x-3 relative z-10 w-full">
+                          {/* Animated background hover effect */}
+                          {!isActive && (
+                            <div className="absolute inset-0 bg-gradient-to-r from-gray-800 to-gray-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg transform group-hover:scale-105" />
+                          )}
+                          
+                          {/* Active indicator with glow */}
+                          {isActive && (
+                            <>
+                              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-purple-400 rounded-full shadow-[0_0_8px_rgba(167,139,250,0.5)]" />
+                              <div className="absolute inset-0 bg-purple-500/5 rounded-lg backdrop-blur-sm" />
+                            </>
+                          )}
+                          
+                          {/* Icon with enhanced hover effect */}
+                          <span className="relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:translate-x-1">
+                            <item.icon className={`text-xl ${
+                              isActive 
+                                ? 'transform rotate-0 drop-shadow-[0_0_3px_rgba(167,139,250,0.5)]' 
+                                : 'group-hover:rotate-6 group-hover:text-purple-400'
+                            } transition-all duration-300`} />
+                          </span>
+                          
+                          {/* Label with enhanced slide and glow effect */}
+                          <span className={`relative z-10 transform transition-all duration-300 group-hover:translate-x-1 ${
                             isActive 
-                              ? 'transform rotate-0 drop-shadow-[0_0_3px_rgba(167,139,250,0.5)]' 
-                              : 'group-hover:rotate-6 group-hover:text-purple-400'
-                          } transition-all duration-300`} />
+                              ? 'font-medium drop-shadow-[0_0_2px_rgba(167,139,250,0.3)]' 
+                              : 'group-hover:text-purple-400'
+                          }`}>
+                            {item.label}
+                          </span>
+                          
+                          {/* Decorative elements */}
+                          {isActive && (
+                            <>
+                              <div className="absolute top-1 right-2 w-1.5 h-1.5 bg-purple-400 rounded-full opacity-30 animate-pulse" />
+                              <div className="absolute bottom-1 right-4 w-1 h-1 bg-purple-400 rounded-full opacity-20 animate-pulse delay-100" />
+                            </>
+                          )}
                         </span>
-                        
-                        {/* Label with enhanced slide and glow effect */}
-                        <span className={`relative z-10 transform transition-all duration-300 group-hover:translate-x-1 ${
-                          isActive 
-                            ? 'font-medium drop-shadow-[0_0_2px_rgba(167,139,250,0.3)]' 
-                            : 'group-hover:text-purple-400'
-                        }`}>
-                          {item.label}
-                        </span>
-                        
-                        {/* Decorative elements */}
-                        {isActive && (
-                          <>
-                            <div className="absolute top-1 right-2 w-1.5 h-1.5 bg-purple-400 rounded-full opacity-30 animate-pulse" />
-                            <div className="absolute bottom-1 right-4 w-1 h-1 bg-purple-400 rounded-full opacity-20 animate-pulse delay-100" />
-                          </>
-                        )}
-                      </span>
-                    </Link>
+                      </Link>
+                    </motion.div>
                   );
                 })}
 
@@ -341,56 +360,69 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
             {navItems.map((item) => {
               const isActive = isPathActive(item.href);
               return (
-                <Link
+                <motion.div
                   key={item.href}
-                  href={item.href}
-                  className={`group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
-                    isActive
-                      ? 'bg-gradient-to-r from-purple-800 to-purple-900 text-white shadow-lg shadow-purple-900/30'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ duration: 0.2 }}
                 >
-                  <span className="flex items-center space-x-3 relative z-10 w-full">
-                    {/* Animated background hover effect */}
-                    {!isActive && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-gray-800 to-gray-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg transform group-hover:scale-105" />
-                    )}
-                    
-                    {/* Active indicator with glow */}
-                    {isActive && (
-                      <>
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-purple-400 rounded-full shadow-[0_0_8px_rgba(167,139,250,0.5)]" />
-                        <div className="absolute inset-0 bg-purple-500/5 rounded-lg backdrop-blur-sm" />
-                      </>
-                    )}
-                    
-                    {/* Icon with enhanced hover effect */}
-                    <span className="relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:translate-x-1">
-                      <item.icon className={`text-xl ${
+                  <Link
+                    href={item.href}
+                                          onClick={() => {
+                        setIsPageTransitioning(true);
+                        // Add a small delay for visual feedback
+                        setTimeout(() => {
+                          setIsPageTransitioning(false);
+                        }, 300);
+                      }}
+                    className={`group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
+                      isActive
+                        ? 'bg-gradient-to-r from-purple-800 to-purple-900 text-white shadow-lg shadow-purple-900/30'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    <span className="flex items-center space-x-3 relative z-10 w-full">
+                      {/* Animated background hover effect */}
+                      {!isActive && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-gray-800 to-gray-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg transform group-hover:scale-105" />
+                      )}
+                      
+                      {/* Active indicator with glow */}
+                      {isActive && (
+                        <>
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-purple-400 rounded-full shadow-[0_0_8px_rgba(167,139,250,0.5)]" />
+                          <div className="absolute inset-0 bg-purple-500/5 rounded-lg backdrop-blur-sm" />
+                        </>
+                      )}
+                      
+                      {/* Icon with enhanced hover effect */}
+                      <span className="relative z-10 transition-all duration-300 group-hover:scale-110 group-hover:translate-x-1">
+                        <item.icon className={`text-xl ${
+                          isActive 
+                            ? 'transform rotate-0 drop-shadow-[0_0_3px_rgba(167,139,250,0.5)]' 
+                            : 'group-hover:rotate-6 group-hover:text-purple-400'
+                        } transition-all duration-300`} />
+                      </span>
+                      
+                      {/* Label with enhanced slide and glow effect */}
+                      <span className={`relative z-10 transform transition-all duration-300 group-hover:translate-x-1 ${
                         isActive 
-                          ? 'transform rotate-0 drop-shadow-[0_0_3px_rgba(167,139,250,0.5)]' 
-                          : 'group-hover:rotate-6 group-hover:text-purple-400'
-                      } transition-all duration-300`} />
+                          ? 'font-medium drop-shadow-[0_0_2px_rgba(167,139,250,0.3)]' 
+                          : 'group-hover:text-purple-400'
+                      }`}>
+                        {item.label}
+                      </span>
+                      
+                      {/* Decorative elements */}
+                      {isActive && (
+                        <>
+                          <div className="absolute top-1 right-2 w-1.5 h-1.5 bg-purple-400 rounded-full opacity-30 animate-pulse" />
+                          <div className="absolute bottom-1 right-4 w-1 h-1 bg-purple-400 rounded-full opacity-20 animate-pulse delay-100" />
+                        </>
+                      )}
                     </span>
-                    
-                    {/* Label with enhanced slide and glow effect */}
-                    <span className={`relative z-10 transform transition-all duration-300 group-hover:translate-x-1 ${
-                      isActive 
-                        ? 'font-medium drop-shadow-[0_0_2px_rgba(167,139,250,0.3)]' 
-                        : 'group-hover:text-purple-400'
-                    }`}>
-                      {item.label}
-                    </span>
-                    
-                    {/* Decorative elements */}
-                    {isActive && (
-                      <>
-                        <div className="absolute top-1 right-2 w-1.5 h-1.5 bg-purple-400 rounded-full opacity-30 animate-pulse" />
-                        <div className="absolute bottom-1 right-4 w-1 h-1 bg-purple-400 rounded-full opacity-20 animate-pulse delay-100" />
-                      </>
-                    )}
-                  </span>
-                </Link>
+                  </Link>
+                </motion.div>
               );
             })}
 
@@ -433,8 +465,8 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
             >
               <BsList className="w-6 h-6" />
             </button>
-            {/* Logo and System Name */}
-            <div className="flex items-center space-x-2">
+            {/* Logo and System Name - Only visible on mobile */}
+            <div className="flex items-center space-x-2 md:hidden">
             <Link href="/" className="group transform hover:scale-105 transition-transform duration-300">
               <Image 
                 src="/logo.png" 
@@ -453,23 +485,27 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
               </div>
             </div>
           </div>
-          {/* Right side: Notification Bell and User Menu */}
+          {/* Right side: User Menu - Visible on both mobile and desktop */}
           <div className="flex items-center space-x-4">
-            {/* Notification Bell */}
-            
             {/* User Menu */}
             <div className="relative" ref={userMenuRef}>
               <button 
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center space-x-3 text-gray-400 hover:text-white focus:outline-none"
+                className="flex items-center justify-center text-gray-400 hover:text-white focus:outline-none transition-all duration-300 hover:scale-105"
               >
-                <div className="w-full h-full rounded-lg bg-gray-900/90 dark:bg-gray-900 flex items-center justify-center backdrop-blur-xl">
-                            <svg className="w-6 h-6 text-white/90" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M6 21V19C6 17.9391 6.42143 16.9217 7.17157 16.1716C7.92172 15.4214 8.93913 15 10 15H14C15.0609 15 16.0783 15.4214 16.8284 16.1716C17.5786 16.9217 18 17.9391 18 19V21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          </div>
-                <BsChevronDown className={`w-4 h-4 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 via-fuchsia-500 to-indigo-500 p-[1.5px] transition-all duration-300 hover:from-fuchsia-500 hover:via-indigo-500 hover:to-violet-500">
+                  <div className="w-full h-full rounded-full bg-gray-900/90 dark:bg-gray-900 flex items-center justify-center backdrop-blur-xl">
+                    <svg className="w-4 h-4 text-white/90" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M6 21V19C6 17.9391 6.42143 16.9217 7.17157 16.1716C7.92172 15.4214 8.93913 15 10 15H14C15.0609 15 16.0783 15.4214 16.8284 16.1716C17.5786 16.9217 18 17.9391 18 19V21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  {/* Online indicator */}
+                  <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5">
+                    <span className="absolute inset-0 inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 ring-1.5 ring-gray-900 dark:ring-gray-900"></span>
+                  </div>
+                </div>
               </button>
               
               {/* User Dropdown Menu */}
@@ -616,9 +652,33 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
 
       {/* Main Content */}
       <main className="md:pl-64 pt-16">
-        <div className="p-6">
+        <motion.div 
+          key={pathname}
+          className="p-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+        >
           {children}
-        </div>
+        </motion.div>
+        
+        {/* Page Transition Loading Indicator */}
+        <AnimatePresence>
+          {isPageTransitioning && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50"
+            >
+              <div className="flex items-center space-x-2 bg-gray-900/80 backdrop-blur-sm rounded-lg px-4 py-2">
+                <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-white text-sm font-medium">Loading...</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       {/* Mobile menu backdrop */}
