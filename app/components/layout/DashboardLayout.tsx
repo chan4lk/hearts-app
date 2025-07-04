@@ -501,9 +501,9 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                     </svg>
                   </div>
                   {/* Online indicator */}
-                  <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5">
+                  <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2">
                     <span className="absolute inset-0 inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 ring-1.5 ring-gray-900 dark:ring-gray-900"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 ring-1 ring-gray-900 dark:ring-gray-900"></span>
                   </div>
                 </div>
               </button>

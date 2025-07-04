@@ -112,10 +112,13 @@ function LoginForm() {
                   <svg className="w-5 h-5 text-indigo-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                   </svg>
-                  <span className="text-indigo-300 text-sm font-medium">Bistec AspireHub Portal</span>
+                  <span className="text-indigo-300 text-sm font-medium ">Bistec AspireHub Portal</span>
                 </div>
-                <h1 className="text-4xl font-bold text-white">Welcome Back</h1>
-                <p className="text-gray-400 text-sm">Sign in to track your performance journey</p>
+                <h1 className="text-3xl font-bold">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-indigo-400 to-blue-400 animate-gradient">
+                  Welcome Back
+                </span>
+              </h1>                <p className="text-gray-400 text-sm">Sign in to track your performance journey</p>
               </div>
               
               {/* Login Button */}
