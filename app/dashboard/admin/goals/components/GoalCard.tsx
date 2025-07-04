@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { BsChevronDown, BsCalendar, BsTag, BsEye, BsPencilSquare, BsTrash } from "react-icons/bs";
-import { Goal } from '../types';
+import { Goal } from '@/app/components/shared/types';
 import { useState } from "react";
 import { CATEGORIES } from '@/app/components/shared/constants';
 

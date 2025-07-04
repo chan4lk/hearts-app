@@ -25,7 +25,7 @@ import LoadingComponent from '@/app/components/LoadingScreen';
 
 // Styles and Types
 import { colors } from './components/styles/colors';
-import { GoalFormData, GoalStats, User, Goal } from './components/types';
+import { GoalFormData, GoalStats, User, Goal } from '@/app/components/shared/types';
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
   return (
@@ -63,11 +63,20 @@ function ManagerGoalSettingPageContent() {
   const [stats, setStats] = useState<GoalStats>({
     totalEmployees: 0,
     totalGoals: 0,
+    total: 0,
     completedGoals: 0,
+    completed: 0,
     pendingGoals: 0,
+    pending: 0,
     draftGoals: 0,
     approvedGoals: 0,
+    approved: 0,
     rejectedGoals: 0,
+    rejected: 0,
+    modified: 0,
+    achievementScore: 0,
+    inProgressGoals: 0,
+    totalManagers: 0,
     categoryStats: {}
   });
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -127,16 +136,31 @@ function ManagerGoalSettingPageContent() {
     setStats({
       totalEmployees: employees.length,
       totalGoals: filteredGoals.length,
+      total: filteredGoals.length,
       completedGoals: filteredGoals.filter(g => g.status === 'COMPLETED').length,
+      completed: filteredGoals.filter(g => g.status === 'COMPLETED').length,
       pendingGoals: filteredGoals.filter(g => g.status === 'PENDING').length,
+      pending: filteredGoals.filter(g => g.status === 'PENDING').length,
       draftGoals: filteredGoals.filter(g => g.status === 'DRAFT').length,
       approvedGoals: filteredGoals.filter(g => g.status === 'APPROVED').length,
+      approved: filteredGoals.filter(g => g.status === 'APPROVED').length,
       rejectedGoals: filteredGoals.filter(g => g.status === 'REJECTED').length,
+      rejected: filteredGoals.filter(g => g.status === 'REJECTED').length,
+      modified: filteredGoals.filter(g => g.status === 'MODIFIED').length,
+      achievementScore: calculateAchievementScore(filteredGoals),
+      inProgressGoals: filteredGoals.filter(g => g.status === 'PENDING' || g.status === 'MODIFIED').length,
+      totalManagers: 0, // This would need to be set from a different API call if needed
       categoryStats: filteredGoals.reduce((acc, goal) => {
         acc[goal.category] = (acc[goal.category] || 0) + 1;
         return acc;
       }, {} as { [key: string]: number })
     });
+  };
+
+  const calculateAchievementScore = (goals: Goal[]): number => {
+    if (goals.length === 0) return 0;
+    const completedGoals = goals.filter(g => g.status === 'COMPLETED').length;
+    return Math.round((completedGoals / goals.length) * 100);
   };
 
   const handleSubmit = async (formData: GoalFormData) => {
@@ -175,13 +199,18 @@ function ManagerGoalSettingPageContent() {
     setLoading(true);
     try {
       // Optimistically update UI first
+      const selectedEmployee = assignedEmployees.find(emp => emp.id === updatedData.employeeId);
       const optimisticGoal = {
         ...selectedGoal,
         title: updatedData.title,
         description: updatedData.description,
         dueDate: updatedData.dueDate,
         category: updatedData.category,
-        employee: assignedEmployees.find(emp => emp.id === updatedData.employeeId)
+        employee: selectedEmployee ? {
+          id: selectedEmployee.id,
+          name: selectedEmployee.name,
+          email: selectedEmployee.email
+        } : null
       };
       
       setGoals(prev => prev.map(goal => 

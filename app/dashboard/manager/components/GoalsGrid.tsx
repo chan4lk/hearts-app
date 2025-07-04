@@ -1,5 +1,5 @@
 import { BsCheckCircle } from 'react-icons/bs';
-import { Goal } from '../types';
+import { Goal } from '@/app/components/shared/types';
 import { getStatusStyle } from '../utils';
 import { motion } from 'framer-motion';
 import { CATEGORIES } from '@/app/components/shared/constants';

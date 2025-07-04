@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { BsClipboardData, BsCheckCircle, BsBarChart } from "react-icons/bs";
-import { Stats } from "../types";
+import { Stats } from "@/app/components/shared/types";
 
 interface StatsSectionProps {
   stats: Stats;

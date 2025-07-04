@@ -5,7 +5,7 @@ import {
   BsPeople, BsFilter, BsEye, BsPencilSquare, BsTrash, 
   BsLightbulb, BsRocket, BsAward, BsBook, BsGear, BsCalendar 
 } from 'react-icons/bs';
-import { Goal, User } from '../types';
+import { Goal, User } from '@/app/components/shared/types';
 import {
   Select,
   SelectTrigger,

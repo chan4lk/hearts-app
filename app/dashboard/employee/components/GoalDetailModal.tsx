@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, BsArrowRight, BsChevronDown, BsChevronUp } from 'react-icons/bs';
-import { Goal } from './types';
+import { Goal } from '@/app/components/shared/types';
 import { IconType } from 'react-icons';
 import { showToast } from '@/app/utils/toast';
 import { motion, AnimatePresence } from 'framer-motion';

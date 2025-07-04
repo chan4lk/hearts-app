@@ -1,32 +1,33 @@
 'use client';
 
 import { BsTrash, BsPerson } from 'react-icons/bs';
-import { User } from '../types';
+import { User } from '@/app/components/shared/types';
+import { Role } from '.prisma/client';
 
 interface UserTableProps {
   users: User[];
-  onViewDetails: (user: User) => void;
-  onEdit: (user: User) => void;
-  onDelete: (userId: string) => void;
+  onViewDetailsAction: (user: User) => void;
+  onEditAction: (user: User) => void;
+  onDeleteAction: (userId: string) => void;
 }
 
-export default function UserTable({ users, onViewDetails, onEdit, onDelete }: UserTableProps) {
-  const getRoleStyles = (role: string) => {
+export default function UserTable({ users, onViewDetailsAction, onEditAction, onDeleteAction }: UserTableProps) {
+  const getRoleStyles = (role: string | undefined) => {
     switch (role) {
-      case 'ADMIN':
+      case Role.ADMIN:
         return 'from-purple-500/20 to-purple-600/20 hover:from-purple-500/30 hover:to-purple-600/30 border-purple-500/20';
-      case 'MANAGER':
+      case Role.MANAGER:
         return 'from-blue-500/20 to-blue-600/20 hover:from-blue-500/30 hover:to-blue-600/30 border-blue-500/20';
       default:
         return 'from-emerald-500/20 to-emerald-600/20 hover:from-emerald-500/30 hover:to-emerald-600/30 border-emerald-500/20';
     }
   };
 
-  const getIconStyles = (role: string) => {
+  const getIconStyles = (role: string | undefined) => {
     switch (role) {
-      case 'ADMIN':
+      case Role.ADMIN:
         return 'text-purple-300 bg-purple-500/10';
-      case 'MANAGER':
+      case Role.MANAGER:
         return 'text-blue-300 bg-blue-500/10';
       default:
         return 'text-emerald-300 bg-emerald-500/10';
@@ -44,7 +45,7 @@ export default function UserTable({ users, onViewDetails, onEdit, onDelete }: Us
             hover:shadow-lg hover:shadow-black/5 active:scale-[0.99]
             ${getRoleStyles(user.role)}
           `}
-          onClick={() => onViewDetails(user)}
+          onClick={() => onViewDetailsAction(user)}
         >
           <div className="flex items-start gap-2 sm:gap-3 h-full">
             <div className={`h-9 w-9 sm:h-10 sm:w-10 rounded-full flex items-center justify-center ring-1 ring-white/10 flex-shrink-0 ${getIconStyles(user.role)}`}>
@@ -62,11 +63,11 @@ export default function UserTable({ users, onViewDetails, onEdit, onDelete }: Us
               <div className="flex flex-col gap-1.5 mt-2">
                 <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                   <span className={`px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${
-                    user.role === 'ADMIN' ? 'bg-purple-500/20 text-purple-300' :
-                    user.role === 'MANAGER' ? 'bg-blue-500/20 text-blue-300' :
+                    user.role === Role.ADMIN ? 'bg-purple-500/20 text-purple-300' :
+                    user.role === Role.MANAGER ? 'bg-blue-500/20 text-blue-300' :
                     'bg-emerald-500/20 text-emerald-300'
                   }`}>
-                    {user.role}
+                    {user.role || Role.EMPLOYEE}
                   </span>
                   <span className={`px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium ${
                     user.status === 'ACTIVE' ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'
@@ -80,11 +81,11 @@ export default function UserTable({ users, onViewDetails, onEdit, onDelete }: Us
                     <span className="text-gray-400">Assigned Manager:</span>
                     <span className="text-gray-300 truncate">{user.manager.name}</span>
                     <span className={`ml-1 px-1 rounded text-[9px] ${
-                      user.manager.role === 'ADMIN' ? 'bg-purple-500/20 text-purple-300' :
-                      user.manager.role === 'MANAGER' ? 'bg-blue-500/20 text-blue-300' :
+                      user.manager.role === Role.ADMIN ? 'bg-purple-500/20 text-purple-300' :
+                      user.manager.role === Role.MANAGER ? 'bg-blue-500/20 text-blue-300' :
                       'bg-emerald-500/20 text-emerald-300'
                     }`}>
-                      {user.manager.role}
+                      {user.manager.role || Role.EMPLOYEE}
                     </span>
                   </div>
                 )}
@@ -95,7 +96,7 @@ export default function UserTable({ users, onViewDetails, onEdit, onDelete }: Us
           <button
             onClick={(e) => {
               e.stopPropagation();
-              onDelete(user.id);
+              onDeleteAction(user.id);
             }}
             className="absolute top-2 right-2 p-1.5 text-red-300 hover:bg-red-500/20 rounded transition-colors opacity-0 group-hover:opacity-100 sm:top-2.5 sm:right-2.5"
             title="Delete User"

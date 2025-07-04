@@ -1,6 +1,6 @@
 import { BsListUl, BsSearch, BsFilter, BsShield, BsStars, BsFlag, BsPlus, BsPencil, BsTrash } from 'react-icons/bs';
 import { useRouter } from 'next/navigation';
-import { Goal } from './types';
+import { Goal } from '@/app/components/shared/types';
 import GoalCard from './GoalCard';
 import { useState } from 'react';
 
@@ -42,8 +42,15 @@ export default function GoalsSection({
   const [activeView, setActiveView] = useState<ViewType>(userRole === 'ADMIN' ? 'created' : 'assigned');
 
   // Separate assigned and self-created goals
-  const assignedGoals = goals.filter(goal => goal.manager && goal.manager.id !== goal.employee.id);
-  const selfCreatedGoals = goals.filter(goal => !goal.manager || goal.manager.id === goal.employee.id);
+  const assignedGoals = goals.filter(goal => 
+    goal.manager && 
+    goal.employee && 
+    goal.manager.id !== goal.employee.id
+  );
+  const selfCreatedGoals = goals.filter(goal => 
+    goal.employee && 
+    (!goal.manager || goal.manager.id === goal.employee.id)
+  );
 
   const currentGoals = activeView === 'assigned' ? assignedGoals : selfCreatedGoals;
   const filteredGoals = currentGoals.filter(goal => 

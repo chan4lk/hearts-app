@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { BsGrid3X3, BsListUl, BsArrowUpRight } from "react-icons/bs";
-import { GoalWithRating } from "../types";
+import { GoalWithRating } from "@/app/components/shared/types";
 
 interface StatsSectionProps {
   goals: GoalWithRating[];

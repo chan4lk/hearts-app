@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Filters } from '../types';
+import { Filters } from '@/app/components/shared/types';
 import { BsSearch, BsFilter, BsFunnel, BsPerson } from 'react-icons/bs';
 import { Role } from '.prisma/client';
 

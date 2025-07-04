@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/components/ui/select";
-import { ViewMode, FilterStatus, RatingStatus, FilterRating } from "../types";
+import { ViewMode, FilterStatus, RatingStatus, FilterRating } from "@/app/components/shared/types";
 
 interface FiltersSectionProps {
   viewMode: ViewMode;

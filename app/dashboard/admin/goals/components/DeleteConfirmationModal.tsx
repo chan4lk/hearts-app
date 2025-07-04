@@ -1,4 +1,4 @@
-import { Goal } from '../types';
+import { Goal } from '@/app/components/shared/types';
 import { BsExclamationTriangle, BsTrash, BsX } from 'react-icons/bs';
 import { motion, AnimatePresence } from 'framer-motion';
 

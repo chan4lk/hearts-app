@@ -10,7 +10,7 @@ import GoalsGrid from './components/GoalsGrid';
 import GoalDetailsModal from './components/GoalDetailsModal';
 import LoadingComponent from '@/app/components/LoadingScreen';
 
-import { Goal, EmployeeStats, DashboardStats } from './types';
+import { Goal, EmployeeStats, DashboardStats } from '@/app/components/shared/types';
 
 export default function ManagerDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -23,16 +23,21 @@ export default function ManagerDashboard() {
   const [selectedGoalDetails, setSelectedGoalDetails] = useState<Goal | null>(null);
   const { data: session } = useSession();
 
+  // Helper function to check if a goal belongs to the current user
+  const isCurrentUserGoal = (goal: Goal) => {
+    return goal.employee?.email === session?.user?.email;
+  };
+
   // Calculate statistics for employee goals
   const stats: DashboardStats = {
     employeeGoals: {
-      total: goals.filter(g => g.employee.email !== session?.user?.email).length,
-      draft: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'DRAFT').length,
-      pending: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'PENDING').length,
-      approved: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'APPROVED').length,
-      rejected: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'REJECTED').length,
-      modified: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'MODIFIED').length,
-      completed: goals.filter(g => g.employee.email !== session?.user?.email && g.status === 'COMPLETED').length,
+      total: goals.filter(g => g.employee && !isCurrentUserGoal(g)).length,
+      draft: goals.filter(g => g.employee && !isCurrentUserGoal(g) && g.status === 'DRAFT').length,
+      pending: goals.filter(g => g.employee && !isCurrentUserGoal(g) && g.status === 'PENDING').length,
+      approved: goals.filter(g => g.employee && !isCurrentUserGoal(g) && g.status === 'APPROVED').length,
+      rejected: goals.filter(g => g.employee && !isCurrentUserGoal(g) && g.status === 'REJECTED').length,
+      modified: goals.filter(g => g.employee && !isCurrentUserGoal(g) && g.status === 'MODIFIED').length,
+      completed: goals.filter(g => g.employee && !isCurrentUserGoal(g) && g.status === 'COMPLETED').length,
     },
     employeeCount: employeeCounts.total,
     activeEmployees: employeeCounts.active
@@ -63,13 +68,21 @@ export default function ManagerDashboard() {
         
         // Map employee names to goals if they're missing
         const goalsWithEmployeeNames = goalData.goals.map((goal: Goal) => {
+          // Skip if goal has no employee data
+          if (!goal.employee) {
+            return goal;
+          }
+          
           // If the goal already has an employee name, keep it
           if (goal.employee.name) {
             return goal;
           }
           
           // Otherwise, try to find the employee by email and add the name
-          const employee = empData.employees.find((emp: EmployeeStats) => emp.email === goal.employee.email);
+          const employee = empData.employees.find((emp: EmployeeStats) => 
+            emp.email === goal.employee?.email
+          );
+          
           if (employee) {
             return {
               ...goal,
@@ -109,19 +122,17 @@ export default function ManagerDashboard() {
   };
 
   const filteredGoals = goals.filter(goal => {
+    if (!goal.employee) return false;
+
     const query = searchQuery.toLowerCase().trim();
     const titleMatch = goal.title.toLowerCase().includes(query);
-    const employeeNameMatch = goal.employee?.name 
-      ? goal.employee.name.toLowerCase().includes(query)
-      : false;
-    const employeeEmailMatch = goal.employee?.email
-      ? goal.employee.email.toLowerCase().includes(query)
-      : false;
+    const employeeNameMatch = goal.employee.name?.toLowerCase().includes(query) || false;
+    const employeeEmailMatch = goal.employee.email?.toLowerCase().includes(query) || false;
     const matchesSearch = titleMatch || employeeNameMatch || employeeEmailMatch;
     const matchesStatus = !selectedStatus || goal.status === selectedStatus;
-    const matchesEmployee = selectedEmployee === 'all' || goal.employee?.email === selectedEmployee;
+    const matchesEmployee = selectedEmployee === 'all' || goal.employee.email === selectedEmployee;
     
-    return matchesSearch && matchesStatus && matchesEmployee && goal.employee.email !== session?.user?.email;
+    return matchesSearch && matchesStatus && matchesEmployee && !isCurrentUserGoal(goal);
   });
 
   if (loading) {

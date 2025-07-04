@@ -1,6 +1,6 @@
 'use client';
 
-import { User } from '../types';
+import { User } from '@/app/components/shared/types';
 import { Role } from '.prisma/client';
 import { BsX, BsPencil, BsEnvelope, BsPerson, BsShield, BsCheckCircle, BsXCircle, BsCalendar, BsPeople } from 'react-icons/bs';
 import { motion } from 'framer-motion';

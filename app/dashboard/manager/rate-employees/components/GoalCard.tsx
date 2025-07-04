@@ -1,10 +1,10 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { BsChevronDown, BsCalendar, BsTag, BsStarFill } from "react-icons/bs";
 import { Label } from "@/app/components/ui/label";
-import { GoalWithRating } from "../types";
+import { GoalWithRating } from "@/app/components/shared/types";
 import { useState, useEffect } from "react";
 import { CATEGORIES } from '@/app/components/shared/constants';
-import { RATING_COLORS, RATING_LABELS, RATING_DESCRIPTIONS } from "../constants/ratings";
+import { RATING_COLORS, RATING_LABELS, RATING_DESCRIPTIONS } from "@/app/components/shared/constants";
 
 type CategoryType = typeof CATEGORIES[0];
 type ViewMode = 'grid' | 'list';

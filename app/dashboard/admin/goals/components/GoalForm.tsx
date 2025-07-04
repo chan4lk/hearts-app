@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { User } from '../types';
+import { User } from '@/app/components/shared/types';
 import { CATEGORIES } from '@/app/components/shared/constants';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';

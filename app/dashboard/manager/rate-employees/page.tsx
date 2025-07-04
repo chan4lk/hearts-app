@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import LoadingComponent from '@/app/components/LoadingScreen';
 
-import { GoalWithRating, EmployeeStats } from "./types";
+import { GoalWithRating, EmployeeStats } from "@/app/components/shared/types";
 import HeroSection from "./components/HeroSection";
 import StatsSection from "./components/StatsSection";
 import EmployeeFilter from "./components/EmployeeFilter";
@@ -51,14 +51,24 @@ export default function RateEmployeesPage() {
       const currentStats = statsMap.get(employee.id) || {
         id: employee.id,
         name: employee.name,
+        email: employee.email,
         totalGoals: 0,
-        ratedGoals: 0
+        pendingGoals: 0,
+        approvedGoals: 0,
+        rejectedGoals: 0,
+        ratedGoals: 0,
+        isActive: true // Default to true since GoalWithRating doesn't include this info
       };
       
       currentStats.totalGoals++;
       if (goal.rating?.score) {
         currentStats.ratedGoals++;
       }
+      
+      // Update status-based counters
+      if (goal.status === 'PENDING') currentStats.pendingGoals++;
+      if (goal.status === 'APPROVED') currentStats.approvedGoals++;
+      if (goal.status === 'REJECTED') currentStats.rejectedGoals++;
       
       statsMap.set(employee.id, currentStats);
     });

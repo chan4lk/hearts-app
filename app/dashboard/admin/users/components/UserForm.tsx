@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { User, FormData } from '../types';
+import { User, FormData } from '@/app/components/shared/types';
 import { Role } from '.prisma/client';
 import { BsArrowCounterclockwise, BsEye, BsShield, BsPerson, BsEnvelope, BsLock, BsPersonBadge, BsPersonCheck, BsToggleOn, BsToggleOff } from 'react-icons/bs';
 import { motion } from 'framer-motion';
@@ -26,7 +26,7 @@ export default function UserForm({ initialData, managers, onSubmitAction, onCanc
   const [formData, setFormData] = useState<FormData>({
     name: initialData?.name || '',
     email: initialData?.email || '',
-    role: (initialData?.role as Role) || Role.EMPLOYEE,
+    role: initialData?.role ? (initialData.role as Role) : Role.EMPLOYEE,
     managerId: initialData?.manager?.id || '',
     status: initialData?.status || 'ACTIVE'
   });
@@ -66,7 +66,7 @@ export default function UserForm({ initialData, managers, onSubmitAction, onCanc
   // Filter out the current user from available managers to prevent self-assignment
   const availableManagers = managers.filter(manager => 
     (!initialData || manager.id !== initialData.id) &&
-    canBeManager(manager.role, formData.role)
+    canBeManager(manager.role as Role, formData.role)
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -91,9 +91,7 @@ export default function UserForm({ initialData, managers, onSubmitAction, onCanc
 
   const handleRoleChange = (value: string) => {
     const newRole = value as Role;
-    if (newRole === Role.ADMIN || newRole === Role.MANAGER || newRole === Role.EMPLOYEE) {
-      setFormData({ ...formData, role: newRole });
-    }
+    setFormData(prev => ({ ...prev, role: newRole }));
   };
 
   const getRoleIcon = (role: Role) => {
@@ -150,7 +148,7 @@ export default function UserForm({ initialData, managers, onSubmitAction, onCanc
               type="text"
               required
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               className={`w-full px-2 py-1 sm:px-3 sm:py-1.5 bg-black/20 rounded-sm sm:rounded text-[11px] text-white placeholder-gray-400 ${
                 errors.name ? 'border-red-500' : 'border-gray-600'
               }`}
@@ -172,7 +170,7 @@ export default function UserForm({ initialData, managers, onSubmitAction, onCanc
                 type="email"
                 required
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 className={`w-full px-2 py-1 sm:px-3 sm:py-1.5 bg-black/20 rounded-sm sm:rounded text-[11px] text-white placeholder-gray-400 ${
                   errors.email ? 'border-red-500' : 'border-gray-600'
                 }`}
@@ -195,7 +193,7 @@ export default function UserForm({ initialData, managers, onSubmitAction, onCanc
                 type="password"
                 required
                 value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                 className={`w-full px-2 py-1 sm:px-3 sm:py-1.5 bg-black/20 rounded-sm sm:rounded text-[11px] text-white placeholder-gray-400 ${
                   errors.password ? 'border-red-500' : 'border-gray-600'
                 }`}
@@ -218,9 +216,9 @@ export default function UserForm({ initialData, managers, onSubmitAction, onCanc
               onChange={(e) => handleRoleChange(e.target.value)}
               className="w-full px-2 py-1 sm:px-3 sm:py-1.5 bg-black/20 rounded-sm sm:rounded text-[11px] text-white"
             >
-              <option value="EMPLOYEE">👤 Employee</option>
-              <option value="MANAGER">👔 Manager</option>
-              <option value="ADMIN">🛡️ Admin</option>
+              <option value={Role.EMPLOYEE}>👤 Employee</option>
+              <option value={Role.MANAGER}>👔 Manager</option>
+              <option value={Role.ADMIN}>🛡️ Admin</option>
             </select>
           </div>
 
@@ -233,7 +231,7 @@ export default function UserForm({ initialData, managers, onSubmitAction, onCanc
               </label>
               <select
                 value={formData.managerId}
-                onChange={(e) => setFormData({ ...formData, managerId: e.target.value })}
+                onChange={(e) => setFormData(prev => ({ ...prev, managerId: e.target.value }))}
                 className="w-full px-2 py-1 sm:px-3 sm:py-1.5 bg-black/20 rounded-sm sm:rounded text-[11px] text-white"
               >
                 <option value="">Select</option>
@@ -254,7 +252,7 @@ export default function UserForm({ initialData, managers, onSubmitAction, onCanc
             </label>
             <select
               value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value as 'ACTIVE' | 'INACTIVE' })}
+              onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'ACTIVE' | 'INACTIVE' }))}
               className="w-full px-2 py-1 sm:px-3 sm:py-1.5 bg-black/20 rounded-sm sm:rounded text-[11px] text-white"
             >
               <option value="ACTIVE">✅ Active</option>

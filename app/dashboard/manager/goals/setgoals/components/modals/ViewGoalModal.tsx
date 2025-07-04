@@ -4,7 +4,7 @@ import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
 import { BsEye, BsPencil, BsCalendar, BsListTask, BsTrash } from 'react-icons/bs';
 import { User, Calendar } from 'lucide-react';
-import { Goal } from '../types';
+import { Goal } from '@/app/components/shared/types';
 import { CATEGORIES } from '@/app/components/shared/constants';
 import { Dialog, DialogContent } from "@/app/components/ui/dialog";
 

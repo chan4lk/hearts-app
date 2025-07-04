@@ -6,7 +6,7 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import StatsSection from './components/StatsSection';
 import GoalsSection from './components/GoalsSection';
 import GoalDetailModal from './components/GoalDetailModal';
-import { Goal, GoalStats } from './components/types';
+import { Goal, GoalStats } from '@/app/components/shared/types';
 import { BsGear, BsBell, BsSearch } from 'react-icons/bs';
 import { showToast } from '@/app/utils/toast';
 import LoadingComponent from '@/app/components/LoadingScreen';
@@ -86,15 +86,52 @@ export default function EmployeeDashboard() {
   });
 
   const getGoalStats = (): GoalStats => {
-    const total = goals.length;
-    const completed = goals.filter(g => g.status === 'COMPLETED').length;
+    const totalGoals = goals.length;
+    const total = totalGoals;
+    const completedGoals = goals.filter(g => g.status === 'COMPLETED').length;
+    const completed = completedGoals;
     const modified = goals.filter(g => g.status === 'MODIFIED').length;
-    const pending = goals.filter(g => g.status === 'PENDING').length;
+    const pendingGoals = goals.filter(g => g.status === 'PENDING').length;
+    const pending = pendingGoals;
     const approved = goals.filter(g => g.status === 'APPROVED').length;
     const rejected = goals.filter(g => g.status === 'REJECTED').length;
-    const achievementScore = total > 0 ? Math.round(((completed + approved) / total) * 100) : 0;
+    const draftGoals = goals.filter(g => g.status === 'DRAFT').length;
+    const inProgressGoals = goals.filter(g => ['PENDING', 'MODIFIED'].includes(g.status)).length;
+    const approvedGoals = approved;
+    const rejectedGoals = rejected;
+    const achievementScore = totalGoals > 0 ? Math.round(((completedGoals + approved) / totalGoals) * 100) : 0;
+
+    // Calculate category stats
+    const categoryStats: { [key: string]: number } = {};
+    goals.forEach(goal => {
+      if (goal.category) {
+        categoryStats[goal.category] = (categoryStats[goal.category] || 0) + 1;
+      }
+    });
+
+    // For employee dashboard, these values are not relevant but required by the interface
+    const totalEmployees = 0;
+    const totalManagers = 0;
     
-    return { total, completed, modified, pending, approved, rejected, achievementScore };
+    return {
+      totalGoals,
+      total,
+      completedGoals,
+      completed,
+      modified,
+      pendingGoals,
+      pending,
+      approved,
+      rejected,
+      achievementScore,
+      inProgressGoals,
+      totalEmployees,
+      totalManagers,
+      approvedGoals,
+      rejectedGoals,
+      draftGoals,
+      categoryStats
+    };
   };
 
   const handleSubmitGoal = async (goalId: string) => {

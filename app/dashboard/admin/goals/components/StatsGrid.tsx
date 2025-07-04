@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { BsBullseye, BsCheckCircle, BsClock, BsFileText, BsArrowUpRight, BsStars } from 'react-icons/bs';
-import { GoalStats } from '../types';
+import { GoalStats } from '@/app/components/shared/types';
 
 interface StatsGridProps {
   stats: GoalStats;

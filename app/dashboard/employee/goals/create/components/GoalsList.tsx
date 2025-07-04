@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { BsListTask, BsFilter, BsCalendar } from 'react-icons/bs';
-import { Goal } from '../types';
+import { Goal } from '@/app/components/shared/types';
 import { CATEGORIES } from '@/app/components/shared/constants';
 import { useSession } from 'next-auth/react';
 

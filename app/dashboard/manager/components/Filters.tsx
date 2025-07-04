@@ -1,5 +1,5 @@
 import { BsSearch, BsFilter, BsPerson } from 'react-icons/bs';
-import { EmployeeStats } from '../types';
+import { EmployeeStats } from '@/app/components/shared/types';
 
 interface FiltersProps {
   searchQuery: string;

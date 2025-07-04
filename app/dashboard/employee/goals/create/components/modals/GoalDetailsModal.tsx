@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { BsCalendar, BsTag, BsXCircle, BsCheckCircle, BsClock, BsGear, BsTrash, BsChevronDown } from 'react-icons/bs';
-import { Goal } from '../../types';
+import { Goal } from '@/app/components/shared/types';
 import { useState, useRef, useEffect } from 'react';
 
 interface GoalDetailsModalProps {

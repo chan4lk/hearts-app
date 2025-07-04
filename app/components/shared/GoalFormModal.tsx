@@ -1,143 +1,50 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
-import { BsListTask, BsPeople, BsCalendar, BsX, BsArrowCounterclockwise, BsPlus, BsRobot, BsLightning, BsPencil } from 'react-icons/bs';
-import { toast } from 'sonner';
-import { User, GoalFormData } from '@/app/components/shared/types';
-import { CATEGORIES } from '@/app/components/shared/constants';
-import { AIGoalSuggestions } from '@/app/components/shared/AIGoalSuggestions';
-import { showToast } from '@/app/utils/toast';
-import React from 'react';
+import { BsListTask, BsPeople, BsCalendar, BsX, BsArrowCounterclockwise, BsRobot } from 'react-icons/bs';
+import { User } from '@/app/components/shared/types';
+import { CATEGORIES } from './constants';
 
-interface CreateGoalModalProps {
+interface GoalFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (formData: GoalFormData) => Promise<void>;
+  onSubmit: (e: React.FormEvent) => Promise<void>;
   assignedEmployees: User[];
   loading: boolean;
-  formData: GoalFormData;
-  setFormData: React.Dispatch<React.SetStateAction<GoalFormData>>;
-  mode: 'create' | 'edit';
-  initialData?: GoalFormData;
+  formData: {
+    title: string;
+    description: string;
+    dueDate: string;
+    employeeId: string;
+    category: string;
+  };
+  onFormDataChange: (field: string, value: string) => void;
+  errors: { title?: string; category?: string; employeeId?: string };
+  isEditMode: boolean;
+  context: string;
+  onContextChange: (value: string) => void;
+  onReset: () => void;
 }
 
-export function CreateGoalModal({
+export function GoalFormModal({
   isOpen,
   onClose,
   onSubmit,
   assignedEmployees,
   loading,
   formData,
-  setFormData,
-  mode = 'create',
-  initialData
-}: CreateGoalModalProps) {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [context, setContext] = useState('');
-  const [initialEditData, setInitialEditData] = useState<GoalFormData | null>(null);
-  const [errors, setErrors] = useState<{ title?: string; category?: string; employeeId?: string }>({});
-  const [justSubmitted, setJustSubmitted] = useState<'create' | 'update' | null>(null);
-
-  useEffect(() => {
-    if (mode === 'edit') {
-      setInitialEditData({ ...formData });
-    } else {
-      setInitialEditData(null);
-    }
-    setErrors({});
-    if (!isOpen && justSubmitted) {
-      if (justSubmitted === 'create') {
-        showToast.goal.created();
-      } else {
-        showToast.goal.updated();
-      }
-      setJustSubmitted(null);
-      setFormData({
-        title: '',
-        description: '',
-        dueDate: new Date().toISOString().split('T')[0],
-        employeeId: '',
-        category: 'PROFESSIONAL',
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, isOpen]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // Validation for required fields
-    const newErrors: { title?: string; category?: string; employeeId?: string } = {};
-    if (!formData.title.trim()) {
-      newErrors.title = 'Goal title is required';
-    }
-    if (!formData.category) {
-      newErrors.category = 'Category is required';
-    }
-    if (!formData.employeeId) {
-      newErrors.employeeId = 'Employee is required';
-    }
-    setErrors(newErrors);
-    if (Object.keys(newErrors).length > 0) return;
-    await onSubmit(formData);
-    setJustSubmitted(mode === 'edit' ? 'update' : 'create');
-  };
-
-  const handleGenerate = async () => {
-    if (!formData.employeeId) {
-      showToast.goal.error('Please select an employee first');
-      return;
-    }
-
-    const selectedEmployee = assignedEmployees.find(e => e.id === formData.employeeId);
-    if (!selectedEmployee) {
-      showToast.goal.error('Selected employee not found');
-      return;
-    }
-
-    setIsGenerating(true);
-    try {
-      const response = await fetch('/api/ai/generate-goal', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          prompt: `Create a professional goal for ${selectedEmployee.name} who is a ${selectedEmployee.position} in the ${selectedEmployee.department} department`,
-          category: formData.category 
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate goal');
-      }
-
-      const data = await response.json();
-      if (!data.title || !data.description) {
-        throw new Error('Invalid response from AI');
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        title: data.title,
-        description: data.description,
-      }));
-      showToast.goal.updated();
-    } catch (error) {
-      console.error('Error generating goal:', error);
-      showToast.goal.error('Failed to generate goal. Please try again.');
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
+  onFormDataChange,
+  errors,
+  isEditMode,
+  context,
+  onContextChange,
+  onReset
+}: GoalFormModalProps) {
   if (!isOpen) return null;
-
-  const isEditMode = mode === 'edit';
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-3">
@@ -159,14 +66,14 @@ export function CreateGoalModal({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-3 space-y-3 max-h-[80vh] overflow-y-auto">
+        <form onSubmit={onSubmit} className="p-3 space-y-3 max-h-[80vh] overflow-y-auto">
           {/* Title & Category Row */}
           <div className="space-y-2">
             <div>
               <label className="block text-[10px] font-medium text-white/70 mb-1">Goal Title</label>
               <Input
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onChange={(e) => onFormDataChange('title', e.target.value)}
                 placeholder="Enter goal title"
                 className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20"
               />
@@ -178,7 +85,7 @@ export function CreateGoalModal({
               <label className="block text-[10px] font-medium text-white/70 mb-1">Category</label>
               <Select
                 value={formData.category}
-                onValueChange={(value) => setFormData({ ...formData, category: value })}
+                onValueChange={(value) => onFormDataChange('category', value)}
               >
                 <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20">
                   <SelectValue>{CATEGORIES.find(c => c.value === formData.category)?.label || 'Select category'}</SelectValue>
@@ -208,7 +115,7 @@ export function CreateGoalModal({
                 <Input
                   type="date"
                   value={formData.dueDate}
-                  onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                  onChange={(e) => onFormDataChange('dueDate', e.target.value)}
                   className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg pl-7 focus:border-amber-500/50 focus:ring-amber-500/20"
                 />
                 <BsCalendar className="absolute left-2 top-1/2 transform -translate-y-1/2 text-amber-400/70 h-3 w-3" />
@@ -218,7 +125,7 @@ export function CreateGoalModal({
               <label className="block text-[10px] font-medium text-white/70 mb-1">Employee</label>
               <Select
                 value={formData.employeeId}
-                onValueChange={(value) => setFormData({ ...formData, employeeId: value })}
+                onValueChange={(value) => onFormDataChange('employeeId', value)}
               >
                 <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20">
                   <SelectValue>{assignedEmployees.find(e => e.id === formData.employeeId)?.name || 'Select'}</SelectValue>
@@ -247,31 +154,22 @@ export function CreateGoalModal({
             </label>
             <Textarea
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) => onFormDataChange('description', e.target.value)}
               placeholder="Describe the goal details..."
               className="bg-black/20 border-gray-800/50 text-white text-xs min-h-[50px] rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20 resize-none"
             />
           </div>
 
-          {/* AI Context - Always show in both modes */}
+          {/* AI Context */}
           <div>
             <label className="block text-[10px] font-medium text-blue-400/90 mb-1 flex items-center gap-1">
               <BsRobot className="h-2.5 w-2.5" /> AI Context (Optional)
             </label>
             <Textarea
               value={context}
-              onChange={e => setContext(e.target.value)}
+              onChange={e => onContextChange(e.target.value)}
               placeholder="Additional context for AI suggestions..."
               className="bg-black/20 border-gray-800/50 text-white text-xs min-h-[35px] rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20 resize-none"
-            />
-          </div>
-
-          {/* AI Suggestions - Always show in both modes */}
-          <div className="bg-gradient-to-r from-blue-500/5 to-purple-500/5 rounded-lg p-2 border border-blue-500/20">
-            <AIGoalSuggestions
-              category={formData.category}
-              context={context}
-              onSuggestionSelect={(suggestion: { title: string; description: string }) => setFormData(prev => ({ ...prev, title: suggestion.title, description: suggestion.description }))}
             />
           </div>
 
@@ -281,21 +179,7 @@ export function CreateGoalModal({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  if (isEditMode && initialEditData) {
-                    setFormData({ ...initialEditData });
-                    setContext('');
-                  } else {
-                    setFormData({
-                      title: '',
-                      description: '',
-                      dueDate: new Date().toISOString().split('T')[0],
-                      employeeId: '',
-                      category: 'PROFESSIONAL'
-                    });
-                    setContext('');
-                  }
-                }}
+                onClick={onReset}
                 className="flex-1 bg-black/20 hover:bg-black/30 border-gray-800/50 text-white/70 text-xs h-7 rounded-lg transition-colors"
               >
                 <BsArrowCounterclockwise className="h-2.5 w-2.5 mr-1" />

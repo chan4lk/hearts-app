@@ -15,9 +15,28 @@ import UserFilters from './components/UserFilters';
 import StatsCard from './components/StatsCard';
 import HeroSection from './components/HeroSection';
 import BackgroundElements from './components/BackgroundElements';
-import { User, FormData, Filters } from './types';
+import { User, FormData, Filters } from '@/app/components/shared/types';
 import { Role } from '.prisma/client';
 import { showToast } from '@/app/utils/toast';
+
+interface RawUser {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  manager?: {
+    id: string;
+    name: string;
+    email: string;
+    role: Role;
+  } | null;
+  employees?: User[];
+  createdAt: string;
+  lastLogin?: string;
+  isActive: boolean;
+  department?: string | null;
+  position?: string | null;
+}
 
 export default function UsersPage() {
   const { data: session } = useSession();
@@ -56,16 +75,21 @@ export default function UsersPage() {
       }
 
       const data = await response.json();
-      const transformedUsers = data.map((user: any) => ({
+      const transformedUsers = data.map((user: RawUser): User => ({
         id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
-        manager: user.manager,
-        employees: user.employees,
+        manager: user.manager ? {
+          ...user.manager,
+          role: user.manager.role
+        } : null,
+        employees: user.employees || [],
         createdAt: user.createdAt,
         lastLogin: user.lastLogin,
-        status: user.isActive ? 'ACTIVE' : 'INACTIVE'
+        status: user.isActive ? 'ACTIVE' : 'INACTIVE',
+        department: user.department || null,
+        position: user.position || null
       }));
 
       setUsers(transformedUsers);
@@ -322,7 +346,11 @@ export default function UsersPage() {
                   <UserFilters
                     onFilterChangeAction={setFilters}
                     onSearchAction={setSearchTerm}
-                    managers={managers}
+                    managers={managers.map((user: User) => ({
+                      id: user.id,
+                      name: user.name,
+                      role: user.role
+                    }))}
                     currentUserRole={session?.user?.role as Role}
                   />
                 </div>
@@ -334,15 +362,15 @@ export default function UsersPage() {
                 <div className="p-4">
                   <UserTable
                     users={filteredUsers}
-                    onViewDetails={(user) => {
+                    onViewDetailsAction={(user: User) => {
                       setSelectedUser(user);
                       setIsDetailsOpen(true);
                     }}
-                    onEdit={(user) => {
+                    onEditAction={(user: User) => {
                       setSelectedUser(user);
                       setIsFormOpen(true);
                     }}
-                    onDelete={handleDeleteUser}
+                    onDeleteAction={handleDeleteUser}
                   />
                 </div>
               </div>

@@ -13,7 +13,7 @@ import { HeroSection } from "./components/HeroSection";
 import { StatsSection } from "./components/StatsSection";
 import { FiltersSection } from "./components/FiltersSection";
 import { GoalCard } from "./components/GoalCard";
-import { GoalWithRating, ViewMode, FilterStatus, RatingStatus, FilterRating } from "./types";
+import { GoalWithRating, ViewMode, FilterStatus, RatingStatus, FilterRating } from "@/app/components/shared/types";
 
 export default function SelfRatingPage() {
   const { data: session, status } = useSession();

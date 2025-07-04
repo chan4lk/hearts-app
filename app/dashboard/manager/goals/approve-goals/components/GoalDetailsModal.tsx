@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { BsLightningCharge, BsPerson, BsCalendar, BsClock, BsX, BsCheckCircle, BsXCircle, BsChat } from 'react-icons/bs';
-import { Goal } from '../types';
+import { BsLightningCharge, BsPerson, BsCalendar, BsClock, BsX, BsCheckCircle, BsXCircle, BsChat, BsPencil, BsTrash } from 'react-icons/bs';
+import { Goal } from '@/app/components/shared/types';
 
 interface GoalDetailsModalProps {
   goal: Goal;
@@ -66,6 +66,21 @@ export default function GoalDetailsModal({ goal, onClose, onAction }: GoalDetail
       bg: 'bg-rose-500/10',
       text: 'text-rose-400',
       icon: <BsXCircle className="w-3 h-3" />
+    },
+    COMPLETED: {
+      bg: 'bg-emerald-500/10',
+      text: 'text-emerald-400',
+      icon: <BsCheckCircle className="w-3 h-3" />
+    },
+    DRAFT: {
+      bg: 'bg-gray-500/10',
+      text: 'text-gray-400',
+      icon: <BsPencil className="w-3 h-3" />
+    },
+    DELETED: {
+      bg: 'bg-red-500/10',
+      text: 'text-red-400',
+      icon: <BsTrash className="w-3 h-3" />
     }
   } as const;
 

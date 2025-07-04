@@ -5,7 +5,7 @@ import {
   BsLightbulb, BsAward, BsBook, BsGear, BsGraphUp, BsHeart, BsLaptop, BsCodeSlash
 } from 'react-icons/bs';
 import { IconType } from 'react-icons';
-import { Goal, User } from '../types';
+import { Goal, User } from '@/app/components/shared/types';
 import { EmployeeFilter } from './EmployeeFilter';
 import { CATEGORIES } from '@/app/components/shared/constants';
 

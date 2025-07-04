@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { BsPeople, BsClipboardData, BsXCircle, BsCheckCircleFill } from 'react-icons/bs';
 import { colors } from '../styles/colors';
-import { GoalStats } from '../types';
+import { GoalStats } from '@/app/components/shared/types';
 
 interface StatsSectionProps {
   stats: GoalStats;

@@ -1,6 +1,8 @@
 import { BsShield, BsClock, BsXCircle, BsArrowRight, BsCheckCircle, BsChat } from 'react-icons/bs';
-import { StatusStyle, GoalStatus } from './types';
+import { StatusStyle, Goal } from '@/app/components/shared/types';
 import React from 'react';
+
+type GoalStatus = Goal['status'];
 
 const createIcon = (Icon: React.ComponentType<{ className?: string }>, className: string) => {
   return React.createElement(Icon, { className });

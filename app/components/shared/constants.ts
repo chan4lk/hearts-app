@@ -270,3 +270,46 @@ export const getStatusBadge = (status: string) => {
 
   return statusVariants[status as keyof typeof statusVariants] || 'secondary';
 }; 
+export const RATING_COLORS = {
+  1: 'bg-red-500/10 text-red-400',
+  2: 'bg-orange-500/10 text-orange-400',
+  3: 'bg-yellow-500/10 text-yellow-400',
+  4: 'bg-blue-500/10 text-blue-400',
+  5: 'bg-green-500/10 text-green-400'
+} as const;
+
+export const RATING_LABELS = {
+  1: "Needs Improvement",
+  2: "Below Expectations",
+  3: "Meets Expectations",
+  4: "Exceeds Expectations",
+  5: "Outstanding"
+} as const;
+
+export const RATING_DESCRIPTIONS = {
+  1: "Performance consistently falls below expected standards. Significant improvement needed in key areas.",
+  2: "Performance occasionally meets standards but improvement is needed to fully meet expectations.",
+  3: "Performance consistently meets job requirements and expectations. Demonstrates solid competence.",
+  4: "Performance frequently exceeds job requirements. Demonstrates strong skills and initiative.",
+  5: "Performance consistently exceeds all expectations. Demonstrates exceptional achievements."
+} as const;
+
+export const RATING_HOVER_COLORS = {
+  1: 'hover:bg-red-500/20 hover:text-red-300',
+  2: 'hover:bg-orange-500/20 hover:text-orange-300',
+  3: 'hover:bg-yellow-500/20 hover:text-yellow-300',
+  4: 'hover:bg-blue-500/20 hover:text-blue-300',
+  5: 'hover:bg-green-500/20 hover:text-green-300'
+} as const;
+
+export const STATUS_COLORS = {
+  DRAFT: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
+  PENDING: 'bg-gray-500/10 text-gray-600 dark:text-gray-400',
+  COMPLETED: 'bg-green-500/10 text-green-600 dark:text-green-400',
+  APPROVED: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+  REJECTED: 'bg-red-500/10 text-red-600 dark:text-red-400',
+  MODIFIED: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400'
+} as const; 
+
+
+

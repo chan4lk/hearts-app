@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { BsFilter } from "react-icons/bs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
-import { EmployeeStats } from "../types";
+import { EmployeeStats } from "@/app/components/shared/types";
 
 interface EmployeeFilterProps {
   filterEmployee: string;

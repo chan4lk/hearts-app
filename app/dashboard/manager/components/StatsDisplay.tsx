@@ -1,5 +1,5 @@
 import { BsStars, BsCheckCircle, BsClock, BsExclamationCircle, BsXCircle, BsPeople, BsPersonCheck } from 'react-icons/bs';
-import { DashboardStats } from '../types';
+import { DashboardStats } from '@/app/components/shared/types';
 import { useSession } from 'next-auth/react';
 
 interface StatsDisplayProps {

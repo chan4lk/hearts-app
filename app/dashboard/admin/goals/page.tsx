@@ -19,7 +19,7 @@ import {
   SelectItem
 } from '@/app/components/ui/select';
 
-import { User as UserType, Goal, GoalStats } from './types';
+import { User as UserType, Goal, GoalStats } from '@/app/components/shared/types';
 import { HeroSection } from './components/HeroSection';
 import { StatsGrid } from './components/StatsGrid';
 import { BackgroundElements } from './components/BackgroundElements';
@@ -42,12 +42,22 @@ function AdminGoalSettingPageContent() {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [stats, setStats] = useState<GoalStats>({
     totalGoals: 0,
+    total: 0,
     completedGoals: 0,
+    completed: 0,
+    modified: 0,
     pendingGoals: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    achievementScore: 0,
     inProgressGoals: 0,
     totalEmployees: 0,
     totalManagers: 0,
-    draftGoals: 0
+    approvedGoals: 0,
+    rejectedGoals: 0,
+    draftGoals: 0,
+    categoryStats: {}
   });
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
@@ -125,10 +135,23 @@ function AdminGoalSettingPageContent() {
         setStats(prevStats => ({
           ...prevStats,
           totalGoals: filteredGoals.length,
+          total: filteredGoals.length,
           completedGoals: filteredGoals.filter(g => g.status === 'COMPLETED').length,
+          completed: filteredGoals.filter(g => g.status === 'COMPLETED').length,
+          modified: filteredGoals.filter(g => g.status === 'MODIFIED').length,
           pendingGoals: filteredGoals.filter(g => g.status === 'PENDING').length,
+          pending: filteredGoals.filter(g => g.status === 'PENDING').length,
+          approved: filteredGoals.filter(g => g.status === 'APPROVED').length,
+          rejected: filteredGoals.filter(g => g.status === 'REJECTED').length,
+          achievementScore: 0, // You may want to calculate this based on your business logic
+          inProgressGoals: filteredGoals.filter(g => g.status === 'APPROVED').length,
+          approvedGoals: filteredGoals.filter(g => g.status === 'APPROVED').length,
+          rejectedGoals: filteredGoals.filter(g => g.status === 'REJECTED').length,
           draftGoals: filteredGoals.filter(g => g.status === 'DRAFT').length,
-          inProgressGoals: filteredGoals.filter(g => g.status === 'APPROVED').length
+          categoryStats: filteredGoals.reduce((acc, goal) => {
+            acc[goal.category] = (acc[goal.category] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>)
         }));
 
         const employeeCount = users.filter(user => user.role === 'EMPLOYEE').length;
@@ -335,7 +358,7 @@ function AdminGoalSettingPageContent() {
   };
 
   const handleTemplateSelect = (template: any) => {
-    setSelectedGoal({
+    const newGoal: Goal = {
       id: '',
       title: template.title,
       description: template.description,
@@ -343,9 +366,14 @@ function AdminGoalSettingPageContent() {
       dueDate: new Date().toISOString(),
       category: template.category,
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      employeeId: '',
+      managerId: '',
+      isApprovalProcess: false,
       employee: null,
       manager: null
-    });
+    };
+    setSelectedGoal(newGoal);
     setIsCreateModalOpen(true);
   };
 

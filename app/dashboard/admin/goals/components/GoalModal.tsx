@@ -1,4 +1,4 @@
-import { Goal } from '../types';
+import { Goal } from '@/app/components/shared/types';
 import { CATEGORIES } from '@/app/components/shared/constants';
 import { Badge } from '@/app/components/ui/badge';
 import { BsRocket, BsLightbulb, BsAward, BsGraphUp, BsBriefcase, BsListTask, BsX, BsStars, BsCalendar, BsPerson, BsGear, BsTrash } from 'react-icons/bs';

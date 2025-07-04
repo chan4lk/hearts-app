@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import { Goal, EmployeeStats } from './types';
+import { Goal, EmployeeStats } from '@/app/components/shared/types';
 import HeroSection from './components/HeroSection';
 import StatsSection from './components/StatsSection';
 import EmployeeFilter from './components/EmployeeFilter';
@@ -73,7 +73,12 @@ export default function ApproveGoalsPage() {
       // Calculate employee statistics with additional properties
       const statsMap = new Map<string, EmployeeStats>();
       transformedGoals.forEach((goal: Goal) => {
-        const { id, name, email, isActive } = goal.employee;
+        if (!goal.employee) return; // Skip if employee is null
+        
+        const { id, name, email } = goal.employee;
+        // Default to true if isActive is not available
+        const isActive = true;
+        
         const currentStats = statsMap.get(id) || {
           id,
           name,
@@ -82,7 +87,8 @@ export default function ApproveGoalsPage() {
           pendingGoals: 0,
           approvedGoals: 0,
           rejectedGoals: 0,
-          isActive: isActive
+          ratedGoals: 0,
+          isActive
         };
         
         currentStats.totalGoals++;
@@ -135,7 +141,7 @@ export default function ApproveGoalsPage() {
   };
 
   const filteredGoals = goals.filter(goal => 
-    selectedEmployee === 'all' || goal.employee.id === selectedEmployee
+    selectedEmployee === 'all' || (goal.employee && goal.employee.id === selectedEmployee)
   );
 
   if (isLoading) {

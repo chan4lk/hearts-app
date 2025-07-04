@@ -1,5 +1,5 @@
 import { BsLightningCharge, BsPerson, BsCalendar, BsClock, BsX, BsChat } from 'react-icons/bs';
-import { Goal } from '../types';
+import { Goal } from '@/app/components/shared/types';
 import { getStatusStyle } from '../utils';
 import { useEffect, useRef } from 'react';
 

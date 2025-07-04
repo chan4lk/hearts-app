@@ -1,5 +1,5 @@
 import { BsBarChart, BsCheckCircle, BsClock, BsTrophy, BsArrowUp, BsLightningCharge, BsStars } from 'react-icons/bs';
-import { GoalStats } from './types';
+import { GoalStats } from '@/app/components/shared/types';
 import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 

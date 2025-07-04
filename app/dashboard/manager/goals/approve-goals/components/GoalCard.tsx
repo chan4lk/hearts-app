@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import { BsPerson, BsCalendar, BsClock, BsCheckCircle, BsXCircle } from 'react-icons/bs';
-import { Goal } from '../types';
+import { BsPerson, BsCalendar, BsClock, BsCheckCircle, BsXCircle, BsPencil, BsTrash } from 'react-icons/bs';
+import { Goal } from '@/app/components/shared/types';
 import { CATEGORIES } from '@/app/components/shared/constants';
 
 interface GoalCardProps {
@@ -20,7 +20,7 @@ const STATUS_STYLES = {
     bg: 'from-blue-500/10 to-blue-500/20',
     text: 'text-blue-300',
     border: 'border-blue-500/30',
-    icon: BsClock
+    icon: BsPencil
   },
   APPROVED: {
     bg: 'from-emerald-500/10 to-emerald-500/20',
@@ -33,6 +33,24 @@ const STATUS_STYLES = {
     text: 'text-red-300',
     border: 'border-red-500/30',
     icon: BsXCircle
+  },
+  COMPLETED: {
+    bg: 'from-green-500/10 to-green-500/20',
+    text: 'text-green-300',
+    border: 'border-green-500/30',
+    icon: BsCheckCircle
+  },
+  DRAFT: {
+    bg: 'from-gray-500/10 to-gray-500/20',
+    text: 'text-gray-300',
+    border: 'border-gray-500/30',
+    icon: BsPencil
+  },
+  DELETED: {
+    bg: 'from-red-900/10 to-red-900/20',
+    text: 'text-red-300',
+    border: 'border-red-900/30',
+    icon: BsTrash
   }
 } as const;
 
@@ -71,7 +89,7 @@ export default function GoalCard({ goal, onAction, onViewDetails }: GoalCardProp
               </h3>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-xs text-gray-400 truncate">
-                  {goal.employee.name}
+                  {goal.employee?.name || 'Unknown Employee'}
                 </span>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${statusStyle.bg} ${statusStyle.text} flex items-center gap-1 flex-shrink-0`}>
                   <StatusIcon className="w-3 h-3" />

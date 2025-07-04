@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { BsCalendar, BsTag, BsGear, BsXCircle, BsCheckCircle, BsClock } from 'react-icons/bs';
-import { Goal } from './types';
+import { Goal } from '@/app/components/shared/types';
 import { IconType } from 'react-icons';
 import { CATEGORIES } from '@/app/components/shared/constants';
 
