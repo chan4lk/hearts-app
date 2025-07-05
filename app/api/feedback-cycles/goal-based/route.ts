@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { Role } from '@prisma/client';
+import { Role, PrismaClient } from '.prisma/client';
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
           select: { id: true }
         });
         
-        if (!managerEmployees.find(emp => emp.id === goal.employeeId)) {
+        if (!managerEmployees.find((emp: any) => emp.id === goal.employeeId)) {
           return NextResponse.json({ error: 'You can only create feedback cycles for your team members' }, { status: 403 });
         }
       }
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Determine target employees
-    let targetEmployees = [];
+    let targetEmployees: any[] = [];
 
     if (employeeIds && employeeIds.length > 0) {
       // Specific employees provided
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
           }
         }
       });
-      targetEmployees = goals.map(g => g.employee);
+      targetEmployees = goals.map((g: any) => g.employee);
     } else {
       // Target all employees under the manager (for managers) or all employees (for admins)
       if (session.user.role === Role.MANAGER) {
@@ -182,8 +182,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Remove duplicates
-    const uniqueEmployees = targetEmployees.filter((emp, index, self) => 
-      index === self.findIndex(e => e.id === emp.id)
+    const uniqueEmployees = targetEmployees.filter((emp: any, index: number, self: any[]) => 
+      index === self.findIndex((e: any) => e.id === emp.id)
     );
 
     // Create feedback assignments
@@ -224,7 +224,7 @@ export async function POST(request: NextRequest) {
 
         // Peer feedback
         if (includePeers) {
-          const peers = uniqueEmployees.filter(u => 
+          const peers = uniqueEmployees.filter((u: any) => 
             u.id !== employee.id && 
             u.department === employee.department &&
             u.role === employee.role
@@ -326,12 +326,12 @@ export async function GET(request: NextRequest) {
       });
 
       const employeeGoalIds = await prisma.goal.findMany({
-        where: { employeeId: { in: managerEmployees.map(emp => emp.id) } },
+        where: { employeeId: { in: managerEmployees.map((emp: any) => emp.id) } },
         select: { id: true }
       });
 
       whereClause.OR = [
-        { goalId: { in: employeeGoalIds.map(g => g.id) } },
+        { goalId: { in: employeeGoalIds.map((g: any) => g.id) } },
         { goalId: null } // General cycles
       ];
     }

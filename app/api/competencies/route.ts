@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
-import { Role, CompetencyCategory } from '@prisma/client';
+import { Role, CompetencyCategory } from '.prisma/client';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';

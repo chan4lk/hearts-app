@@ -58,8 +58,8 @@ export async function GET(request: NextRequest) {
     const goalFeedbackCycles = await prisma.feedbackCycle.findMany({
       where: {
         OR: [
-          { goalId: { in: userGoals.map(g => g.id) } },
-          { goalCategory: { in: userGoals.map(g => g.category) } },
+          { goalId: { in: userGoals.map((g: any) => g.id) } },
+          { goalCategory: { in: userGoals.map((g: any) => g.category) } },
           { 
             AND: [
               { goalId: null },
@@ -105,9 +105,9 @@ export async function GET(request: NextRequest) {
 
     // Get feedback received for each goal
     const goalFeedbackData = await Promise.all(
-      userGoals.map(async (goal) => {
+      userGoals.map(async (goal: any) => {
         // Get feedback cycles specifically for this goal
-        const goalCycles = goalFeedbackCycles.filter(cycle => 
+        const goalCycles = goalFeedbackCycles.filter((cycle: any) => 
           cycle.goalId === goal.id || 
           cycle.goalCategory === goal.category ||
           (cycle.goalId === null && cycle.goalCategory === null)
@@ -154,8 +154,8 @@ export async function GET(request: NextRequest) {
         });
 
         // Calculate average ratings for this goal
-        const competencyRatings = feedbackReceived.reduce((acc, feedback) => {
-          feedback.competencyAssessments.forEach(assessment => {
+        const competencyRatings = feedbackReceived.reduce((acc: any, feedback: any) => {
+          feedback.competencyAssessments.forEach((assessment: any) => {
             if (!acc[assessment.competency.name]) {
               acc[assessment.competency.name] = {
                 total: 0,
@@ -170,7 +170,7 @@ export async function GET(request: NextRequest) {
         }, {} as Record<string, any>);
 
         // Calculate averages
-        Object.keys(competencyRatings).forEach(competency => {
+        Object.keys(competencyRatings).forEach((competency: string) => {
           competencyRatings[competency].average = 
             competencyRatings[competency].total / competencyRatings[competency].count;
         });
@@ -186,7 +186,7 @@ export async function GET(request: NextRequest) {
             dueDate: goal.dueDate,
             createdAt: goal.createdAt
           },
-          feedbackCycles: goalCycles.map(cycle => ({
+          feedbackCycles: goalCycles.map((cycle: any) => ({
             id: cycle.id,
             name: cycle.name,
             type: cycle.type,
@@ -194,9 +194,9 @@ export async function GET(request: NextRequest) {
             endDate: cycle.endDate,
             competencies: cycle.competencies,
             totalAssignments: cycle._count.feedbacks,
-            completedFeedbacks: cycle.feedbacks.filter(f => f.isCompleted).length
+            completedFeedbacks: cycle.feedbacks.filter((f: any) => f.isCompleted).length
           })),
-          feedbackReceived: feedbackReceived.map(feedback => ({
+          feedbackReceived: feedbackReceived.map((feedback: any) => ({
             id: feedback.id,
             cycleName: feedback.cycle.name,
             reviewerType: feedback.reviewerType,
@@ -204,13 +204,13 @@ export async function GET(request: NextRequest) {
             reviewerRole: feedback.reviewer.role,
             isCompleted: feedback.isCompleted,
             submittedAt: feedback.submittedAt,
-            competencyAssessments: feedback.competencyAssessments.map(assessment => ({
+            competencyAssessments: feedback.competencyAssessments.map((assessment: any) => ({
               competency: assessment.competency.name,
               level: assessment.level.name,
               rating: assessment.rating,
               comments: assessment.comments
             })),
-            comments: feedback.comments.map(comment => ({
+            comments: feedback.comments.map((comment: any) => ({
               section: comment.section,
               content: comment.content,
               isPrivate: comment.isPrivate
@@ -218,7 +218,7 @@ export async function GET(request: NextRequest) {
           })),
           competencySummary: competencyRatings,
           totalFeedbackCount: feedbackReceived.length,
-          completedFeedbackCount: feedbackReceived.filter(f => f.isCompleted).length
+          completedFeedbackCount: feedbackReceived.filter((f: any) => f.isCompleted).length
         };
       })
     );
@@ -226,16 +226,16 @@ export async function GET(request: NextRequest) {
     // Get overall feedback statistics
     const overallStats = {
       totalGoals: userGoals.length,
-      goalsWithFeedback: goalFeedbackData.filter(g => g.totalFeedbackCount > 0).length,
+      goalsWithFeedback: goalFeedbackData.filter((g: any) => g.totalFeedbackCount > 0).length,
       totalFeedbackCycles: goalFeedbackCycles.length,
-      totalFeedbackReceived: goalFeedbackData.reduce((sum, g) => sum + g.totalFeedbackCount, 0),
-      completedFeedback: goalFeedbackData.reduce((sum, g) => sum + g.completedFeedbackCount, 0)
+      totalFeedbackReceived: goalFeedbackData.reduce((sum: number, g: any) => sum + g.totalFeedbackCount, 0),
+      completedFeedback: goalFeedbackData.reduce((sum: number, g: any) => sum + g.completedFeedbackCount, 0)
     };
 
     return NextResponse.json({
       goals: goalFeedbackData,
       overallStats,
-      goalFeedbackCycles: goalFeedbackCycles.map(cycle => ({
+      goalFeedbackCycles: goalFeedbackCycles.map((cycle: any) => ({
         id: cycle.id,
         name: cycle.name,
         type: cycle.type,
