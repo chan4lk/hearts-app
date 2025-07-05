@@ -24,8 +24,7 @@ model User {
   department          String?
   isActive            Boolean        @default(true)
   position            String?
-  feedbackGiven       Feedback[]     @relation("FeedbackGiven")
-  feedbackReceived    Feedback[]     @relation("FeedbackReceived")
+
   createdGoals        Goal[]         @relation("CreatedGoals")
   deletedGoals        Goal[]         @relation("DeletedGoals")
   goals               Goal[]         @relation("EmployeeGoals")
@@ -36,6 +35,9 @@ model User {
   selfRatings         Rating[]       @relation("SelfRatings")
   manager             User?          @relation("UserToUser", fields: [managerId], references: [id])
   employees           User[]         @relation("UserToUser")
+  feedbackGiven360    Feedback360[]  @relation("FeedbackGiven360")
+  feedbackReceived360 Feedback360[]  @relation("FeedbackReceived360")
+  createdFeedbackCycles FeedbackCycle[] @relation("CreatedFeedbackCycles")
 
   @@index([managerId])
   @@index([lastLoginAt])
@@ -100,20 +102,7 @@ model Rating {
   @@index([managerRatedById])
 }
 
-model Feedback {
-  id         String   @id @default(cuid())
-  content    String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  fromId     String
-  status     String
-  toId       String
-  givenBy    User     @relation("FeedbackGiven", fields: [fromId], references: [id])
-  receivedBy User     @relation("FeedbackReceived", fields: [toId], references: [id])
 
-  @@index([fromId])
-  @@index([toId])
-}
 
 model Notification {
   id        String           @id @default(cuid())
@@ -165,8 +154,9 @@ enum NotificationType {
   GOAL_REJECTED
   GOAL_MODIFIED
   GOAL_COMPLETED
-  FEEDBACK_RECEIVED
   RATING_RECEIVED
+  FEEDBACK_360_RECEIVED
+  FEEDBACK_360_COMPLETED
 }
 
 enum GoalCategory {
@@ -176,4 +166,162 @@ enum GoalCategory {
   PERSONAL
   TRAINING
   KPI
+}
+
+// 360-Degree Feedback System
+enum FeedbackCycleType {
+  QUARTERLY
+  ANNUAL
+  PROJECT_BASED
+  AD_HOC
+}
+
+enum FeedbackCycleStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum ReviewerType {
+  SELF
+  MANAGER
+  PEER
+  SUBORDINATE
+  CLIENT
+  STAKEHOLDER
+}
+
+enum CompetencyCategory {
+  TECHNICAL
+  LEADERSHIP
+  SOFT_SKILLS
+  BUSINESS
+  INNOVATION
+  COLLABORATION
+}
+
+model FeedbackCycle {
+  id          String              @id @default(cuid())
+  name        String              // "Q1 2024", "Annual Review 2024"
+  description String?
+  type        FeedbackCycleType   @default(ANNUAL)
+  status      FeedbackCycleStatus @default(DRAFT)
+  startDate   DateTime
+  endDate     DateTime
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  createdBy   String
+  isActive    Boolean             @default(true)
+  
+  // Relations
+  feedbacks   Feedback360[]
+  competencies Competency[]
+  createdByUser User @relation("CreatedFeedbackCycles", fields: [createdBy], references: [id])
+  
+  @@index([status])
+  @@index([type])
+  @@index([startDate])
+  @@index([endDate])
+}
+
+model Competency {
+  id          String             @id @default(cuid())
+  name        String             // "Leadership", "Technical Skills", "Communication"
+  description String?
+  category    CompetencyCategory @default(SOFT_SKILLS)
+  weight      Float              @default(1.0) // Importance weight
+  isActive    Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  
+  // Relations
+  levels      CompetencyLevel[]
+  assessments CompetencyAssessment[]
+  feedbackCycles FeedbackCycle[]
+  
+  @@index([category])
+  @@index([isActive])
+}
+
+model CompetencyLevel {
+  id          String   @id @default(cuid())
+  competencyId String
+  level       Int      // 1-5 scale
+  name        String   // "Beginner", "Intermediate", "Advanced", "Expert", "Master"
+  description String
+  examples    String[] // Array of example behaviors
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  competency  Competency @relation(fields: [competencyId], references: [id])
+  assessments CompetencyAssessment[]
+  
+  @@index([competencyId])
+  @@index([level])
+}
+
+model Feedback360 {
+  id              String       @id @default(cuid())
+  cycleId         String
+  employeeId      String       // Person being reviewed
+  reviewerId      String       // Person giving feedback
+  reviewerType    ReviewerType
+  isAnonymous     Boolean      @default(false)
+  isCompleted     Boolean      @default(false)
+  submittedAt     DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  
+  // Relations
+  cycle           FeedbackCycle @relation(fields: [cycleId], references: [id])
+  employee        User          @relation("FeedbackReceived360", fields: [employeeId], references: [id])
+  reviewer        User          @relation("FeedbackGiven360", fields: [reviewerId], references: [id])
+  competencyAssessments CompetencyAssessment[]
+  comments        FeedbackComment[]
+  
+  @@unique([cycleId, employeeId, reviewerId])
+  @@index([cycleId])
+  @@index([employeeId])
+  @@index([reviewerId])
+  @@index([reviewerType])
+  @@index([isCompleted])
+}
+
+model CompetencyAssessment {
+  id              String   @id @default(cuid())
+  feedbackId      String
+  competencyId    String
+  levelId         String
+  rating          Int      // 1-5 scale
+  comments        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  feedback        Feedback360 @relation(fields: [feedbackId], references: [id])
+  competency      Competency @relation(fields: [competencyId], references: [id])
+  level           CompetencyLevel @relation(fields: [levelId], references: [id])
+  
+  @@unique([feedbackId, competencyId])
+  @@index([feedbackId])
+  @@index([competencyId])
+  @@index([rating])
+}
+
+model FeedbackComment {
+  id          String   @id @default(cuid())
+  feedbackId  String
+  section     String   // "strengths", "improvements", "overall"
+  content     String
+  isPrivate   Boolean  @default(false) // Only visible to employee and manager
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  feedback    Feedback360 @relation(fields: [feedbackId], references: [id])
+  
+  @@index([feedbackId])
+  @@index([section])
 }

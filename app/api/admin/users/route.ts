@@ -365,12 +365,12 @@ export async function DELETE(request: Request) {
           where: { userId: id }
         });
 
-        // Delete user's feedback (both given and received)
-        await tx.feedback.deleteMany({
+        // Delete user's 360 feedback (both given and received)
+        await tx.feedback360.deleteMany({
           where: {
             OR: [
-              { fromId: id },
-              { toId: id }
+              { reviewerId: id },
+              { employeeId: id }
             ]
           }
         });
