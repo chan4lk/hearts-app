@@ -398,4 +398,55 @@ export interface Feedback360Stats {
     count: number;
     percentage: number;
   }[];
+}
+
+// 360-Degree Feedback Results for Employee
+export interface FeedbackResults {
+  cycle: FeedbackCycle;
+  feedbacks: Array<{
+    id: string;
+    cycleId: string;
+    reviewerType: string;
+    reviewer: {
+      id: string;
+      name: string;
+      position?: string;
+    } | null;
+    competencyAssessments: Array<{
+      competency: {
+        id: string;
+        name: string;
+        category: string;
+      };
+      level: {
+        id: string;
+        name: string;
+        level: number;
+      };
+      rating: number;
+      comments?: string;
+    }>;
+    comments: Array<{
+      section: string;
+      content: string;
+      isPrivate: boolean;
+    }>;
+    isAnonymous: boolean;
+    submittedAt: string;
+  }>;
+}
+
+// Manager Review Interface
+export interface ManagerFeedbackReview {
+  teamMember: {
+    id: string;
+    name: string;
+    position?: string;
+  };
+  feedbacks: FeedbackResults['feedbacks'];
+}
+
+// Admin Cycle Management
+export interface AdminCycleManagement {
+  cycles: FeedbackCycle[];
 } 

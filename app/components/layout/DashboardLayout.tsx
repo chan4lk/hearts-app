@@ -29,7 +29,8 @@ import {
   BsMoon,
   BsSearch,
   BsList,
-  BsX
+  BsX,
+  BsChatSquareText
 } from 'react-icons/bs';
 import dynamic from 'next/dynamic';
 import { useSettings } from '@/app/providers';
@@ -112,6 +113,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       { href: '/dashboard/admin', label: 'Overview', icon: BsShield },
       { href: '/dashboard/admin/users', label: 'Manage Users', icon: BsPeople },
       { href: '/dashboard/admin/goals', label: 'Goal Settings', icon: BsGear },
+      { href: '/dashboard/feedback-360/goal-based', label: 'Goal-Based Feedback', icon: BsChatSquareText },
     ];
 
     const managerItems: NavItem[] = [
@@ -119,12 +121,14 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       { href: '/dashboard/manager/goals/approve-goals', label: 'Goal Approvals', icon: BsClipboardData },
       { href: '/dashboard/manager/goals/setgoals', label: 'Set Team Goals', icon: BsBullseye },
       { href: '/dashboard/manager/rate-employees', label: 'Rate Team', icon: BsStar },
+      { href: '/dashboard/feedback-360/goal-based', label: 'Goal-Based Feedback', icon: BsChatSquareText },
     ];
 
     const employeeItems: NavItem[] = [
       { href: '/dashboard/employee', label: 'Overview', icon: BsPerson },
       { href: '/dashboard/employee/goals/create', label: 'My Goals', icon: BsBullseye },
       { href: '/dashboard/employee/self-rating', label: 'Self Rating', icon: BsStar },
+      { href: '/dashboard/feedback-360/goal-results', label: 'Goal Feedback', icon: BsChatSquareText },
     ];
 
     // Return items based on current dashboard type

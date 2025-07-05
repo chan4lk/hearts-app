@@ -76,6 +76,7 @@ model Goal {
   updatedBy       User?          @relation("UpdatedGoals", fields: [updatedById], references: [id])
   notifications   Notification[]
   ratings         Rating[]
+  feedbackCycles  FeedbackCycle[] @relation("GoalFeedbackCycles")
 
   @@index([managerId])
   @@index([employeeId])
@@ -214,15 +215,22 @@ model FeedbackCycle {
   createdBy   String
   isActive    Boolean             @default(true)
   
+  // Goal Integration
+  goalId      String?             // Optional: Link to specific goal
+  goalCategory GoalCategory?      // Optional: Filter by goal category
+  
   // Relations
   feedbacks   Feedback360[]
   competencies Competency[]
   createdByUser User @relation("CreatedFeedbackCycles", fields: [createdBy], references: [id])
+  goal        Goal?               @relation("GoalFeedbackCycles", fields: [goalId], references: [id])
   
   @@index([status])
   @@index([type])
   @@index([startDate])
   @@index([endDate])
+  @@index([goalId])
+  @@index([goalCategory])
 }
 
 model Competency {

@@ -15,7 +15,8 @@ import {
   BsGraphUp,
   BsClipboardData,
   BsBell,
-  BsPeople
+  BsPeople,
+  BsChatSquareText
 } from 'react-icons/bs';
 
 // Map database roles to dashboard paths
@@ -55,6 +56,13 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
     label: 'Goal Settings',
     roles: ['ADMIN'],
     context: 'admin'
+  },
+  {
+    href: '/dashboard/feedback-360/admin',
+    icon: BsChatSquareText,
+    label: '360° Feedback',
+    roles: ['ADMIN'],
+    context: 'admin'
   }
 ];
 
@@ -86,6 +94,13 @@ const MANAGER_NAV_ITEMS: NavItem[] = [
     label: 'Rate Employees',
     roles: ['MANAGER', 'ADMIN'],
     context: 'manager'
+  },
+  {
+    href: '/dashboard/feedback-360/manager',
+    icon: BsChatSquareText,
+    label: '360° Feedback',
+    roles: ['MANAGER', 'ADMIN'],
+    context: 'manager'
   }
 ];
 
@@ -108,6 +123,13 @@ const EMPLOYEE_NAV_ITEMS: NavItem[] = [
     href: '/dashboard/employee/self-rating',
     icon: BsStar,
     label: 'Self Rating',
+    roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
+    context: 'employee'
+  },
+  {
+    href: '/dashboard/feedback-360/results',
+    icon: BsChatSquareText,
+    label: '360° Feedback',
     roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
     context: 'employee'
   }
@@ -194,7 +216,13 @@ const ROLE_ACCESS: Record<Role, {
       '/dashboard/employee',
       '/dashboard/employee/goals',
       '/dashboard/employee/goals/create',
-      '/dashboard/employee/self-rating'
+      '/dashboard/employee/self-rating',
+      // 360° Feedback paths - full access
+      '/dashboard/feedback-360',
+      '/dashboard/feedback-360/admin',
+      '/dashboard/feedback-360/manager',
+      '/dashboard/feedback-360/results',
+      '/dashboard/feedback-360/submit'
     ],
     defaultPath: '/dashboard/admin'
   },
@@ -210,7 +238,12 @@ const ROLE_ACCESS: Record<Role, {
       '/dashboard/employee',
       '/dashboard/employee/goals',
       '/dashboard/employee/goals/create',
-      '/dashboard/employee/self-rating'
+      '/dashboard/employee/self-rating',
+      // 360° Feedback paths
+      '/dashboard/feedback-360',
+      '/dashboard/feedback-360/manager',
+      '/dashboard/feedback-360/results',
+      '/dashboard/feedback-360/submit'
     ],
     defaultPath: '/dashboard/manager'
   },
@@ -220,7 +253,11 @@ const ROLE_ACCESS: Record<Role, {
       '/dashboard/employee',
       '/dashboard/employee/goals',
       '/dashboard/employee/goals/create',
-      '/dashboard/employee/self-rating'
+      '/dashboard/employee/self-rating',
+      // 360° Feedback paths
+      '/dashboard/feedback-360',
+      '/dashboard/feedback-360/results',
+      '/dashboard/feedback-360/submit'
     ],
     defaultPath: '/dashboard/employee'
   }
