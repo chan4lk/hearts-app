@@ -1,5 +1,5 @@
 import { BsCheckCircle } from 'react-icons/bs';
-import { Goal } from '@/app/components/shared/types';
+import { Goal, EmployeeStats } from '@/app/components/shared/types';
 import { getStatusStyle } from '../utils';
 import { motion } from 'framer-motion';
 import { CATEGORIES } from '@/app/components/shared/constants';
@@ -7,9 +7,10 @@ import { CATEGORIES } from '@/app/components/shared/constants';
 interface GoalsGridProps {
   goals: Goal[];
   onGoalClick: (goal: Goal) => void;
+  employees?: EmployeeStats[];
 }
 
-export default function GoalsGrid({ goals, onGoalClick }: GoalsGridProps) {
+export default function GoalsGrid({ goals, onGoalClick, employees }: GoalsGridProps) {
   if (goals.length === 0) {
     return (
       <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700/50 text-center">
@@ -62,6 +63,28 @@ export default function GoalsGrid({ goals, onGoalClick }: GoalsGridProps) {
                       <span className="text-xs text-gray-400 truncate">
                         {goal.employee?.name}
                       </span>
+                      {/* Role badge */}
+                      {goal.employee?.email && employees && (
+                        (() => {
+                          const employee = employees.find(emp => emp.email === goal.employee?.email);
+                          if (!employee?.role) return null;
+                          
+                          const roleConfig = {
+                            'ADMIN': { icon: '👑', color: 'bg-purple-500/20 text-purple-300' },
+                            'MANAGER': { icon: '👨‍💼', color: 'bg-green-500/20 text-green-300' },
+                            'EMPLOYEE': { icon: '👤', color: 'bg-blue-500/20 text-blue-300' }
+                          };
+                          
+                          const config = roleConfig[employee.role as keyof typeof roleConfig];
+                          if (!config) return null;
+                          
+                          return (
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full ${config.color}`}>
+                              {config.icon}
+                            </span>
+                          );
+                        })()
+                      )}
                     </div>
                   </div>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusStyle(goal.status).bg} ${getStatusStyle(goal.status).text} flex items-center gap-1 flex-shrink-0`}>

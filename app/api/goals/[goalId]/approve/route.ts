@@ -15,7 +15,7 @@ export async function PUT(
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    if (session.user?.role !== 'MANAGER') {
+    if (session.user?.role !== 'MANAGER' && session.user?.role !== 'ADMIN') {
       return new NextResponse('Forbidden', { status: 403 });
     }
 

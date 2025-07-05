@@ -15,7 +15,7 @@ export async function GET(req: Request) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    if (session.user.role !== 'MANAGER') {
+    if (session.user.role !== 'MANAGER' && session.user.role !== 'ADMIN') {
       return new NextResponse('Forbidden', { status: 403 });
     }
 
@@ -98,7 +98,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (session.user.role !== 'MANAGER') {
+    if (session.user.role !== 'MANAGER' && session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

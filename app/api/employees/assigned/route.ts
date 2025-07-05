@@ -19,14 +19,14 @@ export async function GET() {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    // For admin, get all employees
+    // For admin, get all assigned users (managers, admins, employees)
     // For manager, get only assigned employees
-    const whereClause = session.user.role === Role.MANAGER
+    const whereClause = session.user.role === Role.ADMIN
       ? {
-          managerId: session.user.id,
-          role: Role.EMPLOYEE
+          managerId: session.user.id
         }
       : {
+          managerId: session.user.id,
           role: Role.EMPLOYEE
         };
 
@@ -39,11 +39,21 @@ export async function GET() {
         role: true,
         department: true,
         position: true,
+        isActive: true,
         manager: {
           select: {
             id: true,
             name: true,
             email: true
+          }
+        },
+        _count: {
+          select: {
+            goals: {
+              where: {
+                status: 'APPROVED'
+              }
+            }
           }
         }
       },
@@ -54,8 +64,15 @@ export async function GET() {
 
     return NextResponse.json({ 
       employees: employees.map(emp => ({
-        ...emp,
-        manager: session.user.role === Role.MANAGER ? undefined : emp.manager
+        id: emp.id,
+        name: emp.name,
+        email: emp.email,
+        role: emp.role,
+        department: emp.department,
+        position: emp.position,
+        isActive: emp.isActive,
+        manager: emp.manager,
+        goalsCount: emp._count.goals
       }))
     });
   } catch (error) {

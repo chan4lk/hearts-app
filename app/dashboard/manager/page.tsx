@@ -43,20 +43,28 @@ export default function ManagerDashboard() {
     activeEmployees: employeeCounts.active
   };
 
+  // Calculate role-based statistics
+  const roleStats = {
+    admins: employees.filter(emp => emp.role === 'ADMIN').length,
+    managers: employees.filter(emp => emp.role === 'MANAGER').length,
+    employees: employees.filter(emp => emp.role === 'EMPLOYEE').length,
+    totalUsers: employees.length
+  };
+
   // Load goals and employees from the database
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch employees first
-        const empResponse = await fetch('/api/employees');
+        // Fetch assigned employees first (this will filter based on role)
+        const empResponse = await fetch('/api/employees/assigned');
         if (!empResponse.ok) {
-          throw new Error('Failed to fetch employees');
+          throw new Error('Failed to fetch assigned employees');
         }
         const empData = await empResponse.json();
         setEmployees(empData.employees || []);
         setEmployeeCounts({
-          total: empData.totalCount || 0,
-          active: empData.activeCount || 0
+          total: empData.employees?.length || 0,
+          active: empData.employees?.filter((emp: any) => emp.isActive !== false).length || 0
         });
 
         // Then fetch goals
@@ -66,8 +74,15 @@ export default function ManagerDashboard() {
         }
         const goalData = await goalResponse.json();
         
+        // Filter goals to only include those from assigned employees
+        const assignedEmployeeEmails = empData.employees?.map((emp: any) => emp.email) || [];
+        const filteredGoals = goalData.goals.filter((goal: Goal) => {
+          // Include goals that belong to assigned employees
+          return goal.employee && assignedEmployeeEmails.includes(goal.employee.email);
+        });
+        
         // Map employee names to goals if they're missing
-        const goalsWithEmployeeNames = goalData.goals.map((goal: Goal) => {
+        const goalsWithEmployeeNames = filteredGoals.map((goal: Goal) => {
           // Skip if goal has no employee data
           if (!goal.employee) {
             return goal;
@@ -79,7 +94,7 @@ export default function ManagerDashboard() {
           }
           
           // Otherwise, try to find the employee by email and add the name
-          const employee = empData.employees.find((emp: EmployeeStats) => 
+          const employee = empData.employees.find((emp: any) => 
             emp.email === goal.employee?.email
           );
           
@@ -145,7 +160,7 @@ export default function ManagerDashboard() {
         
         <div className="max-w-7xl mx-auto space-y-4">
           {/* Stats Section */}
-          <StatsDisplay stats={stats} />
+          <StatsDisplay stats={stats} roleStats={roleStats} />
 
           {/* Filters Section */}
           <Filters
@@ -159,7 +174,7 @@ export default function ManagerDashboard() {
           />
 
           {/* Goals Grid */}
-          <GoalsGrid goals={filteredGoals} onGoalClick={handleGoalClick} />
+          <GoalsGrid goals={filteredGoals} onGoalClick={handleGoalClick} employees={employees} />
         </div>
 
         {/* Goal Details Modal */}

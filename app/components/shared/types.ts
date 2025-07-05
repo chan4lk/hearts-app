@@ -81,6 +81,7 @@ export interface EmployeeStats {
   id: string;
   name: string;
   email: string;
+  role?: Role;
   totalGoals: number;
   pendingGoals: number;
   approvedGoals: number;

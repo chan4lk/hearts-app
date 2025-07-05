@@ -1,12 +1,18 @@
-import { BsStars, BsCheckCircle, BsClock, BsExclamationCircle, BsXCircle, BsPeople, BsPersonCheck } from 'react-icons/bs';
+import { BsStars, BsCheckCircle, BsClock, BsExclamationCircle, BsXCircle, BsPeople, BsPersonCheck, BsShield, BsPersonBadge } from 'react-icons/bs';
 import { DashboardStats } from '@/app/components/shared/types';
 import { useSession } from 'next-auth/react';
 
 interface StatsDisplayProps {
   stats: DashboardStats;
+  roleStats?: {
+    admins: number;
+    managers: number;
+    employees: number;
+    totalUsers: number;
+  };
 }
 
-export default function StatsDisplay({ stats }: StatsDisplayProps) {
+export default function StatsDisplay({ stats, roleStats }: StatsDisplayProps) {
   const { data: session } = useSession();
   const userName = session?.user?.name || 'User';
 
@@ -35,18 +41,45 @@ export default function StatsDisplay({ stats }: StatsDisplayProps) {
       icon: <BsXCircle className="w-4 h-4" />,
       color: 'from-rose-500 to-red-500'
     },
-    {
-      title: 'Total Employees',
-      value: stats.employeeCount,
-      icon: <BsPeople className="w-4 h-4" />,
-      color: 'from-blue-500 to-cyan-500'
-    },
-    {
-      title: 'Active Employees',
-      value: stats.activeEmployees,
-      icon: <BsPersonCheck className="w-4 h-4" />,
-      color: 'from-violet-500 to-purple-500'
-    }
+    ...(roleStats ? [
+      {
+        title: 'Total Users',
+        value: roleStats.totalUsers,
+        icon: <BsPeople className="w-4 h-4" />,
+        color: 'from-blue-500 to-cyan-500'
+      },
+      {
+        title: 'Admins',
+        value: roleStats.admins,
+        icon: <BsShield className="w-4 h-4" />,
+        color: 'from-purple-500 to-indigo-500'
+      },
+      {
+        title: 'Managers',
+        value: roleStats.managers,
+        icon: <BsPersonBadge className="w-4 h-4" />,
+        color: 'from-green-500 to-emerald-500'
+      },
+      {
+        title: 'Employees',
+        value: roleStats.employees,
+        icon: <BsPersonCheck className="w-4 h-4" />,
+        color: 'from-violet-500 to-purple-500'
+      }
+    ] : [
+      {
+        title: 'Total Employees',
+        value: stats.employeeCount,
+        icon: <BsPeople className="w-4 h-4" />,
+        color: 'from-blue-500 to-cyan-500'
+      },
+      {
+        title: 'Active Employees',
+        value: stats.activeEmployees,
+        icon: <BsPersonCheck className="w-4 h-4" />,
+        color: 'from-violet-500 to-purple-500'
+      }
+    ])
   ];
 
   return (
@@ -65,6 +98,11 @@ export default function StatsDisplay({ stats }: StatsDisplayProps) {
               Welcome back, {userName}
               <span className="inline-flex animate-bounce">✨</span>
             </h2>
+            {roleStats && (
+              <p className="text-white/80 text-sm">
+                Managing {roleStats.totalUsers} users ({roleStats.admins} admins, {roleStats.managers} managers, {roleStats.employees} employees)
+              </p>
+            )}
             
           </div>
 
@@ -72,7 +110,7 @@ export default function StatsDisplay({ stats }: StatsDisplayProps) {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
         {statCards.map((stat, index) => (
           <div
             key={index}

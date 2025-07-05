@@ -11,27 +11,27 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (session.user.role !== 'MANAGER') {
+    if (session.user.role !== 'MANAGER' && session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    // Fetch goals for employees managed by the current manager
+    // Fetch goals for employees managed by the current manager/admin
     const goals = await prisma.goal.findMany({
       where: {
         AND: [
           {
             OR: [
-              // Goals for employees managed by the current manager
+              // Goals for employees managed by the current manager/admin
               {
                 employee: {
                   managerId: session.user.id
                 }
               },
-              // Personal goals of the manager
+              // Personal goals of the manager/admin
               {
                 employeeId: session.user.id
               },
-              // Goals assigned by the manager
+              // Goals assigned by the manager/admin
               {
                 managerId: session.user.id
               }

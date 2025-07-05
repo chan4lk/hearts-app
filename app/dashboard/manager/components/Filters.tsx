@@ -73,12 +73,29 @@ export default function Filters({
             onChange={(e) => setSelectedEmployee(e.target.value)}
             className="w-full pl-10 pr-3 py-2 bg-gray-900/50 text-white rounded-md border border-gray-700 focus:outline-none focus:border-emerald-500 text-sm appearance-none cursor-pointer"
           >
-            <option value="all">All Employees</option>
-            {employees.map((employee) => (
-              <option key={employee.id} value={employee.email}>
-                {employee.name}
-              </option>
-            ))}
+            <option value="all">All Users</option>
+            {/* Group by role */}
+            {employees
+              .filter(emp => emp.role === 'ADMIN')
+              .map((employee) => (
+                <option key={employee.id} value={employee.email}>
+                  👑 {employee.name} (Admin)
+                </option>
+              ))}
+            {employees
+              .filter(emp => emp.role === 'MANAGER')
+              .map((employee) => (
+                <option key={employee.id} value={employee.email}>
+                  👨‍💼 {employee.name} (Manager)
+                </option>
+              ))}
+            {employees
+              .filter(emp => emp.role === 'EMPLOYEE')
+              .map((employee) => (
+                <option key={employee.id} value={employee.email}>
+                  👤 {employee.name} (Employee)
+                </option>
+              ))}
           </select>
         </div>
       </div>
