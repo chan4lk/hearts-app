@@ -306,7 +306,8 @@ function ManagerGoalSettingPageContent() {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${colors.background.gradient}`}>
+    <DashboardLayout type="manager">
+      <div className={`min-h-screen bg-gradient-to-br ${colors.background.gradient}`}>
       {/* Floating Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
@@ -429,15 +430,14 @@ function ManagerGoalSettingPageContent() {
         />
       </div>
     </div>
+    </DashboardLayout>
   );
 }
 
 export default function ManagerGoalSettingPage() {
   return (
-    <DashboardLayout type="manager">
-      <Suspense fallback={<LoadingComponent />}>
-        <ManagerGoalSettingPageContent />
-      </Suspense>
-    </DashboardLayout>
+    <Suspense fallback={<LoadingComponent />}>
+      <ManagerGoalSettingPageContent />
+    </Suspense>
   );
 }

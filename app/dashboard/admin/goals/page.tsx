@@ -435,10 +435,39 @@ function AdminGoalSettingPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
-      <BackgroundElements />
+    <DashboardLayout type="admin">
+      <Toaster 
+        position="top-center"
+        richColors
+        closeButton
+        theme="dark"
+        toastOptions={{
+          style: {
+            background: 'rgba(30, 32, 40, 0.95)',
+            color: '#fff',
+            border: '1px solid rgba(45, 55, 72, 0.5)',
+            borderRadius: '16px',
+            padding: '20px 24px',
+            fontSize: '16px',
+            fontWeight: '600',
+            textAlign: 'center',
+            width: 'auto',
+            maxWidth: '450px',
+            margin: '0 auto',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px'
+          },
+          duration: 4000,
+          className: 'modern-toast'
+        }}
+      />
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+        <BackgroundElements />
 
-      <div className="relative z-10 p-3 space-y-4">
+        <div className="relative z-10 p-3 space-y-4">
         <HeroSection onCreateClick={() => setIsCreateModalOpen(true)} />
         <StatsGrid stats={stats} />
 
@@ -542,45 +571,16 @@ function AdminGoalSettingPageContent() {
           context={context}
           onContextChange={setContext}
         />
+              </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
 
 export default function AdminGoalSettingPage() {
   return (
-    <Suspense fallback={<LoadingComponent />}>
-      <DashboardLayout type="admin">
-        <Toaster 
-          position="top-center"
-          richColors
-          closeButton
-          theme="dark"
-          toastOptions={{
-            style: {
-              background: 'rgba(30, 32, 40, 0.95)',
-              color: '#fff',
-              border: '1px solid rgba(45, 55, 72, 0.5)',
-              borderRadius: '16px',
-              padding: '20px 24px',
-              fontSize: '16px',
-              fontWeight: '600',
-              textAlign: 'center',
-              width: 'auto',
-              maxWidth: '450px',
-              margin: '0 auto',
-              backdropFilter: 'blur(20px)',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '16px'
-            },
-            duration: 4000,
-            className: 'modern-toast'
-          }}
-        />
-        <AdminGoalSettingPageContent />
-      </DashboardLayout>
+    <Suspense>
+      <AdminGoalSettingPageContent />
     </Suspense>
   );
 } 

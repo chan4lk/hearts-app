@@ -10,32 +10,33 @@ datasource db {
 }
 
 model User {
-  id                  String         @id @default(cuid())
-  email               String         @unique
-  name                String
-  role                Role           @default(EMPLOYEE)
-  password            String
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
-  managerId           String?
-  failedLoginAttempts Int            @default(0)
-  lastLoginAt         DateTime?
-  lastLoginAttempt    DateTime?
-  department          String?
-  isActive            Boolean        @default(true)
-  position            String?
-  feedbackGiven       Feedback[]     @relation("FeedbackGiven")
-  feedbackReceived    Feedback[]     @relation("FeedbackReceived")
-  createdGoals        Goal[]         @relation("CreatedGoals")
-  deletedGoals        Goal[]         @relation("DeletedGoals")
-  goals               Goal[]         @relation("EmployeeGoals")
-  managerGoals        Goal[]         @relation("ManagerGoals")
-  updatedGoals        Goal[]         @relation("UpdatedGoals")
-  notifications       Notification[]
-  managerRatings      Rating[]       @relation("ManagerRatings")
-  selfRatings         Rating[]       @relation("SelfRatings")
-  manager             User?          @relation("UserToUser", fields: [managerId], references: [id])
-  employees           User[]         @relation("UserToUser")
+  id                                       String          @id @default(cuid())
+  email                                    String          @unique
+  name                                     String
+  role                                     Role            @default(EMPLOYEE)
+  password                                 String
+  createdAt                                DateTime        @default(now())
+  updatedAt                                DateTime        @updatedAt
+  failedLoginAttempts                      Int             @default(0)
+  lastLoginAt                              DateTime?
+  lastLoginAttempt                         DateTime?
+  department                               String?
+  isActive                                 Boolean         @default(true)
+  position                                 String?
+  managerId                                String?
+  Feedback360_Feedback360_employeeIdToUser Feedback360[]   @relation("Feedback360_employeeIdToUser")
+  Feedback360_Feedback360_reviewerIdToUser Feedback360[]   @relation("Feedback360_reviewerIdToUser")
+  FeedbackCycle                            FeedbackCycle[]
+  createdGoals                             Goal[]          @relation("CreatedGoals")
+  deletedGoals                             Goal[]          @relation("DeletedGoals")
+  goals                                    Goal[]          @relation("EmployeeGoals")
+  managerGoals                             Goal[]          @relation("ManagerGoals")
+  updatedGoals                             Goal[]          @relation("UpdatedGoals")
+  notifications                            Notification[]
+  managerRatings                           Rating[]        @relation("ManagerRatings")
+  selfRatings                              Rating[]        @relation("SelfRatings")
+  manager                                  User?           @relation("UserToUser", fields: [managerId], references: [id])
+  employees                                User[]          @relation("UserToUser")
 
   @@index([managerId])
   @@index([lastLoginAt])
@@ -43,37 +44,38 @@ model User {
 }
 
 model Goal {
-  id              String         @id @default(cuid())
-  title           String
-  description     String
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  dueDate         DateTime
-  managerId       String?
-  employeeId      String
-  approvedAt      DateTime?
-  approvedBy      String?
-  rejectedAt      DateTime?
-  rejectedBy      String?
-  managerComments String?
-  category        GoalCategory   @default(PROFESSIONAL)
-  department      String         @default("ENGINEERING")
-  priority        String         @default("MEDIUM")
-  createdById     String?
-  deletedAt       DateTime?
-  deletedById     String?
-  updatedById     String?
-  status          GoalStatus     @default(PENDING)
-  progress        Float          @default(0)
-  progressNotes   String?
+  id                 String          @id @default(cuid())
+  title              String
+  description        String
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  dueDate            DateTime
+  managerId          String?
+  employeeId         String
+  approvedAt         DateTime?
+  approvedBy         String?
+  rejectedAt         DateTime?
+  rejectedBy         String?
+  status             GoalStatus      @default(PENDING)
+  managerComments    String?
+  category           GoalCategory    @default(PROFESSIONAL)
+  createdById        String?
+  deletedAt          DateTime?
+  deletedById        String?
+  updatedById        String?
   lastProgressUpdate DateTime?
-  createdBy       User?          @relation("CreatedGoals", fields: [createdById], references: [id])
-  deletedBy       User?          @relation("DeletedGoals", fields: [deletedById], references: [id])
-  employee        User           @relation("EmployeeGoals", fields: [employeeId], references: [id])
-  manager         User?          @relation("ManagerGoals", fields: [managerId], references: [id])
-  updatedBy       User?          @relation("UpdatedGoals", fields: [updatedById], references: [id])
-  notifications   Notification[]
-  ratings         Rating[]
+  progress           Float           @default(0)
+  progressNotes      String?
+  department         String          @default("ENGINEERING")
+  priority           String          @default("MEDIUM")
+  FeedbackCycle      FeedbackCycle[]
+  createdBy          User?           @relation("CreatedGoals", fields: [createdById], references: [id])
+  deletedBy          User?           @relation("DeletedGoals", fields: [deletedById], references: [id])
+  employee           User            @relation("EmployeeGoals", fields: [employeeId], references: [id])
+  manager            User?           @relation("ManagerGoals", fields: [managerId], references: [id])
+  updatedBy          User?           @relation("UpdatedGoals", fields: [updatedById], references: [id])
+  notifications      Notification[]
+  ratings            Rating[]
 
   @@index([managerId])
   @@index([employeeId])
@@ -100,21 +102,6 @@ model Rating {
   @@index([managerRatedById])
 }
 
-model Feedback {
-  id         String   @id @default(cuid())
-  content    String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  fromId     String
-  status     String
-  toId       String
-  givenBy    User     @relation("FeedbackGiven", fields: [fromId], references: [id])
-  receivedBy User     @relation("FeedbackReceived", fields: [toId], references: [id])
-
-  @@index([fromId])
-  @@index([toId])
-}
-
 model Notification {
   id        String           @id @default(cuid())
   type      NotificationType
@@ -132,13 +119,131 @@ model Notification {
 
 model SystemSettings {
   id                   Int      @id @default(1)
-  systemName           String   @default("Bistec AspireHub")
-  theme                String   @default("dark")
   notificationSettings Json
   reviewSettings       Json
   securitySettings     Json
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
+  systemName           String   @default("Bistec AspireHub")
+  theme                String   @default("dark")
+}
+
+model Competency {
+  id                   String                 @id
+  name                 String
+  description          String?
+  category             CompetencyCategory     @default(SOFT_SKILLS)
+  weight               Float                  @default(1.0)
+  isActive             Boolean                @default(true)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime
+  CompetencyAssessment CompetencyAssessment[]
+  CompetencyLevel      CompetencyLevel[]
+  FeedbackCycle        FeedbackCycle[]
+
+  @@index([category])
+  @@index([isActive])
+}
+
+model CompetencyAssessment {
+  id              String          @id
+  feedbackId      String
+  competencyId    String
+  levelId         String
+  rating          Int
+  comments        String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime
+  Competency      Competency      @relation(fields: [competencyId], references: [id])
+  Feedback360     Feedback360     @relation(fields: [feedbackId], references: [id])
+  CompetencyLevel CompetencyLevel @relation(fields: [levelId], references: [id])
+
+  @@unique([feedbackId, competencyId])
+  @@index([competencyId])
+  @@index([feedbackId])
+  @@index([rating])
+}
+
+model CompetencyLevel {
+  id                   String                 @id
+  competencyId         String
+  level                Int
+  name                 String
+  description          String
+  examples             String[]
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime
+  CompetencyAssessment CompetencyAssessment[]
+  Competency           Competency             @relation(fields: [competencyId], references: [id])
+
+  @@index([competencyId])
+  @@index([level])
+}
+
+model Feedback360 {
+  id                                String                 @id
+  cycleId                           String
+  employeeId                        String
+  reviewerId                        String
+  reviewerType                      ReviewerType
+  isAnonymous                       Boolean                @default(false)
+  isCompleted                       Boolean                @default(false)
+  submittedAt                       DateTime?
+  createdAt                         DateTime               @default(now())
+  updatedAt                         DateTime
+  CompetencyAssessment              CompetencyAssessment[]
+  FeedbackCycle                     FeedbackCycle          @relation(fields: [cycleId], references: [id])
+  User_Feedback360_employeeIdToUser User                   @relation("Feedback360_employeeIdToUser", fields: [employeeId], references: [id])
+  User_Feedback360_reviewerIdToUser User                   @relation("Feedback360_reviewerIdToUser", fields: [reviewerId], references: [id])
+  FeedbackComment                   FeedbackComment[]
+
+  @@unique([cycleId, employeeId, reviewerId])
+  @@index([cycleId])
+  @@index([employeeId])
+  @@index([isCompleted])
+  @@index([reviewerId])
+  @@index([reviewerType])
+}
+
+model FeedbackComment {
+  id          String      @id
+  feedbackId  String
+  section     String
+  content     String
+  isPrivate   Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime
+  Feedback360 Feedback360 @relation(fields: [feedbackId], references: [id])
+
+  @@index([feedbackId])
+  @@index([section])
+}
+
+model FeedbackCycle {
+  id           String              @id
+  name         String
+  description  String?
+  type         FeedbackCycleType   @default(ANNUAL)
+  status       FeedbackCycleStatus @default(DRAFT)
+  startDate    DateTime
+  endDate      DateTime
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime
+  createdBy    String
+  isActive     Boolean             @default(true)
+  goalCategory GoalCategory?
+  goalId       String?
+  Feedback360  Feedback360[]
+  User         User                @relation(fields: [createdBy], references: [id])
+  Goal         Goal?               @relation(fields: [goalId], references: [id])
+  Competency   Competency[]
+
+  @@index([endDate])
+  @@index([goalCategory])
+  @@index([goalId])
+  @@index([startDate])
+  @@index([status])
+  @@index([type])
 }
 
 enum Role {
@@ -147,7 +252,6 @@ enum Role {
   EMPLOYEE
 }
 
-// This enum is used to track the status of goals
 enum GoalStatus {
   PENDING
   APPROVED
@@ -165,8 +269,9 @@ enum NotificationType {
   GOAL_REJECTED
   GOAL_MODIFIED
   GOAL_COMPLETED
-  FEEDBACK_RECEIVED
   RATING_RECEIVED
+  FEEDBACK_360_RECEIVED
+  FEEDBACK_360_COMPLETED
 }
 
 enum GoalCategory {
@@ -176,4 +281,36 @@ enum GoalCategory {
   PERSONAL
   TRAINING
   KPI
+}
+
+enum CompetencyCategory {
+  TECHNICAL
+  LEADERSHIP
+  SOFT_SKILLS
+  BUSINESS
+  INNOVATION
+  COLLABORATION
+}
+
+enum FeedbackCycleStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum FeedbackCycleType {
+  QUARTERLY
+  ANNUAL
+  PROJECT_BASED
+  AD_HOC
+}
+
+enum ReviewerType {
+  SELF
+  MANAGER
+  PEER
+  SUBORDINATE
+  CLIENT
+  STAKEHOLDER
 }
