@@ -214,7 +214,7 @@ export default function UserForm({ initialData, managers, onSubmitAction, onCanc
             <select
               value={formData.role}
               onChange={(e) => handleRoleChange(e.target.value)}
-              className="w-full px-2 py-1 sm:px-3 sm:py-1.5 bg-black/20 rounded-sm sm:rounded text-[11px] text-white"
+              className="w-full px-2 py-1 bg-white/80 dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700 rounded-md text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
             >
               <option value={Role.EMPLOYEE}>👤 Employee</option>
               <option value={Role.MANAGER}>👔 Manager</option>
@@ -232,7 +232,7 @@ export default function UserForm({ initialData, managers, onSubmitAction, onCanc
               <select
                 value={formData.managerId}
                 onChange={(e) => setFormData(prev => ({ ...prev, managerId: e.target.value }))}
-                className="w-full px-2 py-1 sm:px-3 sm:py-1.5 bg-black/20 rounded-sm sm:rounded text-[11px] text-white"
+                className="w-full px-2 py-1 bg-white/80 dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700 rounded-md text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
               >
                 <option value="">Select</option>
                 {availableManagers.map((manager) => (
