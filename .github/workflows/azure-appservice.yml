@@ -7,7 +7,7 @@ permissions:
 
 on:
   push:
-    branches: [develop]
+    branches: [features4]
 
 jobs:
   build-and-deploy:
