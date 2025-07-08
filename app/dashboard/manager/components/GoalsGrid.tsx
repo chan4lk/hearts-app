@@ -26,7 +26,7 @@ export default function GoalsGrid({ goals, onGoalClick, employees }: GoalsGridPr
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {goals.map((goal) => {
         const categoryConfig = CATEGORIES.find(c => c.value === goal.category) || CATEGORIES[0];
         const Icon = categoryConfig.icon;

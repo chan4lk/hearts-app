@@ -48,24 +48,7 @@ export default function StatsDisplay({ stats, roleStats }: StatsDisplayProps) {
         icon: <BsPeople className="w-4 h-4" />,
         color: 'from-blue-500 to-cyan-500'
       },
-      {
-        title: 'Admins',
-        value: roleStats.admins,
-        icon: <BsShield className="w-4 h-4" />,
-        color: 'from-purple-500 to-indigo-500'
-      },
-      {
-        title: 'Managers',
-        value: roleStats.managers,
-        icon: <BsPersonBadge className="w-4 h-4" />,
-        color: 'from-green-500 to-emerald-500'
-      },
-      {
-        title: 'Employees',
-        value: roleStats.employees,
-        icon: <BsPersonCheck className="w-4 h-4" />,
-        color: 'from-violet-500 to-purple-500'
-      }
+
     ] : [
       {
         title: 'Total Employees',
@@ -73,12 +56,7 @@ export default function StatsDisplay({ stats, roleStats }: StatsDisplayProps) {
         icon: <BsPeople className="w-4 h-4" />,
         color: 'from-blue-500 to-cyan-500'
       },
-      {
-        title: 'Active Employees',
-        value: stats.activeEmployees,
-        icon: <BsPersonCheck className="w-4 h-4" />,
-        color: 'from-violet-500 to-purple-500'
-      }
+      
     ])
   ];
 
@@ -98,11 +76,7 @@ export default function StatsDisplay({ stats, roleStats }: StatsDisplayProps) {
               Welcome back, {userName}
               <span className="inline-flex animate-bounce">✨</span>
             </h2>
-            {roleStats && (
-              <p className="text-white/80 text-sm">
-                Managing {roleStats.totalUsers} users ({roleStats.admins} admins, {roleStats.managers} managers, {roleStats.employees} employees)
-              </p>
-            )}
+            
             
           </div>
 
@@ -110,19 +84,22 @@ export default function StatsDisplay({ stats, roleStats }: StatsDisplayProps) {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 gap-y-4" role="region" aria-label="Statistics">
         {statCards.map((stat, index) => (
           <div
             key={index}
-            className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 group"
+            className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 sm:p-5 border border-gray-700/50 hover:border-indigo-400/60 transition-all duration-300 group flex flex-col items-start sm:items-center focus:outline-none focus:ring-2 focus:ring-indigo-400 gap-1 cursor-pointer hover:shadow-lg"
+            tabIndex={0}
+            aria-label={stat.title + ': ' + stat.value}
+            title={stat.title + ': ' + stat.value}
           >
             <div className="flex items-center gap-2 mb-2">
-              <div className={`p-1.5 rounded-md bg-gradient-to-r ${stat.color} text-white`}>
+              <div className={`p-2 rounded-md bg-gradient-to-r ${stat.color} text-white`}>
                 {stat.icon}
               </div>
-              <span className="text-xs text-gray-400 font-medium">{stat.title}</span>
+              <span className="text-xs sm:text-sm text-gray-400 font-medium">{stat.title}</span>
             </div>
-            <div className="text-2xl font-bold text-white group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-gray-300 group-hover:text-transparent group-hover:bg-clip-text transition-all duration-300">
+            <div className="text-2xl sm:text-3xl font-bold text-white group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-indigo-300 group-hover:text-transparent group-hover:bg-clip-text transition-all duration-300">
               {stat.value}
             </div>
           </div>
