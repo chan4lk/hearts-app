@@ -365,15 +365,7 @@ export async function DELETE(request: Request) {
           where: { userId: id }
         });
 
-        // Delete user's feedback (both given and received)
-        await tx.feedback.deleteMany({
-          where: {
-            OR: [
-              { fromId: id },
-              { toId: id }
-            ]
-          }
-        });
+       
 
         // Now we can safely delete goals
         await tx.goal.deleteMany({
