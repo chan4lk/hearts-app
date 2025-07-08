@@ -197,7 +197,9 @@ function ManagerGoalSettingPageContent() {
 
   const handleUpdateGoal = async (updatedData: GoalFormData) => {
     if (!selectedGoal) return;
-    
+    // Close the modal immediately for a more responsive UX
+    setIsEditModalOpen(false);
+    setSelectedGoal(null);
     setLoading(true);
     try {
       // Make API call
@@ -221,9 +223,7 @@ function ManagerGoalSettingPageContent() {
       ));
       setViewedGoal(updatedGoal);
 
-      // Close edit modal and show view modal
-      setIsEditModalOpen(false);
-      setSelectedGoal(null);
+      // Show view modal after update
       setIsViewModalOpen(true);
       showToast.goal.updated();
       
