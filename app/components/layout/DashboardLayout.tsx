@@ -336,9 +336,9 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       </AnimatePresence>
 
       {/* Desktop Sidebar */}
-      <div className="fixed left-0 top-0 h-full w-64 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 hidden md:block z-30 mt-2o">
-        <div className="p-2">
-          <div className="flex items-center space-x-3 mb-8">
+      <div className="fixed left-0 top-0 h-full w-64 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 hidden md:flex flex-col justify-between z-30 mt-2o">
+        <div className="p-2 flex-1 flex flex-col">
+          <div className="flex items-center space-x-3 mb-6">
             <div className="w-14 h-14 rounded-full  flex items-center justify-center">
             <Link href="/" className="group transform hover:scale-105 transition-transform duration-300">
               <Image 
@@ -356,7 +356,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
               <p className="text-xs text-gray-400">{portalTitle}</p>
             </div>
           </div>
-          <nav className="space-y-1">
+          <nav className="space-y-1 flex-1">
             {navItems.map((item) => {
               const isActive = isPathActive(item.href);
               return (
@@ -425,30 +425,16 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                 </motion.div>
               );
             })}
-
-            {/* Sign Out Button with enhanced hover effect */}
-            <div className="pt-6 mt-6 border-t border-gray-800">
-              <button
-                onClick={handleSignOut}
-                className="group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 text-red-400 hover:text-red-500 w-full relative overflow-hidden"
-              >
-                {/* Gradient background on hover */}
-                <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-red-500/5 opacity-0 group-hover:opacity-100 transition-all duration-300" />
-                
-                {/* Icon with rotation and slide effect */}
-                <div className="relative z-10 transition-transform duration-300 group-hover:scale-110">
-                  <BsBoxArrowRight className="text-xl transform group-hover:translate-x-1 group-hover:rotate-6 transition-all duration-300" />
-                </div>
-                
-                {/* Label with slide effect */}
-                <span className="relative z-10 font-medium transform transition-transform duration-300 group-hover:translate-x-1">Sign Out</span>
-                
-                {/* Decorative elements */}
-                <div className="absolute top-1 right-1 w-1 h-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
-                <div className="absolute bottom-1 right-2 w-1 h-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-              </button>
-            </div>
           </nav>
+        </div>
+        <div className="p-2 pb-4">
+          <button
+            onClick={handleSignOut}
+            className="group flex items-center justify-center w-full gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-red-500/10 to-red-500/5 text-red-400 hover:text-white hover:bg-red-500/80 transition-all duration-300 shadow-sm"
+          >
+            <BsBoxArrowRight className="text-lg" />
+            <span className="font-medium text-sm">Sign Out</span>
+          </button>
         </div>
       </div>
 
