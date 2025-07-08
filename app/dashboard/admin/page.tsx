@@ -68,12 +68,6 @@ interface Activity {
   status: 'success' | 'warning' | 'error';
 }
 
-interface SystemHealth {
-  component: string;
-  status: 'operational' | 'degraded' | 'down';
-  percentage: number;
-}
-
 export default function AdminDashboard() {
   const { data: session } = useSession();
   const router = useRouter();
@@ -90,7 +84,6 @@ export default function AdminDashboard() {
     recentUsers: []
   });
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [systemHealth, setSystemHealth] = useState<SystemHealth[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState('overview');
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -115,25 +108,23 @@ export default function AdminDashboard() {
 
     const fetchDashboardData = async () => {
       try {
-        const [statsRes, activitiesRes, healthRes] = await Promise.all([
+        const [statsRes, activitiesRes] = await Promise.all([
           fetch('/api/admin/stats'),
           fetch('/api/admin/activities'),
-          fetch('/api/admin/health')
         ]);
 
-        if (!statsRes.ok || !activitiesRes.ok || !healthRes.ok) {
+        if (!statsRes.ok || !activitiesRes.ok ) {
           throw new Error('Failed to fetch dashboard data');
         }
 
-        const [statsData, activitiesData, healthData] = await Promise.all([
+        const [statsData, activitiesData] = await Promise.all([
           statsRes.json(),
           activitiesRes.json(),
-          healthRes.json()
+      
         ]);
 
         setStats(statsData);
         setActivities(activitiesData);
-        setSystemHealth(healthData);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
