@@ -200,26 +200,6 @@ function ManagerGoalSettingPageContent() {
     
     setLoading(true);
     try {
-      // Optimistically update UI first
-      const selectedEmployee = assignedEmployees.find(emp => emp.id === updatedData.employeeId);
-      const optimisticGoal = {
-        ...selectedGoal,
-        title: updatedData.title,
-        description: updatedData.description,
-        dueDate: updatedData.dueDate,
-        category: updatedData.category,
-        employee: selectedEmployee ? {
-          id: selectedEmployee.id,
-          name: selectedEmployee.name,
-          email: selectedEmployee.email
-        } : null
-      };
-      
-      setGoals(prev => prev.map(goal => 
-        goal.id === selectedGoal.id ? optimisticGoal : goal
-      ));
-      setViewedGoal(optimisticGoal);
-      
       // Make API call
       const response = await fetch(`/api/goals/${selectedGoal.id}`, {
         method: 'PUT',
@@ -230,13 +210,17 @@ function ManagerGoalSettingPageContent() {
       if (!response.ok) throw new Error('Failed to update goal');
 
       const updatedGoal = await response.json();
-      
+
+      // Ensure date fields are valid Date objects or valid ISO strings
+      updatedGoal.dueDate = new Date(updatedGoal.dueDate).toISOString();
+      updatedGoal.updatedAt = new Date(updatedGoal.updatedAt).toISOString();
+
       // Update with server data
       setGoals(prev => prev.map(goal => 
         goal.id === selectedGoal.id ? updatedGoal : goal
       ));
       setViewedGoal(updatedGoal);
-      
+
       // Close edit modal and show view modal
       setIsEditModalOpen(false);
       setSelectedGoal(null);
@@ -375,6 +359,7 @@ function ManagerGoalSettingPageContent() {
             setGoalToDelete(goalId);
             setIsDeleteModalOpen(true);
           }}
+          onRefresh={fetchAssignedEmployees}
         />
 
         {/* Modals */}

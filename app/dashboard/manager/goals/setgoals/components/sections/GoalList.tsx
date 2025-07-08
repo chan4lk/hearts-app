@@ -19,6 +19,7 @@ interface GoalListProps {
   onViewGoal: (goal: Goal) => void;
   onEditGoal: (goal: Goal) => void;
   onDeleteGoal: (goalId: string) => void;
+  onRefresh?: () => void; // <-- add this
 }
 
 interface StatusColorConfig {
@@ -96,7 +97,8 @@ export function GoalList({
   onEmployeeChange,
   onViewGoal,
   onEditGoal,
-  onDeleteGoal
+  onDeleteGoal,
+  onRefresh // <-- add this
 }: GoalListProps) {
   const filteredGoals = selectedEmployee === 'all' 
     ? goals 
@@ -117,12 +119,23 @@ export function GoalList({
               </span>
             </h3>
           </div>
-          
-          <EmployeeFilter
-            selectedEmployee={selectedEmployee}
-            onEmployeeChange={onEmployeeChange}
-            assignedEmployees={assignedEmployees}
-          />
+          <div className="flex items-center gap-2">
+            <EmployeeFilter
+              selectedEmployee={selectedEmployee}
+              onEmployeeChange={onEmployeeChange}
+              assignedEmployees={assignedEmployees}
+            />
+            {onRefresh && (
+              <button
+                type="button"
+                onClick={onRefresh}
+                className="ml-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30 hover:text-white transition-all text-xs font-medium"
+                title="Refresh"
+              >
+                &#x21bb; Refresh
+              </button>
+            )}
+          </div>
         </div>
 
         {filteredGoals.length === 0 ? (

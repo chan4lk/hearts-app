@@ -88,12 +88,25 @@ export function ViewGoalModal({
                 <div className="min-w-0">
                   <p className="text-[10px] text-white/50">Due Date</p>
                   <p className="text-[11px] font-medium text-white/90 truncate">
-                    {new Date(goal.dueDate).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric'
-                    })}
+                    {goal.dueDate && !isNaN(new Date(goal.dueDate).getTime())
+                      ? new Date(goal.dueDate).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })
+                      : 'Invalid Date'}
                   </p>
+                  {goal.updatedAt && !isNaN(new Date(goal.updatedAt).getTime()) && (
+                    <p className="text-[10px] text-white/50 mt-1">
+                      Last Updated: {new Date(goal.updatedAt).toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
