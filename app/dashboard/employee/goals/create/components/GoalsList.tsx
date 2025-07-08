@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { BsListTask, BsFilter, BsCalendar } from 'react-icons/bs';
+import { BsListTask, BsFilter, BsCalendar, BsArrowRepeat } from 'react-icons/bs';
 import { Goal } from '@/app/components/shared/types';
 import { CATEGORIES } from '@/app/components/shared/constants';
 import { useSession } from 'next-auth/react';
@@ -20,6 +20,8 @@ interface GoalsListProps {
   setSelectedStatus: (status: string) => void;
   setSelectedCategory: (category: string) => void;
   onViewGoal: (goal: Goal) => void;
+  onRefresh: () => void;
+  refreshing?: boolean; // Add refreshing prop
 }
 
 const containerVariants = {
@@ -44,6 +46,8 @@ export const GoalsList = ({
   setSelectedStatus,
   setSelectedCategory,
   onViewGoal,
+  onRefresh,
+  refreshing = false,
 }: GoalsListProps) => {
   const { data: session } = useSession();
   const userId = session?.user?.id;
@@ -75,8 +79,8 @@ export const GoalsList = ({
               <p className="text-sm text-gray-400">Goals you have created and submitted</p>
             </div>
           </div>
-          
           <div className="flex items-center gap-2">
+
             <div className="flex flex-col sm:flex-row gap-2">
               <select
                 value={selectedStatus}
@@ -102,6 +106,22 @@ export const GoalsList = ({
                 ))}
               </select>
             </div>
+            <button
+                type="button"
+                onClick={onRefresh}
+                className="ml-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30 hover:text-white transition-all text-xs font-medium"
+                title="Refresh"
+                disabled={refreshing}
+              >
+                <motion.span
+                  animate={refreshing ? { rotate: 360 } : { rotate: 0 }}
+                  transition={refreshing ? { repeat: Infinity, duration: 0.8, ease: 'linear' } : { duration: 0.2 }}
+                  style={{ display: 'inline-block' }}
+                >
+                  &#x21bb;
+                </motion.span>
+                {refreshing ? ' Refreshing...' : ' Refresh'}
+              </button>
           </div>
         </div>
 

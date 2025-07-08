@@ -84,6 +84,7 @@ function ManagerGoalSettingPageContent() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [goalToDelete, setGoalToDelete] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (!session) {
@@ -281,6 +282,12 @@ function ManagerGoalSettingPageContent() {
     setIsEditModalOpen(true);
   };
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchAssignedEmployees();
+    setRefreshing(false);
+  };
+
   if (error) {
     return <ErrorFallback error={error} resetErrorBoundary={() => setError(null)} />;
   }
@@ -359,7 +366,8 @@ function ManagerGoalSettingPageContent() {
             setGoalToDelete(goalId);
             setIsDeleteModalOpen(true);
           }}
-          onRefresh={fetchAssignedEmployees}
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
         />
 
         {/* Modals */}

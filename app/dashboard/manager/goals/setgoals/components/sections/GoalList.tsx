@@ -20,6 +20,7 @@ interface GoalListProps {
   onEditGoal: (goal: Goal) => void;
   onDeleteGoal: (goalId: string) => void;
   onRefresh?: () => void; // <-- add this
+  refreshing?: boolean; // <-- add this
 }
 
 interface StatusColorConfig {
@@ -98,7 +99,8 @@ export function GoalList({
   onViewGoal,
   onEditGoal,
   onDeleteGoal,
-  onRefresh // <-- add this
+  onRefresh, // <-- add this
+  refreshing = false, // <-- add this
 }: GoalListProps) {
   const filteredGoals = selectedEmployee === 'all' 
     ? goals 
@@ -131,8 +133,16 @@ export function GoalList({
                 onClick={onRefresh}
                 className="ml-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30 hover:text-white transition-all text-xs font-medium"
                 title="Refresh"
+                disabled={refreshing}
               >
-                &#x21bb; Refresh
+                <motion.span
+                  animate={refreshing ? { rotate: 360 } : { rotate: 0 }}
+                  transition={refreshing ? { repeat: Infinity, duration: 0.8, ease: 'linear' } : { duration: 0.2 }}
+                  style={{ display: 'inline-block' }}
+                >
+                  &#x21bb;
+                </motion.span>
+                {refreshing ? ' Refreshing...' : ' Refresh'}
               </button>
             )}
           </div>

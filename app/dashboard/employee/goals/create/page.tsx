@@ -54,6 +54,7 @@ function GoalsPageContent() {
   const [deleteGoal, setDeleteGoal] = useState<Goal | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Helper to check if user is admin or manager
   const userIsAdminOrManager = session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER';
@@ -241,6 +242,12 @@ function GoalsPageContent() {
     }
   };
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchGoals();
+    setRefreshing(false);
+  };
+
   // Calculate completed goals for HeroSection
   const completedGoals = goals.filter(g => g.status === 'APPROVED').length;
 
@@ -344,6 +351,8 @@ function GoalsPageContent() {
             setSelectedStatus={setSelectedStatus}
             setSelectedCategory={setSelectedCategory}
             onViewGoal={setSelectedViewGoal}
+            onRefresh={handleRefresh}
+            refreshing={refreshing}
           />
         </div>
       </div>
