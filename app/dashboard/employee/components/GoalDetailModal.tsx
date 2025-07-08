@@ -385,25 +385,28 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDet
         {/* Footer */}
         <div className="relative px-3 sm:px-4 pb-3 sm:pb-4 pt-2 flex-shrink-0">
           <div className="flex justify-end gap-2">
-            {(goal.status === 'DRAFT' || goal.status === 'MODIFIED') && (
-              <Button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 h-9 sm:h-10 touch-manipulation"
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 border-2 border-white/20 border-t-white rounded-full animate-spin mr-1.5" />
-                    <span>Submitting...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Submit</span>
-                    <BsArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
-                  </>
-                )}
-              </Button>
-            )}
+            {(goal.status === 'DRAFT' || goal.status === 'MODIFIED') &&
+              goal.manager &&
+              goal.employee &&
+              goal.manager.id !== goal.employee.id && (
+                <Button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 h-9 sm:h-10 touch-manipulation"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-3 h-3 sm:w-3.5 sm:h-3.5 border-2 border-white/20 border-t-white rounded-full animate-spin mr-1.5" />
+                      <span>Submitting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Submit</span>
+                      <BsArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
+                    </>
+                  )}
+                </Button>
+              )}
             <Button
               variant="ghost"
               onClick={handleClose}
