@@ -9,7 +9,7 @@ import { BsPlus, BsArrowUpRight } from 'react-icons/bs';
 import GoalTemplates from '@/app/components/shared/GoalTemplates';
 import { HeroSection } from './components/HeroSection';
 import { GoalsList } from './components/GoalsList';
-import GoalDetailModal from '@/app/dashboard/employee/components/GoalDetailModal';
+import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { Goal, NewGoal } from '@/app/components/shared/types';
 import { useSession, getSession } from 'next-auth/react';
 import { CATEGORIES } from '@/app/components/shared/constants';

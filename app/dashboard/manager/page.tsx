@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react';
 import StatsDisplay from './components/StatsDisplay';
 import Filters from './components/Filters';
 import GoalsGrid from './components/GoalsGrid';
-import GoalDetailModal from '@/app/dashboard/employee/components/GoalDetailModal';
+import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import LoadingComponent from '@/app/components/LoadingScreen';
 import AIPerformanceInsights from '@/app/components/ai/AIPerformanceInsights';
 import { BsStars, BsLightbulb } from 'react-icons/bs';

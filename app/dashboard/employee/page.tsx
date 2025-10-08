@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import StatsSection from './components/StatsSection';
 import GoalsSection from './components/GoalsSection';
-import GoalDetailModal from './components/GoalDetailModal';
+import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
 import { Goal, GoalStats } from '@/app/components/shared/types';
 import { BsStars, BsLightbulb, BsX, BsPlus } from 'react-icons/bs';

@@ -11,7 +11,7 @@ import HeroSection from './components/HeroSection';
 import StatsSection from './components/StatsSection';
 import EmployeeFilter from './components/EmployeeFilter';
 import GoalCard from './components/GoalCard';
-import GoalDetailModal from '@/app/dashboard/employee/components/GoalDetailModal';
+import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import LoadingComponent from '@/app/components/LoadingScreen';
 
 
