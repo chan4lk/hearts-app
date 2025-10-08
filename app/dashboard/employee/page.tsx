@@ -117,6 +117,46 @@ export default function EmployeeDashboard() {
     setErrors({});
   };
 
+  // Reusable function to fetch and deduplicate goals
+  const fetchAndDeduplicateGoals = async () => {
+    const [assignedResponse, selfResponse] = await Promise.all([
+      fetch('/api/goals'),
+      fetch('/api/goals/self')
+    ]);
+
+    if (!assignedResponse.ok || !selfResponse.ok) {
+      throw new Error('Failed to fetch goals');
+    }
+
+    const [assignedData, selfData] = await Promise.all([
+      assignedResponse.json(),
+      selfResponse.json()
+    ]);
+
+    // Deduplicate goals based on their IDs
+    const uniqueGoals = new Map();
+    [...(assignedData.goals || []), ...(selfData.goals || [])].forEach(goal => {
+      if (!uniqueGoals.has(goal.id)) {
+        uniqueGoals.set(goal.id, goal);
+      }
+    });
+
+    // Only include goals where the employee is the current user
+    const userId = session?.user?.id;
+    const filteredGoals = Array.from(uniqueGoals.values()).filter(goal => {
+      // Some APIs return employee as object, some as employeeId
+      if (goal.employee && goal.employee.id) {
+        return goal.employee.id === userId;
+      }
+      if (goal.employeeId) {
+        return goal.employeeId === userId;
+      }
+      return false;
+    });
+
+    return filteredGoals;
+  };
+
   // Handle form submit
   const handleCreateGoal = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,24 +193,9 @@ export default function EmployeeDashboard() {
       setShowCreateGoalModal(false);
       resetForm();
 
-      // Refresh goals
-      const [assignedResponse, selfResponse] = await Promise.all([
-        fetch('/api/goals'),
-        fetch('/api/goals/self')
-      ]);
-
-      if (assignedResponse.ok && selfResponse.ok) {
-        const [assignedData, selfData] = await Promise.all([
-          assignedResponse.json(),
-          selfResponse.json()
-        ]);
-
-        const allGoals = [
-          ...(assignedData.goals || []),
-          ...(selfData.goals || [])
-        ];
-        setGoals(allGoals);
-      }
+      // Refresh goals using the reusable function
+      const refreshedGoals = await fetchAndDeduplicateGoals();
+      setGoals(refreshedGoals);
     } catch (error) {
       showToast.error('Error', error instanceof Error ? error.message : 'Failed to create goal');
     } finally {
@@ -182,41 +207,8 @@ export default function EmployeeDashboard() {
   useEffect(() => {
     const fetchGoals = async () => {
       try {
-        const [assignedResponse, selfResponse] = await Promise.all([
-          fetch('/api/goals'),
-          fetch('/api/goals/self')
-        ]);
-
-        if (!assignedResponse.ok || !selfResponse.ok) {
-          throw new Error('Failed to fetch goals. Please try again later.');
-        }
-
-        const [assignedData, selfData] = await Promise.all([
-          assignedResponse.json(),
-          selfResponse.json()
-        ]);
-        
-        // Deduplicate goals based on their IDs
-        const uniqueGoals = new Map();
-        [...(assignedData.goals || []), ...(selfData.goals || [])].forEach(goal => {
-          if (!uniqueGoals.has(goal.id)) {
-            uniqueGoals.set(goal.id, goal);
-          }
-        });
-        
-        // Only include goals where the employee is the current user
-        const userId = session?.user?.id;
-        const filteredGoals = Array.from(uniqueGoals.values()).filter(goal => {
-          // Some APIs return employee as object, some as employeeId
-          if (goal.employee && goal.employee.id) {
-            return goal.employee.id === userId;
-          }
-          if (goal.employeeId) {
-            return goal.employeeId === userId;
-          }
-          return false;
-        });
-        setGoals(filteredGoals);
+        const goals = await fetchAndDeduplicateGoals();
+        setGoals(goals);
       } catch (error) {
         showToast.error('Goals Loading Error', error);
       } finally {
@@ -224,8 +216,10 @@ export default function EmployeeDashboard() {
       }
     };
 
-    fetchGoals();
-  }, [session]);
+    if (session?.user?.id) {
+      fetchGoals();
+    }
+  }, [session?.user?.id]);
 
   const filteredGoals = goals.filter(goal => {
     const matchesSearch = goal.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -296,13 +290,9 @@ export default function EmployeeDashboard() {
         throw new Error(error.error || 'Failed to submit goal');
       }
 
-      const updatedResponse = await fetch('/api/goals', { credentials: 'include' });
-      if (!updatedResponse.ok) {
-        throw new Error('Failed to refresh goals after submission');
-      }
-
-      const updatedData = await updatedResponse.json();
-      setGoals(updatedData.goals || []);
+      // Refresh goals using the reusable function
+      const refreshedGoals = await fetchAndDeduplicateGoals();
+      setGoals(refreshedGoals);
       setShowDetailModal(false);
       showToast.goal.updated();
     } catch (error) {

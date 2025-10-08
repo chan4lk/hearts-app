@@ -7,10 +7,10 @@ import { Role } from '@prisma/client';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -19,14 +19,25 @@ export async function GET() {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
+    // Get managerId from query params (for admin viewing specific manager's employees)
+    const { searchParams } = new URL(request.url);
+    const managerIdParam = searchParams.get('managerId');
+
+    // Determine which manager's employees to fetch
+    const targetManagerId = (session.user.role === Role.ADMIN && managerIdParam)
+      ? managerIdParam
+      : session.user.id;
+
+    console.log('Fetching employees for manager:', targetManagerId);
+
     // For admin, get all assigned users (managers, admins, employees)
     // For manager, get only assigned employees
     const whereClause = session.user.role === Role.ADMIN
       ? {
-          managerId: session.user.id
+          managerId: targetManagerId
         }
       : {
-          managerId: session.user.id,
+          managerId: targetManagerId,
           role: Role.EMPLOYEE
         };
 

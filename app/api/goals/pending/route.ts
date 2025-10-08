@@ -6,7 +6,7 @@ import { GoalStatus } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -18,10 +18,22 @@ export async function GET() {
       return new NextResponse('Forbidden', { status: 403 });
     }
 
+    // Get managerId from query params (for admin viewing specific manager's goals)
+    const { searchParams } = new URL(request.url);
+    const managerIdParam = searchParams.get('managerId');
+
+    // Determine which manager's employees to fetch
+    // If admin provides managerId, use that; otherwise use session user id
+    const targetManagerId = (session.user.role === 'ADMIN' && managerIdParam)
+      ? managerIdParam
+      : session.user.id;
+
+    console.log('Target Manager ID:', targetManagerId); // Debug log
+
     // First get all employees managed by this manager
     const employees = await prisma.user.findMany({
       where: {
-        managerId: session.user.id,
+        managerId: targetManagerId,
       },
       select: {
         id: true,
