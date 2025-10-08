@@ -9,7 +9,7 @@ import { BsPlus, BsArrowUpRight } from 'react-icons/bs';
 import GoalTemplates from '@/app/components/shared/GoalTemplates';
 import { HeroSection } from './components/HeroSection';
 import { GoalsList } from './components/GoalsList';
-import { GoalDetailsModal } from './components/modals/GoalDetailsModal';
+import GoalDetailModal from '@/app/dashboard/employee/components/GoalDetailModal';
 import { Goal, NewGoal } from '@/app/components/shared/types';
 import { useSession, getSession } from 'next-auth/react';
 import { CATEGORIES } from '@/app/components/shared/constants';
@@ -403,14 +403,14 @@ function GoalsPageContent() {
         }}
       />
 
-      <GoalDetailsModal
-        isOpen={!!selectedViewGoal}
-        onClose={() => setSelectedViewGoal(null)}
-        goal={selectedViewGoal}
-        onEdit={handleEditGoal}
-        onDelete={handleDeleteGoal}
-        userIsAdminOrManager={userIsAdminOrManager}
-      />
+      {selectedViewGoal && (
+        <GoalDetailModal
+          goal={selectedViewGoal}
+          onClose={() => setSelectedViewGoal(null)}
+          onEdit={handleEditGoal}
+          onDelete={handleDeleteGoal}
+        />
+      )}
 
       <GoalFormModal
         isOpen={isEditModalOpen}

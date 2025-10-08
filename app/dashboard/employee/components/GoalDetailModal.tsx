@@ -15,7 +15,9 @@ import { useSession } from 'next-auth/react';
 interface GoalDetailModalProps {
   goal: Goal;
   onClose: () => void;
-  onSubmitGoal: (goalId: string) => Promise<void>;
+  onSubmitGoal?: (goalId: string) => Promise<void>;
+  onEdit?: (goal: Goal) => void;
+  onDelete?: (goal: Goal) => void;
 }
 
 type StatusConfig = {
@@ -45,7 +47,7 @@ const getDepartmentConfig = (department: string) => {
   return configs[department] || configs.ENGINEERING;
 };
 
-export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDetailModalProps) {
+export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, onDelete }: GoalDetailModalProps) {
   const { data: session } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -182,7 +184,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDet
     e.preventDefault();
     e.stopPropagation();
 
-    if (isSubmitting) return;
+    if (isSubmitting || !onSubmitGoal) return;
 
     try {
       setIsSubmitting(true);
@@ -272,13 +274,17 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDet
   };
 
   const handleEdit = () => {
-    // Toggle edit mode or implement edit functionality
-    console.log('Edit goal:', goal.id);
+    if (onEdit) {
+      onEdit(goal);
+      onClose();
+    }
   };
 
   const handleDelete = () => {
-    // Implement delete functionality
-    console.log('Delete goal:', goal.id);
+    if (onDelete) {
+      onDelete(goal);
+      onClose();
+    }
   };
 
   return (
@@ -390,21 +396,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDet
             </div>
           </motion.div>
 
-          {/* Progress Bar */}
-          {goal.progress !== undefined && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg sm:rounded-xl md:rounded-2xl p-2.5 sm:p-3"
-            >
-              <div className="flex items-center justify-between text-xs text-gray-400 mb-1.5 sm:mb-2">
-                <span>Progress</span>
-                <span>{goal.progress}%</span>
-              </div>
-              <Progress value={goal.progress} className="h-1.5 sm:h-2" />
-            </motion.div>
-          )}
-
+          
           {/* Info Grid - Mobile Responsive */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
             <motion.div 
@@ -639,8 +631,31 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDet
           )}
 
           <div className="flex justify-end gap-2">
-            {/* Employee Submit Button */}
-            {(goal.status === 'DRAFT' || goal.status === 'MODIFIED') &&
+            {/* Edit Button - Only show if onEdit is provided and goal is DRAFT/PENDING */}
+            {onEdit && (goal.status === 'DRAFT' || goal.status === 'PENDING') && (
+              <Button
+                onClick={handleEdit}
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 h-9 sm:h-10 touch-manipulation"
+              >
+                <BsPencil className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5" />
+                <span>Edit</span>
+              </Button>
+            )}
+
+            {/* Delete Button - Only show if onDelete is provided and goal is DRAFT/PENDING */}
+            {onDelete && (goal.status === 'DRAFT' || goal.status === 'PENDING') && (
+              <Button
+                onClick={handleDelete}
+                className="bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 h-9 sm:h-10 touch-manipulation"
+              >
+                <BsTrash className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5" />
+                <span>Delete</span>
+              </Button>
+            )}
+
+            {/* Employee Submit Button - Only show if onSubmitGoal is provided */}
+            {onSubmitGoal &&
+              (goal.status === 'DRAFT' || goal.status === 'MODIFIED') &&
               goal.manager &&
               goal.employee &&
               goal.manager.id !== goal.employee.id && (

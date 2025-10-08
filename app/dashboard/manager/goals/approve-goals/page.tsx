@@ -11,7 +11,7 @@ import HeroSection from './components/HeroSection';
 import StatsSection from './components/StatsSection';
 import EmployeeFilter from './components/EmployeeFilter';
 import GoalCard from './components/GoalCard';
-import GoalDetailsModal from './components/GoalDetailsModal';
+import GoalDetailModal from '@/app/dashboard/employee/components/GoalDetailModal';
 import LoadingComponent from '@/app/components/LoadingScreen';
 
 
@@ -332,10 +332,9 @@ export default function ApproveGoalsPage() {
 
           {/* Goal Details Modal */}
           {selectedGoalDetails && (
-            <GoalDetailsModal
+            <GoalDetailModal
               goal={selectedGoalDetails}
               onClose={() => setSelectedGoalDetails(null)}
-              onAction={handleAction}
             />
           )}
         </div>

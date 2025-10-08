@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react';
 import StatsDisplay from './components/StatsDisplay';
 import Filters from './components/Filters';
 import GoalsGrid from './components/GoalsGrid';
-import GoalDetailsModal from './components/GoalDetailsModal';
+import GoalDetailModal from '@/app/dashboard/employee/components/GoalDetailModal';
 import LoadingComponent from '@/app/components/LoadingScreen';
 import AIPerformanceInsights from '@/app/components/ai/AIPerformanceInsights';
 import { BsStars, BsLightbulb } from 'react-icons/bs';
@@ -237,7 +237,7 @@ export default function ManagerDashboard() {
 
         {/* Goal Details Modal */}
         {selectedGoalDetails && (
-          <GoalDetailsModal
+          <GoalDetailModal
             goal={selectedGoalDetails}
             onClose={() => setSelectedGoalDetails(null)}
           />
