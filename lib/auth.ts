@@ -48,31 +48,46 @@ export const authOptions: NextAuthOptions = {
         }
       },
       profile: async (profile, tokens) => {
-        console.log('[Azure AD] Processing profile:', {
-          email: profile.email,
-          name: profile.name,
-          groups: profile.groups || [],
-          roles: profile.roles || []
-        });
-        
-        // Check if user exists first
-        let existingUser = await prisma.user.findUnique({
-          where: { email: profile.email }
-        });
-
-        // If user exists, don't automatically update their role
-        if (existingUser) {
-          console.log(`[Azure AD] Existing user found:`, {
-            id: existingUser.id,
-            email: existingUser.email,
-            role: existingUser.role
+        try {
+          console.log('[Azure AD] Processing profile:', {
+            email: profile.email,
+            name: profile.name,
+            groups: profile.groups || [],
+            roles: profile.roles || [],
+            tokens: tokens ? 'present' : 'missing'
           });
-          return {
-            id: existingUser.id,
-            name: existingUser.name,
-            email: existingUser.email,
-            role: existingUser.role
-          };
+
+          // Validate required profile data
+          if (!profile.email) {
+            throw new Error('No email found in Azure AD profile');
+          }
+
+          if (!profile.name) {
+            console.warn('[Azure AD] No name found in profile, using email as fallback');
+          }
+
+          // Check if user exists first
+          let existingUser = await prisma.user.findUnique({
+            where: { email: profile.email }
+          });
+
+          // If user exists, don't automatically update their role
+          if (existingUser) {
+            console.log(`[Azure AD] Existing user found:`, {
+              id: existingUser.id,
+              email: existingUser.email,
+              role: existingUser.role
+            });
+            return {
+              id: existingUser.id,
+              name: existingUser.name,
+              email: existingUser.email,
+              role: existingUser.role
+            };
+          }
+        } catch (error) {
+          console.error('[Azure AD] Error in profile processing:', error);
+          throw error;
         }
 
         // For new users, determine role based on Azure AD groups/roles
@@ -107,29 +122,34 @@ export const authOptions: NextAuthOptions = {
         }
         
         console.log(`[Azure AD] Creating new user with role: ${role}`);
-        
-        // Create new user with determined role
-        const user = await prisma.user.create({
-          data: {
-            email: profile.email,
-            name: profile.name,
-            password: 'azure-ad-auth', // Placeholder for Azure AD users
-            role: role,
-          },
-        });
 
-        console.log(`[Azure AD] New user created:`, {
-          id: user.id,
-          email: user.email,
-          role: user.role
-        });
-        
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role
-        };
+        try {
+          // Create new user with determined role
+          const user = await prisma.user.create({
+            data: {
+              email: profile.email,
+              name: profile.name || profile.email.split('@')[0], // Fallback to email prefix if no name
+              password: 'azure-ad-auth', // Placeholder for Azure AD users
+              role: role,
+            },
+          });
+
+          console.log(`[Azure AD] New user created:`, {
+            id: user.id,
+            email: user.email,
+            role: user.role
+          });
+
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+          };
+        } catch (dbError) {
+          console.error('[Azure AD] Database error creating user:', dbError);
+          throw new Error(`Failed to create user in database: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`);
+        }
       }
     }),
     CredentialsProvider({
@@ -178,25 +198,40 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account?.provider === 'azure-ad') {
-        // For Azure AD, we've already handled user creation in the profile callback
-        // Just fetch the latest user data to ensure we have the correct role
-        const dbUser = await prisma.user.findUnique({
-          where: { email: user.email },
+      try {
+        console.log('[signIn] Callback triggered:', {
+          provider: account?.provider,
+          userEmail: user?.email,
+          hasProfile: !!profile
         });
-        
-        if (!dbUser) {
-          console.error('User not found in database after Azure AD login');
-          return false;
+
+        if (account?.provider === 'azure-ad') {
+          // For Azure AD, we've already handled user creation in the profile callback
+          // Just fetch the latest user data to ensure we have the correct role
+          const dbUser = await prisma.user.findUnique({
+            where: { email: user.email },
+          });
+
+          if (!dbUser) {
+            console.error('[signIn] User not found in database after Azure AD login:', user.email);
+            return false;
+          }
+
+          // Update the user object with the latest data from the database
+          user.id = dbUser.id;
+          user.role = dbUser.role;
+
+          console.log(`[signIn] User logged in successfully:`, {
+            id: user.id,
+            email: user.email,
+            role: user.role
+          });
         }
-        
-        // Update the user object with the latest data from the database
-        user.id = dbUser.id;
-        user.role = dbUser.role;
-        
-        console.log(`[signIn] User logged in with role: ${user.role}`);
+        return true;
+      } catch (error) {
+        console.error('[signIn] Error in signIn callback:', error);
+        return false;
       }
-      return true;
     },
     async jwt({ token, user }) {
       if (user) {
@@ -282,7 +317,9 @@ export const authOptions: NextAuthOptions = {
   },
   cookies: {
     sessionToken: {
-      name: `__Secure-next-auth.session-token`,
+      name: process.env.NODE_ENV === 'production'
+        ? `__Secure-next-auth.session-token`
+        : `next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
