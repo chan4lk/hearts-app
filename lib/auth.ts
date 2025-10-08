@@ -208,13 +208,48 @@ export const authOptions: NextAuthOptions = {
         if (account?.provider === 'azure-ad') {
           // For Azure AD, we've already handled user creation in the profile callback
           // Just fetch the latest user data to ensure we have the correct role
-          const dbUser = await prisma.user.findUnique({
+          let dbUser = await prisma.user.findUnique({
             where: { email: user.email },
           });
 
+          // If user doesn't exist, try to create them (fallback in case profile callback failed)
           if (!dbUser) {
-            console.error('[signIn] User not found in database after Azure AD login:', user.email);
-            return false;
+            console.warn('[signIn] User not found in database, attempting to create:', user.email);
+
+            try {
+              // Determine role based on email domain
+              let role: Role = 'EMPLOYEE';
+              if (user.email.endsWith('@bistecglobal.com')) {
+                role = 'ADMIN';
+              }
+
+              // Create the user
+              dbUser = await prisma.user.create({
+                data: {
+                  email: user.email,
+                  name: user.name || user.email.split('@')[0],
+                  password: 'azure-ad-auth',
+                  role: role,
+                },
+              });
+
+              console.log('[signIn] User created successfully:', {
+                id: dbUser.id,
+                email: dbUser.email,
+                role: dbUser.role
+              });
+            } catch (createError) {
+              console.error('[signIn] Failed to create user:', {
+                error: createError,
+                errorMessage: createError instanceof Error ? createError.message : 'Unknown error',
+                errorStack: createError instanceof Error ? createError.stack : undefined,
+                userEmail: user.email,
+                timestamp: new Date().toISOString()
+              });
+              // Return false to show access denied error
+              // This triggers NextAuth to redirect to /error?error=AccessDenied
+              return false;
+            }
           }
 
           // Update the user object with the latest data from the database
@@ -229,7 +264,16 @@ export const authOptions: NextAuthOptions = {
         }
         return true;
       } catch (error) {
-        console.error('[signIn] Error in signIn callback:', error);
+        console.error('[signIn] Error in signIn callback:', {
+          error: error,
+          errorMessage: error instanceof Error ? error.message : 'Unknown error',
+          errorStack: error instanceof Error ? error.stack : undefined,
+          provider: account?.provider,
+          userEmail: user?.email,
+          timestamp: new Date().toISOString()
+        });
+        // Return false to show access denied error
+        // This triggers NextAuth to redirect to /error?error=AccessDenied
         return false;
       }
     },

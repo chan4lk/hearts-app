@@ -26,15 +26,15 @@ function ErrorContent() {
     
     // Set appropriate error message based on error code
     if (error === 'AccessDenied') {
-      setErrorMessage('Access denied. You do not have permission to access this resource.');
+      setErrorMessage('Access denied. Your account could not be created or verified. Please contact your administrator for access.');
     } else if (error === 'Verification') {
       setErrorMessage('The sign in link is no longer valid. It may have been used already or it may have expired.');
     } else if (error === 'OAuthSignin') {
       setErrorMessage('Error in the OAuth sign-in process. Please try again.');
     } else if (error === 'OAuthCallback') {
-      setErrorMessage('Error in the OAuth callback process. Please try again.');
+      setErrorMessage('Error in the OAuth callback process. This may be due to a database connection issue. Please try again or contact support.');
     } else if (error === 'OAuthCreateAccount') {
-      setErrorMessage('Could not create OAuth provider account. Please try again.');
+      setErrorMessage('Could not create your account. Please contact your administrator to set up your account.');
     } else if (error === 'EmailCreateAccount') {
       setErrorMessage('Could not create email provider account. Please try again.');
     } else if (error === 'Callback') {
