@@ -6,11 +6,14 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import StatsSection from './components/StatsSection';
 import GoalsSection from './components/GoalsSection';
 import GoalDetailModal from './components/GoalDetailModal';
+import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
 import { Goal, GoalStats } from '@/app/components/shared/types';
-import { BsGear, BsBell, BsSearch } from 'react-icons/bs';
+import { BsStars, BsLightbulb, BsX, BsPlus } from 'react-icons/bs';
 import { showToast } from '@/app/utils/toast';
 import LoadingComponent from '@/app/components/LoadingScreen';
 import { useSession } from 'next-auth/react';
+import AIGoalSuggestions from '@/app/components/ai/AIGoalSuggestions';
+import AIPerformanceInsights from '@/app/components/ai/AIPerformanceInsights';
 
 
 export default function EmployeeDashboard() {
@@ -21,6 +24,27 @@ export default function EmployeeDashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showAIGoalSuggestions, setShowAIGoalSuggestions] = useState(false);
+  const [showAIInsights, setShowAIInsights] = useState(false);
+  const [showCreateGoalModal, setShowCreateGoalModal] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    dueDate: new Date().toISOString().split('T')[0],
+    employeeId: session?.user?.id || '',
+    category: 'PROFESSIONAL',
+    department: 'ENGINEERING',
+    priority: 'MEDIUM'
+  });
+  const [errors, setErrors] = useState<{ title?: string; category?: string; employeeId?: string; department?: string; priority?: string }>({});
+
+  // Update employeeId when session loads
+  useEffect(() => {
+    if (session?.user?.id) {
+      setFormData(prev => ({ ...prev, employeeId: session.user.id }));
+    }
+  }, [session?.user?.id]);
 
   // Redirect if not employee or manager
   useEffect(() => {
@@ -29,6 +53,130 @@ export default function EmployeeDashboard() {
       window.location.href = '/login';
     }
   }, [session, status]);
+
+  // Helper function to map AI category to system category
+  const mapCategory = (category?: string): string => {
+    const categoryMap: Record<string, string> = {
+      'Career Development': 'PROFESSIONAL',
+      'Department Objectives': 'PROFESSIONAL',
+      'Technical': 'TECHNICAL',
+      'Leadership': 'LEADERSHIP',
+      'Personal': 'PERSONAL',
+      'Training': 'TRAINING',
+      'KPI': 'KPI'
+    };
+    return categoryMap[category || ''] || 'PROFESSIONAL';
+  };
+
+  // Helper function to calculate target date from duration
+  const calculateTargetDate = (duration?: string): string => {
+    if (!duration) return new Date().toISOString().split('T')[0];
+
+    const today = new Date();
+    const months = parseInt(duration.match(/(\d+)/)?.[0] || '3');
+    today.setMonth(today.getMonth() + months);
+
+    return today.toISOString().split('T')[0];
+  };
+
+  // Handle form data change
+  const handleFormDataChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error for this field
+    if (errors[field as keyof typeof errors]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  // Handle AI goal selection
+  const handleAIGoalSelect = (goal: any) => {
+    setFormData({
+      title: goal.title || '',
+      description: goal.description || '',
+      dueDate: calculateTargetDate(goal.estimatedDuration),
+      employeeId: session?.user?.id || '',
+      category: mapCategory(goal.category),
+      department: formData.department,
+      priority: goal.priority?.toUpperCase() || 'MEDIUM'
+    });
+    setShowCreateGoalModal(true);
+    setShowAIGoalSuggestions(false);
+  };
+
+  // Reset form
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      dueDate: new Date().toISOString().split('T')[0],
+      employeeId: session?.user?.id || '',
+      category: 'PROFESSIONAL',
+      department: 'ENGINEERING',
+      priority: 'MEDIUM'
+    });
+    setErrors({});
+  };
+
+  // Handle form submit
+  const handleCreateGoal = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Validation
+    const newErrors: typeof errors = {};
+    if (!formData.title.trim()) newErrors.title = 'Goal title is required';
+    if (!formData.category) newErrors.category = 'Category is required';
+
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+
+    setFormLoading(true);
+    try {
+      const response = await fetch('/api/goals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          description: formData.description,
+          category: formData.category,
+          department: formData.department,
+          priority: formData.priority,
+          dueDate: formData.dueDate,
+          employeeId: session?.user?.id
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create goal');
+      }
+
+      showToast.success('Goal Created!', 'Your new goal has been created successfully');
+      setShowCreateGoalModal(false);
+      resetForm();
+
+      // Refresh goals
+      const [assignedResponse, selfResponse] = await Promise.all([
+        fetch('/api/goals'),
+        fetch('/api/goals/self')
+      ]);
+
+      if (assignedResponse.ok && selfResponse.ok) {
+        const [assignedData, selfData] = await Promise.all([
+          assignedResponse.json(),
+          selfResponse.json()
+        ]);
+
+        const allGoals = [
+          ...(assignedData.goals || []),
+          ...(selfData.goals || [])
+        ];
+        setGoals(allGoals);
+      }
+    } catch (error) {
+      showToast.error('Error', error instanceof Error ? error.message : 'Failed to create goal');
+    } finally {
+      setFormLoading(false);
+    }
+  };
 
   // Load goals from the database
   useEffect(() => {
@@ -202,10 +350,128 @@ export default function EmployeeDashboard() {
             <StatsSection stats={getGoalStats()} />
           </motion.div>
 
-          {/* Goals Section */}
-          <motion.div 
+          {/* Quick Actions */}
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-4"
+          >
+            {/* Create Goal Card */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                resetForm();
+                setShowCreateGoalModal(true);
+              }}
+              className="bg-gradient-to-br from-green-900/30 via-emerald-900/30 to-teal-900/30 backdrop-blur-sm rounded-xl p-6 border border-green-500/30 hover:border-green-500/50 transition-all text-left group"
+            >
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-green-500/20 rounded-lg group-hover:bg-green-500/30 transition-colors">
+                  <BsPlus className="w-6 h-6 text-green-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-white mb-1">Create New Goal</h3>
+                  <p className="text-sm text-gray-400">Set a new personal or professional goal</p>
+                </div>
+              </div>
+            </motion.button>
+
+            {/* AI Goal Suggestions Card */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowAIGoalSuggestions(true)}
+              className="bg-gradient-to-br from-purple-900/30 via-indigo-900/30 to-blue-900/30 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30 hover:border-purple-500/50 transition-all text-left group"
+            >
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-colors">
+                  <BsStars className="w-6 h-6 text-purple-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-white mb-1">AI Goal Suggestions</h3>
+                  <p className="text-sm text-gray-400">Get AI-powered goal recommendations</p>
+                </div>
+              </div>
+            </motion.button>
+
+            {/* AI Performance Insights Card */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowAIInsights(true)}
+              className="bg-gradient-to-br from-blue-900/30 via-indigo-900/30 to-purple-900/30 backdrop-blur-sm rounded-xl p-6 border border-blue-500/30 hover:border-blue-500/50 transition-all text-left group"
+            >
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition-colors">
+                  <BsLightbulb className="w-6 h-6 text-blue-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-white mb-1">Performance Insights</h3>
+                  <p className="text-sm text-gray-400">AI-powered analysis of your performance trends and recommendations</p>
+                </div>
+              </div>
+            </motion.button>
+          </motion.div>
+
+          {/* AI Goal Suggestions - Component has its own modal */}
+          {showAIGoalSuggestions && (
+            <AIGoalSuggestions
+              onSelectGoal={() => {
+                setShowAIGoalSuggestions(false);
+              }}
+              onUseGoal={handleAIGoalSelect}
+            />
+          )}
+
+          {/* AI Performance Insights Modal */}
+          <AnimatePresence>
+            {showAIInsights && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                onClick={() => setShowAIInsights(false)}
+              >
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-blue-500/30"
+                >
+                  <div className="sticky top-0 bg-gray-900/95 backdrop-blur-sm border-b border-blue-500/30 p-6 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-500/20 rounded-lg">
+                        <BsLightbulb className="w-6 h-6 text-blue-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-white">AI Performance Insights</h3>
+                        <p className="text-sm text-gray-400">Data-driven analysis of your performance</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowAIInsights(false)}
+                      className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                    >
+                      <BsX className="w-6 h-6 text-gray-400 hover:text-white" />
+                    </button>
+                  </div>
+                  <div className="p-6">
+                    <AIPerformanceInsights autoLoad={true} />
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Goals Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
             className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10"
           >
             <GoalsSection
@@ -249,6 +515,34 @@ export default function EmployeeDashboard() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Create Goal Modal */}
+          <GoalFormModal
+            isOpen={showCreateGoalModal}
+            onClose={() => {
+              setShowCreateGoalModal(false);
+              resetForm();
+            }}
+            onSubmit={handleCreateGoal}
+            assignedEmployees={session?.user ? [{
+              id: session.user.id,
+              name: session.user.name || '',
+              email: session.user.email || '',
+              role: session.user.role,
+              department: 'ENGINEERING',
+              position: '',
+              status: 'ACTIVE',
+              createdAt: new Date().toISOString()
+            }] : []}
+            loading={formLoading}
+            formData={formData}
+            onFormDataChange={handleFormDataChange}
+            errors={errors}
+            isEditMode={false}
+            context=""
+            onContextChange={() => {}}
+            onReset={resetForm}
+          />
         </div>
       </div>
     </DashboardLayout>

@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
 import { Progress } from '@/app/components/ui/progress';
+import AIGoalRiskAnalysis from '@/app/components/ai/AIGoalRiskAnalysis';
 
 interface GoalDetailModalProps {
   goal: Goal;
@@ -368,11 +369,11 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDet
           {/* Pending Status */}
           <AnimatePresence>
             {goal.status === 'PENDING' && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="flex items-center bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-amber-400 
+                className="flex items-center bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-amber-400
                           text-xs sm:text-sm p-2.5 sm:p-3 rounded-lg sm:rounded-xl md:rounded-2xl min-h-[40px] sm:min-h-[44px]"
               >
                 <BsClock className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5 sm:mr-2 animate-pulse flex-shrink-0" />
@@ -380,6 +381,20 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDet
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* AI Risk Analysis Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-gradient-to-br from-orange-900/20 via-red-900/20 to-rose-900/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 border border-orange-500/20"
+          >
+            <h4 className="text-xs sm:text-sm font-semibold text-white mb-2 flex items-center gap-2">
+              <BsShield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-400" />
+              AI Risk Analysis
+            </h4>
+            <AIGoalRiskAnalysis goalId={goal.id} />
+          </motion.div>
         </div>
 
         {/* Footer */}
