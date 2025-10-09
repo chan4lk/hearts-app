@@ -115,6 +115,9 @@ export async function POST(req: Request) {
       );
     }
 
+    // Normalize email to lowercase for case-insensitive lookup
+    const normalizedEmail = email.toLowerCase().trim();
+
     // Check if manager exists if managerId is provided
     if (managerId) {
       const manager = await prisma.user.findUnique({
@@ -124,7 +127,7 @@ export async function POST(req: Request) {
           role: true
         }
       });
-      
+
       if (!manager) {
         return NextResponse.json(
           { error: 'Selected manager does not exist' },
@@ -144,7 +147,7 @@ export async function POST(req: Request) {
     const user = await prisma.user.create({
       data: {
         name,
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
         role,
         managerId,
@@ -189,7 +192,7 @@ export async function PUT(req: Request) {
 
     const body = await req.json();
     console.log('Received update request with body:', body);
-    
+
     const { id, name, email, password, role, managerId, isActive } = body as UpdateUserBody;
 
     // Validate role is a valid Role enum value
@@ -208,6 +211,9 @@ export async function PUT(req: Request) {
         { status: 400 }
       );
     }
+
+    // Normalize email to lowercase for case-insensitive lookup
+    const normalizedEmail = email.toLowerCase().trim();
 
     // Check if manager exists if managerId is provided
     if (managerId) {
@@ -273,7 +279,7 @@ export async function PUT(req: Request) {
 
     const updateData: any = {
       name,
-      email,
+      email: normalizedEmail,
       role,
       isActive,
     };

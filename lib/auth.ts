@@ -48,88 +48,114 @@ export const authOptions: NextAuthOptions = {
         }
       },
       profile: async (profile, tokens) => {
-        console.log('[Azure AD] Processing profile:', {
-          email: profile.email,
-          name: profile.name,
-          groups: profile.groups || [],
-          roles: profile.roles || []
-        });
-        
-        // Check if user exists first
-        let existingUser = await prisma.user.findUnique({
-          where: { email: profile.email }
-        });
-
-        // If user exists, don't automatically update their role
-        if (existingUser) {
-          console.log(`[Azure AD] Existing user found:`, {
-            id: existingUser.id,
-            email: existingUser.email,
-            role: existingUser.role
+        try {
+          console.log('[Azure AD] Processing profile:', {
+            email: profile.email,
+            name: profile.name,
+            groups: profile.groups || [],
+            roles: profile.roles || [],
+            tokens: tokens ? 'present' : 'missing'
           });
-          return {
-            id: existingUser.id,
-            name: existingUser.name,
-            email: existingUser.email,
-            role: existingUser.role
-          };
+
+          // Validate required profile data
+          if (!profile.email) {
+            throw new Error('No email found in Azure AD profile');
+          }
+
+          if (!profile.name) {
+            console.warn('[Azure AD] No name found in profile, using email as fallback');
+          }
+
+          // Normalize email to lowercase for case-insensitive lookup
+          const normalizedEmail = profile.email.toLowerCase().trim();
+
+          // Check if user exists first
+          let existingUser = await prisma.user.findUnique({
+            where: { email: normalizedEmail }
+          });
+
+          // If user exists, don't automatically update their role
+          if (existingUser) {
+            console.log(`[Azure AD] Existing user found:`, {
+              id: existingUser.id,
+              email: existingUser.email,
+              role: existingUser.role
+            });
+            return {
+              id: existingUser.id,
+              name: existingUser.name,
+              email: existingUser.email,
+              role: existingUser.role
+            };
+          }
+        } catch (error) {
+          console.error('[Azure AD] Error in profile processing:', error);
+          throw error;
         }
 
         // For new users, determine role based on Azure AD groups/roles
         let role: Role = 'EMPLOYEE';
-        
+
+        // Normalize email for role determination
+        const normalizedEmail = profile.email.toLowerCase().trim();
+
         // Check Azure AD groups if available
         const groups = profile.groups || [];
         const roles = profile.roles || [];
-        
+
         // You can configure these group/role names in your Azure AD
         const adminGroups = ['Admins', 'Administrators', 'AspireHub Admins'];
         const managerGroups = ['Managers', 'Team Leads', 'AspireHub Managers'];
-        
+
         // Check if user is admin based on email domain or other criteria
-        if (profile.email.endsWith('@bistecglobal.com')) {
+        if (normalizedEmail.endsWith('@bistecglobal.com')) {
           role = 'ADMIN';
-          console.log(`[Azure AD] Assigning ADMIN role to bistecglobal.com email: ${profile.email}`);
+          console.log(`[Azure AD] Assigning ADMIN role to bistecglobal.com email: ${normalizedEmail}`);
         } else if (
           groups.some((group: string) => adminGroups.includes(group)) ||
           roles.includes('Admin')
         ) {
           role = 'ADMIN';
-          console.log(`[Azure AD] Assigning ADMIN role based on groups/roles: ${profile.email}`);
+          console.log(`[Azure AD] Assigning ADMIN role based on groups/roles: ${normalizedEmail}`);
         } else if (
           groups.some((group: string) => managerGroups.includes(group)) ||
           roles.includes('Manager')
         ) {
           role = 'MANAGER';
-          console.log(`[Azure AD] Assigning MANAGER role based on groups/roles: ${profile.email}`);
+          console.log(`[Azure AD] Assigning MANAGER role based on groups/roles: ${normalizedEmail}`);
         } else {
-          console.log(`[Azure AD] Assigning default EMPLOYEE role: ${profile.email}`);
+          console.log(`[Azure AD] Assigning default EMPLOYEE role: ${normalizedEmail}`);
         }
-        
-        console.log(`[Azure AD] Creating new user with role: ${role}`);
-        
-        // Create new user with determined role
-        const user = await prisma.user.create({
-          data: {
-            email: profile.email,
-            name: profile.name,
-            password: 'azure-ad-auth', // Placeholder for Azure AD users
-            role: role,
-          },
-        });
 
-        console.log(`[Azure AD] New user created:`, {
-          id: user.id,
-          email: user.email,
-          role: user.role
-        });
-        
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role
-        };
+        console.log(`[Azure AD] Creating new user with role: ${role}`);
+
+        try {
+          // Create new user with determined role
+          const user = await prisma.user.create({
+            data: {
+              email: normalizedEmail,
+              name: profile.name || normalizedEmail.split('@')[0], // Fallback to email prefix if no name
+              password: 'azure-ad-auth', // Placeholder for Azure AD users
+              role: role,
+            },
+          });
+
+          console.log(`[Azure AD] New user created:`, {
+            id: user.id,
+            email: user.email,
+            role: user.role
+          });
+
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+          };
+        } catch (dbError) {
+          console.error('[Azure AD] Database error creating user:', dbError);
+          throw new Error(`Failed to create user in database: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`);
+        }
       }
     }),
     CredentialsProvider({
@@ -144,9 +170,12 @@ export const authOptions: NextAuthOptions = {
             throw new Error('Invalid credentials');
           }
 
+          // Normalize email to lowercase for case-insensitive lookup
+          const normalizedEmail = credentials.email.toLowerCase().trim();
+
           const user = await prisma.user.findUnique({
             where: {
-              email: credentials.email,
+              email: normalizedEmail,
             },
           });
 
@@ -178,39 +207,105 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account?.provider === 'azure-ad') {
-        // For Azure AD, we've already handled user creation in the profile callback
-        // Just fetch the latest user data to ensure we have the correct role
-        const dbUser = await prisma.user.findUnique({
-          where: { email: user.email },
+      try {
+        console.log('[signIn] Callback triggered:', {
+          provider: account?.provider,
+          userEmail: user?.email,
+          hasProfile: !!profile
         });
-        
-        if (!dbUser) {
-          console.error('User not found in database after Azure AD login');
-          return false;
+
+        if (account?.provider === 'azure-ad') {
+          // Normalize email to lowercase for case-insensitive lookup
+          const normalizedEmail = user.email.toLowerCase().trim();
+
+          // For Azure AD, we've already handled user creation in the profile callback
+          // Just fetch the latest user data to ensure we have the correct role
+          let dbUser = await prisma.user.findUnique({
+            where: { email: normalizedEmail },
+          });
+
+          // If user doesn't exist, try to create them (fallback in case profile callback failed)
+          if (!dbUser) {
+            console.warn('[signIn] User not found in database, attempting to create:', normalizedEmail);
+
+            try {
+              // Determine role based on email domain
+              let role: Role = 'EMPLOYEE';
+              if (normalizedEmail.endsWith('@bistecglobal.com')) {
+                role = 'ADMIN';
+              }
+
+              // Create the user
+              dbUser = await prisma.user.create({
+                data: {
+                  email: normalizedEmail,
+                  name: user.name || normalizedEmail.split('@')[0],
+                  password: 'azure-ad-auth',
+                  role: role,
+                },
+              });
+
+              console.log('[signIn] User created successfully:', {
+                id: dbUser.id,
+                email: dbUser.email,
+                role: dbUser.role
+              });
+            } catch (createError) {
+              console.error('[signIn] Failed to create user:', {
+                error: createError,
+                errorMessage: createError instanceof Error ? createError.message : 'Unknown error',
+                errorStack: createError instanceof Error ? createError.stack : undefined,
+                userEmail: normalizedEmail,
+                timestamp: new Date().toISOString()
+              });
+              // Return false to show access denied error
+              // This triggers NextAuth to redirect to /error?error=AccessDenied
+              return false;
+            }
+          }
+
+          // Update the user object with the latest data from the database
+          user.id = dbUser.id;
+          user.role = dbUser.role;
+          user.email = dbUser.email; // Use the normalized email from database
+
+          console.log(`[signIn] User logged in successfully:`, {
+            id: user.id,
+            email: user.email,
+            role: user.role
+          });
         }
-        
-        // Update the user object with the latest data from the database
-        user.id = dbUser.id;
-        user.role = dbUser.role;
-        
-        console.log(`[signIn] User logged in with role: ${user.role}`);
+        return true;
+      } catch (error) {
+        console.error('[signIn] Error in signIn callback:', {
+          error: error,
+          errorMessage: error instanceof Error ? error.message : 'Unknown error',
+          errorStack: error instanceof Error ? error.stack : undefined,
+          provider: account?.provider,
+          userEmail: user?.email,
+          timestamp: new Date().toISOString()
+        });
+        // Return false to show access denied error
+        // This triggers NextAuth to redirect to /error?error=AccessDenied
+        return false;
       }
-      return true;
     },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
-        
+
         // Always fetch the latest role from the database
         if (user.email) {
           try {
+            // Normalize email to lowercase for case-insensitive lookup
+            const normalizedEmail = user.email.toLowerCase().trim();
+
             const dbUser = await prisma.user.findUnique({
-              where: { email: user.email },
+              where: { email: normalizedEmail },
               select: { role: true }
             });
-            
+
             if (dbUser) {
               token.role = dbUser.role;
               console.log(`[jwt] Updated token role from database: ${dbUser.role}`);
@@ -282,7 +377,9 @@ export const authOptions: NextAuthOptions = {
   },
   cookies: {
     sessionToken: {
-      name: `__Secure-next-auth.session-token`,
+      name: process.env.NODE_ENV === 'production'
+        ? `__Secure-next-auth.session-token`
+        : `next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: 'lax',
