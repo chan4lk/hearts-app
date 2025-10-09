@@ -15,9 +15,12 @@ export async function POST(req: Request) {
       );
     }
 
+    // Normalize email to lowercase for case-insensitive lookup
+    const normalizedEmail = email.toLowerCase().trim();
+
     // Find user
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     if (!user) {
