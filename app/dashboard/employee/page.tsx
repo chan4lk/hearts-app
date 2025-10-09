@@ -7,6 +7,7 @@ import StatsSection from './components/StatsSection';
 import GoalsSection from './components/GoalsSection';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
+import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import { Goal, GoalStats } from '@/app/components/shared/types';
 import { BsStars, BsLightbulb, BsX, BsPlus } from 'react-icons/bs';
 import { showToast } from '@/app/utils/toast';
@@ -27,6 +28,10 @@ export default function EmployeeDashboard() {
   const [showAIGoalSuggestions, setShowAIGoalSuggestions] = useState(false);
   const [showAIInsights, setShowAIInsights] = useState(false);
   const [showCreateGoalModal, setShowCreateGoalModal] = useState(false);
+  const [showEditGoalModal, setShowEditGoalModal] = useState(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
+  const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -200,6 +205,103 @@ export default function EmployeeDashboard() {
       showToast.error('Error', error instanceof Error ? error.message : 'Failed to create goal');
     } finally {
       setFormLoading(false);
+    }
+  };
+
+  // Handle edit goal
+  const handleEditGoal = (goal: Goal) => {
+    setEditingGoal(goal);
+    setFormData({
+      title: goal.title,
+      description: goal.description || '',
+      dueDate: goal.dueDate ? new Date(goal.dueDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      employeeId: goal.employee?.id || session?.user?.id || '',
+      category: goal.category || 'PROFESSIONAL',
+      department: goal.department || 'ENGINEERING',
+      priority: goal.priority || 'MEDIUM'
+    });
+    setShowDetailModal(false);
+    setShowEditGoalModal(true);
+  };
+
+  // Handle update goal
+  const handleUpdateGoal = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!editingGoal) return;
+
+    // Validation
+    const newErrors: typeof errors = {};
+    if (!formData.title.trim()) newErrors.title = 'Goal title is required';
+    if (!formData.category) newErrors.category = 'Category is required';
+
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+
+    setFormLoading(true);
+    try {
+      const response = await fetch(`/api/goals/${editingGoal.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          description: formData.description,
+          category: formData.category,
+          department: formData.department,
+          priority: formData.priority,
+          dueDate: formData.dueDate,
+          employeeId: formData.employeeId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update goal');
+      }
+
+      showToast.success('Goal Updated!', 'Your goal has been updated successfully');
+      setShowEditGoalModal(false);
+      setEditingGoal(null);
+      resetForm();
+
+      // Refresh goals
+      const refreshedGoals = await fetchAndDeduplicateGoals();
+      setGoals(refreshedGoals);
+    } catch (error) {
+      showToast.error('Error', error instanceof Error ? error.message : 'Failed to update goal');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  // Handle delete goal - Show confirmation modal
+  const handleDeleteGoal = (goal: Goal) => {
+    setGoalToDelete(goal);
+    setShowDeleteConfirmation(true);
+  };
+
+  // Confirm delete goal
+  const confirmDeleteGoal = async () => {
+    if (!goalToDelete) return;
+
+    try {
+      const response = await fetch(`/api/goals/${goalToDelete.id}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete goal');
+      }
+
+      showToast.success('Goal Deleted!', 'Your goal has been deleted successfully');
+      setShowDetailModal(false);
+      setSelectedGoal(null);
+      setGoalToDelete(null);
+
+      // Refresh goals
+      const refreshedGoals = await fetchAndDeduplicateGoals();
+      setGoals(refreshedGoals);
+    } catch (error) {
+      showToast.error('Error', error instanceof Error ? error.message : 'Failed to delete goal');
     }
   };
 
@@ -500,6 +602,8 @@ export default function EmployeeDashboard() {
                       setSelectedGoal(null);
                     }}
                     onSubmitGoal={handleSubmitGoal}
+                    onEdit={handleEditGoal}
+                    onDelete={handleDeleteGoal}
                   />
                 </motion.div>
               </motion.div>
@@ -532,6 +636,49 @@ export default function EmployeeDashboard() {
             context=""
             onContextChange={() => {}}
             onReset={resetForm}
+          />
+
+          {/* Edit Goal Modal */}
+          <GoalFormModal
+            isOpen={showEditGoalModal}
+            onClose={() => {
+              setShowEditGoalModal(false);
+              setEditingGoal(null);
+              resetForm();
+            }}
+            onSubmit={handleUpdateGoal}
+            assignedEmployees={session?.user ? [{
+              id: session.user.id,
+              name: session.user.name || '',
+              email: session.user.email || '',
+              role: session.user.role,
+              department: 'ENGINEERING',
+              position: '',
+              status: 'ACTIVE',
+              createdAt: new Date().toISOString()
+            }] : []}
+            loading={formLoading}
+            formData={formData}
+            onFormDataChange={handleFormDataChange}
+            errors={errors}
+            isEditMode={true}
+            context=""
+            onContextChange={() => {}}
+            onReset={resetForm}
+          />
+
+          {/* Delete Confirmation Modal */}
+          <DeleteConfirmationModal
+            isOpen={showDeleteConfirmation}
+            onClose={() => {
+              setShowDeleteConfirmation(false);
+              setGoalToDelete(null);
+            }}
+            onConfirm={confirmDeleteGoal}
+            title="Delete Goal"
+            message="Are you sure you want to delete this goal? This action cannot be undone."
+            confirmText="Delete"
+            cancelText="Cancel"
           />
         </div>
       </div>

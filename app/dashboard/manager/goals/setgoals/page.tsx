@@ -18,7 +18,7 @@ import { StatsSection } from './components/sections/StatsSection';
 import { GoalList } from './components/sections/GoalList';
 import { CreateGoalModal } from './components/modals/CreateGoalModal';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
-import { DeleteGoalModal } from './components/modals/DeleteGoalModal';
+import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import GoalTemplates from '@/app/components/shared/GoalTemplates';
 import { CATEGORIES } from '@/app/components/shared/constants';
 import LoadingComponent from '@/app/components/LoadingScreen';
@@ -415,10 +415,17 @@ function ManagerGoalSettingPageContent() {
           />
         )}
 
-        <DeleteGoalModal
+        <DeleteConfirmationModal
           isOpen={isDeleteModalOpen}
-          onClose={() => setIsDeleteModalOpen(false)}
+          onClose={() => {
+            setIsDeleteModalOpen(false);
+            setGoalToDelete(null);
+          }}
           onConfirm={handleDelete}
+          title="Delete Goal"
+          message="Are you sure you want to delete this goal? This action cannot be undone."
+          confirmText="Delete"
+          cancelText="Cancel"
         />
       </div>
     </div>

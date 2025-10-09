@@ -631,8 +631,13 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
           )}
 
           <div className="flex justify-end gap-2">
-            {/* Edit Button - Only show if onEdit is provided and goal is DRAFT/PENDING */}
-            {onEdit && (goal.status === 'DRAFT' || goal.status === 'PENDING') && (
+            {/* Edit Button - Show if onEdit is provided and:
+                - For employees: goal is DRAFT/PENDING
+                - For managers/admins: always show (they can edit team goals) */}
+            {onEdit && (
+              (goal.status === 'DRAFT' || goal.status === 'PENDING') ||
+              (session?.user?.role === 'MANAGER' || session?.user?.role === 'ADMIN')
+            ) && (
               <Button
                 onClick={handleEdit}
                 className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 h-9 sm:h-10 touch-manipulation"
@@ -642,8 +647,13 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
               </Button>
             )}
 
-            {/* Delete Button - Only show if onDelete is provided and goal is DRAFT/PENDING */}
-            {onDelete && (goal.status === 'DRAFT' || goal.status === 'PENDING') && (
+            {/* Delete Button - Show if onDelete is provided and:
+                - For employees: goal is DRAFT/PENDING
+                - For managers/admins: always show (they can delete team goals) */}
+            {onDelete && (
+              (goal.status === 'DRAFT' || goal.status === 'PENDING') ||
+              (session?.user?.role === 'MANAGER' || session?.user?.role === 'ADMIN')
+            ) && (
               <Button
                 onClick={handleDelete}
                 className="bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 h-9 sm:h-10 touch-manipulation"
