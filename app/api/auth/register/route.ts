@@ -14,12 +14,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // Normalize email to lowercase for case-insensitive lookup
-    const normalizedEmail = email.toLowerCase().trim();
-
-    // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
+    // Check if user already exists (case-insensitive)
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        email: {
+          equals: email.trim(),
+          mode: 'insensitive',
+        },
+      },
     });
 
     if (existingUser) {
@@ -32,11 +34,11 @@ export async function POST(req: Request) {
     // Hash password
     const hashedPassword = await hash(password, 12);
 
-    // Create user
+    // Create user with original email casing
     const user = await prisma.user.create({
       data: {
         name,
-        email: normalizedEmail,
+        email: email.trim(), // Keep original casing
         password: hashedPassword,
         role: 'EMPLOYEE', // Default role for new users
       },

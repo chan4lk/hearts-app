@@ -100,11 +100,14 @@ export async function POST(request: Request) {
       );
     }
 
-    // Normalize email to lowercase for case-insensitive lookup
-    const normalizedEmail = email.toLowerCase().trim();
-
-    const existingUser = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
+    // Check for existing user with case-insensitive email lookup
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        email: {
+          equals: email.trim(),
+          mode: 'insensitive',
+        },
+      },
     });
 
     if (existingUser) {
@@ -119,7 +122,7 @@ export async function POST(request: Request) {
     const user = await prisma.user.create({
       data: {
         name,
-        email: normalizedEmail,
+        email: email.trim(), // Keep original casing
         password: hashedPassword,
         role,
       },

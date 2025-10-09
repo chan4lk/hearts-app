@@ -67,11 +67,14 @@ export const authOptions: NextAuthOptions = {
           }
 
           // Normalize email to lowercase for case-insensitive lookup
-          const normalizedEmail = profile.email.toLowerCase().trim();
-
-          // Check if user exists first
-          let existingUser = await prisma.user.findUnique({
-            where: { email: normalizedEmail }
+          // Check if user exists first (case-insensitive lookup)
+          let existingUser = await prisma.user.findFirst({
+            where: {
+              email: {
+                equals: profile.email.trim(),
+                mode: 'insensitive',
+              },
+            },
           });
 
           // If user exists, don't automatically update their role
@@ -131,10 +134,11 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // Create new user with determined role
+          // Keep original email casing from Azure AD
           const user = await prisma.user.create({
             data: {
-              email: normalizedEmail,
-              name: profile.name || normalizedEmail.split('@')[0], // Fallback to email prefix if no name
+              email: profile.email.trim(), // Keep original casing from Azure AD
+              name: profile.name || profile.email.split('@')[0], // Fallback to email prefix if no name
               password: 'azure-ad-auth', // Placeholder for Azure AD users
               role: role,
             },
@@ -170,12 +174,13 @@ export const authOptions: NextAuthOptions = {
             throw new Error('Invalid credentials');
           }
 
-          // Normalize email to lowercase for case-insensitive lookup
-          const normalizedEmail = credentials.email.toLowerCase().trim();
-
-          const user = await prisma.user.findUnique({
+          // Use case-insensitive email lookup
+          const user = await prisma.user.findFirst({
             where: {
-              email: normalizedEmail,
+              email: {
+                equals: credentials.email.trim(),
+                mode: 'insensitive',
+              },
             },
           });
 
@@ -215,31 +220,33 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (account?.provider === 'azure-ad') {
-          // Normalize email to lowercase for case-insensitive lookup
-          const normalizedEmail = user.email.toLowerCase().trim();
-
-          // For Azure AD, we've already handled user creation in the profile callback
-          // Just fetch the latest user data to ensure we have the correct role
-          let dbUser = await prisma.user.findUnique({
-            where: { email: normalizedEmail },
+          // Use case-insensitive email lookup to find existing user
+          let dbUser = await prisma.user.findFirst({
+            where: {
+              email: {
+                equals: user.email.trim(),
+                mode: 'insensitive',
+              },
+            },
           });
 
           // If user doesn't exist, try to create them (fallback in case profile callback failed)
           if (!dbUser) {
-            console.warn('[signIn] User not found in database, attempting to create:', normalizedEmail);
+            console.warn('[signIn] User not found in database, attempting to create:', user.email);
 
             try {
               // Determine role based on email domain
               let role: Role = 'EMPLOYEE';
-              if (normalizedEmail.endsWith('@bistecglobal.com')) {
+              const emailLower = user.email.toLowerCase().trim();
+              if (emailLower.endsWith('@bistecglobal.com')) {
                 role = 'ADMIN';
               }
 
-              // Create the user
+              // Create the user with original email casing from Azure AD
               dbUser = await prisma.user.create({
                 data: {
-                  email: normalizedEmail,
-                  name: user.name || normalizedEmail.split('@')[0],
+                  email: user.email.trim(), // Keep original casing
+                  name: user.name || user.email.split('@')[0],
                   password: 'azure-ad-auth',
                   role: role,
                 },
@@ -255,7 +262,7 @@ export const authOptions: NextAuthOptions = {
                 error: createError,
                 errorMessage: createError instanceof Error ? createError.message : 'Unknown error',
                 errorStack: createError instanceof Error ? createError.stack : undefined,
-                userEmail: normalizedEmail,
+                userEmail: user.email,
                 timestamp: new Date().toISOString()
               });
               // Return false to show access denied error
@@ -267,7 +274,7 @@ export const authOptions: NextAuthOptions = {
           // Update the user object with the latest data from the database
           user.id = dbUser.id;
           user.role = dbUser.role;
-          user.email = dbUser.email; // Use the normalized email from database
+          user.email = dbUser.email; // Use the email from database (preserves original casing)
 
           console.log(`[signIn] User logged in successfully:`, {
             id: user.id,
@@ -298,11 +305,14 @@ export const authOptions: NextAuthOptions = {
         // Always fetch the latest role from the database
         if (user.email) {
           try {
-            // Normalize email to lowercase for case-insensitive lookup
-            const normalizedEmail = user.email.toLowerCase().trim();
-
-            const dbUser = await prisma.user.findUnique({
-              where: { email: normalizedEmail },
+            // Use case-insensitive email lookup
+            const dbUser = await prisma.user.findFirst({
+              where: {
+                email: {
+                  equals: user.email.trim(),
+                  mode: 'insensitive',
+                },
+              },
               select: { role: true }
             });
 
