@@ -10,7 +10,7 @@ import { Goal, EmployeeStats } from '@/app/components/shared/types';
 import HeroSection from './components/HeroSection';
 import StatsSection from './components/StatsSection';
 import EmployeeFilter from './components/EmployeeFilter';
-import GoalCard from './components/GoalCard';
+import GoalCard from '@/app/components/shared/GoalCard';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import LoadingComponent from '@/app/components/LoadingScreen';
 
@@ -303,8 +303,9 @@ export default function ApproveGoalsPage() {
                     <GoalCard
                       key={goal.id}
                       goal={goal}
-                      onAction={handleAction}
-                      onViewDetails={setSelectedGoalDetails}
+                      onClick={() => setSelectedGoalDetails(goal)}
+                      showActions={false}
+                      showEmployee={true}
                     />
                   ))}
                 </div>

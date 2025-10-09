@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
-import { BsListTask, BsFilter, BsCalendar, BsArrowRepeat } from 'react-icons/bs';
+import { BsListTask, BsFilter, BsArrowRepeat } from 'react-icons/bs';
 import { Goal } from '@/app/components/shared/types';
 import { CATEGORIES } from '@/app/components/shared/constants';
 import { useSession } from 'next-auth/react';
+import GoalCard from '@/app/components/shared/GoalCard';
 
 const STATUSES = [
   { value: 'all', label: 'All Goals' },
@@ -138,78 +139,16 @@ export const GoalsList = ({
             variants={containerVariants}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4"
           >
-            {filteredGoals.map(goal => {
-              const categoryConfig = CATEGORIES.find(c => c.value === goal.category) || CATEGORIES[0];
-              return (
-                <motion.button
-                  key={goal.id}
-                  variants={itemVariants}
+            {filteredGoals.map(goal => (
+              <div key={goal.id}>
+                <GoalCard
+                  goal={goal}
                   onClick={() => onViewGoal(goal)}
-                  className="group relative overflow-hidden w-full text-left h-[200px]"
-                >
-                  <div className={`relative h-full p-4 rounded-xl backdrop-blur-xl border border-white/10 transition-all duration-300
-                    ${categoryConfig.bgColor} ${categoryConfig.bgGradient}
-                    hover:shadow-2xl hover:shadow-purple-500/10`}
-                  >
-                    {/* Decorative Elements */}
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl transform translate-x-16 -translate-y-16" />
-                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full blur-3xl transform -translate-x-16 translate-y-16" />
-                    
-                    <div className="relative h-full flex flex-col">
-                      {/* Header */}
-                      <div className="flex items-start gap-3 mb-2">
-                        <div className={`p-2 rounded-lg ${categoryConfig.iconColor} bg-opacity-20 backdrop-blur-xl
-                          ring-1 ring-white/20 shadow-lg transform transition-transform duration-300
-                          group-hover:scale-110 group-hover:rotate-[10deg] flex-shrink-0`}>
-                          <categoryConfig.icon className="w-5 h-5" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h3 className="text-base font-semibold text-white group-hover:text-transparent 
-                            group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400
-                            transition-all duration-300 truncate">{goal.title}</h3>
-                        </div>
-                      </div>
-
-                      {/* Description */}
-                      <p className="text-gray-400 text-sm leading-relaxed line-clamp-2 mb-auto">{goal.description}</p>
-
-                      {/* Footer */}
-                      <div className="flex flex-col gap-2 mt-2">
-                        {/* Due Date */}
-                        <div className="flex items-center gap-1.5 text-gray-400 text-xs">
-                          <BsCalendar className="w-3 h-3" />
-                          <span>Due: {new Date(goal.dueDate).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}</span>
-                        </div>
-
-                        {/* Status Tags */}
-                        <div className="flex flex-wrap gap-2">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r 
-                            ${goal.status === 'APPROVED' ? 'from-emerald-500/10 to-emerald-500/20 text-emerald-300' :
-                            goal.status === 'PENDING' ? 'from-amber-500/10 to-amber-500/20 text-amber-300' :
-                            goal.status === 'REJECTED' ? 'from-red-500/10 to-red-500/20 text-red-300' :
-                            'from-gray-500/10 to-gray-500/20 text-gray-300'}`}>
-                            {goal.status}
-                          </span>
-                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-500/10 to-purple-500/20 text-purple-300">
-                            {goal.category}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Hover Effects */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500
-                      bg-gradient-to-t from-purple-950/30 via-transparent to-transparent" />
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500
-                      bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.2),transparent_70%)]" />
-                  </div>
-                </motion.button>
-              );
-            })}
+                  showActions={false}
+                  showEmployee={false}
+                />
+              </div>
+            ))}
           </motion.div>
         )}
       </div>
