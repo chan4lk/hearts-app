@@ -115,8 +115,22 @@ export async function POST(req: Request) {
       );
     }
 
-    // Normalize email to lowercase for case-insensitive lookup
-    const normalizedEmail = email.toLowerCase().trim();
+    // Check for existing user with case-insensitive email lookup
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        email: {
+          equals: email.trim(),
+          mode: 'insensitive',
+        },
+      },
+    });
+
+    if (existingUser) {
+      return NextResponse.json(
+        { error: 'User with this email already exists' },
+        { status: 400 }
+      );
+    }
 
     // Check if manager exists if managerId is provided
     if (managerId) {
@@ -147,7 +161,7 @@ export async function POST(req: Request) {
     const user = await prisma.user.create({
       data: {
         name,
-        email: normalizedEmail,
+        email: email.trim(), // Keep original casing
         password: hashedPassword,
         role,
         managerId,
@@ -212,8 +226,25 @@ export async function PUT(req: Request) {
       );
     }
 
-    // Normalize email to lowercase for case-insensitive lookup
-    const normalizedEmail = email.toLowerCase().trim();
+    // Check if email is being changed to one that already exists (case-insensitive)
+    const existingUserWithEmail = await prisma.user.findFirst({
+      where: {
+        email: {
+          equals: email.trim(),
+          mode: 'insensitive',
+        },
+        NOT: {
+          id: id, // Exclude the current user
+        },
+      },
+    });
+
+    if (existingUserWithEmail) {
+      return NextResponse.json(
+        { error: 'Another user with this email already exists' },
+        { status: 400 }
+      );
+    }
 
     // Check if manager exists if managerId is provided
     if (managerId) {
@@ -279,7 +310,7 @@ export async function PUT(req: Request) {
 
     const updateData: any = {
       name,
-      email: normalizedEmail,
+      email: email.trim(), // Keep original casing
       role,
       isActive,
     };
