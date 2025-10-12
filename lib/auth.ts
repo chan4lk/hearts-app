@@ -134,10 +134,10 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // Create new user with determined role
-          // Keep original email casing from Azure AD
+          // Normalize email to lowercase to prevent case sensitivity issues
           const user = await prisma.user.create({
             data: {
-              email: profile.email.trim(), // Keep original casing from Azure AD
+              email: profile.email.trim().toLowerCase(), // Normalize to lowercase
               name: profile.name || profile.email.split('@')[0], // Fallback to email prefix if no name
               password: 'azure-ad-auth', // Placeholder for Azure AD users
               role: role,
@@ -156,8 +156,44 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             role: user.role
           };
-        } catch (dbError) {
-          console.error('[Azure AD] Database error creating user:', dbError);
+        } catch (dbError: any) {
+          console.error('[Azure AD] Database error creating user:', {
+            error: dbError,
+            errorCode: dbError?.code,
+            errorMessage: dbError?.message,
+            userEmail: profile.email,
+            normalizedEmail: profile.email.trim().toLowerCase(),
+            timestamp: new Date().toISOString()
+          });
+
+          // Check if it's a unique constraint violation (P2002)
+          if (dbError?.code === 'P2002') {
+            console.error('[Azure AD] Unique constraint violation - user may already exist with different casing');
+            // Try to find the existing user again with more detailed logging
+            const existingUserRetry = await prisma.user.findFirst({
+              where: {
+                email: {
+                  equals: profile.email.trim(),
+                  mode: 'insensitive',
+                },
+              },
+            });
+
+            if (existingUserRetry) {
+              console.log('[Azure AD] Found existing user on retry:', {
+                id: existingUserRetry.id,
+                email: existingUserRetry.email,
+                role: existingUserRetry.role
+              });
+              return {
+                id: existingUserRetry.id,
+                name: existingUserRetry.name,
+                email: existingUserRetry.email,
+                role: existingUserRetry.role
+              };
+            }
+          }
+
           throw new Error(`Failed to create user in database: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`);
         }
       }
@@ -242,10 +278,10 @@ export const authOptions: NextAuthOptions = {
                 role = 'ADMIN';
               }
 
-              // Create the user with original email casing from Azure AD
+              // Create the user with normalized email to prevent case sensitivity issues
               dbUser = await prisma.user.create({
                 data: {
-                  email: user.email.trim(), // Keep original casing
+                  email: user.email.trim().toLowerCase(), // Normalize to lowercase
                   name: user.name || user.email.split('@')[0],
                   password: 'azure-ad-auth',
                   role: role,
