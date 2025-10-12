@@ -23,7 +23,8 @@ export async function GET(request: NextRequest) {
           NEXTAUTH_SECRET: !!process.env.NEXTAUTH_SECRET,
           DATABASE_URL: !!process.env.DATABASE_URL,
           NODE_ENV: process.env.NODE_ENV || 'not set'
-        }
+        },
+        missingVariables: [] as string[]
       }
     }
   };
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
     health.checks.environment.status = 'healthy';
   } else {
     health.checks.environment.status = 'unhealthy';
-    health.checks.environment['missingVariables'] = missingVars;
+    health.checks.environment.missingVariables = missingVars;
   }
 
   // Overall status
