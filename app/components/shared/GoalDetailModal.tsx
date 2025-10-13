@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, BsArrowRight, BsChevronDown, BsChevronUp, BsPencil, BsTrash, BsPerson, BsGear, BsFlag, BsBuilding } from 'react-icons/bs';
+import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, BsArrowRight, BsChevronDown, BsChevronUp, BsPencil, BsTrash, BsPerson, BsGear, BsFlag, BsBuilding, BsPlayCircle } from 'react-icons/bs';
 import { Goal } from '@/app/components/shared/types';
 import { IconType } from 'react-icons';
 import { showToast } from '@/app/utils/toast';
@@ -7,11 +7,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
 import { Progress } from '@/app/components/ui/progress';
+import AIGoalRiskAnalysis from '@/app/components/ai/AIGoalRiskAnalysis';
+import GoalProgressTracker from '@/app/components/goals/GoalProgressTracker';
+import GoalActivityTimeline from '@/app/components/goals/GoalActivityTimeline';
+import { useSession } from 'next-auth/react';
 
 interface GoalDetailModalProps {
   goal: Goal;
   onClose: () => void;
-  onSubmitGoal: (goalId: string) => Promise<void>;
+  onSubmitGoal?: (goalId: string) => Promise<void>;
+  onEdit?: (goal: Goal) => void;
+  onDelete?: (goal: Goal) => void;
 }
 
 type StatusConfig = {
@@ -41,7 +47,8 @@ const getDepartmentConfig = (department: string) => {
   return configs[department] || configs.ENGINEERING;
 };
 
-export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDetailModalProps) {
+export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, onDelete }: GoalDetailModalProps) {
+  const { data: session } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -49,6 +56,15 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDet
   const descriptionRef = useRef<HTMLParagraphElement>(null);
   const [shouldShowExpandButton, setShouldShowExpandButton] = useState(false);
   const [expandedHeight, setExpandedHeight] = useState<number>(0);
+  const [activities, setActivities] = useState<any[]>([]);
+  const [currentProgress, setCurrentProgress] = useState(goal.progress || 0);
+  const [showApprovalForm, setShowApprovalForm] = useState(false);
+  const [approvalComments, setApprovalComments] = useState('');
+  const [isApproving, setIsApproving] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
+
+  // Check if user is manager or admin
+  const isManagerOrAdmin = session?.user?.role === 'MANAGER' || session?.user?.role === 'ADMIN';
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -91,6 +107,63 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDet
     };
   }, [goal.description]);
 
+  // Fetch activity timeline
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const response = await fetch(`/api/goals/${goal.id}/activity`);
+        const data = await response.json();
+        if (data.success) {
+          setActivities(data.activities);
+        }
+      } catch (error) {
+        console.error('Failed to fetch activities:', error);
+      }
+    };
+
+    if (goal.id) {
+      fetchActivities();
+    }
+  }, [goal.id]);
+
+  // Handle progress update
+  const handleProgressUpdate = async (progress: number, status: string, notes?: string) => {
+    try {
+      console.log('📡 Sending progress update to API:', { goalId: goal.id, progress, notes });
+
+      const response = await fetch(`/api/goals/${goal.id}/progress`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ progress, notes }),
+      });
+
+      console.log('📡 API Response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ API Error:', errorData);
+        throw new Error(errorData.message || 'Failed to update progress');
+      }
+
+      const updatedGoal = await response.json();
+      console.log('✅ Progress updated successfully:', updatedGoal);
+
+      setCurrentProgress(updatedGoal.progress);
+
+      // Refresh activities
+      const activityResponse = await fetch(`/api/goals/${goal.id}/activity`);
+      const activityData = await activityResponse.json();
+      if (activityData.success) {
+        setActivities(activityData.activities);
+      }
+
+      // Don't show toast here - let the GoalProgressTracker component handle it
+    } catch (error) {
+      console.error('❌ Failed to update progress:', error);
+      throw error;
+    }
+  };
+
   const getStatusConfig = (status: string): StatusConfig => {
     const configs: Record<string, StatusConfig> = {
       APPROVED: { bgColor: 'bg-emerald-500/20', textColor: 'text-emerald-400', icon: BsCheckCircle, label: 'Approved' },
@@ -111,7 +184,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDet
     e.preventDefault();
     e.stopPropagation();
 
-    if (isSubmitting) return;
+    if (isSubmitting || !onSubmitGoal) return;
 
     try {
       setIsSubmitting(true);
@@ -120,12 +193,71 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDet
       onClose();
     } catch (error) {
       showToast.goal.error(
-        error instanceof Error 
-          ? error.message 
+        error instanceof Error
+          ? error.message
           : 'Failed to submit goal. Please try again.'
       );
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleApprove = async () => {
+    if (isApproving) return;
+
+    try {
+      setIsApproving(true);
+      const response = await fetch(`/api/goals/${goal.id}/approve`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ managerComments: approvalComments }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to approve goal');
+      }
+
+      showToast.success('Goal Approved', 'The goal has been approved successfully');
+      window.location.reload(); // Refresh to show updated status
+    } catch (error) {
+      showToast.goal.error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to approve goal. Please try again.'
+      );
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (isRejecting || !approvalComments.trim()) {
+      showToast.info('Please provide feedback', 'Rejection reason is required');
+      return;
+    }
+
+    try {
+      setIsRejecting(true);
+      const response = await fetch(`/api/goals/${goal.id}/reject`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ managerComments: approvalComments }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to reject goal');
+      }
+
+      showToast.success('Goal Rejected', 'The goal has been rejected with feedback');
+      window.location.reload(); // Refresh to show updated status
+    } catch (error) {
+      showToast.goal.error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to reject goal. Please try again.'
+      );
+    } finally {
+      setIsRejecting(false);
     }
   };
 
@@ -142,13 +274,17 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDet
   };
 
   const handleEdit = () => {
-    // Toggle edit mode or implement edit functionality
-    console.log('Edit goal:', goal.id);
+    if (onEdit) {
+      onEdit(goal);
+      onClose();
+    }
   };
 
   const handleDelete = () => {
-    // Implement delete functionality
-    console.log('Delete goal:', goal.id);
+    if (onDelete) {
+      onDelete(goal);
+      onClose();
+    }
   };
 
   return (
@@ -260,21 +396,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDet
             </div>
           </motion.div>
 
-          {/* Progress Bar */}
-          {goal.progress !== undefined && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg sm:rounded-xl md:rounded-2xl p-2.5 sm:p-3"
-            >
-              <div className="flex items-center justify-between text-xs text-gray-400 mb-1.5 sm:mb-2">
-                <span>Progress</span>
-                <span>{goal.progress}%</span>
-              </div>
-              <Progress value={goal.progress} className="h-1.5 sm:h-2" />
-            </motion.div>
-          )}
-
+          
           {/* Info Grid - Mobile Responsive */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
             <motion.div 
@@ -368,11 +490,11 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDet
           {/* Pending Status */}
           <AnimatePresence>
             {goal.status === 'PENDING' && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="flex items-center bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-amber-400 
+                className="flex items-center bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-amber-400
                           text-xs sm:text-sm p-2.5 sm:p-3 rounded-lg sm:rounded-xl md:rounded-2xl min-h-[40px] sm:min-h-[44px]"
               >
                 <BsClock className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5 sm:mr-2 animate-pulse flex-shrink-0" />
@@ -380,12 +502,170 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal }: GoalDet
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* AI Risk Analysis Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-gradient-to-br from-orange-900/20 via-red-900/20 to-rose-900/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 border border-orange-500/20"
+          >
+            <h4 className="text-xs sm:text-sm font-semibold text-white mb-2 flex items-center gap-2">
+              <BsShield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-400" />
+              AI Risk Analysis
+            </h4>
+            <AIGoalRiskAnalysis goalId={goal.id} />
+          </motion.div>
+
+          {/* Progress Tracking Section - Only for APPROVED goals */}
+          {goal.status === 'APPROVED' && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-gradient-to-br from-blue-900/20 via-indigo-900/20 to-purple-900/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-blue-500/20"
+            >
+              <h4 className="text-xs sm:text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                <BsPlayCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400" />
+                Progress Tracking
+              </h4>
+              <GoalProgressTracker
+                goalId={goal.id}
+                currentProgress={currentProgress}
+                currentStatus={goal.status}
+                onProgressUpdate={handleProgressUpdate}
+                isEmployee={session?.user?.id === goal.employeeId}
+              />
+            </motion.div>
+          )}
+
+          {/* Activity Timeline Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-gray-700"
+          >
+            <GoalActivityTimeline activities={activities} />
+          </motion.div>
         </div>
 
         {/* Footer */}
         <div className="relative px-3 sm:px-4 pb-3 sm:pb-4 pt-2 flex-shrink-0">
+          {/* Approval Form for Managers/Admins viewing PENDING goals */}
+          {isManagerOrAdmin && goal.status === 'PENDING' && !showApprovalForm && (
+            <div className="mb-3">
+              <Button
+                onClick={() => setShowApprovalForm(true)}
+                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 h-9 sm:h-10"
+              >
+                Review Goal
+              </Button>
+            </div>
+          )}
+
+          {/* Approval Form */}
+          {isManagerOrAdmin && goal.status === 'PENDING' && showApprovalForm && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-3 p-3 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg border border-gray-700"
+            >
+              <h4 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                <BsChat className="w-4 h-4 text-blue-400" />
+                Review & Feedback
+              </h4>
+              <textarea
+                value={approvalComments}
+                onChange={(e) => setApprovalComments(e.target.value)}
+                placeholder="Add your feedback (optional for approval, required for rejection)..."
+                className="w-full bg-black/20 border border-gray-600 rounded-lg p-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px] resize-none"
+              />
+              <div className="flex gap-2 mt-3">
+                <Button
+                  onClick={handleApprove}
+                  disabled={isApproving || isRejecting}
+                  className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-xs sm:text-sm px-3 py-2 h-9"
+                >
+                  {isApproving ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin mr-1.5" />
+                      <span>Approving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <BsCheckCircle className="w-3.5 h-3.5 mr-1.5" />
+                      <span>Approve</span>
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={handleReject}
+                  disabled={isApproving || isRejecting}
+                  className="flex-1 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs sm:text-sm px-3 py-2 h-9"
+                >
+                  {isRejecting ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin mr-1.5" />
+                      <span>Rejecting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <BsXCircle className="w-3.5 h-3.5 mr-1.5" />
+                      <span>Reject</span>
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowApprovalForm(false);
+                    setApprovalComments('');
+                  }}
+                  variant="ghost"
+                  className="text-gray-400 hover:text-white hover:bg-white/10 text-xs px-3 py-2 h-9"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
           <div className="flex justify-end gap-2">
-            {(goal.status === 'DRAFT' || goal.status === 'MODIFIED') &&
+            {/* Edit Button - Show if onEdit is provided and:
+                - For employees: goal is DRAFT/PENDING
+                - For managers/admins: always show (they can edit team goals) */}
+            {onEdit && (
+              (goal.status === 'DRAFT' || goal.status === 'PENDING') ||
+              (session?.user?.role === 'MANAGER' || session?.user?.role === 'ADMIN')
+            ) && (
+              <Button
+                onClick={handleEdit}
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 h-9 sm:h-10 touch-manipulation"
+              >
+                <BsPencil className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5" />
+                <span>Edit</span>
+              </Button>
+            )}
+
+            {/* Delete Button - Show if onDelete is provided and:
+                - For employees: goal is DRAFT/PENDING
+                - For managers/admins: always show (they can delete team goals) */}
+            {onDelete && (
+              (goal.status === 'DRAFT' || goal.status === 'PENDING') ||
+              (session?.user?.role === 'MANAGER' || session?.user?.role === 'ADMIN')
+            ) && (
+              <Button
+                onClick={handleDelete}
+                className="bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 h-9 sm:h-10 touch-manipulation"
+              >
+                <BsTrash className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5" />
+                <span>Delete</span>
+              </Button>
+            )}
+
+            {/* Employee Submit Button - Only show if onSubmitGoal is provided */}
+            {onSubmitGoal &&
+              (goal.status === 'DRAFT' || goal.status === 'MODIFIED') &&
               goal.manager &&
               goal.employee &&
               goal.manager.id !== goal.employee.id && (

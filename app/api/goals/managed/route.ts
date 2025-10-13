@@ -3,10 +3,10 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -15,25 +15,36 @@ export async function GET() {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
+    // Get managerId from query params (for admin viewing specific manager's goals)
+    const { searchParams } = new URL(request.url);
+    const managerIdParam = searchParams.get('managerId');
+
+    // Determine which manager's goals to fetch
+    const targetManagerId = (session.user.role === 'ADMIN' && managerIdParam)
+      ? managerIdParam
+      : session.user.id;
+
+    console.log('Fetching goals for manager:', targetManagerId);
+
     // Fetch goals for employees managed by the current manager/admin
     const goals = await prisma.goal.findMany({
       where: {
         AND: [
           {
             OR: [
-              // Goals for employees managed by the current manager/admin
+              // Goals for employees managed by the target manager
               {
                 employee: {
-                  managerId: session.user.id
+                  managerId: targetManagerId
                 }
               },
-              // Personal goals of the manager/admin
+              // Personal goals of the target manager (only if not admin viewing)
+              ...(session.user.role !== 'ADMIN' || !managerIdParam ? [{
+                employeeId: targetManagerId
+              }] : []),
+              // Goals assigned by the target manager
               {
-                employeeId: session.user.id
-              },
-              // Goals assigned by the manager/admin
-              {
-                managerId: session.user.id
+                managerId: targetManagerId
               }
             ]
           },

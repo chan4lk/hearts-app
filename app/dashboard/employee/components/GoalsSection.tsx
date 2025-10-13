@@ -1,7 +1,7 @@
 import { BsListUl, BsSearch, BsFilter, BsShield, BsStars, BsFlag, BsPlus, BsPencil, BsTrash } from 'react-icons/bs';
 import { useRouter } from 'next/navigation';
 import { Goal } from '@/app/components/shared/types';
-import GoalCard from './GoalCard';
+import GoalCard from '@/app/components/shared/GoalCard';
 import { useState } from 'react';
 
 interface GoalsSectionProps {
@@ -12,7 +12,7 @@ interface GoalsSectionProps {
   onStatusChange: (status: string) => void;
   onGoalClick: (goal: Goal) => void;
   onEditGoal?: (goal: Goal) => void;
-  onDeleteGoal?: (goalId: string) => void;
+  onDeleteGoal?: (goal: Goal) => void;
   userRole?: string;
 }
 

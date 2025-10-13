@@ -114,13 +114,31 @@ export const showToast = {
   
   // Generic error handler
   error: (prefix: string, error: unknown) => {
-    const message = error instanceof Error 
+    const message = error instanceof Error
       ? `${prefix}: ${error.message}`
       : 'An unexpected error occurred';
-    
+
     toast(message, {
       ...defaultOptions,
       style: errorStyle
     });
+  },
+
+  // Generic success handler
+  success: (title: string, description?: string) => {
+    toast(title, {
+      ...defaultOptions,
+      description,
+      style: successStyle
+    });
+  },
+
+  // Generic info handler
+  info: (title: string, description?: string) => {
+    toast(title, {
+      ...defaultOptions,
+      description,
+      style: toastStyle
+    });
   }
-}; 
+};

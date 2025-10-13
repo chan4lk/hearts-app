@@ -7,8 +7,10 @@ import { useSession } from 'next-auth/react';
 import StatsDisplay from './components/StatsDisplay';
 import Filters from './components/Filters';
 import GoalsGrid from './components/GoalsGrid';
-import GoalDetailsModal from './components/GoalDetailsModal';
+import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import LoadingComponent from '@/app/components/LoadingScreen';
+import AIPerformanceInsights from '@/app/components/ai/AIPerformanceInsights';
+import { BsStars, BsLightbulb } from 'react-icons/bs';
 
 import { Goal, EmployeeStats, DashboardStats } from '@/app/components/shared/types';
 
@@ -21,6 +23,7 @@ export default function ManagerDashboard() {
   const [employees, setEmployees] = useState<EmployeeStats[]>([]);
   const [employeeCounts, setEmployeeCounts] = useState({ total: 0, active: 0 });
   const [selectedGoalDetails, setSelectedGoalDetails] = useState<Goal | null>(null);
+  const [showAIInsights, setShowAIInsights] = useState(false);
   const { data: session } = useSession();
 
   // Helper function to check if a goal belongs to the current user
@@ -173,13 +176,68 @@ export default function ManagerDashboard() {
             employees={employees}
           />
 
+          {/* AI Insights Toggle */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex justify-end"
+          >
+            <button
+              onClick={() => setShowAIInsights(!showAIInsights)}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg transition-all shadow-md"
+            >
+              <BsStars className="w-4 h-4" />
+              <span>{showAIInsights ? 'Hide' : 'Show'} AI Insights</span>
+            </button>
+          </motion.div>
+
+          {/* AI Performance Insights for Selected Employee */}
+          {showAIInsights && selectedEmployee !== 'all' && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-gradient-to-br from-purple-900/20 via-indigo-900/20 to-blue-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-purple-500/20 rounded-lg">
+                  <BsLightbulb className="w-5 h-5 text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">AI Performance Insights</h3>
+                  <p className="text-sm text-gray-400">
+                    AI-powered analysis for {employees.find(e => e.email === selectedEmployee)?.name || 'selected employee'}
+                  </p>
+                </div>
+              </div>
+              <AIPerformanceInsights
+                userId={employees.find(e => e.email === selectedEmployee)?.id}
+                autoLoad={true}
+              />
+            </motion.div>
+          )}
+
+          {/* AI Insights Prompt (when no employee selected) */}
+          {showAIInsights && selectedEmployee === 'all' && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-gradient-to-br from-blue-900/20 via-indigo-900/20 to-purple-900/20 backdrop-blur-sm rounded-xl p-8 border border-blue-500/20 text-center"
+            >
+              <BsLightbulb className="w-12 h-12 text-blue-400 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-white mb-2">Select an Employee</h3>
+              <p className="text-gray-400">
+                Choose a specific employee from the filter above to view their AI-powered performance insights
+              </p>
+            </motion.div>
+          )}
+
           {/* Goals Grid */}
           <GoalsGrid goals={filteredGoals} onGoalClick={handleGoalClick} employees={employees} />
         </div>
 
         {/* Goal Details Modal */}
         {selectedGoalDetails && (
-          <GoalDetailsModal
+          <GoalDetailModal
             goal={selectedGoalDetails}
             onClose={() => setSelectedGoalDetails(null)}
           />

@@ -17,8 +17,8 @@ import { HeroSection } from './components/sections/HeroSection';
 import { StatsSection } from './components/sections/StatsSection';
 import { GoalList } from './components/sections/GoalList';
 import { CreateGoalModal } from './components/modals/CreateGoalModal';
-import { ViewGoalModal } from './components/modals/ViewGoalModal';
-import { DeleteGoalModal } from './components/modals/DeleteGoalModal';
+import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
+import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import GoalTemplates from '@/app/components/shared/GoalTemplates';
 import { CATEGORIES } from '@/app/components/shared/constants';
 import LoadingComponent from '@/app/components/LoadingScreen';
@@ -396,30 +396,36 @@ function ManagerGoalSettingPageContent() {
           } : undefined}
         />
 
-        <ViewGoalModal
-          isOpen={isViewModalOpen}
-          onCloseAction={() => {
-            setIsViewModalOpen(false);
-            setViewedGoal(null);
-          }}
-          goal={viewedGoal}
-          onEditAction={() => {
-            if (viewedGoal) {
-              handleEditGoal(viewedGoal);
+        {viewedGoal && (
+          <GoalDetailModal
+            goal={viewedGoal}
+            onClose={() => {
               setIsViewModalOpen(false);
-            }
-          }}
-          onDeleteAction={(goalId) => {
-            setIsViewModalOpen(false);
-            setIsDeleteModalOpen(true);
-            setGoalToDelete(goalId);
-          }}
-        />
+              setViewedGoal(null);
+            }}
+            onEdit={(goal) => {
+              handleEditGoal(goal);
+              setIsViewModalOpen(false);
+            }}
+            onDelete={(goal) => {
+              setIsViewModalOpen(false);
+              setIsDeleteModalOpen(true);
+              setGoalToDelete(goal.id);
+            }}
+          />
+        )}
 
-        <DeleteGoalModal
+        <DeleteConfirmationModal
           isOpen={isDeleteModalOpen}
-          onClose={() => setIsDeleteModalOpen(false)}
+          onClose={() => {
+            setIsDeleteModalOpen(false);
+            setGoalToDelete(null);
+          }}
           onConfirm={handleDelete}
+          title="Delete Goal"
+          message="Are you sure you want to delete this goal? This action cannot be undone."
+          confirmText="Delete"
+          cancelText="Cancel"
         />
       </div>
     </div>
