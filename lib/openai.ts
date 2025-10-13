@@ -1,9 +1,20 @@
 import OpenAI from 'openai';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy initialization of OpenAI client
+let openai: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!openai) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error('OPENAI_API_KEY environment variable is not set');
+    }
+    openai = new OpenAI({
+      apiKey: apiKey,
+    });
+  }
+  return openai;
+}
 
 interface GoalSuggestion {
   title: string;
@@ -43,7 +54,7 @@ export async function generateGoalSuggestions(
     Each goal should be SMART (Specific, Measurable, Achievable, Relevant, Time-bound).
     Return the goals in JSON format with title and description fields.`;
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAIClient().chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
         {
@@ -88,7 +99,7 @@ export async function enhanceGoalDescription(
 
     Make the description more detailed and actionable while maintaining its original intent.`;
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAIClient().chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
         {
@@ -147,7 +158,7 @@ export async function generatePersonalizedGoals(
 
     Return JSON with array of goals, each having: title, description, category, priority, estimatedDuration`;
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAIClient().chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
@@ -206,7 +217,7 @@ export async function analyzeGoalRisk(goal: {
 
     Return JSON with: riskLevel, completionProbability, risks (array), recommendations (array)`;
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAIClient().chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
@@ -269,7 +280,7 @@ export async function generatePerformanceInsights(performanceData: {
 
     Return JSON with insights array.`;
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAIClient().chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
@@ -327,7 +338,7 @@ Ensure it's:
 
 Return only the improved text, no explanations.`;
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAIClient().chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
@@ -398,7 +409,7 @@ export async function generatePerformanceReview(employeeData: {
 
     Use professional, balanced language. Be specific and constructive.`;
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAIClient().chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
