@@ -15,6 +15,7 @@ import UserFilters from './components/UserFilters';
 import StatsCard from './components/StatsCard';
 import HeroSection from './components/HeroSection';
 import BackgroundElements from './components/BackgroundElements';
+import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import { User, FormData, Filters } from '@/app/components/shared/types';
 import { Role } from '.prisma/client';
 import { showToast } from '@/app/utils/toast';
@@ -435,43 +436,18 @@ export default function UsersPage() {
             </motion.div>
           )}
 
-          {isDeleteConfirmOpen && userToDelete && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-            >
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-2xl w-full max-w-md border border-white/20 dark:border-gray-700/30"
-              >
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Delete User</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
-                  Are you sure you want to delete <span className="font-semibold text-gray-800 dark:text-gray-200">{userToDelete.name}</span>?
-                </p>
-                <div className="flex justify-end gap-3">
-                  <button
-                    onClick={() => {
-                      setIsDeleteConfirmOpen(false);
-                      setUserToDelete(null);
-                    }}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700/50 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={confirmDelete}
-                    className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-xl hover:bg-red-600 transition-all duration-200"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
+          <DeleteConfirmationModal
+            isOpen={isDeleteConfirmOpen}
+            onClose={() => {
+              setIsDeleteConfirmOpen(false);
+              setUserToDelete(null);
+            }}
+            onConfirm={confirmDelete}
+            title="Delete User"
+            message={userToDelete ? `Are you sure you want to delete "${userToDelete.name}"? This action cannot be undone.` : "Are you sure you want to delete this user? This action cannot be undone."}
+            confirmText="Delete"
+            cancelText="Cancel"
+          />
         </AnimatePresence>
 
         <Toaster 

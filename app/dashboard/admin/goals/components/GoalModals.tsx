@@ -1,7 +1,7 @@
 import { Goal, GoalFormData } from '@/app/components/shared/types';
 import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
-import { GoalModal } from './GoalModal';
-import { DeleteConfirmationModal } from './DeleteConfirmationModal';
+import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
+import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 
@@ -221,29 +221,20 @@ export function GoalModals({
       )}
 
       {isViewModalOpen && viewedGoal && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              onCloseView();
-            }
+        <GoalDetailModal
+          goal={viewedGoal}
+          onClose={onCloseView}
+          onEdit={(goal) => {
+            onCloseView();
+            setIsEditModalOpen(true);
+            setSelectedGoal(goal);
           }}
-        >
-          <GoalModal
-            goal={viewedGoal}
-            onClose={onCloseView}
-            onEdit={(goal) => {
-              onCloseView();
-              setIsEditModalOpen(true);
-              setSelectedGoal(goal);
-            }}
-            onDelete={(goalId) => {
-              onCloseView();
-              setIsDeleteModalOpen(true);
-              setGoalToDelete(viewedGoal);
-            }}
-          />
-        </div>
+          onDelete={(goal) => {
+            onCloseView();
+            setIsDeleteModalOpen(true);
+            setGoalToDelete(goal);
+          }}
+        />
       )}
 
       {isEditModalOpen && selectedGoal && (
@@ -287,22 +278,15 @@ export function GoalModals({
         </div>
       )}
 
-      {isDeleteModalOpen && goalToDelete && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              onCloseDelete();
-            }
-          }}
-        >
-          <DeleteConfirmationModal
-            goal={goalToDelete}
-            onClose={onCloseDelete}
-            onConfirm={onDelete}
-          />
-        </div>
-      )}
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={onCloseDelete}
+        onConfirm={onDelete}
+        title="Delete Goal"
+        message={goalToDelete ? `Are you sure you want to delete "${goalToDelete.title}"? This action cannot be undone.` : "Are you sure you want to delete this goal? This action cannot be undone."}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </>
   );
 } 
