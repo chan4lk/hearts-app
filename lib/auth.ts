@@ -96,41 +96,14 @@ export const authOptions: NextAuthOptions = {
           throw error;
         }
 
-        // For new users, determine role based on Azure AD groups/roles
+        // For new users, always assign EMPLOYEE role
+        // Admin will manually change roles in admin panel
         let role: Role = 'EMPLOYEE';
 
-        // Normalize email for role determination
+        // Normalize email for logging
         const normalizedEmail = profile.email.toLowerCase().trim();
 
-        // Check Azure AD groups if available
-        const groups = profile.groups || [];
-        const roles = profile.roles || [];
-
-        // You can configure these group/role names in your Azure AD
-        const adminGroups = ['Admins', 'Administrators', 'AspireHub Admins'];
-        const managerGroups = ['Managers', 'Team Leads', 'AspireHub Managers'];
-
-        // Check if user is admin based on email domain or other criteria
-        if (normalizedEmail.endsWith('@bistecglobal.com')) {
-          role = 'ADMIN';
-          console.log(`[Azure AD] Assigning ADMIN role to bistecglobal.com email: ${normalizedEmail}`);
-        } else if (
-          groups.some((group: string) => adminGroups.includes(group)) ||
-          roles.includes('Admin')
-        ) {
-          role = 'ADMIN';
-          console.log(`[Azure AD] Assigning ADMIN role based on groups/roles: ${normalizedEmail}`);
-        } else if (
-          groups.some((group: string) => managerGroups.includes(group)) ||
-          roles.includes('Manager')
-        ) {
-          role = 'MANAGER';
-          console.log(`[Azure AD] Assigning MANAGER role based on groups/roles: ${normalizedEmail}`);
-        } else {
-          console.log(`[Azure AD] Assigning default EMPLOYEE role: ${normalizedEmail}`);
-        }
-
-        console.log(`[Azure AD] Creating new user with role: ${role}`);
+        console.log(`[Azure AD] Creating new user with default EMPLOYEE role: ${normalizedEmail}`);
 
         try {
           // Create new user with determined role
@@ -271,12 +244,9 @@ export const authOptions: NextAuthOptions = {
             console.warn('[signIn] User not found in database, attempting to create:', user.email);
 
             try {
-              // Determine role based on email domain
-              let role: Role = 'EMPLOYEE';
-              const emailLower = user.email.toLowerCase().trim();
-              if (emailLower.endsWith('@bistecglobal.com')) {
-                role = 'ADMIN';
-              }
+              // Always assign EMPLOYEE role for new users
+              // Admin will manually change roles in admin panel
+              const role: Role = 'EMPLOYEE';
 
               // Create the user with normalized email to prevent case sensitivity issues
               dbUser = await prisma.user.create({
@@ -288,7 +258,7 @@ export const authOptions: NextAuthOptions = {
                 },
               });
 
-              console.log('[signIn] User created successfully:', {
+              console.log('[signIn] User created successfully with EMPLOYEE role:', {
                 id: dbUser.id,
                 email: dbUser.email,
                 role: dbUser.role
