@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion';
-import { BsPlus, BsBarChart, BsStars } from 'react-icons/bs';
+import { BsPlus, BsBarChart, BsStars, BsStack } from 'react-icons/bs';
 import { colors } from '../styles/colors';
 
 interface HeroSectionProps {
   onCreateClick: () => void;
+  onBulkCreateClick: () => void;
 }
 
-export function HeroSection({ onCreateClick }: HeroSectionProps) {
+export function HeroSection({ onCreateClick, onBulkCreateClick }: HeroSectionProps) {
   return (
     <motion.div 
       initial={{ opacity: 0, y: -20 }}
@@ -42,6 +43,15 @@ export function HeroSection({ onCreateClick }: HeroSectionProps) {
             >
               <BsPlus className="text-lg" />
               Create
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onBulkCreateClick}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg px-4 py-2 text-sm font-medium flex items-center gap-1.5 hover:opacity-90 transition-opacity"
+            >
+              <BsStack className="text-base" />
+              Bulk Create
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.02 }}

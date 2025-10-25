@@ -20,6 +20,7 @@ import { CreateGoalModal } from './components/modals/CreateGoalModal';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import GoalTemplates from '@/app/components/shared/GoalTemplates';
+import { BulkGoalFormModal } from '@/app/components/shared/BulkGoalFormModal';
 import { CATEGORIES } from '@/app/components/shared/constants';
 import LoadingComponent from '@/app/components/LoadingScreen';
 
@@ -85,6 +86,7 @@ function ManagerGoalSettingPageContent() {
   const [goalToDelete, setGoalToDelete] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [isBulkCreateModalOpen, setIsBulkCreateModalOpen] = useState(false);
 
   useEffect(() => {
     if (!session) {
@@ -191,6 +193,46 @@ function ManagerGoalSettingPageContent() {
     } catch (error) {
       console.error('Error creating goal:', error);
       showToast.goal.error(error instanceof Error ? error.message : 'Failed to create goal');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBulkSubmit = async (bulkGoals: any[]) => {
+    setLoading(true);
+    try {
+      console.log('Submitting bulk goals:', {
+        goals: bulkGoals,
+        assignedEmployees: assignedEmployees.map(e => ({ id: e.id, name: e.name }))
+      });
+
+      const response = await fetch('/api/goals/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ goals: bulkGoals }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create goals');
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Add the created goals to the state
+        setGoals(prev => [...result.goals, ...prev]);
+        setIsBulkCreateModalOpen(false);
+        showToast.goal.created();
+
+        // Refresh the goals and stats
+        await fetchAssignedEmployees();
+      } else {
+        throw new Error(result.message || 'Failed to create goals');
+      }
+    } catch (error) {
+      console.error('Error creating bulk goals:', error);
+      showToast.goal.error(error instanceof Error ? error.message : 'Failed to create goals');
     } finally {
       setLoading(false);
     }
@@ -308,7 +350,10 @@ function ManagerGoalSettingPageContent() {
 
       <div className="relative z-10 p-6 space-y-8">
        
-        <HeroSection onCreateClick={() => setIsCreateModalOpen(true)} />
+        <HeroSection
+          onCreateClick={() => setIsCreateModalOpen(true)}
+          onBulkCreateClick={() => setIsBulkCreateModalOpen(true)}
+        />
         <StatsSection stats={stats} />
         
         {/* Goal Templates Section */}
@@ -414,6 +459,14 @@ function ManagerGoalSettingPageContent() {
             }}
           />
         )}
+
+        <BulkGoalFormModal
+          isOpen={isBulkCreateModalOpen}
+          onClose={() => setIsBulkCreateModalOpen(false)}
+          onSubmit={handleBulkSubmit}
+          assignedEmployees={assignedEmployees}
+          loading={loading}
+        />
 
         <DeleteConfirmationModal
           isOpen={isDeleteModalOpen}

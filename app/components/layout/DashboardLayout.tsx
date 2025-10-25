@@ -111,7 +111,6 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
     const adminItems: NavItem[] = [
       { href: '/dashboard/admin', label: 'Overview', icon: BsShield },
       { href: '/dashboard/admin/users', label: 'Manage Users', icon: BsPeople },
-      { href: '/dashboard/admin/goals', label: 'Goal Settings', icon: BsGear },
     ];
 
     const managerItems: NavItem[] = [

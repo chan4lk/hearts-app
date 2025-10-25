@@ -48,13 +48,6 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
     label: 'Manage Users',
     roles: ['ADMIN'],
     context: 'admin'
-  },
-  {
-    href: '/dashboard/admin/goals',
-    icon: BsBullseye,
-    label: 'Goal Settings',
-    roles: ['ADMIN'],
-    context: 'admin'
   }
 ];
 
@@ -183,7 +176,6 @@ const ROLE_ACCESS: Record<Role, {
       // Admin paths
       '/dashboard/admin',
       '/dashboard/admin/users',
-      '/dashboard/admin/goals',
       // Manager paths - full access
       '/dashboard/manager',
       '/dashboard/manager/goals',
