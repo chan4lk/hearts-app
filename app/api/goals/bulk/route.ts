@@ -155,7 +155,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
       }, { status: 400 });
     }
 
-    // Verify all employees exist and are assigned to the current manager
+    // Verify all employees exist
     const employeeIds = Array.from(new Set(body.goals.map(goal => goal.employeeId)));
 
     console.log('Bulk goal creation - Employee validation:', {
@@ -164,38 +164,24 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
       employeeIdsToValidate: employeeIds
     });
 
-    let assignedEmployees;
-    if (session.user.role === 'ADMIN') {
-      // Admin can assign goals to any employee
-      assignedEmployees = await prisma.user.findMany({
-        where: {
-          id: { in: employeeIds },
-          role: 'EMPLOYEE'
-        },
-        select: { id: true, name: true, email: true, managerId: true }
-      });
-    } else {
-      // Manager can only assign goals to their assigned employees
-      assignedEmployees = await prisma.user.findMany({
-        where: {
-          id: { in: employeeIds },
-          role: 'EMPLOYEE',
-          managerId: session.user.id
-        },
-        select: { id: true, name: true, email: true, managerId: true }
-      });
-    }
+    // Check if all employees exist (don't require them to be assigned to this manager)
+    const existingEmployees = await prisma.user.findMany({
+      where: {
+        id: { in: employeeIds }
+      },
+      select: { id: true, name: true, email: true }
+    });
 
-    console.log('Found employees:', assignedEmployees);
+    console.log('Found employees:', existingEmployees);
 
-    const foundEmployeeIds = new Set(assignedEmployees.map(emp => emp.id));
+    const foundEmployeeIds = new Set(existingEmployees.map(emp => emp.id));
     const missingEmployeeIds = employeeIds.filter(id => !foundEmployeeIds.has(id));
 
     if (missingEmployeeIds.length > 0) {
       console.log('Missing employee IDs:', missingEmployeeIds);
       return NextResponse.json({
         success: false,
-        message: `Invalid or unassigned employee IDs: ${missingEmployeeIds.join(', ')}`,
+        message: `Invalid employee IDs: ${missingEmployeeIds.join(', ')}`,
         created: 0,
         failed: body.goals.length
       }, { status: 400 });
