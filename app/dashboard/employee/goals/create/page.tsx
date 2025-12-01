@@ -73,10 +73,10 @@ function GoalsPageContent() {
 
   const fetchGoals = async () => {
     try {
-      const response = await fetch('/api/goals/self');
+      const response = await fetch('/api/goals?view=my-goals');
       if (response.ok) {
         const data = await response.json();
-        const sortedGoals = data.goals.sort((a: Goal, b: Goal) => 
+        const sortedGoals = (data.goals || []).sort((a: Goal, b: Goal) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
         setGoals(sortedGoals);

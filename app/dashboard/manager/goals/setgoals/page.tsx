@@ -116,15 +116,15 @@ function ManagerGoalSettingPageContent() {
 
   const fetchGoals = async (employees: User[]) => {
     try {
-      const response = await fetch('/api/goals/managed');
+      const response = await fetch('/api/goals?view=team-goals');
       if (!response.ok) throw new Error('Failed to fetch goals');
       const data = await response.json();
-      
-      const assignedGoals = data.goals.filter((goal: Goal) => 
-        goal.manager?.id === session?.user?.id && 
+
+      const assignedGoals = (data.goals || []).filter((goal: Goal) =>
+        goal.manager?.id === session?.user?.id &&
         goal.employee?.id !== session?.user?.id
       );
-      
+
       setGoals(assignedGoals);
       updateStats(assignedGoals, employees);
     } catch (error) {

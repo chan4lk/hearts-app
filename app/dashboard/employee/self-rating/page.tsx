@@ -46,7 +46,7 @@ export default function SelfRatingPage() {
   const fetchGoals = async () => {
     try {
       setLoading(true);
-      const goalsResponse = await fetch("/api/goals/self");
+      const goalsResponse = await fetch("/api/goals?view=my-goals");
 
       if (!goalsResponse.ok) {
         throw new Error("Failed to fetch goals");

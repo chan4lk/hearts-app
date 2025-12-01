@@ -58,63 +58,32 @@ export default function ManagerDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch assigned employees first (this will filter based on role)
-        const empResponse = await fetch('/api/employees/assigned');
+        // Fetch assigned employees and goals in parallel
+        const [empResponse, goalResponse] = await Promise.all([
+          fetch('/api/employees/assigned'),
+          fetch('/api/goals?view=team-goals')
+        ]);
+
         if (!empResponse.ok) {
           throw new Error('Failed to fetch assigned employees');
         }
-        const empData = await empResponse.json();
+        if (!goalResponse.ok) {
+          throw new Error('Failed to fetch goals');
+        }
+
+        const [empData, goalData] = await Promise.all([
+          empResponse.json(),
+          goalResponse.json()
+        ]);
+
         setEmployees(empData.employees || []);
         setEmployeeCounts({
           total: empData.employees?.length || 0,
           active: empData.employees?.filter((emp: any) => emp.isActive !== false).length || 0
         });
 
-        // Then fetch goals
-        const goalResponse = await fetch('/api/goals/managed');
-        if (!goalResponse.ok) {
-          throw new Error('Failed to fetch goals');
-        }
-        const goalData = await goalResponse.json();
-        
-        // Filter goals to only include those from assigned employees
-        const assignedEmployeeEmails = empData.employees?.map((emp: any) => emp.email) || [];
-        const filteredGoals = goalData.goals.filter((goal: Goal) => {
-          // Include goals that belong to assigned employees
-          return goal.employee && assignedEmployeeEmails.includes(goal.employee.email);
-        });
-        
-        // Map employee names to goals if they're missing
-        const goalsWithEmployeeNames = filteredGoals.map((goal: Goal) => {
-          // Skip if goal has no employee data
-          if (!goal.employee) {
-            return goal;
-          }
-          
-          // If the goal already has an employee name, keep it
-          if (goal.employee.name) {
-            return goal;
-          }
-          
-          // Otherwise, try to find the employee by email and add the name
-          const employee = empData.employees.find((emp: any) => 
-            emp.email === goal.employee?.email
-          );
-          
-          if (employee) {
-            return {
-              ...goal,
-              employee: {
-                ...goal.employee,
-                name: employee.name
-              }
-            };
-          }
-          
-          return goal;
-        });
-        
-        setGoals(goalsWithEmployeeNames || []);
+        // Goals from unified API already include all related data
+        setGoals(goalData.goals || []);
       } catch (error) {
         console.error('Error fetching data:', error);
         setGoals([]);

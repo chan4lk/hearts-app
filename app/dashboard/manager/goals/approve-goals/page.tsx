@@ -81,24 +81,27 @@ export default function ApproveGoalsPage() {
       setIsLoading(true);
       setError(null);
 
-      // Build query params for admin viewing specific manager
-      const managerParam = (session?.user?.role === 'ADMIN' && selectedManager)
-        ? `?managerId=${selectedManager}`
-        : '';
+      // Build query params for pending approval view
+      const params = new URLSearchParams({
+        view: 'pending-approval'
+      });
+      if (session?.user?.role === 'ADMIN' && selectedManager) {
+        params.set('employeeId', selectedManager);
+      }
 
       console.log('🔍 Fetching goals with params:', {
         role: session?.user?.role,
         selectedManager,
-        managerParam,
-        url: `/api/goals/pending${managerParam}`
+        url: `/api/goals?${params.toString()}`
       });
 
-      // Fetch pending goals
-      const goalsResponse = await fetch(`/api/goals/pending${managerParam}`);
+      // Fetch pending goals using unified API
+      const goalsResponse = await fetch(`/api/goals?${params.toString()}`);
       if (!goalsResponse.ok) {
         throw new Error('Failed to fetch goals');
       }
-      const goalsData = await goalsResponse.json();
+      const responseData = await goalsResponse.json();
+      const goalsData = responseData.goals || [];
 
       console.log('✅ Received goals data:', {
         count: goalsData.length,
@@ -106,7 +109,10 @@ export default function ApproveGoalsPage() {
       });
 
       // Fetch ALL assigned employees (not just those with pending goals)
-      const employeesResponse = await fetch(`/api/employees/assigned${managerParam}`);
+      const employeeParams = (session?.user?.role === 'ADMIN' && selectedManager)
+        ? `?managerId=${selectedManager}`
+        : '';
+      const employeesResponse = await fetch(`/api/employees/assigned${employeeParams}`);
       if (!employeesResponse.ok) {
         throw new Error('Failed to fetch employees');
       }

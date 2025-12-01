@@ -25,11 +25,11 @@ export default function TrackProgressPage() {
 
   const fetchGoals = async () => {
     try {
-      const response = await fetch('/api/goals/employee?status=APPROVED');
+      const response = await fetch('/api/goals?view=my-goals&status=APPROVED');
       if (!response.ok) throw new Error('Failed to fetch goals');
-      
+
       const data = await response.json();
-      setGoals(data);
+      setGoals(data.goals || []);
     } catch (error) {
       console.error('Error fetching goals:', error);
     } finally {

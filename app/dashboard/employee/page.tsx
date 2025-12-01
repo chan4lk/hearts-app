@@ -122,44 +122,16 @@ export default function EmployeeDashboard() {
     setErrors({});
   };
 
-  // Reusable function to fetch and deduplicate goals
-  const fetchAndDeduplicateGoals = async () => {
-    const [assignedResponse, selfResponse] = await Promise.all([
-      fetch('/api/goals'),
-      fetch('/api/goals/self')
-    ]);
+  // Fetch goals from the unified API
+  const fetchGoals = async () => {
+    const response = await fetch('/api/goals?view=my-goals');
 
-    if (!assignedResponse.ok || !selfResponse.ok) {
+    if (!response.ok) {
       throw new Error('Failed to fetch goals');
     }
 
-    const [assignedData, selfData] = await Promise.all([
-      assignedResponse.json(),
-      selfResponse.json()
-    ]);
-
-    // Deduplicate goals based on their IDs
-    const uniqueGoals = new Map();
-    [...(assignedData.goals || []), ...(selfData.goals || [])].forEach(goal => {
-      if (!uniqueGoals.has(goal.id)) {
-        uniqueGoals.set(goal.id, goal);
-      }
-    });
-
-    // Only include goals where the employee is the current user
-    const userId = session?.user?.id;
-    const filteredGoals = Array.from(uniqueGoals.values()).filter(goal => {
-      // Some APIs return employee as object, some as employeeId
-      if (goal.employee && goal.employee.id) {
-        return goal.employee.id === userId;
-      }
-      if (goal.employeeId) {
-        return goal.employeeId === userId;
-      }
-      return false;
-    });
-
-    return filteredGoals;
+    const data = await response.json();
+    return data.goals || [];
   };
 
   // Handle form submit
@@ -198,8 +170,8 @@ export default function EmployeeDashboard() {
       setShowCreateGoalModal(false);
       resetForm();
 
-      // Refresh goals using the reusable function
-      const refreshedGoals = await fetchAndDeduplicateGoals();
+      // Refresh goals
+      const refreshedGoals = await fetchGoals();
       setGoals(refreshedGoals);
     } catch (error) {
       showToast.error('Error', error instanceof Error ? error.message : 'Failed to create goal');
@@ -264,7 +236,7 @@ export default function EmployeeDashboard() {
       resetForm();
 
       // Refresh goals
-      const refreshedGoals = await fetchAndDeduplicateGoals();
+      const refreshedGoals = await fetchGoals();
       setGoals(refreshedGoals);
     } catch (error) {
       showToast.error('Error', error instanceof Error ? error.message : 'Failed to update goal');
@@ -298,7 +270,7 @@ export default function EmployeeDashboard() {
       setGoalToDelete(null);
 
       // Refresh goals
-      const refreshedGoals = await fetchAndDeduplicateGoals();
+      const refreshedGoals = await fetchGoals();
       setGoals(refreshedGoals);
     } catch (error) {
       showToast.error('Error', error instanceof Error ? error.message : 'Failed to delete goal');
@@ -307,9 +279,9 @@ export default function EmployeeDashboard() {
 
   // Load goals from the database
   useEffect(() => {
-    const fetchGoals = async () => {
+    const loadGoals = async () => {
       try {
-        const goals = await fetchAndDeduplicateGoals();
+        const goals = await fetchGoals();
         setGoals(goals);
       } catch (error) {
         showToast.error('Goals Loading Error', error);
@@ -319,7 +291,7 @@ export default function EmployeeDashboard() {
     };
 
     if (session?.user?.id) {
-      fetchGoals();
+      loadGoals();
     }
   }, [session?.user?.id]);
 
@@ -392,8 +364,8 @@ export default function EmployeeDashboard() {
         throw new Error(error.error || 'Failed to submit goal');
       }
 
-      // Refresh goals using the reusable function
-      const refreshedGoals = await fetchAndDeduplicateGoals();
+      // Refresh goals
+      const refreshedGoals = await fetchGoals();
       setGoals(refreshedGoals);
       setShowDetailModal(false);
       showToast.goal.updated();
