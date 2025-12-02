@@ -11,6 +11,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Only managers and admins can submit manager ratings
+    if (session.user.role !== 'MANAGER' && session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const { ratings } = await req.json();
 
     // Validate ratings
@@ -18,9 +23,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid ratings data" }, { status: 400 });
     }
 
-    // Create ratings in a transaction
+    // Create ratings in a transaction using upsert (one rating per goal)
     const result = await prisma.$transaction(async (tx) => {
-      // First, get the employee IDs for each goal
+      // First, get the goals with employee info
       const goals = await tx.goal.findMany({
         where: {
           id: {
@@ -30,20 +35,36 @@ export async function POST(req: Request) {
         select: {
           id: true,
           employeeId: true,
+          employee: {
+            select: { managerId: true }
+          }
         },
       });
 
-      const createdRatings = await Promise.all(
+      const upsertedRatings = await Promise.all(
         ratings.map((rating) => {
           const goal = goals.find((g) => g.id === rating.goalId);
           if (!goal) throw new Error("Goal not found");
 
-          return tx.rating.create({
-            data: {
-              goalId: rating.goalId,
-              selfRatedById: goal.employeeId,
+          // Verify manager has permission (skip for admin)
+          if (session.user.role === 'MANAGER' && goal.employee.managerId !== session.user.id) {
+            throw new Error(`You can only rate goals of your direct reports`);
+          }
+
+          return tx.rating.upsert({
+            where: { goalId: rating.goalId },
+            update: {
+              managerScore: rating.score,
+              managerComments: rating.comments,
               managerRatedById: session.user.id,
-              score: rating.score,
+              managerRatedAt: new Date(),
+            },
+            create: {
+              goalId: rating.goalId,
+              managerScore: rating.score,
+              managerComments: rating.comments,
+              managerRatedById: session.user.id,
+              managerRatedAt: new Date(),
             },
           });
         })
@@ -57,12 +78,19 @@ export async function POST(req: Request) {
               userId: goal.employeeId,
               type: NotificationType.RATING_RECEIVED,
               message: "Your manager has rated your goals",
+              goalId: goal.id,
             },
           })
         )
       );
 
-      return createdRatings;
+      return upsertedRatings.map(r => ({
+        id: r.id,
+        goalId: r.goalId,
+        score: r.managerScore,
+        comments: r.managerComments,
+        managerRatedAt: r.managerRatedAt,
+      }));
     });
 
     return NextResponse.json(result);
@@ -73,4 +101,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-} 
+}

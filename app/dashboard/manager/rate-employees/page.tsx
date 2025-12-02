@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import LoadingComponent from '@/app/components/LoadingScreen';
 
-import { GoalWithRating, EmployeeStats } from "@/app/components/shared/types";
+import { GoalWithRatingExtended, EmployeeStats } from "@/app/components/shared/types";
 import HeroSection from "./components/HeroSection";
 import StatsSection from "./components/StatsSection";
 import EmployeeFilter from "./components/EmployeeFilter";
@@ -18,7 +18,7 @@ import GoalCard from "./components/GoalCard";
 export default function RateEmployeesPage() {
   const { data: session } = useSession();
   const router = useRouter();
-  const [goals, setGoals] = useState<GoalWithRating[]>([]);
+  const [goals, setGoals] = useState<GoalWithRatingExtended[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
@@ -43,9 +43,9 @@ export default function RateEmployeesPage() {
     setEmployeeStats(stats);
   }, [goals]);
 
-  const calculateEmployeeStats = (goals: GoalWithRating[]): EmployeeStats[] => {
+  const calculateEmployeeStats = (goals: GoalWithRatingExtended[]): EmployeeStats[] => {
     const statsMap = new Map<string, EmployeeStats>();
-    
+
     goals.forEach(goal => {
       const { employee } = goal;
       const currentStats = statsMap.get(employee.id) || {
@@ -57,11 +57,11 @@ export default function RateEmployeesPage() {
         approvedGoals: 0,
         rejectedGoals: 0,
         ratedGoals: 0,
-        isActive: true // Default to true since GoalWithRating doesn't include this info
+        isActive: true // Default to true since GoalWithRatingExtended doesn't include this info
       };
-      
+
       currentStats.totalGoals++;
-      if (goal.rating?.score) {
+      if (goal.rating?.managerScore ?? goal.rating?.score) {
         currentStats.ratedGoals++;
       }
       
@@ -139,32 +139,40 @@ export default function RateEmployeesPage() {
       const data = await response.json();
 
       // Update the goals state with the new rating
-      setGoals(prevGoals => 
-        prevGoals.map(goal => 
-          goal.id === goalId 
-            ? { 
-                ...goal, 
-                rating: { 
-                  id: data.id, 
-                  score: value,
-                  comments: data.comments || ''
-                } 
-              } 
+      setGoals(prevGoals =>
+        prevGoals.map(goal =>
+          goal.id === goalId
+            ? {
+                ...goal,
+                rating: {
+                  id: data.id,
+                  goalId: goalId,
+                  managerScore: value,
+                  score: value, // Keep for backward compatibility
+                  managerComments: data.managerComments || '',
+                  comments: data.managerComments || '',
+                  managerRatedAt: data.managerRatedAt,
+                  updatedAt: data.updatedAt
+                }
+              }
             : goal
         )
       );
 
       // Update employee stats
-      const stats = calculateEmployeeStats(goals.map(goal => 
-        goal.id === goalId 
-          ? { 
-              ...goal, 
-              rating: { 
-                id: data.id, 
+      const stats = calculateEmployeeStats(goals.map(goal =>
+        goal.id === goalId
+          ? {
+              ...goal,
+              rating: {
+                id: data.id,
+                goalId: goalId,
+                managerScore: value,
                 score: value,
-                comments: data.comments || ''
-              } 
-            } 
+                managerComments: data.managerComments || '',
+                comments: data.managerComments || ''
+              }
+            }
           : goal
       ));
       setEmployeeStats(stats);

@@ -105,20 +105,23 @@ export default function SelfRatingPage() {
       }
 
       const updatedRating = await response.json();
-      
-      setGoals(prevGoals => 
-        prevGoals.map(goal => 
-          goal.id === goalId 
-            ? { 
-                ...goal, 
-                rating: { 
-                  id: updatedRating.id, 
-                  score: value,
-                  comments: updatedRating.comments || '',
+
+      setGoals(prevGoals =>
+        prevGoals.map(goal =>
+          goal.id === goalId
+            ? {
+                ...goal,
+                rating: {
+                  id: updatedRating.id,
+                  selfScore: value,
+                  score: value, // Keep for backward compatibility
+                  selfComments: updatedRating.selfComments || updatedRating.comments || '',
+                  comments: updatedRating.selfComments || updatedRating.comments || '',
+                  selfRatedAt: updatedRating.selfRatedAt,
                   updatedAt: updatedRating.updatedAt,
                   goalId: goalId
-                } 
-              } 
+                }
+              }
             : goal
         )
       );

@@ -45,13 +45,17 @@ const goalInclude = {
   updatedBy: {
     select: { id: true, name: true, email: true }
   },
-  ratings: {
+  rating: {
     select: {
       id: true,
-      score: true,
-      comments: true,
+      selfScore: true,
+      selfComments: true,
       selfRatedById: true,
+      selfRatedAt: true,
+      managerScore: true,
+      managerComments: true,
       managerRatedById: true,
+      managerRatedAt: true,
       createdAt: true,
       updatedAt: true
     }
@@ -68,8 +72,11 @@ function calculateStats(goals: any[]) {
     draft: goals.filter(g => g.status === 'DRAFT').length,
     rejected: goals.filter(g => g.status === 'REJECTED').length,
     modified: goals.filter(g => g.status === 'MODIFIED').length,
-    rated: goals.filter(g => g.ratings && g.ratings.length > 0).length,
-    unrated: goals.filter(g => !g.ratings || g.ratings.length === 0).length
+    // A goal is rated if it has a rating record with either selfScore or managerScore
+    selfRated: goals.filter(g => g.rating?.selfScore != null).length,
+    managerRated: goals.filter(g => g.rating?.managerScore != null).length,
+    rated: goals.filter(g => g.rating?.selfScore != null || g.rating?.managerScore != null).length,
+    unrated: goals.filter(g => !g.rating || (g.rating.selfScore == null && g.rating.managerScore == null)).length
   };
 }
 

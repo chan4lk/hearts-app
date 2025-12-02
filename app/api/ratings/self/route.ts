@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid ratings data" }, { status: 400 });
     }
 
-    // Process each rating
+    // Process each rating using upsert (one rating per goal)
     const results = await Promise.all(
       ratings.map(async (rating) => {
         const { goalId, score, comments } = rating;
@@ -26,38 +26,35 @@ export async function POST(req: Request) {
         // Get the goal to check if it exists and get the manager ID
         const goal = await prisma.goal.findUnique({
           where: { id: goalId },
-          select: { managerId: true }
+          select: { managerId: true, employeeId: true }
         });
 
         if (!goal) {
           throw new Error(`Goal ${goalId} not found`);
         }
 
-        // Find existing rating
-        const existingRating = await prisma.rating.findFirst({
-          where: {
-            goalId,
+        // Verify the user is the employee of this goal
+        if (goal.employeeId !== session.user.id) {
+          throw new Error(`You can only self-rate your own goals`);
+        }
+
+        // Upsert rating - one rating per goal
+        const updatedRating = await prisma.rating.upsert({
+          where: { goalId },
+          update: {
+            selfScore: score,
+            selfComments: comments,
             selfRatedById: session.user.id,
+            selfRatedAt: new Date(),
+          },
+          create: {
+            goalId,
+            selfScore: score,
+            selfComments: comments,
+            selfRatedById: session.user.id,
+            selfRatedAt: new Date(),
           },
         });
-
-        // Create or update the rating
-        const updatedRating = existingRating 
-          ? await prisma.rating.update({
-              where: { id: existingRating.id },
-              data: {
-                score,
-                comments,
-              },
-            })
-          : await prisma.rating.create({
-              data: {
-                goalId,
-                selfRatedById: session.user.id,
-                score,
-                comments,
-              },
-            });
 
         // Create notification for manager
         if (goal.managerId) {
@@ -71,7 +68,13 @@ export async function POST(req: Request) {
           });
         }
 
-        return updatedRating;
+        return {
+          id: updatedRating.id,
+          goalId: updatedRating.goalId,
+          score: updatedRating.selfScore,
+          comments: updatedRating.selfComments,
+          selfRatedAt: updatedRating.selfRatedAt,
+        };
       })
     );
 
@@ -83,4 +86,4 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
-} 
+}

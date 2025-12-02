@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
             status: { not: 'DELETED' }
           },
           include: {
-            ratings: true
+            rating: true
           },
           orderBy: {
             createdAt: 'desc'
@@ -57,19 +57,16 @@ export async function POST(request: NextRequest) {
     const goalsData = user.goals.map(goal => ({
       title: goal.title,
       status: goal.status,
-      rating: goal.ratings.length > 0
-        ? goal.ratings.reduce((sum, r) => sum + r.score, 0) / goal.ratings.length
-        : undefined,
+      rating: goal.rating?.managerScore ?? goal.rating?.selfScore ?? undefined,
       category: goal.category
     }));
 
     // Calculate strengths and improvements based on performance
     const completedGoals = user.goals.filter(g => g.status === 'COMPLETED');
     const highRatedGoals = completedGoals.filter(g => {
-      const avgRating = g.ratings.length > 0
-        ? g.ratings.reduce((sum, r) => sum + r.score, 0) / g.ratings.length
-        : 0;
-      return avgRating >= 4;
+      // Use manager rating if available, otherwise self rating
+      const ratingScore = g.rating?.managerScore ?? g.rating?.selfScore ?? 0;
+      return ratingScore >= 4;
     });
 
     const strengths = highRatedGoals.length > 0
@@ -77,10 +74,8 @@ export async function POST(request: NextRequest) {
       : undefined;
 
     const lowRatedGoals = user.goals.filter(g => {
-      const avgRating = g.ratings.length > 0
-        ? g.ratings.reduce((sum, r) => sum + r.score, 0) / g.ratings.length
-        : 0;
-      return avgRating < 3 && avgRating > 0;
+      const ratingScore = g.rating?.managerScore ?? g.rating?.selfScore ?? 0;
+      return ratingScore < 3 && ratingScore > 0;
     });
 
     const improvements = lowRatedGoals.length > 0

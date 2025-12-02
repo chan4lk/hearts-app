@@ -46,15 +46,15 @@ export async function GET(req: Request) {
             email: true,
           },
         },
-        ratings: {
+        rating: {
           select: {
             id: true,
-            score: true,
-            comments: true,
+            selfScore: true,
+            selfComments: true,
+            selfRatedById: true,
+            managerScore: true,
+            managerComments: true,
             managerRatedById: true,
-          },
-          where: {
-            managerRatedById: session.user.id,
           },
         },
       },
@@ -72,7 +72,7 @@ export async function GET(req: Request) {
       status: goal.status,
       dueDate: goal.dueDate.toISOString(),
       employee: goal.employee,
-      rating: goal.ratings[0] || null,
+      rating: goal.rating || null,
       createdAt: goal.createdAt.toISOString(),
       updatedAt: goal.updatedAt.toISOString(),
     }));

@@ -19,19 +19,18 @@ export async function GET() {
         employeeId: session.user.id,
       },
       include: {
-        ratings: {
+        rating: {
           select: {
-            score: true,
-            comments: true,
+            id: true,
+            selfScore: true,
+            selfComments: true,
+            managerScore: true,
+            managerComments: true,
             selfRatedBy: {
-              select: {
-                name: true,
-              },
+              select: { id: true, name: true, email: true },
             },
             managerRatedBy: {
-              select: {
-                name: true,
-              },
+              select: { id: true, name: true, email: true },
             },
           },
         },

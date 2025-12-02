@@ -44,78 +44,70 @@ export async function POST(
       );
     }
 
-    if (goal.employee.managerId !== session.user.id) {
+    // Admin can rate any goal, Manager can only rate their direct reports' goals
+    if (session.user.role === 'MANAGER' && goal.employee.managerId !== session.user.id) {
       return NextResponse.json(
         { error: 'You can only rate goals of your direct reports' },
         { status: 403 }
       );
     }
 
-    if (goal.status !== 'APPROVED') {
+    if (goal.status !== 'APPROVED' && goal.status !== 'COMPLETED') {
       return NextResponse.json(
-        { error: 'Goal must be approved before rating' },
+        { error: 'Goal must be approved or completed before rating' },
         { status: 400 }
       );
     }
 
-    const existingRating = await prisma.rating.findFirst({
+    // Upsert rating - one rating per goal
+    const rating = await prisma.rating.upsert({
       where: {
         goalId: params.goalId,
-        managerRatedById: session.user.id,
       },
+      update: {
+        managerScore: score,
+        managerComments: comments,
+        managerRatedById: session.user.id,
+        managerRatedAt: new Date(),
+      },
+      create: {
+        goalId: params.goalId,
+        managerScore: score,
+        managerComments: comments,
+        managerRatedById: session.user.id,
+        managerRatedAt: new Date(),
+      },
+      include: {
+        selfRatedBy: {
+          select: { id: true, name: true, email: true }
+        },
+        managerRatedBy: {
+          select: { id: true, name: true, email: true }
+        }
+      }
     });
 
-    let rating;
-    if (existingRating) {
-      rating = await prisma.rating.update({
-        where: {
-          id: existingRating.id,
-        },
-        data: {
-          score,
-          comments,
-          managerRatedById: session.user.id,
-        },
-        include: {
-          managerRatedBy: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
-      });
-    } else {
-      rating = await prisma.rating.create({
-        data: {
-          goalId: params.goalId,
-          score,
-          comments,
-          selfRatedById: goal.employeeId,
-          managerRatedById: session.user.id,
-        },
-        include: {
-          managerRatedBy: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
-      });
-    }
-
-    return NextResponse.json(rating);
+    return NextResponse.json({
+      id: rating.id,
+      goalId: rating.goalId,
+      selfScore: rating.selfScore,
+      selfComments: rating.selfComments,
+      selfRatedBy: rating.selfRatedBy,
+      selfRatedAt: rating.selfRatedAt,
+      score: rating.managerScore,
+      comments: rating.managerComments,
+      managerRatedBy: rating.managerRatedBy,
+      managerRatedAt: rating.managerRatedAt,
+      updatedAt: rating.updatedAt,
+    });
   } catch (error) {
     console.error('Error submitting manager rating:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to submit rating',
         message: error instanceof Error ? error.message : 'Unknown error occurred'
       },
       { status: 500 }
     );
   }
-} 
+}

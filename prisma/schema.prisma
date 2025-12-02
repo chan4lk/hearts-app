@@ -71,7 +71,7 @@ model Goal {
   manager            User?           @relation("ManagerGoals", fields: [managerId], references: [id])
   updatedBy          User?           @relation("UpdatedGoals", fields: [updatedById], references: [id])
   notifications      Notification[]
-  ratings            Rating[]
+  rating             Rating?         // One-to-one: each goal has at most one rating record
 
   @@index([managerId])
   @@index([employeeId])
@@ -81,17 +81,27 @@ model Goal {
 }
 
 model Rating {
-  id               String   @id @default(cuid())
-  goalId           String
-  selfRatedById    String
-  managerRatedById String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  comments         String?
-  score            Int
-  goal             Goal     @relation(fields: [goalId], references: [id])
-  managerRatedBy   User?    @relation("ManagerRatings", fields: [managerRatedById], references: [id])
-  selfRatedBy      User     @relation("SelfRatings", fields: [selfRatedById], references: [id])
+  id               String    @id @default(cuid())
+  goalId           String    @unique // One rating per goal
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Self-rating fields (by employee)
+  selfScore        Int?      // Employee's self-rating score (1-5)
+  selfComments     String?   // Employee's comments
+  selfRatedById    String?   // Who gave the self-rating
+  selfRatedAt      DateTime? // When self-rating was submitted
+
+  // Manager-rating fields (by manager)
+  managerScore     Int?      // Manager's rating score (1-5)
+  managerComments  String?   // Manager's feedback/comments
+  managerRatedById String?   // Who gave the manager-rating
+  managerRatedAt   DateTime? // When manager-rating was submitted
+
+  // Relations
+  goal             Goal      @relation(fields: [goalId], references: [id])
+  selfRatedBy      User?     @relation("SelfRatings", fields: [selfRatedById], references: [id])
+  managerRatedBy   User?     @relation("ManagerRatings", fields: [managerRatedById], references: [id])
 
   @@index([goalId])
   @@index([selfRatedById])

@@ -374,7 +374,7 @@ export const PRIORITIES = [
   {
     value: 'LOW',
     label: 'Low',
-    icon: 'BsArrowDown',
+    icon: BsArrowDown,
     iconColor: 'text-gray-400',
     color: 'from-gray-400 to-gray-500',
     bgColor: 'bg-gray-500/10'
@@ -382,7 +382,7 @@ export const PRIORITIES = [
   {
     value: 'MEDIUM',
     label: 'Medium',
-    icon: 'BsDash',
+    icon: BsDash,
     iconColor: 'text-yellow-400',
     color: 'from-yellow-400 to-orange-500',
     bgColor: 'bg-yellow-500/10'
@@ -390,7 +390,7 @@ export const PRIORITIES = [
   {
     value: 'HIGH',
     label: 'High',
-    icon: 'BsArrowUp',
+    icon: BsArrowUp,
     iconColor: 'text-orange-400',
     color: 'from-orange-400 to-red-500',
     bgColor: 'bg-orange-500/10'
@@ -398,12 +398,12 @@ export const PRIORITIES = [
   {
     value: 'URGENT',
     label: 'Urgent',
-    icon: 'BsExclamationTriangle',
+    icon: BsExclamationTriangle,
     iconColor: 'text-red-400',
     color: 'from-red-400 to-red-600',
     bgColor: 'bg-red-500/10'
   }
-] as const; 
+] as const;
 
 
 

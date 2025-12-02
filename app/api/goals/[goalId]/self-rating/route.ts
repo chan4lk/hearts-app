@@ -32,42 +32,52 @@ export async function POST(
       return NextResponse.json({ error: 'Goal not found' }, { status: 404 });
     }
 
-    // Check if the user is either the employee or the manager of this goal
-    if (goal.employeeId !== session.user.id && goal.managerId !== session.user.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    // Only the employee of this goal can submit self-rating
+    if (goal.employeeId !== session.user.id) {
+      return NextResponse.json({ error: 'Only the goal owner can submit self-rating' }, { status: 403 });
     }
 
-    const existingRating = await prisma.rating.findFirst({
+    // Upsert rating - one rating per goal
+    const rating = await prisma.rating.upsert({
       where: {
         goalId: params.goalId,
-        selfRatedById: session.user.id,
       },
-    });
-
-    if (existingRating) {
-      const updatedRating = await prisma.rating.update({
-        where: {
-          id: existingRating.id,
-        },
-        data: {
-          score,
-          comments,
-        },
-      });
-
-      return NextResponse.json(updatedRating);
-    }
-
-    const newRating = await prisma.rating.create({
-      data: {
+      update: {
+        selfScore: score,
+        selfComments: comments,
+        selfRatedById: session.user.id,
+        selfRatedAt: new Date(),
+      },
+      create: {
         goalId: params.goalId,
-        score,
-        comments,
+        selfScore: score,
+        selfComments: comments,
         selfRatedById: session.user.id,
+        selfRatedAt: new Date(),
       },
+      include: {
+        selfRatedBy: {
+          select: { id: true, name: true, email: true }
+        },
+        managerRatedBy: {
+          select: { id: true, name: true, email: true }
+        }
+      }
     });
 
-    return NextResponse.json(newRating);
+    return NextResponse.json({
+      id: rating.id,
+      goalId: rating.goalId,
+      score: rating.selfScore,
+      comments: rating.selfComments,
+      selfRatedBy: rating.selfRatedBy,
+      selfRatedAt: rating.selfRatedAt,
+      managerScore: rating.managerScore,
+      managerComments: rating.managerComments,
+      managerRatedBy: rating.managerRatedBy,
+      managerRatedAt: rating.managerRatedAt,
+      updatedAt: rating.updatedAt,
+    });
   } catch (error) {
     console.error('Error submitting self rating:', error);
     return NextResponse.json(
@@ -75,4 +85,4 @@ export async function POST(
       { status: 500 }
     );
   }
-} 
+}

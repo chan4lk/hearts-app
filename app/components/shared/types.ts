@@ -118,10 +118,22 @@ export interface DashboardStats {
 
 export interface Rating {
   id: string;
-  score: number;
-  comments: string;
-  updatedAt?: Date;
   goalId: string;
+  // Self rating
+  selfScore?: number | null;
+  selfComments?: string | null;
+  selfRatedById?: string | null;
+  selfRatedAt?: Date | string | null;
+  // Manager rating
+  managerScore?: number | null;
+  managerComments?: string | null;
+  managerRatedById?: string | null;
+  managerRatedAt?: Date | string | null;
+  // Legacy compatibility (mapped from selfScore)
+  score?: number;
+  comments?: string;
+  updatedAt?: Date | string;
+  createdAt?: Date | string;
 }
 export interface GoalWithRating {
   id: string;
@@ -131,11 +143,7 @@ export interface GoalWithRating {
   dueDate: string;
   createdAt: string;
   category: string;
-  rating?: {
-    id: string;
-    score: number;
-    comments?: string;
-  };
+  rating?: Rating | null;
 }
 
 
@@ -214,7 +222,7 @@ export interface Filters {
   manager: string;
   status: string;
 }
-export interface GoalWithRating {
+export interface GoalWithRatingExtended {
   id: string;
   title: string;
   description: string;
@@ -234,11 +242,7 @@ export interface GoalWithRating {
   deletedById?: string | null;
   updatedById?: string | null;
   status: string;
-  rating?: {
-    id: string;
-    score: number;
-    comments?: string;
-  };
+  rating?: Rating | null;
   employee: {
     id: string;
     name: string;
