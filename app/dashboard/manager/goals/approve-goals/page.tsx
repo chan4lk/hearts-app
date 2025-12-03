@@ -10,7 +10,7 @@ import { Goal, EmployeeStats } from '@/app/components/shared/types';
 import HeroSection from './components/HeroSection';
 import StatsSection from './components/StatsSection';
 import EmployeeFilter from './components/EmployeeFilter';
-import GoalCard from '@/app/components/shared/GoalCard';
+import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import LoadingComponent from '@/app/components/LoadingScreen';
 
@@ -302,38 +302,13 @@ export default function ApproveGoalsPage() {
                 />
               </div>
 
-              {/* Goals Grid or Empty State */}
-              {filteredGoals.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredGoals.map(goal => (
-                    <GoalCard
-                      key={goal.id}
-                      goal={goal}
-                      onClick={() => setSelectedGoalDetails(goal)}
-                      showActions={false}
-                      showEmployee={true}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-8 border border-white/20 dark:border-gray-700/50 text-center">
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="p-4 bg-green-100 dark:bg-green-900/30 rounded-full">
-                      <svg className="w-12 h-12 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No Pending Goals</h3>
-                      <p className="text-gray-600 dark:text-gray-400">
-                        {session?.user?.role === 'ADMIN'
-                          ? "This manager's employees don't have any pending goals to approve."
-                          : "Your employees don't have any pending goals to approve at the moment."}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
+              {/* Goals Table */}
+              <GoalsTable
+                goals={filteredGoals}
+                onGoalClick={(goal) => setSelectedGoalDetails(goal)}
+                showEmployee={true}
+                showManager={true}
+              />
             </>
           )}
 

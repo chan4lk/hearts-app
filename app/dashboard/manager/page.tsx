@@ -6,7 +6,7 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { useSession } from 'next-auth/react';
 import StatsDisplay from './components/StatsDisplay';
 import Filters from './components/Filters';
-import GoalsGrid from './components/GoalsGrid';
+import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import LoadingComponent from '@/app/components/LoadingScreen';
 import AIPerformanceInsights from '@/app/components/ai/AIPerformanceInsights';
@@ -200,8 +200,13 @@ export default function ManagerDashboard() {
             </motion.div>
           )}
 
-          {/* Goals Grid */}
-          <GoalsGrid goals={filteredGoals} onGoalClick={handleGoalClick} employees={employees} />
+          {/* Goals Table */}
+          <GoalsTable
+            goals={filteredGoals}
+            onGoalClick={handleGoalClick}
+            showEmployee={true}
+            showManager={true}
+          />
         </div>
 
         {/* Goal Details Modal */}

@@ -3,7 +3,7 @@ import React from 'react';
 import { BsBriefcase } from 'react-icons/bs';
 import { Goal, User } from '@/app/components/shared/types';
 import { EmployeeFilter } from './EmployeeFilter';
-import GoalCard from '@/app/components/shared/GoalCard';
+import GoalsTable from '@/app/components/shared/GoalsTable';
 
 interface GoalListProps {
   goals: Goal[];
@@ -16,16 +16,6 @@ interface GoalListProps {
   onRefresh?: () => void;
   refreshing?: boolean;
 }
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05
-    }
-  }
-};
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -90,35 +80,14 @@ export function GoalList({
           </div>
         </div>
 
-        {filteredGoals.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 mb-4 shadow-inner">
-              <BsBriefcase className="w-8 h-8 text-indigo-300" />
-            </div>
-            <h3 className="text-lg font-semibold text-white mb-2">No goals found</h3>
-            <p className="text-base text-white/70">
-              {selectedEmployee !== 'all'
-                ? "This employee has no assigned goals"
-                : "Create your first goal to get started"}
-            </p>
-          </div>
-        ) : (
-          <motion.div
-            variants={containerVariants}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4"
-          >
-            {filteredGoals.map((goal) => (
-              <div key={goal.id}>
-                <GoalCard
-                  goal={goal}
-                  onClick={() => onViewGoal(goal)}
-                  showActions={false}
-                  showEmployee={true}
-                />
-              </div>
-            ))}
-          </motion.div>
-        )}
+        <div className="p-4">
+          <GoalsTable
+            goals={filteredGoals}
+            onGoalClick={onViewGoal}
+            showEmployee={true}
+            showManager={true}
+          />
+        </div>
       </div>
     </motion.div>
   );

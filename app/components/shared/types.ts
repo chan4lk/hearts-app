@@ -31,9 +31,11 @@ export interface User {
   lastLogin?: string;
 }
 
+export type ProgressStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'ON_HOLD' | 'BLOCKED' | 'COMPLETED';
+
 export interface Goal {
   id: string;
-  
+
   title: string;
   description: string;
   status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'DRAFT'| 'DELETED';
@@ -44,6 +46,9 @@ export interface Goal {
   createdAt: string;
   updatedAt: string;
   progress?: number;
+  progressStatus?: ProgressStatus;
+  progressNotes?: string | null;
+  lastProgressUpdate?: string | null;
   employeeId: string;
   managerId: string;
   isApprovalProcess: boolean;

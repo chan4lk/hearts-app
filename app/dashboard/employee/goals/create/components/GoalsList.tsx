@@ -3,7 +3,7 @@ import { BsListTask, BsFilter, BsArrowRepeat } from 'react-icons/bs';
 import { Goal } from '@/app/components/shared/types';
 import { CATEGORIES } from '@/app/components/shared/constants';
 import { useSession } from 'next-auth/react';
-import GoalCard from '@/app/components/shared/GoalCard';
+import GoalsTable from '@/app/components/shared/GoalsTable';
 
 const STATUSES = [
   { value: 'all', label: 'All Goals' },
@@ -24,16 +24,6 @@ interface GoalsListProps {
   onRefresh: () => void;
   refreshing?: boolean; // Add refreshing prop
 }
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05
-    }
-  }
-};
 
 const itemVariants = {
   hidden: { opacity: 0, x: -20 },
@@ -126,31 +116,14 @@ export const GoalsList = ({
           </div>
         </div>
 
-        {goals.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 mb-4 shadow-inner">
-              <BsListTask className="w-8 h-8 text-indigo-300" />
-            </div>
-            <h3 className="text-lg font-semibold text-white mb-2">No goals created yet</h3>
-            <p className="text-base text-white/70">Start creating and tracking your goals</p>
-          </div>
-        ) : (
-          <motion.div 
-            variants={containerVariants}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4"
-          >
-            {filteredGoals.map(goal => (
-              <div key={goal.id}>
-                <GoalCard
-                  goal={goal}
-                  onClick={() => onViewGoal(goal)}
-                  showActions={false}
-                  showEmployee={false}
-                />
-              </div>
-            ))}
-          </motion.div>
-        )}
+        <div className="p-4">
+          <GoalsTable
+            goals={filteredGoals}
+            selectedStatus={selectedStatus === 'all' ? '' : selectedStatus}
+            onStatusChange={(status) => setSelectedStatus(status === '' ? 'all' : status)}
+            onGoalClick={onViewGoal}
+          />
+        </div>
       </div>
     </motion.div>
   );

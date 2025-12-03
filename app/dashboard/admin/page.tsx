@@ -37,6 +37,16 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import LoadingComponent from '@/app/components/LoadingScreen';
 import { Role } from '@prisma/client';
+import GoalsTable from '@/app/components/shared/GoalsTable';
+import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
+import { Goal, User as UserType } from '@/app/components/shared/types';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem
+} from '@/app/components/ui/select';
 
 interface DashboardStats {
   totalUsers: number;
@@ -87,6 +97,12 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState('overview');
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [users, setUsers] = useState<UserType[]>([]);
+  const [selectedUser, setSelectedUser] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
+  const [goalsLoading, setGoalsLoading] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -108,23 +124,25 @@ export default function AdminDashboard() {
 
     const fetchDashboardData = async () => {
       try {
-        const [statsRes, activitiesRes] = await Promise.all([
+        const [statsRes, activitiesRes, usersRes] = await Promise.all([
           fetch('/api/admin/stats'),
           fetch('/api/admin/activities'),
+          fetch('/api/users'),
         ]);
 
         if (!statsRes.ok || !activitiesRes.ok ) {
           throw new Error('Failed to fetch dashboard data');
         }
 
-        const [statsData, activitiesData] = await Promise.all([
+        const [statsData, activitiesData, usersData] = await Promise.all([
           statsRes.json(),
           activitiesRes.json(),
-      
+          usersRes.ok ? usersRes.json() : { users: [] },
         ]);
 
         setStats(statsData);
         setActivities(activitiesData);
+        setUsers(usersData.users || []);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -133,7 +151,28 @@ export default function AdminDashboard() {
     };
 
     fetchDashboardData();
+    fetchAllGoals();
   }, [session, router]);
+
+  const fetchAllGoals = async () => {
+    try {
+      setGoalsLoading(true);
+      const response = await fetch('/api/goals');
+      if (!response.ok) throw new Error('Failed to fetch goals');
+      const data = await response.json();
+      setGoals(data.goals || []);
+    } catch (error) {
+      console.error('Error fetching goals:', error);
+    } finally {
+      setGoalsLoading(false);
+    }
+  };
+
+  const filteredGoals = goals.filter(goal => {
+    const matchesUser = selectedUser === 'all' || goal.employee?.id === selectedUser;
+    const matchesStatus = selectedStatus === 'all' || goal.status === selectedStatus;
+    return matchesUser && matchesStatus;
+  });
 
   if (isLoading) {
     return <LoadingComponent />;
@@ -404,6 +443,100 @@ export default function AdminDashboard() {
 
           
 
+          {/* All Users Goals Section */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl shadow-2xl"
+          >
+            <div className="p-6 border-b border-white/10">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <BsBullseye className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">All Users Goals</h2>
+                    <p className="text-sm text-gray-400">View and manage goals across all users</p>
+                  </div>
+                </div>
+                <Link
+                  href="/dashboard/admin/all-goals"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  View All Goals
+                  <BsChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+              
+              {/* Filters */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1">
+                  <Select value={selectedUser} onValueChange={setSelectedUser}>
+                    <SelectTrigger className="w-full bg-gray-800/50 border-white/10 text-white">
+                      <SelectValue placeholder="Filter by User">
+                        {selectedUser === 'all' ? 'All Users' : users.find(u => u.id === selectedUser)?.name || 'Select User'}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-white/10">
+                      <SelectItem value="all" className="text-white focus:bg-gray-700">
+                        <div className="flex items-center gap-2">
+                          <BsPeople className="w-4 h-4" />
+                          <span>All Users</span>
+                        </div>
+                      </SelectItem>
+                      {users.filter(u => u.role !== 'ADMIN').map((user) => (
+                        <SelectItem key={user.id} value={user.id} className="text-white focus:bg-gray-700">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xs text-white">
+                              {user.name.charAt(0)}
+                            </div>
+                            <span>{user.name}</span>
+                            <span className="text-xs text-gray-400">({user.role})</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="sm:w-48">
+                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                    <SelectTrigger className="w-full bg-gray-800/50 border-white/10 text-white">
+                      <SelectValue placeholder="Filter by Status">
+                        {selectedStatus === 'all' ? 'All Statuses' : selectedStatus}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-white/10">
+                      <SelectItem value="all" className="text-white focus:bg-gray-700">All Statuses</SelectItem>
+                      <SelectItem value="PENDING" className="text-white focus:bg-gray-700">Pending</SelectItem>
+                      <SelectItem value="APPROVED" className="text-white focus:bg-gray-700">Approved</SelectItem>
+                      <SelectItem value="REJECTED" className="text-white focus:bg-gray-700">Rejected</SelectItem>
+                      <SelectItem value="COMPLETED" className="text-white focus:bg-gray-700">Completed</SelectItem>
+                      <SelectItem value="DRAFT" className="text-white focus:bg-gray-700">Draft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              {goalsLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-gray-400">Loading goals...</div>
+                </div>
+              ) : (
+                <GoalsTable
+                  goals={filteredGoals}
+                  selectedStatus={selectedStatus === 'all' ? '' : selectedStatus}
+                  onStatusChange={(status) => setSelectedStatus(status === '' ? 'all' : status)}
+                  onGoalClick={(goal) => setSelectedGoal(goal)}
+                  showEmployee={true}
+                  showManager={true}
+                />
+              )}
+            </div>
+          </motion.div>
+
           {/* Recent Activity */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -446,6 +579,14 @@ export default function AdminDashboard() {
           </motion.div>
         </div>
       </div>
+
+      {/* Goal Detail Modal */}
+      {selectedGoal && (
+        <GoalDetailModal
+          goal={selectedGoal}
+          onClose={() => setSelectedGoal(null)}
+        />
+      )}
     </DashboardLayout>
   );
 }

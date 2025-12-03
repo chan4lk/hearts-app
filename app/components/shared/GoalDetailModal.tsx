@@ -1,14 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, BsArrowRight, BsChevronDown, BsChevronUp, BsPencil, BsTrash, BsPerson, BsGear, BsFlag, BsBuilding, BsPlayCircle } from 'react-icons/bs';
+import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, BsArrowRight, BsChevronDown, BsChevronUp, BsPencil, BsTrash, BsPerson, BsGear, BsFlag, BsBuilding, BsPlayCircle, BsPauseCircle, BsCircle } from 'react-icons/bs';
 import { Goal } from '@/app/components/shared/types';
 import { IconType } from 'react-icons';
 import { showToast } from '@/app/utils/toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
-import { Progress } from '@/app/components/ui/progress';
 import AIGoalRiskAnalysis from '@/app/components/ai/AIGoalRiskAnalysis';
-import GoalProgressTracker from '@/app/components/goals/GoalProgressTracker';
 import GoalActivityTimeline from '@/app/components/goals/GoalActivityTimeline';
 import { useSession } from 'next-auth/react';
 
@@ -26,6 +24,7 @@ type StatusConfig = {
   icon: IconType;
   label: string;
 };
+
 
 const getPriorityConfig = (priority: string) => {
   const configs: Record<string, { color: string; bg: string; icon: IconType; label: string }> = {
@@ -57,7 +56,6 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
   const [shouldShowExpandButton, setShouldShowExpandButton] = useState(false);
   const [expandedHeight, setExpandedHeight] = useState<number>(0);
   const [activities, setActivities] = useState<any[]>([]);
-  const [currentProgress, setCurrentProgress] = useState(goal.progress || 0);
   const [showApprovalForm, setShowApprovalForm] = useState(false);
   const [approvalComments, setApprovalComments] = useState('');
   const [isApproving, setIsApproving] = useState(false);
@@ -126,43 +124,6 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
     }
   }, [goal.id]);
 
-  // Handle progress update
-  const handleProgressUpdate = async (progress: number, status: string, notes?: string) => {
-    try {
-      console.log('📡 Sending progress update to API:', { goalId: goal.id, progress, notes });
-
-      const response = await fetch(`/api/goals/${goal.id}/progress`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ progress, notes }),
-      });
-
-      console.log('📡 API Response status:', response.status);
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ API Error:', errorData);
-        throw new Error(errorData.message || 'Failed to update progress');
-      }
-
-      const updatedGoal = await response.json();
-      console.log('✅ Progress updated successfully:', updatedGoal);
-
-      setCurrentProgress(updatedGoal.progress);
-
-      // Refresh activities
-      const activityResponse = await fetch(`/api/goals/${goal.id}/activity`);
-      const activityData = await activityResponse.json();
-      if (activityData.success) {
-        setActivities(activityData.activities);
-      }
-
-      // Don't show toast here - let the GoalProgressTracker component handle it
-    } catch (error) {
-      console.error('❌ Failed to update progress:', error);
-      throw error;
-    }
-  };
 
   const getStatusConfig = (status: string): StatusConfig => {
     const configs: Record<string, StatusConfig> = {
@@ -517,27 +478,6 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
             <AIGoalRiskAnalysis goalId={goal.id} />
           </motion.div>
 
-          {/* Progress Tracking Section - Only for APPROVED goals */}
-          {goal.status === 'APPROVED' && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-gradient-to-br from-blue-900/20 via-indigo-900/20 to-purple-900/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-blue-500/20"
-            >
-              <h4 className="text-xs sm:text-sm font-semibold text-white mb-3 flex items-center gap-2">
-                <BsPlayCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400" />
-                Progress Tracking
-              </h4>
-              <GoalProgressTracker
-                goalId={goal.id}
-                currentProgress={currentProgress}
-                currentStatus={goal.status}
-                onProgressUpdate={handleProgressUpdate}
-                isEmployee={session?.user?.id === goal.employeeId}
-              />
-            </motion.div>
-          )}
 
           {/* Activity Timeline Section */}
           <motion.div

@@ -13,7 +13,8 @@ import { GoalWithRatingExtended, EmployeeStats } from "@/app/components/shared/t
 import HeroSection from "./components/HeroSection";
 import StatsSection from "./components/StatsSection";
 import EmployeeFilter from "./components/EmployeeFilter";
-import GoalCard from "./components/GoalCard";
+import GoalsTable from '@/app/components/shared/GoalsTable';
+import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 
 export default function RateEmployeesPage() {
   const { data: session } = useSession();
@@ -21,10 +22,10 @@ export default function RateEmployeesPage() {
   const [goals, setGoals] = useState<GoalWithRatingExtended[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [filterEmployee, setFilterEmployee] = useState<string>('all');
   const [filterRating, setFilterRating] = useState<string>('all');
   const [employeeStats, setEmployeeStats] = useState<EmployeeStats[]>([]);
+  const [selectedGoal, setSelectedGoal] = useState<GoalWithRatingExtended | null>(null);
 
   useEffect(() => {
     if (!session) {
@@ -209,46 +210,28 @@ export default function RateEmployeesPage() {
 
         <div className="relative z-10 p-6 space-y-8">
           <HeroSection />
-          <StatsSection goals={goals} viewMode={viewMode} setViewMode={setViewMode} />
+          <StatsSection goals={goals} viewMode={'list'} setViewMode={() => {}} />
           <EmployeeFilter 
             filterEmployee={filterEmployee} 
             setFilterEmployee={setFilterEmployee} 
             employeeStats={employeeStats} 
           />
 
-          {/* Goals Grid */}
-          <motion.div 
-            layout
-            className={`grid gap-6 ${
-              viewMode === 'grid' 
-                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
-                : 'grid-cols-1'
-            }`}
-          >
-            {filteredGoals.length === 0 ? (
-              <div className="col-span-full bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-8 text-center border border-white/20 dark:border-gray-700/30">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-violet-500/10 mb-4">
-                  <BsPersonLinesFill className="w-6 h-6 text-violet-500" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Goals Found</h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  {filterEmployee !== 'all' 
-                    ? "This employee has no goals to rate at the moment."
-                    : "There are no goals to rate at the moment."}
-                </p>
-              </div>
-            ) : (
-              filteredGoals.map((goal) => (
-                <GoalCard
-                  key={goal.id}
-                  goal={goal}
-                  submitting={submitting}
-                  onRatingChange={handleRatingChange}
-                  viewMode={viewMode}
-                />
-              ))
-            )}
-          </motion.div>
+          {/* Goals Table */}
+          <GoalsTable
+            goals={filteredGoals}
+            onGoalClick={(goal) => setSelectedGoal(goal as GoalWithRatingExtended)}
+            showEmployee={true}
+            showManager={true}
+          />
+
+          {/* Goal Detail Modal */}
+          {selectedGoal && (
+            <GoalDetailModal
+              goal={selectedGoal}
+              onClose={() => setSelectedGoal(null)}
+            />
+          )}
         </div>
       </div>
     </DashboardLayout>

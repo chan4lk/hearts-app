@@ -62,6 +62,7 @@ model Goal {
   updatedById        String?
   lastProgressUpdate DateTime?
   progress           Float           @default(0)
+  progressStatus     ProgressStatus  @default(NOT_STARTED)
   progressNotes      String?
   department         String          @default("ENGINEERING")
   priority           String          @default("MEDIUM")
@@ -159,4 +160,10 @@ enum GoalCategory {
   KPI
 }
 
-
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  ON_HOLD
+  BLOCKED
+  COMPLETED
+}

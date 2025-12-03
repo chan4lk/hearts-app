@@ -1,7 +1,7 @@
-import { BsListUl, BsSearch, BsFilter, BsShield, BsStars, BsFlag, BsPlus, BsPencil, BsTrash } from 'react-icons/bs';
+import { BsListUl, BsShield, BsStars, BsPlus } from 'react-icons/bs';
 import { useRouter } from 'next/navigation';
 import { Goal } from '@/app/components/shared/types';
-import GoalCard from '@/app/components/shared/GoalCard';
+import GoalsTable from '@/app/components/shared/GoalsTable';
 import { useState } from 'react';
 
 interface GoalsSectionProps {
@@ -18,14 +18,6 @@ interface GoalsSectionProps {
 
 type ViewType = 'assigned' | 'created';
 
-const STATUS_OPTIONS = [
-  { value: '', label: 'All Statuses' },
-  { value: 'PENDING', label: 'Pending' },
-  { value: 'APPROVED', label: 'Approved' },
-  { value: 'REJECTED', label: 'Rejected' },
-  { value: 'MODIFIED', label: 'Modified' },
-  { value: 'COMPLETED', label: 'Completed' }
-];
 
 export default function GoalsSection({
   goals,
@@ -113,94 +105,21 @@ export default function GoalsSection({
             </div>
           </div>
           
-          {/* Search and Filter Section */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative group flex-1">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <BsSearch className="w-4 h-4 text-gray-400 group-hover:text-indigo-400 transition-colors" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search goals..."
-                value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-800 text-white/90 text-sm rounded-lg border border-white/10 
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent 
-                         hover:bg-white/10 transition-colors placeholder-gray-400"
-              />
-            </div>
-
-            <div className="relative group sm:w-48">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <BsFilter className="w-4 h-4 text-gray-400 group-hover:text-indigo-400 transition-colors" />
-              </div>
-              <select
-                value={selectedStatus}
-                onChange={(e) => onStatusChange(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-800 text-white/90 text-sm rounded-lg 
-                         border border-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 
-                         hover:bg-white/10 transition-colors appearance-none cursor-pointer"
-              >
-                {STATUS_OPTIONS.map(option => (
-                  <option key={option.value} value={option.value} className="bg-gray-800">
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
         </div>
 
-        {/* Goals Grid Container with Template Look */}
-        <div className="relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl shadow-xl border border-white/10 p-4 mt-6">
-          {/* Decorative Background Elements */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-            <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-indigo-500/5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
-            <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-purple-500/5 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
-          </div>
-          <div className="relative z-10">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 min-h-[200px]">
-              {filteredGoals.length > 0 ? (
-                filteredGoals.map((goal) => (
-                  <div key={goal.id} className="relative group">
-                    <GoalCard
-                      goal={goal}
-                      onClick={() => onGoalClick(goal)}
-                      onEdit={activeView === 'created' ? onEditGoal : undefined}
-                      onDelete={activeView === 'created' ? onDeleteGoal : undefined}
-                      showActions={activeView === 'created'}
-                    />
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-full flex flex-col items-center justify-center min-h-[200px]">
-                  <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 text-center border border-white/10 flex flex-col items-center justify-center min-h-[220px] h-full">
-                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white/5 mb-3">
-                      <BsFlag className="w-6 h-6 text-gray-400" />
-                    </div>
-                    <h3 className="text-base font-medium text-white/90 mb-2">
-                      {activeView === 'assigned' ? 'No Assigned Goals' : 'No Self-Created Goals'}
-                    </h3>
-                    <p className="text-sm text-gray-400 mb-4">
-                      {activeView === 'assigned' 
-                        ? "You don't have any goals assigned by your manager yet."
-                        : "You haven't self created any goals yet."}
-                    </p>
-                    {activeView === 'created' && (
-                      <button
-                        onClick={() => router.push('/dashboard/employee/goals/create')}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white text-sm rounded-lg 
-                                 hover:bg-indigo-400 transition-all group active:scale-[0.98]"
-                      >
-                        <BsPlus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-                        <span>Create Your First Goal</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+        {/* Goals Table */}
+        <div className="mt-6">
+          <GoalsTable
+            goals={filteredGoals}
+            searchQuery={searchQuery}
+            selectedStatus={selectedStatus}
+            onSearchChange={onSearchChange}
+            onStatusChange={onStatusChange}
+            onGoalClick={onGoalClick}
+            onEdit={activeView === 'created' ? onEditGoal : undefined}
+            onDelete={activeView === 'created' ? onDeleteGoal : undefined}
+            showActions={activeView === 'created'}
+          />
         </div>
       </div>
     </div>

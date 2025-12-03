@@ -12,7 +12,8 @@ import { BackgroundElements } from "./components/BackgroundElements";
 import { HeroSection } from "./components/HeroSection";
 import { StatsSection } from "./components/StatsSection";
 import { FiltersSection } from "./components/FiltersSection";
-import { GoalCard } from "./components/GoalCard";
+import GoalsTable from '@/app/components/shared/GoalsTable';
+import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { GoalWithRating, ViewMode, FilterStatus, RatingStatus, FilterRating } from "@/app/components/shared/types";
 
 export default function SelfRatingPage() {
@@ -22,9 +23,9 @@ export default function SelfRatingPage() {
   const [goals, setGoals] = useState<GoalWithRating[]>([]);
   const [submitting, setSubmitting] = useState<Record<string, boolean>>({});
   const [ratingComments, setRatingComments] = useState<Record<string, string>>({});
+  const [selectedGoal, setSelectedGoal] = useState<GoalWithRating | null>(null);
   
   // Initialize with type-safe values
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [filterRating, setFilterRating] = useState<FilterRating>('all');
   const [ratingStatus, setRatingStatus] = useState<RatingStatus>('all');
@@ -191,8 +192,8 @@ export default function SelfRatingPage() {
           <StatsSection stats={stats} />
 
           <FiltersSection
-            viewMode={viewMode}
-            setViewMode={setViewMode}
+            viewMode={'list'}
+            setViewMode={() => {}}
             filterStatus={filterStatus}
             setFilterStatus={setFilterStatus}
             filterRating={filterRating}
@@ -201,31 +202,21 @@ export default function SelfRatingPage() {
             setRatingStatus={setRatingStatus}
           />
 
-          {/* Goals Grid */}
-          <motion.div 
-            layout
-            className={`grid gap-6 ${
-              viewMode === 'grid' 
-                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
-                : 'grid-cols-1'
-            }`}
-          >
-            {filteredGoals.length === 0 ? (
-              <div className="col-span-full bg-white dark:bg-gray-800 rounded-xl p-8 text-center">
-                <p className="text-gray-500 dark:text-gray-400">No goals match the selected filters.</p>
-              </div>
-            ) : (
-              filteredGoals.map((goal) => (
-                <GoalCard
-                  key={goal.id}
-                  goal={goal}
-                  submitting={submitting}
-                  handleSelfRating={handleSelfRating}
-                  viewMode={viewMode}
-                />
-              ))
-            )}
-          </motion.div>
+          {/* Goals Table */}
+          <GoalsTable
+            goals={filteredGoals}
+            selectedStatus={filterStatus === 'all' ? '' : filterStatus}
+            onStatusChange={(status) => setFilterStatus(status === '' ? 'all' : status as FilterStatus)}
+            onGoalClick={(goal) => setSelectedGoal(goal as GoalWithRating)}
+          />
+
+          {/* Goal Detail Modal with Rating */}
+          {selectedGoal && (
+            <GoalDetailModal
+              goal={selectedGoal}
+              onClose={() => setSelectedGoal(null)}
+            />
+          )}
         </div>
       </div>
     </DashboardLayout>

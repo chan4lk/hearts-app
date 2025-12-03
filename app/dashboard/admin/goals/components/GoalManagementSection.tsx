@@ -12,22 +12,8 @@ import {
   SelectContent,
   SelectItem
 } from '@/app/components/ui/select';
-import GoalCard from '@/app/components/shared/GoalCard';
+import GoalsTable from '@/app/components/shared/GoalsTable';
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05
-    }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
 
 interface GoalManagementSectionProps {
   goals: Goal[];
@@ -171,29 +157,18 @@ export function GoalManagementSection({
         </div>
       </div>
 
-      {/* Goals Grid */}
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-      >
-        {goals.map(goal => (
-          <motion.div
-            key={goal.id}
-            variants={itemVariants}
-          >
-            <GoalCard
-              goal={goal}
-              onClick={() => onView(goal)}
-              onEdit={(goal) => onEdit(goal)}
-              onDelete={(goal) => onDelete(goal.id)}
-              showActions={true}
-              showEmployee={true}
-            />
-          </motion.div>
-        ))}
-      </motion.div>
+      {/* Goals Table */}
+      <GoalsTable
+        goals={goals}
+        selectedStatus={selectedStatus === 'all' ? '' : selectedStatus}
+        onStatusChange={(status) => onStatusChange(status === '' ? 'all' : status)}
+        onGoalClick={onView}
+        onEdit={onEdit}
+        onDelete={(goal) => onDelete(goal.id)}
+        showEmployee={true}
+        showManager={true}
+        showActions={true}
+      />
     </div>
   );
 }

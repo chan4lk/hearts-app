@@ -16,8 +16,8 @@ import { showToast } from '@/app/utils/toast';
 interface GoalProgressTrackerProps {
   goalId: string;
   currentProgress: number;
-  currentStatus: string;
-  onProgressUpdate: (progress: number, status: string, notes?: string) => void;
+  currentStatus: string; // This is now progressStatus (NOT_STARTED, IN_PROGRESS, etc.)
+  onProgressUpdate: (progress: number, progressStatus: string, notes?: string) => void;
   isEmployee: boolean;
 }
 
