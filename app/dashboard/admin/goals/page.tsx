@@ -182,7 +182,6 @@ function AdminGoalSettingPageContent() {
       const goalData = {
         ...formData,
         dueDate: new Date(formData.dueDate).toISOString(),
-        status: 'DRAFT',
         department: formData.department || 'ENGINEERING',
         priority: formData.priority || 'MEDIUM'
       };

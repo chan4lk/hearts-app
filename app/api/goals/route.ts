@@ -258,6 +258,18 @@ export async function POST(req: Request) {
       );
     }
 
+    // Determine initial status:
+    // - Manager/Admin assigns goal to employee → PENDING (needs manager review)
+    // - Employee creates goal for themselves → DRAFT (needs manager review)
+    let initialStatus: string;
+    if (isAdminOrManager && !isSelfGoal) {
+      // Manager assigning goal to employee
+      initialStatus = 'PENDING';
+    } else {
+      // Employee creating goal for themselves
+      initialStatus = 'DRAFT';
+    }
+
     // Create the goal
     const goal = await prisma.goal.create({
       data: {
@@ -267,10 +279,9 @@ export async function POST(req: Request) {
         department: department || 'ENGINEERING',
         priority: priority || 'MEDIUM',
         dueDate: new Date(dueDate),
-        // Employees submit for approval (PENDING), Managers/Admins create drafts
-        status: isAdminOrManager && !isSelfGoal ? 'DRAFT' : 'PENDING',
+        status: initialStatus,
         employeeId: targetEmployeeId,
-        managerId: isAdminOrManager ? userId : null,
+        managerId: isAdminOrManager && !isSelfGoal ? userId : null,
         createdById: userId,
         updatedById: userId
       },

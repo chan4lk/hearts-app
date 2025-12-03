@@ -10,30 +10,30 @@ datasource db {
 }
 
 model User {
-  id                                       String          @id @default(cuid())
-  email                                    String          @unique
-  name                                     String
-  role                                     Role            @default(EMPLOYEE)
-  password                                 String
-  createdAt                                DateTime        @default(now())
-  updatedAt                                DateTime        @updatedAt
-  failedLoginAttempts                      Int             @default(0)
-  lastLoginAt                              DateTime?
-  lastLoginAttempt                         DateTime?
-  department                               String?
-  isActive                                 Boolean         @default(true)
-  position                                 String?
-  managerId                                String?
-  createdGoals                             Goal[]          @relation("CreatedGoals")
-  deletedGoals                             Goal[]          @relation("DeletedGoals")
-  goals                                    Goal[]          @relation("EmployeeGoals")
-  managerGoals                             Goal[]          @relation("ManagerGoals")
-  updatedGoals                             Goal[]          @relation("UpdatedGoals")
-  notifications                            Notification[]
-  managerRatings                           Rating[]        @relation("ManagerRatings")
-  selfRatings                              Rating[]        @relation("SelfRatings")
-  manager                                  User?           @relation("UserToUser", fields: [managerId], references: [id])
-  employees                                User[]          @relation("UserToUser")
+  id                  String         @id @default(cuid())
+  email               String         @unique
+  name                String
+  role                Role           @default(EMPLOYEE)
+  password            String
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  failedLoginAttempts Int            @default(0)
+  lastLoginAt         DateTime?
+  lastLoginAttempt    DateTime?
+  department          String?
+  isActive            Boolean        @default(true)
+  position            String?
+  managerId           String?
+  createdGoals        Goal[]         @relation("CreatedGoals")
+  deletedGoals        Goal[]         @relation("DeletedGoals")
+  goals               Goal[]         @relation("EmployeeGoals")
+  managerGoals        Goal[]         @relation("ManagerGoals")
+  updatedGoals        Goal[]         @relation("UpdatedGoals")
+  notifications       Notification[]
+  managerRatings      Rating[]       @relation("ManagerRatings")
+  selfRatings         Rating[]       @relation("SelfRatings")
+  manager             User?          @relation("UserToUser", fields: [managerId], references: [id])
+  employees           User[]         @relation("UserToUser")
 
   @@index([managerId])
   @@index([lastLoginAt])
@@ -41,11 +41,11 @@ model User {
 }
 
 model Goal {
-  id                 String          @id @default(cuid())
+  id                 String         @id @default(cuid())
   title              String
   description        String
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
   dueDate            DateTime
   managerId          String?
   employeeId         String
@@ -53,26 +53,26 @@ model Goal {
   approvedBy         String?
   rejectedAt         DateTime?
   rejectedBy         String?
-  status             GoalStatus      @default(PENDING)
+  status             GoalStatus     @default(PENDING)
   managerComments    String?
-  category           GoalCategory    @default(PROFESSIONAL)
+  category           GoalCategory   @default(PROFESSIONAL)
   createdById        String?
   deletedAt          DateTime?
   deletedById        String?
   updatedById        String?
   lastProgressUpdate DateTime?
-  progress           Float           @default(0)
-  progressStatus     ProgressStatus  @default(NOT_STARTED)
+  progress           Float          @default(0)
+  progressStatus     ProgressStatus @default(NOT_STARTED)
   progressNotes      String?
-  department         String          @default("ENGINEERING")
-  priority           String          @default("MEDIUM")
-  createdBy          User?           @relation("CreatedGoals", fields: [createdById], references: [id])
-  deletedBy          User?           @relation("DeletedGoals", fields: [deletedById], references: [id])
-  employee           User            @relation("EmployeeGoals", fields: [employeeId], references: [id])
-  manager            User?           @relation("ManagerGoals", fields: [managerId], references: [id])
-  updatedBy          User?           @relation("UpdatedGoals", fields: [updatedById], references: [id])
+  department         String         @default("ENGINEERING")
+  priority           String         @default("MEDIUM")
+  createdBy          User?          @relation("CreatedGoals", fields: [createdById], references: [id])
+  deletedBy          User?          @relation("DeletedGoals", fields: [deletedById], references: [id])
+  employee           User           @relation("EmployeeGoals", fields: [employeeId], references: [id])
+  manager            User?          @relation("ManagerGoals", fields: [managerId], references: [id])
+  updatedBy          User?          @relation("UpdatedGoals", fields: [updatedById], references: [id])
   notifications      Notification[]
-  rating             Rating?         // One-to-one: each goal has at most one rating record
+  rating             Rating? // One-to-one: each goal has at most one rating record
 
   @@index([managerId])
   @@index([employeeId])
@@ -82,27 +82,27 @@ model Goal {
 }
 
 model Rating {
-  id               String    @id @default(cuid())
-  goalId           String    @unique // One rating per goal
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id        String   @id @default(cuid())
+  goalId    String   @unique // One rating per goal
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Self-rating fields (by employee)
-  selfScore        Int?      // Employee's self-rating score (1-5)
-  selfComments     String?   // Employee's comments
-  selfRatedById    String?   // Who gave the self-rating
-  selfRatedAt      DateTime? // When self-rating was submitted
+  selfScore     Int? // Employee's self-rating score (1-5)
+  selfComments  String? // Employee's comments
+  selfRatedById String? // Who gave the self-rating
+  selfRatedAt   DateTime? // When self-rating was submitted
 
   // Manager-rating fields (by manager)
-  managerScore     Int?      // Manager's rating score (1-5)
-  managerComments  String?   // Manager's feedback/comments
-  managerRatedById String?   // Who gave the manager-rating
+  managerScore     Int? // Manager's rating score (1-5)
+  managerComments  String? // Manager's feedback/comments
+  managerRatedById String? // Who gave the manager-rating
   managerRatedAt   DateTime? // When manager-rating was submitted
 
   // Relations
-  goal             Goal      @relation(fields: [goalId], references: [id])
-  selfRatedBy      User?     @relation("SelfRatings", fields: [selfRatedById], references: [id])
-  managerRatedBy   User?     @relation("ManagerRatings", fields: [managerRatedById], references: [id])
+  goal           Goal  @relation(fields: [goalId], references: [id])
+  selfRatedBy    User? @relation("SelfRatings", fields: [selfRatedById], references: [id])
+  managerRatedBy User? @relation("ManagerRatings", fields: [managerRatedById], references: [id])
 
   @@index([goalId])
   @@index([selfRatedById])
@@ -124,7 +124,6 @@ model Notification {
   @@index([goalId])
 }
 
-
 enum Role {
   ADMIN
   MANAGER
@@ -139,6 +138,10 @@ enum GoalStatus {
   COMPLETED
   DRAFT
   DELETED
+  IN_PROGRESS
+  NOT_STARTED
+  ON_HOLD
+  BLOCKED
 }
 
 enum NotificationType {

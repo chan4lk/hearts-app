@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import { Goal } from './types';
-import { BsSearch, BsFilter, BsEye, BsPencil, BsTrash, BsCheckCircle, BsXCircle, BsClock, BsGear, BsFlag } from 'react-icons/bs';
+import { BsSearch, BsFilter, BsEye, BsPencil, BsTrash, BsCheckCircle, BsXCircle, BsClock, BsGear, BsFlag, BsPlayCircle, BsCircle, BsPauseCircle } from 'react-icons/bs';
 import { Badge } from '@/app/components/ui/badge';
+import { useSession } from 'next-auth/react';
+import { showToast } from '@/app/utils/toast';
 
 interface GoalsTableProps {
   goals: Goal[];
@@ -26,7 +28,11 @@ const STATUS_OPTIONS = [
   { value: 'REJECTED', label: 'Rejected' },
   { value: 'MODIFIED', label: 'Modified' },
   { value: 'COMPLETED', label: 'Completed' },
-  { value: 'DRAFT', label: 'Draft' }
+  { value: 'DRAFT', label: 'Draft' },
+  { value: 'IN_PROGRESS', label: 'In Progress' },
+  { value: 'NOT_STARTED', label: 'Not Started' },
+  { value: 'ON_HOLD', label: 'On Hold' },
+  { value: 'BLOCKED', label: 'Blocked' }
 ];
 
 const getStatusBadge = (status: string) => {
@@ -36,14 +42,18 @@ const getStatusBadge = (status: string) => {
     PENDING: { bg: 'bg-amber-500/20', text: 'text-amber-400', icon: BsClock },
     MODIFIED: { bg: 'bg-blue-500/20', text: 'text-blue-400', icon: BsGear },
     COMPLETED: { bg: 'bg-green-500/20', text: 'text-green-400', icon: BsCheckCircle },
-    DRAFT: { bg: 'bg-gray-500/20', text: 'text-gray-400', icon: BsGear }
+    DRAFT: { bg: 'bg-gray-500/20', text: 'text-gray-400', icon: BsGear },
+    IN_PROGRESS: { bg: 'bg-blue-500/20', text: 'text-blue-400', icon: BsPlayCircle },
+    NOT_STARTED: { bg: 'bg-gray-500/20', text: 'text-gray-400', icon: BsCircle },
+    ON_HOLD: { bg: 'bg-amber-500/20', text: 'text-amber-400', icon: BsPauseCircle },
+    BLOCKED: { bg: 'bg-red-500/20', text: 'text-red-400', icon: BsFlag }
   };
   const config = configs[status] || configs.PENDING;
   const Icon = config.icon;
   return (
     <Badge className={`${config.bg} ${config.text} border-0 text-xs px-2 py-1 flex items-center gap-1`}>
       <Icon className="w-3 h-3" />
-      {status}
+      {status.replace('_', ' ')}
     </Badge>
   );
 };
@@ -75,8 +85,10 @@ export default function GoalsTable({
   showManager = false,
   showActions = false
 }: GoalsTableProps) {
+  const { data: session } = useSession();
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
   const [localSelectedStatus, setLocalSelectedStatus] = useState(selectedStatus);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
   const handleSearchChange = (value: string) => {
     setLocalSearchQuery(value);
@@ -86,6 +98,31 @@ export default function GoalsTable({
   const handleStatusChange = (value: string) => {
     setLocalSelectedStatus(value);
     onStatusChange?.(value);
+  };
+
+  const handleQuickStatusUpdate = async (goalId: string, newStatus: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setUpdatingStatus(goalId);
+    try {
+      const response = await fetch(`/api/goals/${goalId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update status');
+      }
+
+      showToast.success('Status Updated', `Goal status updated to ${newStatus.replace('_', ' ')}`);
+      // Refresh the page to show updated status
+      window.location.reload();
+    } catch (error) {
+      showToast.error('Update Failed', error instanceof Error ? error.message : 'Failed to update status');
+    } finally {
+      setUpdatingStatus(null);
+    }
   };
 
   const filteredGoals = goals.filter(goal => {
@@ -190,7 +227,47 @@ export default function GoalsTable({
                     </div>
                   </td>
                   <td className="py-3 px-4">
-                    {getStatusBadge(goal.status)}
+                    <div className="flex items-center gap-2">
+                      {getStatusBadge(goal.status)}
+                      {/* Quick status update for pending/approved goals (employee only) */}
+                      {(goal.status === 'APPROVED' || goal.status === 'PENDING') && 
+                       session?.user?.id === goal.employeeId && (
+                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={(e) => handleQuickStatusUpdate(goal.id, 'NOT_STARTED', e)}
+                            disabled={updatingStatus === goal.id}
+                            className="p-1 text-gray-400 hover:text-gray-300 hover:bg-gray-700/50 rounded transition-colors disabled:opacity-50"
+                            title="Not Started"
+                          >
+                            <BsCircle className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={(e) => handleQuickStatusUpdate(goal.id, 'IN_PROGRESS', e)}
+                            disabled={updatingStatus === goal.id}
+                            className="p-1 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded transition-colors disabled:opacity-50"
+                            title="In Progress"
+                          >
+                            <BsPlayCircle className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={(e) => handleQuickStatusUpdate(goal.id, 'ON_HOLD', e)}
+                            disabled={updatingStatus === goal.id}
+                            className="p-1 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 rounded transition-colors disabled:opacity-50"
+                            title="On Hold"
+                          >
+                            <BsPauseCircle className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={(e) => handleQuickStatusUpdate(goal.id, 'COMPLETED', e)}
+                            disabled={updatingStatus === goal.id}
+                            className="p-1 text-green-400 hover:text-green-300 hover:bg-green-500/10 rounded transition-colors disabled:opacity-50"
+                            title="Completed"
+                          >
+                            <BsCheckCircle className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </td>
                   <td className="py-3 px-4">
                     {getPriorityBadge(goal.priority || 'MEDIUM')}

@@ -174,10 +174,7 @@ function ManagerGoalSettingPageContent() {
       const response = await fetch('/api/goals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          status: 'DRAFT'
-        }),
+        body: JSON.stringify(formData),
       });
 
       if (!response.ok) {

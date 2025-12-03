@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, BsArrowRight, BsChevronDown, BsChevronUp, BsPencil, BsTrash, BsPerson, BsGear, BsFlag, BsBuilding, BsPlayCircle, BsPauseCircle, BsCircle } from 'react-icons/bs';
+import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, BsArrowRight, BsChevronDown, BsChevronUp, BsPencil, BsTrash, BsPerson, BsGear, BsFlag, BsBuilding, BsPlayCircle, BsPauseCircle, BsCircle, BsArrowRepeat } from 'react-icons/bs';
 import { Goal } from '@/app/components/shared/types';
 import { IconType } from 'react-icons';
 import { showToast } from '@/app/utils/toast';
@@ -60,6 +60,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
   const [approvalComments, setApprovalComments] = useState('');
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   // Check if user is manager or admin
   const isManagerOrAdmin = session?.user?.role === 'MANAGER' || session?.user?.role === 'ADMIN';
@@ -129,12 +130,53 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
     const configs: Record<string, StatusConfig> = {
       APPROVED: { bgColor: 'bg-emerald-500/20', textColor: 'text-emerald-400', icon: BsCheckCircle, label: 'Approved' },
       REJECTED: { bgColor: 'bg-rose-500/20', textColor: 'text-rose-400', icon: BsXCircle, label: 'Rejected' },
-      COMPLETED: { bgColor: 'bg-blue-500/20', textColor: 'text-blue-400', icon: BsCheckCircle, label: 'Completed' },
+      COMPLETED: { bgColor: 'bg-green-500/20', textColor: 'text-green-400', icon: BsCheckCircle, label: 'Completed' },
+      IN_PROGRESS: { bgColor: 'bg-blue-500/20', textColor: 'text-blue-400', icon: BsPlayCircle, label: 'In Progress' },
+      NOT_STARTED: { bgColor: 'bg-gray-500/20', textColor: 'text-gray-400', icon: BsCircle, label: 'Not Started' },
+      ON_HOLD: { bgColor: 'bg-amber-500/20', textColor: 'text-amber-400', icon: BsPauseCircle, label: 'On Hold' },
+      BLOCKED: { bgColor: 'bg-red-500/20', textColor: 'text-red-400', icon: BsFlag, label: 'Blocked' },
       MODIFIED: { bgColor: 'bg-amber-500/20', textColor: 'text-amber-400', icon: BsClock, label: 'Modified' },
       PENDING: { bgColor: 'bg-amber-500/20', textColor: 'text-amber-400', icon: BsClock, label: 'Pending' },
       DRAFT: { bgColor: 'bg-gray-500/20', textColor: 'text-gray-400', icon: BsGear, label: 'Draft' }
     };
     return configs[status] || configs.PENDING;
+  };
+
+  const handleQuickStatusUpdate = async (newStatus: string) => {
+    if (isUpdatingStatus) return;
+    
+    setIsUpdatingStatus(true);
+    try {
+      const response = await fetch(`/api/goals/${goal.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update status');
+      }
+
+      const data = await response.json();
+      const updatedGoal = data.goal || data;
+      
+      // Update local goal state
+      goal.status = updatedGoal.status;
+      
+      showToast.success('Status Updated', `Goal status updated to ${newStatus.replace('_', ' ')}`);
+      
+      // Refresh activities
+      const activityResponse = await fetch(`/api/goals/${goal.id}/activity`);
+      const activityData = await activityResponse.json();
+      if (activityData.success) {
+        setActivities(activityData.activities);
+      }
+    } catch (error) {
+      showToast.error('Update Failed', error instanceof Error ? error.message : 'Failed to update status');
+    } finally {
+      setIsUpdatingStatus(false);
+    }
   };
 
   const statusConfig = getStatusConfig(goal.status);
@@ -448,9 +490,9 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
             )}
           </AnimatePresence>
 
-          {/* Pending Status */}
+          {/* Draft Status (Employee self-created) */}
           <AnimatePresence>
-            {goal.status === 'PENDING' && (
+            {goal.status === 'DRAFT' && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -459,10 +501,92 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                           text-xs sm:text-sm p-2.5 sm:p-3 rounded-lg sm:rounded-xl md:rounded-2xl min-h-[40px] sm:min-h-[44px]"
               >
                 <BsClock className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5 sm:mr-2 animate-pulse flex-shrink-0" />
-                <span>Awaiting manager approval</span>
+                <span>Draft - Submit for manager review</span>
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Quick Status Update for Pending/Approved Goals (Employee Only) */}
+          {(goal.status === 'APPROVED' || goal.status === 'PENDING') && session?.user?.id === goal.employeeId && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-gradient-to-br from-blue-900/20 via-indigo-900/20 to-purple-900/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-blue-500/20"
+            >
+              <h4 className="text-xs sm:text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                <BsPlayCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400" />
+                Update Status
+              </h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <Button
+                  onClick={() => handleQuickStatusUpdate('NOT_STARTED')}
+                  disabled={isUpdatingStatus}
+                  variant="outline"
+                  className="flex items-center gap-2 bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white text-xs"
+                >
+                  {isUpdatingStatus ? (
+                    <BsArrowRepeat className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <BsCircle className="w-3 h-3" />
+                  )}
+                  Not Started
+                </Button>
+                <Button
+                  onClick={() => handleQuickStatusUpdate('IN_PROGRESS')}
+                  disabled={isUpdatingStatus}
+                  variant="outline"
+                  className="flex items-center gap-2 bg-blue-800/50 border-blue-700 text-blue-300 hover:bg-blue-700 hover:text-white text-xs"
+                >
+                  {isUpdatingStatus ? (
+                    <BsArrowRepeat className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <BsPlayCircle className="w-3 h-3" />
+                  )}
+                  In Progress
+                </Button>
+                <Button
+                  onClick={() => handleQuickStatusUpdate('ON_HOLD')}
+                  disabled={isUpdatingStatus}
+                  variant="outline"
+                  className="flex items-center gap-2 bg-amber-800/50 border-amber-700 text-amber-300 hover:bg-amber-700 hover:text-white text-xs"
+                >
+                  {isUpdatingStatus ? (
+                    <BsArrowRepeat className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <BsPauseCircle className="w-3 h-3" />
+                  )}
+                  On Hold
+                </Button>
+                <Button
+                  onClick={() => handleQuickStatusUpdate('BLOCKED')}
+                  disabled={isUpdatingStatus}
+                  variant="outline"
+                  className="flex items-center gap-2 bg-red-800/50 border-red-700 text-red-300 hover:bg-red-700 hover:text-white text-xs"
+                >
+                  {isUpdatingStatus ? (
+                    <BsArrowRepeat className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <BsFlag className="w-3 h-3" />
+                  )}
+                  Blocked
+                </Button>
+                <Button
+                  onClick={() => handleQuickStatusUpdate('COMPLETED')}
+                  disabled={isUpdatingStatus}
+                  variant="outline"
+                  className="flex items-center gap-2 bg-green-800/50 border-green-700 text-green-300 hover:bg-green-700 hover:text-white text-xs"
+                >
+                  {isUpdatingStatus ? (
+                    <BsArrowRepeat className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <BsCheckCircle className="w-3 h-3" />
+                  )}
+                  Completed
+                </Button>
+              </div>
+            </motion.div>
+          )}
 
           {/* AI Risk Analysis Section */}
           <motion.div
@@ -492,8 +616,8 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
 
         {/* Footer */}
         <div className="relative px-3 sm:px-4 pb-3 sm:pb-4 pt-2 flex-shrink-0">
-          {/* Approval Form for Managers/Admins viewing PENDING goals */}
-          {isManagerOrAdmin && goal.status === 'PENDING' && !showApprovalForm && (
+          {/* Approval Form for Managers/Admins viewing PENDING or DRAFT goals */}
+          {isManagerOrAdmin && (goal.status === 'PENDING' || goal.status === 'DRAFT') && !showApprovalForm && (
             <div className="mb-3">
               <Button
                 onClick={() => setShowApprovalForm(true)}
@@ -505,7 +629,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
           )}
 
           {/* Approval Form */}
-          {isManagerOrAdmin && goal.status === 'PENDING' && showApprovalForm && (
+          {isManagerOrAdmin && (goal.status === 'PENDING' || goal.status === 'DRAFT') && showApprovalForm && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -603,12 +727,12 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
               </Button>
             )}
 
-            {/* Employee Submit Button - Only show if onSubmitGoal is provided */}
+            {/* Employee Submit Button - Only for self-created DRAFT goals (not manager-assigned) */}
             {onSubmitGoal &&
-              (goal.status === 'DRAFT' || goal.status === 'MODIFIED') &&
+              goal.status === 'DRAFT' &&
               goal.manager &&
               goal.employee &&
-              goal.manager.id !== goal.employee.id && (
+              goal.manager.id === goal.employee.id && (
                 <Button
                   onClick={handleSubmit}
                   disabled={isSubmitting}
@@ -621,7 +745,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                     </>
                   ) : (
                     <>
-                      <span>Submit</span>
+                      <span>Submit for Review</span>
                       <BsArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
                     </>
                   )}

@@ -22,6 +22,19 @@ export async function PUT(
     const body = await request.json();
     const { managerComments } = body;
 
+    // Check if goal exists and is in PENDING or DRAFT status
+    const existingGoal = await prisma.goal.findUnique({
+      where: { id: params.goalId }
+    });
+
+    if (!existingGoal) {
+      return new NextResponse('Goal not found', { status: 404 });
+    }
+
+    if (existingGoal.status !== 'PENDING' && existingGoal.status !== 'DRAFT') {
+      return new NextResponse('Goal must be in PENDING or DRAFT status to reject', { status: 400 });
+    }
+
     const goal = await prisma.goal.update({
       where: {
         id: params.goalId,
