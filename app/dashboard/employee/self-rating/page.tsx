@@ -208,6 +208,13 @@ export default function SelfRatingPage() {
             selectedStatus={filterStatus === 'all' ? '' : filterStatus}
             onStatusChange={(status) => setFilterStatus(status === '' ? 'all' : status as FilterStatus)}
             onGoalClick={(goal) => setSelectedGoal(goal as GoalWithRating)}
+            onStatusUpdate={(goalId, newStatus, updatedGoal) => {
+              setGoals(prevGoals =>
+                prevGoals.map(goal =>
+                  goal.id === goalId ? { ...goal, status: updatedGoal.status } : goal
+                )
+              );
+            }}
           />
 
           {/* Goal Detail Modal with Rating */}

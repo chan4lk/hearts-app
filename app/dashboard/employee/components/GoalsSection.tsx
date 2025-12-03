@@ -13,6 +13,7 @@ interface GoalsSectionProps {
   onGoalClick: (goal: Goal) => void;
   onEditGoal?: (goal: Goal) => void;
   onDeleteGoal?: (goal: Goal) => void;
+  onStatusUpdate?: (goalId: string, newStatus: string, updatedGoal: Goal) => void;
   userRole?: string;
 }
 
@@ -28,6 +29,7 @@ export default function GoalsSection({
   onGoalClick,
   onEditGoal,
   onDeleteGoal,
+  onStatusUpdate,
   userRole,
 }: GoalsSectionProps) {
   const router = useRouter();
@@ -118,6 +120,7 @@ export default function GoalsSection({
             onGoalClick={onGoalClick}
             onEdit={activeView === 'created' ? onEditGoal : undefined}
             onDelete={activeView === 'created' ? onDeleteGoal : undefined}
+            onStatusUpdate={onStatusUpdate}
             showActions={activeView === 'created'}
           />
         </div>

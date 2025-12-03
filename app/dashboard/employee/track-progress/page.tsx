@@ -42,6 +42,13 @@ export default function TrackProgressPage() {
             onGoalClick={(goal) => {
               // Goal detail modal will be handled by the table component
             }}
+            onStatusUpdate={(goalId, newStatus, updatedGoal) => {
+              setGoals(prevGoals =>
+                prevGoals.map(goal =>
+                  goal.id === goalId ? { ...goal, status: updatedGoal.status } : goal
+                )
+              );
+            }}
           />
         </div>
       </div>

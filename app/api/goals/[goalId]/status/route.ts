@@ -19,14 +19,7 @@ export async function PATCH(
 
     const { status } = await req.json();
 
-    // Validate status - employees can update to these statuses
-    const allowedStatuses = ['IN_PROGRESS', 'NOT_STARTED', 'COMPLETED', 'ON_HOLD', 'BLOCKED'];
-    if (!allowedStatuses.includes(status)) {
-      return NextResponse.json(
-        { error: `Invalid status. Allowed: ${allowedStatuses.join(', ')}` },
-        { status: 400 }
-      );
-    }
+    // Status validation will be done after checking user role and goal status
 
     // Get the goal
     const goal = await prisma.goal.findUnique({
@@ -41,20 +34,61 @@ export async function PATCH(
       return NextResponse.json({ error: 'Goal not found' }, { status: 404 });
     }
 
-    // Only the employee can update status
-    if (goal.employeeId !== session.user.id) {
+    const isEmployee = goal.employeeId === session.user.id;
+    const isManagerOrAdmin = session.user.role === 'MANAGER' || session.user.role === 'ADMIN';
+    const isGoalManager = goal.managerId === session.user.id;
+
+    // Employees can update their own goals, managers/admins can update goals they manage
+    if (!isEmployee && !(isManagerOrAdmin && isGoalManager)) {
       return NextResponse.json(
-        { error: 'Only the assigned employee can update goal status' },
+        { error: 'You do not have permission to update this goal status' },
         { status: 403 }
       );
     }
 
-    // Allow status updates for PENDING or APPROVED goals (manager-assigned or employee-created)
-    if (goal.status !== 'APPROVED' && goal.status !== 'PENDING') {
-      return NextResponse.json(
-        { error: 'Status can only be updated for pending or approved goals' },
-        { status: 400 }
-      );
+    // Employees can update PENDING or APPROVED goals to progress statuses
+    if (isEmployee) {
+      if (goal.status !== 'APPROVED' && goal.status !== 'PENDING') {
+        return NextResponse.json(
+          { error: 'Status can only be updated for pending or approved goals' },
+          { status: 400 }
+        );
+      }
+      // Employees can only set progress-related statuses
+      const employeeAllowedStatuses = ['IN_PROGRESS', 'NOT_STARTED', 'COMPLETED', 'ON_HOLD', 'BLOCKED'];
+      if (!employeeAllowedStatuses.includes(status)) {
+        return NextResponse.json(
+          { error: `Invalid status for employee. Allowed: ${employeeAllowedStatuses.join(', ')}` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Managers/Admins can approve/reject PENDING or DRAFT goals, or update APPROVED goals
+    if (isManagerOrAdmin) {
+      if (goal.status === 'PENDING' || goal.status === 'DRAFT') {
+        // Managers can approve or reject
+        if (status !== 'APPROVED' && status !== 'REJECTED') {
+          return NextResponse.json(
+            { error: 'Managers can only approve or reject pending/draft goals' },
+            { status: 400 }
+          );
+        }
+      } else if (goal.status === 'APPROVED') {
+        // Managers can update approved goals to progress statuses
+        const managerAllowedStatuses = ['IN_PROGRESS', 'COMPLETED', 'ON_HOLD', 'BLOCKED'];
+        if (!managerAllowedStatuses.includes(status)) {
+          return NextResponse.json(
+            { error: `Invalid status for manager. Allowed: ${managerAllowedStatuses.join(', ')}` },
+            { status: 400 }
+          );
+        }
+      } else {
+        return NextResponse.json(
+          { error: 'Managers can only update pending, draft, or approved goals' },
+          { status: 400 }
+        );
+      }
     }
 
     // Update the goal status

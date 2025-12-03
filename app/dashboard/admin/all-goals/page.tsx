@@ -226,6 +226,13 @@ export default function AllGoalsPage() {
               onSearchChange={setSearchQuery}
               onStatusChange={(status) => setSelectedStatus(status === '' ? 'all' : status)}
               onGoalClick={(goal) => setSelectedGoal(goal)}
+              onStatusUpdate={(goalId, newStatus, updatedGoal) => {
+                setGoals(prevGoals =>
+                  prevGoals.map(goal =>
+                    goal.id === goalId ? { ...goal, status: updatedGoal.status } : goal
+                  )
+                );
+              }}
               showEmployee={true}
               showManager={true}
             />

@@ -204,6 +204,13 @@ export default function ManagerDashboard() {
           <GoalsTable
             goals={filteredGoals}
             onGoalClick={handleGoalClick}
+            onStatusUpdate={(goalId, newStatus, updatedGoal) => {
+              setGoals(prevGoals =>
+                prevGoals.map(goal =>
+                  goal.id === goalId ? { ...goal, status: updatedGoal.status } : goal
+                )
+              );
+            }}
             showEmployee={true}
             showManager={true}
           />
