@@ -17,13 +17,13 @@ import Filters from './components/Filters';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import LoadingComponent from '@/app/components/LoadingScreen';
 import { Role } from '@prisma/client';
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { Goal, User as UserType } from '@/app/components/shared/types';
+import Link from 'next/link';
 
 interface DashboardStats {
   totalUsers: number;
@@ -82,6 +82,7 @@ export default function AdminDashboard() {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [goalsLoading, setGoalsLoading] = useState(false);
+  const [showGoals, setShowGoals] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -313,62 +314,60 @@ export default function AdminDashboard() {
           
 
           {/* All Users Goals Section */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl shadow-2xl"
-          >
-            <div className="p-6 border-b border-white/10">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <BsBullseye className="w-5 h-5 text-white" />
+          <AnimatePresence>
+            {showGoals && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: 'auto' }}
+                exit={{ opacity: 0, y: 20, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+              >
+                <div className="p-6 border-b border-white/10">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                        <BsBullseye className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-semibold text-white">All Users Goals</h2>
+                        <p className="text-sm text-gray-400">View and manage goals across all users</p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-white">All Users Goals</h2>
-                    <p className="text-sm text-gray-400">View and manage goals across all users</p>
-                  </div>
+                  
+                  {/* Filters */}
+                  <Filters
+                    selectedUser={selectedUser}
+                    onUserChange={setSelectedUser}
+                    selectedStatus={selectedStatus}
+                    onStatusChange={setSelectedStatus}
+                    selectedPriority={selectedPriority}
+                    onPriorityChange={setSelectedPriority}
+                    selectedCategory={selectedCategory}
+                    onCategoryChange={setSelectedCategory}
+                    users={users}
+                  />
                 </div>
-                <Link
-                  href="/dashboard/admin/all-goals"
-                  className="inline-flex items-center gap-2 text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors"
-                >
-                  View All Goals
-                  <BsChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-              
-              {/* Filters */}
-              <Filters
-                selectedUser={selectedUser}
-                onUserChange={setSelectedUser}
-                selectedStatus={selectedStatus}
-                onStatusChange={setSelectedStatus}
-                selectedPriority={selectedPriority}
-                onPriorityChange={setSelectedPriority}
-                selectedCategory={selectedCategory}
-                onCategoryChange={setSelectedCategory}
-                users={users}
-              />
-            </div>
-            <div className="p-6">
-              {goalsLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="text-gray-400">Loading goals...</div>
+                <div className="p-6">
+                  {goalsLoading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="text-gray-400">Loading goals...</div>
+                    </div>
+                  ) : (
+                    <GoalsTable
+                      goals={filteredGoals}
+                      selectedStatus={selectedStatus === 'all' ? '' : selectedStatus}
+                      onStatusChange={(status) => setSelectedStatus(status === '' ? 'all' : status)}
+                      onGoalClick={(goal) => setSelectedGoal(goal)}
+                      showEmployee={true}
+                      showManager={true}
+                    />
+                  )}
                 </div>
-              ) : (
-                <GoalsTable
-                  goals={filteredGoals}
-                  selectedStatus={selectedStatus === 'all' ? '' : selectedStatus}
-                  onStatusChange={(status) => setSelectedStatus(status === '' ? 'all' : status)}
-                  onGoalClick={(goal) => setSelectedGoal(goal)}
-                  showEmployee={true}
-                  showManager={true}
-                />
-              )}
-            </div>
-          </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Recent Activity */}
           <motion.div 

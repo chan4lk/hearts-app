@@ -18,12 +18,6 @@ export default function HeroSection() {
 
       <div className="relative flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard/admin"
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <BsArrowLeft className="w-5 h-5 text-white" />
-          </Link>
           <div className="space-y-1">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               All Users Goals
