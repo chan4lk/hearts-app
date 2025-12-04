@@ -3,15 +3,14 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { BsPersonLinesFill } from "react-icons/bs";
 import { toast } from "sonner";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import LoadingComponent from '@/app/components/LoadingScreen';
 
 import { GoalWithRatingExtended, EmployeeStats } from "@/app/components/shared/types";
 import HeroSection from "./components/HeroSection";
-import EmployeeFilter from "./components/EmployeeFilter";
+import StatsSection from "./components/StatsSection";
+import Filters from "./components/Filters";
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 
@@ -24,6 +23,7 @@ export default function RateEmployeesPage() {
   const [submittingRatingId, setSubmittingRatingId] = useState<string | null>(null);
   const [filterEmployee, setFilterEmployee] = useState<string>('all');
   const [filterRating, setFilterRating] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState('');
   const [employeeStats, setEmployeeStats] = useState<EmployeeStats[]>([]);
   const [selectedGoal, setSelectedGoal] = useState<GoalWithRatingExtended | null>(null);
 
@@ -228,7 +228,8 @@ export default function RateEmployeesPage() {
   const filteredGoals = goals.filter(goal => {
     if (!goal.employee) return false;
     if (filterEmployee !== 'all' && goal.employee.id !== filterEmployee) return false;
-    if (filterRating !== 'all' && goal.rating?.score !== parseInt(filterRating)) return false;
+    if (filterRating !== 'all' && (goal.rating?.managerScore || goal.rating?.score) !== parseInt(filterRating)) return false;
+    if (selectedStatus && goal.status !== selectedStatus) return false;
     return true;
   });
 
@@ -239,33 +240,45 @@ export default function RateEmployeesPage() {
   return (
     <DashboardLayout type="manager">
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        
         {/* Floating Background Elements */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-violet-400/20 to-indigo-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-violet-400/10 to-indigo-400/10 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
         </div>
 
-        <div className="relative z-10 p-6 space-y-8">
+        <div className="relative z-10 p-4 space-y-4">
           <HeroSection />
-          <EmployeeFilter 
-            filterEmployee={filterEmployee} 
-            setFilterEmployee={setFilterEmployee} 
-            employeeStats={employeeStats} 
+
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-4 border border-white/20 dark:border-gray-700/50 space-y-4">
+            <StatsSection goals={goals} employeesCount={employeeStats.length} />
+          </div>
+
+          <Filters
+            selectedEmployee={filterEmployee}
+            onEmployeeChange={setFilterEmployee}
+            selectedStatus={selectedStatus}
+            onStatusChange={setSelectedStatus}
+            selectedRating={filterRating}
+            onRatingChange={setFilterRating}
+            employeeStats={employeeStats}
           />
 
           {/* Goals Table */}
-          <GoalsTable
-            goals={filteredGoals}
-            onGoalClick={(goal) => setSelectedGoal(goal as GoalWithRatingExtended)}
-            onRatingChange={handleRatingChange}
-            showEmployee={true}
-            showManager={false}
-            showRating={true}
-            submittingRating={submittingRatingId}
-            disableStatusUpdate={true}
-          />
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl border border-white/20 dark:border-gray-700/50 overflow-hidden shadow-lg">
+            <div className="p-4">
+              <GoalsTable
+                goals={filteredGoals}
+                onGoalClick={(goal) => setSelectedGoal(goal as GoalWithRatingExtended)}
+                onRatingChange={handleRatingChange}
+                showEmployee={true}
+                showManager={false}
+                showRating={true}
+                submittingRating={submittingRatingId}
+                disableStatusUpdate={true}
+              />
+            </div>
+          </div>
 
           {/* Goal Detail Modal */}
           {selectedGoal && (
