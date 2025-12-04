@@ -1,6 +1,7 @@
-import { BsStars, BsCheckCircle, BsClock, BsExclamationCircle, BsXCircle, BsPeople, BsPersonCheck, BsShield, BsPersonBadge } from 'react-icons/bs';
+import { BsStars, BsCheckCircle, BsXCircle, BsPeople, BsPencil } from 'react-icons/bs';
 import { DashboardStats } from '@/app/components/shared/types';
 import { useSession } from 'next-auth/react';
+import { motion } from 'framer-motion';
 
 interface StatsDisplayProps {
   stats: DashboardStats;
@@ -16,93 +17,146 @@ export default function StatsDisplay({ stats, roleStats }: StatsDisplayProps) {
   const { data: session } = useSession();
   const userName = session?.user?.name || 'User';
 
+  // Define all status cards with proper icons and colors
   const statCards = [
     {
       title: 'Total Goals',
       value: stats.employeeGoals.total,
       icon: <BsStars className="w-4 h-4" />,
-      color: 'from-indigo-500 to-purple-500'
+      color: 'from-indigo-500 to-purple-500',
+      bgColor: 'bg-indigo-500/10',
+      borderColor: 'border-indigo-500/30'
     },
     {
-      title: 'Pending',
-      value: stats.employeeGoals.pending,
-      icon: <BsClock className="w-4 h-4" />,
-      color: 'from-amber-500 to-orange-500'
+      title: 'Draft',
+      value: stats.employeeGoals.draft,
+      icon: <BsPencil className="w-4 h-4" />,
+      color: 'from-gray-500 to-slate-500',
+      bgColor: 'bg-gray-500/10',
+      borderColor: 'border-gray-500/30'
     },
     {
       title: 'Approved',
       value: stats.employeeGoals.approved,
       icon: <BsCheckCircle className="w-4 h-4" />,
-      color: 'from-emerald-500 to-teal-500'
+      color: 'from-emerald-500 to-teal-500',
+      bgColor: 'bg-emerald-500/10',
+      borderColor: 'border-emerald-500/30'
     },
     {
       title: 'Rejected',
       value: stats.employeeGoals.rejected,
       icon: <BsXCircle className="w-4 h-4" />,
-      color: 'from-rose-500 to-red-500'
+      color: 'from-rose-500 to-red-500',
+      bgColor: 'bg-rose-500/10',
+      borderColor: 'border-rose-500/30'
+    },
+    {
+      title: 'Completed',
+      value: stats.employeeGoals.completed,
+      icon: <BsCheckCircle className="w-4 h-4" />,
+      color: 'from-green-500 to-emerald-500',
+      bgColor: 'bg-green-500/10',
+      borderColor: 'border-green-500/30'
     },
     ...(roleStats ? [
       {
         title: 'Total Users',
         value: roleStats.totalUsers,
         icon: <BsPeople className="w-4 h-4" />,
-        color: 'from-blue-500 to-cyan-500'
+        color: 'from-cyan-500 to-blue-500',
+        bgColor: 'bg-cyan-500/10',
+        borderColor: 'border-cyan-500/30'
       },
-
     ] : [
       {
         title: 'Total Employees',
         value: stats.employeeCount,
         icon: <BsPeople className="w-4 h-4" />,
-        color: 'from-blue-500 to-cyan-500'
+        color: 'from-cyan-500 to-blue-500',
+        bgColor: 'bg-cyan-500/10',
+        borderColor: 'border-cyan-500/30'
       },
-      
     ])
   ];
 
   return (
     <div className="space-y-4">
       {/* Welcome Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 rounded-xl p-6 shadow-lg">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 rounded-lg p-4 shadow-lg"
+      >
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         </div>
         
         <div className="relative flex items-center justify-between">
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+          <div>
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
               Welcome back, {userName}
               <span className="inline-flex animate-bounce">✨</span>
             </h2>
-            
-            
           </div>
-
         </div>
-      </div>
+      </motion.div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 gap-y-4" role="region" aria-label="Statistics">
+      <div 
+        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" 
+        role="region" 
+        aria-label="Statistics"
+      >
         {statCards.map((stat, index) => (
-          <div
-            key={index}
-            className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 sm:p-5 border border-gray-700/50 hover:border-indigo-400/60 transition-all duration-300 group flex flex-col items-start sm:items-center focus:outline-none focus:ring-2 focus:ring-indigo-400 gap-1 cursor-pointer hover:shadow-lg"
+          <motion.div
+            key={stat.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.05 }}
+            className={`
+              relative overflow-hidden
+              ${stat.bgColor}
+              backdrop-blur-sm 
+              rounded-lg 
+              p-3 
+              border 
+              ${stat.borderColor}
+              hover:border-opacity-60 
+              transition-all 
+              duration-200 
+              group 
+              cursor-pointer 
+              hover:shadow-lg
+            `}
             tabIndex={0}
-            aria-label={stat.title + ': ' + stat.value}
-            title={stat.title + ': ' + stat.value}
+            aria-label={`${stat.title}: ${stat.value}`}
+            title={`${stat.title}: ${stat.value}`}
           >
-            <div className="flex items-center gap-2 mb-2">
-              <div className={`p-2 rounded-md bg-gradient-to-r ${stat.color} text-white`}>
+            {/* Animated background gradient on hover */}
+            <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-10 transition-opacity duration-200`}></div>
+            
+            {/* Content */}
+            <div className="relative flex items-center gap-2.5">
+              {/* Icon */}
+              <div className={`p-1.5 rounded-md bg-gradient-to-r ${stat.color} text-white flex-shrink-0`}>
                 {stat.icon}
               </div>
-              <span className="text-xs sm:text-sm text-gray-400 font-medium">{stat.title}</span>
+              
+              {/* Value and Title */}
+              <div className="flex-1 min-w-0">
+                <div className="text-xl font-bold text-white leading-tight">
+                  {stat.value}
+                </div>
+                <div className="text-xs font-medium text-gray-400 truncate">
+                  {stat.title}
+                </div>
+              </div>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-white group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-indigo-300 group-hover:text-transparent group-hover:bg-clip-text transition-all duration-300">
-              {stat.value}
-            </div>
-          </div>
+          </motion.div>
         ))}
       </div>
     </div>
