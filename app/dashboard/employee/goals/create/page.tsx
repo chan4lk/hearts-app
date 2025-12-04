@@ -115,7 +115,6 @@ function GoalsPageContent() {
       }
 
       setIsCreateModalOpen(false);
-      showNotificationWithTimeout('Goal created successfully!', 'success');
       fetchGoals();
       setFormData({
         title: '',
@@ -210,7 +209,6 @@ function GoalsPageContent() {
       
       setIsEditModalOpen(false);
       setEditGoal(null);
-      showNotificationWithTimeout('Goal updated successfully!', 'success');
     } catch (error) {
       console.error('Error updating goal:', error);
       showNotificationWithTimeout(
