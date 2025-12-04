@@ -383,14 +383,16 @@ function ManagerGoalSettingPageContent() {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="relative z-10 p-6 space-y-8">
-       
+      <div className="relative z-10 p-4 space-y-4">
         <HeroSection
           onCreateClick={() => setIsCreateModalOpen(true)}
           onBulkCreateClick={() => setIsBulkCreateModalOpen(true)}
         />
-        <StatsSection stats={stats} />
-        
+
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-4 border border-white/20 dark:border-gray-700/50 space-y-4">
+          <StatsSection stats={stats} />
+        </div>
+
         {/* Goal Templates Section */}
         <div className="space-y-4">
           {/* View Templates Button */}

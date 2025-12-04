@@ -1,6 +1,4 @@
-import { BsPeople, BsChevronDown, BsPersonCircle } from 'react-icons/bs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
-import { motion } from 'framer-motion';
+import { BsPerson } from 'react-icons/bs';
 
 interface User {
   id: string;
@@ -15,67 +13,47 @@ interface EmployeeFilterProps {
 }
 
 export function EmployeeFilter({ selectedEmployee, onEmployeeChange, assignedEmployees }: EmployeeFilterProps) {
-  const selectedName = selectedEmployee === 'all' 
-    ? 'All Employees' 
-    : assignedEmployees.find(e => e.id === selectedEmployee)?.name;
+  const employeeBorderColor = selectedEmployee !== 'all'
+    ? 'border-cyan-500/50'
+    : 'border-gray-700';
+
+  const employeeBgColor = selectedEmployee !== 'all'
+    ? 'bg-cyan-500/10'
+    : 'bg-gray-900/50';
+
+  const employeeTextColor = selectedEmployee !== 'all'
+    ? 'text-cyan-300'
+    : 'text-white';
 
   return (
-    <div className="relative">
-      <Select value={selectedEmployee} onValueChange={onEmployeeChange}>
-        <SelectTrigger 
-          className="h-9 px-3 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 
-            hover:border-white/20 text-white rounded-lg transition-all duration-200 min-w-[180px]
-            focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/50"
-        >
-          <div className="flex items-center gap-2 truncate">
-            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-indigo-500/10">
-              <BsPeople className="w-3 h-3 text-indigo-400" />
-            </div>
-            <span className="text-sm font-medium truncate">{selectedName}</span>
-            <BsChevronDown className="w-3 h-3 text-white/40 ml-auto" />
-          </div>
-        </SelectTrigger>
-
-        <SelectContent 
-          className="bg-gray-900/90 backdrop-blur-xl border border-white/10 rounded-lg 
-            shadow-xl shadow-black/20 p-1 min-w-[200px]"
-        >
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
+    <div className="relative w-full sm:w-auto sm:max-w-xs">
+      <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none z-10">
+        <div className="p-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-md">
+          <BsPerson className="w-3 h-3 text-white" />
+        </div>
+      </div>
+      <select
+        value={selectedEmployee}
+        onChange={(e) => onEmployeeChange(e.target.value)}
+        className={`w-full pl-10 pr-8 py-2.5 ${employeeBgColor} ${employeeTextColor} rounded-lg border ${employeeBorderColor} focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:border-cyan-500 focus:ring-cyan-500 text-sm font-medium appearance-none cursor-pointer transition-all duration-200 hover:border-opacity-70 hover:shadow-sm`}
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 12 12'%3E%3Cpath fill='%239CA3AF' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'right 0.75rem center',
+          color: selectedEmployee !== 'all' ? undefined : 'rgb(209 213 219)'
+        }}
+      >
+        <option value="all" style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}>All Employees</option>
+        {assignedEmployees.map(emp => (
+          <option
+            key={emp.id}
+            value={emp.id}
+            style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}
           >
-            <SelectItem 
-              value="all"
-              className="rounded-md hover:bg-white/5 focus:bg-white/5 transition-colors py-1.5 px-2"
-            >
-              <div className="flex items-center gap-2">
-                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-500/10">
-                  <BsPeople className="w-3.5 h-3.5 text-indigo-400" />
-                </div>
-                <span className="text-sm text-white/90">All Employees</span>
-              </div>
-            </SelectItem>
-
-            <div className="my-1 h-px bg-white/5" />
-
-            {assignedEmployees.map((employee) => (
-              <SelectItem 
-                key={employee.id} 
-                value={employee.id}
-                className="rounded-md hover:bg-white/5 focus:bg-white/5 transition-colors py-1.5 px-2"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-purple-500/10">
-                    <BsPersonCircle className="w-3.5 h-3.5 text-purple-400" />
-                  </div>
-                  <span className="text-sm text-white/90 truncate">{employee.name}</span>
-                </div>
-              </SelectItem>
-            ))}
-          </motion.div>
-        </SelectContent>
-      </Select>
+            {emp.name}
+          </option>
+        ))}
+      </select>
     </div>
   );
-} 
+}

@@ -1,88 +1,98 @@
 import { motion } from 'framer-motion';
-import { BsPeople, BsClipboardData, BsXCircle, BsCheckCircleFill } from 'react-icons/bs';
-import { colors } from '../styles/colors';
+import { BsPencil, BsCheckCircle, BsXCircle, BsPeople, BsStars } from 'react-icons/bs';
 import { GoalStats } from '@/app/components/shared/types';
 
 interface StatsSectionProps {
   stats: GoalStats;
 }
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, x: -10 },
-  visible: { opacity: 1, x: 0 }
-};
-
 export function StatsSection({ stats }: StatsSectionProps) {
+  const statCards = [
+    {
+      title: 'Total Goals',
+      value: stats.totalGoals || stats.total || 0,
+      icon: <BsStars className="w-4 h-4" />,
+      gradient: 'from-indigo-500 to-purple-500',
+      bgColor: 'bg-indigo-500/10',
+      borderColor: 'border-indigo-500/30'
+    },
+    {
+      title: 'Employees',
+      value: stats.totalEmployees || 0,
+      icon: <BsPeople className="w-4 h-4" />,
+      gradient: 'from-cyan-500 to-blue-500',
+      bgColor: 'bg-cyan-500/10',
+      borderColor: 'border-cyan-500/30'
+    },
+    {
+      title: 'Approved',
+      value: stats.approvedGoals || stats.approved || 0,
+      icon: <BsCheckCircle className="w-4 h-4" />,
+      gradient: 'from-emerald-500 to-teal-500',
+      bgColor: 'bg-emerald-500/10',
+      borderColor: 'border-emerald-500/30'
+    },
+    {
+      title: 'Rejected',
+      value: stats.rejectedGoals || stats.rejected || 0,
+      icon: <BsXCircle className="w-4 h-4" />,
+      gradient: 'from-rose-500 to-red-500',
+      bgColor: 'bg-rose-500/10',
+      borderColor: 'border-rose-500/30'
+    }
+  ];
+
   return (
-    <motion.div 
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="grid grid-cols-4 gap-3"
-    >
-      <motion.div 
-        variants={itemVariants}
-        className="relative group"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300" />
-        <div className="relative bg-white/5 backdrop-blur-sm border border-white/10 p-4 rounded-xl hover:border-white/20 transition-colors">
-          <div className="flex items-center gap-2">
-            <BsPeople className="w-4 h-4 text-blue-400" />
-            <span className="text-xs font-medium text-blue-300">Employees</span>
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {statCards.map((stat, index) => (
+        <motion.div
+          key={stat.title}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: index * 0.05 }}
+          className={`
+            relative overflow-hidden
+            ${stat.bgColor}
+            backdrop-blur-sm 
+            rounded-xl 
+            p-3 
+            border-2 
+            ${stat.borderColor}
+            hover:border-opacity-60 
+            transition-all 
+            duration-300 
+            group 
+            cursor-pointer
+            hover:shadow-xl
+            hover:scale-105
+            flex items-center gap-3
+          `}
+          tabIndex={0}
+          aria-label={`${stat.title}: ${stat.value}`}
+          title={`${stat.title}: ${stat.value}`}
+        >
+          {/* Animated background gradient on hover */}
+          <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
+          
+          {/* Content */}
+          <div className="relative flex items-center gap-3 w-full">
+            {/* Icon */}
+            <div className={`p-2 rounded-lg bg-gradient-to-r ${stat.gradient} text-white shadow-lg flex-shrink-0`}>
+              {stat.icon}
+            </div>
+            
+            {/* Value and Title */}
+            <div className="flex flex-col">
+              <div className="text-xl font-bold text-white group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:text-transparent group-hover:from-white group-hover:to-gray-200 transition-all duration-300">
+                {stat.value}
+              </div>
+              <div className="text-xs font-medium text-gray-400">
+                {stat.title}
+              </div>
+            </div>
           </div>
-          <div className="mt-2 text-xl font-bold text-white">{stats.totalEmployees}</div>
-        </div>
-      </motion.div>
-
-      <motion.div 
-        variants={itemVariants}
-        className="relative group"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300" />
-        <div className="relative bg-white/5 backdrop-blur-sm border border-white/10 p-4 rounded-xl hover:border-white/20 transition-colors">
-          <div className="flex items-center gap-2">
-            <BsClipboardData className="w-4 h-4 text-purple-400" />
-            <span className="text-xs font-medium text-purple-300">Goals</span>
-          </div>
-          <div className="mt-2 text-xl font-bold text-white">{stats.totalGoals}</div>
-        </div>
-      </motion.div>
-
-      <motion.div 
-        variants={itemVariants}
-        className="relative group"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300" />
-        <div className="relative bg-white/5 backdrop-blur-sm border border-white/10 p-4 rounded-xl hover:border-white/20 transition-colors">
-          <div className="flex items-center gap-2">
-            <BsCheckCircleFill className="w-4 h-4 text-emerald-400" />
-            <span className="text-xs font-medium text-emerald-300">Approved</span>
-          </div>
-          <div className="mt-2 text-xl font-bold text-white">{stats.approvedGoals || 0}</div>
-        </div>
-      </motion.div>
-
-      <motion.div 
-        variants={itemVariants}
-        className="relative group"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-rose-500/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300" />
-        <div className="relative bg-white/5 backdrop-blur-sm border border-white/10 p-4 rounded-xl hover:border-white/20 transition-colors">
-          <div className="flex items-center gap-2">
-            <BsXCircle className="w-4 h-4 text-red-400" />
-            <span className="text-xs font-medium text-red-300">Rejected</span>
-          </div>
-          <div className="mt-2 text-xl font-bold text-white">{stats.rejectedGoals || 0}</div>
-        </div>
-      </motion.div>
-    </motion.div>
+        </motion.div>
+      ))}
+    </div>
   );
-} 
+}

@@ -40,15 +40,12 @@ export function GoalList({
 
   return (
     <motion.div variants={itemVariants}>
-      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
-        <div className="px-6 py-4 flex items-center justify-between gap-3 border-b border-white/10">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl border border-white/20 dark:border-gray-700/50 overflow-hidden shadow-lg">
+        <div className="px-4 py-3 flex items-center justify-between gap-3 border-b border-gray-700/50">
           <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-indigo-500/20 to-purple-500/20 p-2.5 rounded-xl shadow-inner">
-              <BsBriefcase className="w-5 h-5 text-indigo-300" />
-            </div>
-            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
               Goals
-              <span className="bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-300 px-2.5 py-0.5 rounded-full text-sm">
+              <span className="bg-indigo-500/10 text-indigo-400 dark:text-indigo-300 px-2.5 py-0.5 rounded-full text-sm">
                 {filteredGoals.length}
               </span>
             </h3>
@@ -59,24 +56,6 @@ export function GoalList({
               onEmployeeChange={onEmployeeChange}
               assignedEmployees={assignedEmployees}
             />
-            {onRefresh && (
-              <button
-                type="button"
-                onClick={onRefresh}
-                className="ml-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30 hover:text-white transition-all text-xs font-medium"
-                title="Refresh"
-                disabled={refreshing}
-              >
-                <motion.span
-                  animate={refreshing ? { rotate: 360 } : { rotate: 0 }}
-                  transition={refreshing ? { repeat: Infinity, duration: 0.8, ease: 'linear' } : { duration: 0.2 }}
-                  style={{ display: 'inline-block' }}
-                >
-                  &#x21bb;
-                </motion.span>
-                {refreshing ? ' Refreshing...' : ' Refresh'}
-              </button>
-            )}
           </div>
         </div>
 
