@@ -11,7 +11,7 @@ import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import { Goal, GoalStats } from '@/app/components/shared/types';
-import { BsStars, BsLightbulb, BsX, BsPlus, BsPersonCheck, BsStarFill, BsStar } from 'react-icons/bs';
+import { BsStars, BsLightbulb, BsX, BsPlus, BsPersonCheck, BsStarFill, BsStar, BsArrowRight } from 'react-icons/bs';
 import { showToast } from '@/app/utils/toast';
 import { RATING_LABELS } from '@/app/components/shared/constants';
 import LoadingComponent from '@/app/components/LoadingScreen';
@@ -617,7 +617,7 @@ export default function EmployeeDashboard() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4"
               >
                 <motion.div
                   initial={{ scale: 0.95, opacity: 0 }}
@@ -718,7 +718,7 @@ export default function EmployeeDashboard() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-40 p-4"
                 onClick={() => setShowManagerRatingsModal(false)}
               >
                 <motion.div
@@ -726,51 +726,57 @@ export default function EmployeeDashboard() {
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.95, opacity: 0 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-amber-500/30"
+                  className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden border-2 border-amber-500/40 flex flex-col"
                 >
-                  <div className="sticky top-0 bg-gray-900/95 backdrop-blur-sm border-b border-amber-500/30 p-6 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-amber-500/20 rounded-lg">
-                        <BsPersonCheck className="w-6 h-6 text-amber-400" />
+                  {/* Compact Header - Sticky */}
+                  <div className="sticky top-0 z-10 bg-gradient-to-r from-amber-900/40 via-amber-800/40 to-orange-900/40 backdrop-blur-md border-b-2 border-amber-500/50 px-4 py-3 flex items-center justify-between flex-shrink-0">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-1.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg shadow-lg">
+                        <BsPersonCheck className="w-4 h-4 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-white">Manager Ratings</h3>
-                        <p className="text-sm text-gray-400">View all goals with manager feedback</p>
+                        <h3 className="text-lg font-bold text-white">Manager Ratings</h3>
+                        <p className="text-[11px] text-amber-200/80">Feedback on your performance</p>
                       </div>
                     </div>
                     <button
                       onClick={() => setShowManagerRatingsModal(false)}
-                      className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                      className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+                      aria-label="Close"
                     >
-                      <BsX className="w-6 h-6 text-gray-400 hover:text-white" />
+                      <BsX className="w-5 h-5 text-gray-300 hover:text-white" />
                     </button>
                   </div>
-                  <div className="p-6">
+
+                  {/* Scrollable Content */}
+                  <div className="overflow-y-auto flex-1 p-4">
                     {(() => {
                       const ratedGoals = goals.filter(goal => goal.rating?.managerScore);
                       
                       if (ratedGoals.length === 0) {
                         return (
-                          <div className="text-center py-12">
-                            <BsPersonCheck className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                          <div className="text-center py-16">
+                            <div className="mb-4 inline-flex p-4 bg-amber-500/10 rounded-full">
+                              <BsPersonCheck className="w-12 h-12 text-amber-400/50" />
+                            </div>
                             <h3 className="text-lg font-semibold text-gray-300 mb-2">No Manager Ratings Yet</h3>
-                            <p className="text-gray-400">Your manager hasn't rated any goals yet.</p>
+                            <p className="text-sm text-gray-400">Your manager hasn't rated any goals yet.</p>
                           </div>
                         );
                       }
 
                       return (
-                        <div className="space-y-4">
-                          {ratedGoals.map((goal) => {
+                        <div className="space-y-3">
+                          {ratedGoals.map((goal, index) => {
                             const rating = goal.rating?.managerScore || 0;
                             const ratingColors = {
-                              1: 'bg-red-500/10 text-red-400',
-                              2: 'bg-orange-500/10 text-orange-400',
-                              3: 'bg-yellow-500/10 text-yellow-400',
-                              4: 'bg-blue-500/10 text-blue-400',
-                              5: 'bg-green-500/10 text-green-400'
+                              1: { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/20', icon: 'from-red-500 to-red-600' },
+                              2: { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/20', icon: 'from-orange-500 to-orange-600' },
+                              3: { bg: 'bg-yellow-500/10', text: 'text-yellow-400', border: 'border-yellow-500/20', icon: 'from-yellow-500 to-yellow-600' },
+                              4: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20', icon: 'from-blue-500 to-blue-600' },
+                              5: { bg: 'bg-green-500/10', text: 'text-green-400', border: 'border-green-500/20', icon: 'from-green-500 to-green-600' }
                             };
-                            const ratingColor = ratingColors[rating as keyof typeof ratingColors] || 'bg-gray-500/10 text-gray-400';
+                            const ratingStyle = ratingColors[rating as keyof typeof ratingColors] || { bg: 'bg-gray-500/10', text: 'text-gray-400', border: 'border-gray-500/20', icon: 'from-gray-500 to-gray-600' };
                             const ratingLabels = {
                               1: "Needs Improvement",
                               2: "Below Expectations",
@@ -784,50 +790,71 @@ export default function EmployeeDashboard() {
                                 key={goal.id}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                whileHover={{ scale: 1.01 }}
+                                transition={{ delay: index * 0.05 }}
+                                whileHover={{ scale: 1.01, y: -2 }}
                                 onClick={() => {
                                   setSelectedGoal(goal);
-                                  setShowManagerRatingsModal(false);
                                   setShowDetailModal(true);
+                                  // Keep manager ratings modal open - don't close it
+                                  // setShowManagerRatingsModal(false);
                                 }}
-                                className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50 hover:border-amber-500/50 transition-all cursor-pointer"
+                                className="group relative bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border-2 border-gray-700/50 hover:border-amber-500/60 transition-all cursor-pointer hover:shadow-lg hover:shadow-amber-500/10"
                               >
-                                <div className="flex items-start justify-between gap-4">
-                                  <div className="flex-1">
-                                    <h4 className="text-lg font-semibold text-white mb-2">{goal.title}</h4>
-                                    <p className="text-sm text-gray-400 line-clamp-2 mb-3">{goal.description}</p>
-                                    <div className="flex items-center gap-4 flex-wrap">
-                                      <div className={`flex items-center gap-1 px-3 py-1.5 rounded-lg ${ratingColor}`}>
-                                        {Array.from({ length: 5 }).map((_, i) => (
-                                          <span key={i}>
-                                            {i < rating ? (
-                                              <BsStarFill className="w-4 h-4" />
-                                            ) : (
-                                              <BsStar className="w-4 h-4 opacity-30" />
-                                            )}
-                                          </span>
-                                        ))}
-                                        <span className="ml-2 font-semibold">{rating}/5</span>
-                                      </div>
-                                      <span className="text-sm text-gray-400">
+                                {/* Rating Badge */}
+                                <div className="absolute top-3 right-3">
+                                  <div className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${ratingStyle.bg} border ${ratingStyle.border} backdrop-blur-sm`}>
+                                    <div className={`p-1 rounded bg-gradient-to-r ${ratingStyle.icon}`}>
+                                      <BsStarFill className="w-3 h-3 text-white" />
+                                    </div>
+                                    <span className={`text-sm font-bold ${ratingStyle.text}`}>{rating}/5</span>
+                                  </div>
+                                </div>
+
+                                <div className="pr-20">
+                                  {/* Goal Title */}
+                                  <h4 className="text-base font-bold text-white mb-2 group-hover:text-amber-300 transition-colors line-clamp-1">
+                                    {goal.title}
+                                  </h4>
+                                  
+                                  {/* Description */}
+                                  {goal.description && (
+                                    <p className="text-sm text-gray-400 line-clamp-2 mb-3 group-hover:text-gray-300 transition-colors">
+                                      {goal.description}
+                                    </p>
+                                  )}
+
+                                  {/* Rating Details */}
+                                  <div className="flex items-center gap-3 flex-wrap mb-3">
+                                    <div className={`px-2.5 py-1 rounded-md ${ratingStyle.bg} border ${ratingStyle.border}`}>
+                                      <span className={`text-xs font-semibold ${ratingStyle.text}`}>
                                         {ratingLabels[rating as keyof typeof ratingLabels] || 'Not Rated'}
                                       </span>
-                                      {goal.rating?.managerRatedAt && (
-                                        <span className="text-xs text-gray-500">
-                                          Rated on {new Date(goal.rating.managerRatedAt).toLocaleDateString()}
-                                        </span>
-                                      )}
                                     </div>
-                                    {goal.rating?.managerComments && (
-                                      <div className="mt-3 p-3 bg-black/20 rounded-lg">
-                                        <p className="text-sm text-gray-300 italic">
+                                    {goal.rating?.managerRatedAt && (
+                                      <span className="text-xs text-gray-500">
+                                        {new Date(goal.rating.managerRatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Manager Comments */}
+                                  {goal.rating?.managerComments && (
+                                    <div className="mt-3 p-3 bg-black/30 rounded-lg border border-amber-500/20">
+                                      <div className="flex items-start gap-2">
+                                        <div className="p-1 bg-amber-500/20 rounded flex-shrink-0 mt-0.5">
+                                          <BsPersonCheck className="w-3 h-3 text-amber-400" />
+                                        </div>
+                                        <p className="text-sm text-gray-300 italic flex-1">
                                           "{goal.rating.managerComments}"
                                         </p>
                                       </div>
-                                    )}
-                                  </div>
-                                  <div className="text-xs text-gray-500">
-                                    Click to view details
+                                    </div>
+                                  )}
+
+                                  {/* Click Indicator */}
+                                  <div className="mt-3 flex items-center gap-2 text-xs text-amber-400/70 group-hover:text-amber-400 transition-colors">
+                                    <span>View details</span>
+                                    <BsArrowRight className="w-3 h-3 transform group-hover:translate-x-1 transition-transform" />
                                   </div>
                                 </div>
                               </motion.div>
