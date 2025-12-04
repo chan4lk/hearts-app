@@ -38,7 +38,7 @@ export interface Goal {
 
   title: string;
   description: string;
-  status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'DRAFT'| 'DELETED';
+  status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'DRAFT' | 'DELETED' | 'IN_PROGRESS' | 'NOT_STARTED' | 'ON_HOLD' | 'BLOCKED';
   dueDate: string;
   category: string;
   department: string;
@@ -58,8 +58,8 @@ export interface Goal {
 
 
 
-  managerComments?: string;
-  employeeComment?: string;
+  managerComments?: string | null;
+  employeeComment?: string | null;
 
   employee: {
     id: string;
@@ -234,7 +234,7 @@ export interface GoalWithRatingExtended {
   createdAt: string;
   updatedAt: string;
   dueDate: string;
-  managerId?: string | null;
+  managerId: string;
   employeeId: string;
   approvedAt?: Date | null;
   approvedBy?: string | null;
@@ -242,17 +242,25 @@ export interface GoalWithRatingExtended {
   rejectedBy?: string | null;
   managerComments?: string | null;
   category: string;
+  department: string;
+  priority: string;
+  isApprovalProcess: boolean;
   createdById?: string | null;
   deletedAt?: Date | null;
   deletedById?: string | null;
   updatedById?: string | null;
-  status: string;
+  status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'DRAFT' | 'DELETED' | 'IN_PROGRESS' | 'NOT_STARTED' | 'ON_HOLD' | 'BLOCKED';
   rating?: Rating | null;
   employee: {
     id: string;
     name: string;
     email: string;
-  };
+  } | null;
+  manager?: {
+    id: string;
+    name: string;
+    email: string;
+  } | null;
 }
 
 export type ViewMode = 'grid' | 'list';

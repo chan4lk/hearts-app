@@ -5,9 +5,20 @@ import { authOptions } from '@/lib/auth';
 
 export async function POST(
   request: Request,
-  { params }: { params: { goalId: string } }
+  { params }: { params: Promise<{ goalId: string }> | { goalId: string } }
 ) {
   try {
+    // Handle both sync and async params (Next.js 15+ uses Promise)
+    const resolvedParams = params instanceof Promise ? await params : params;
+    const goalId = resolvedParams.goalId;
+
+    if (!goalId) {
+      return NextResponse.json(
+        { error: 'Goal ID is required' },
+        { status: 400 }
+      );
+    }
+
     const session = await getServerSession(authOptions);
 
     if (!session?.user) {
@@ -23,14 +34,14 @@ export async function POST(
 
     if (!score || score < 1 || score > 5) {
       return NextResponse.json(
-        { error: 'Invalid rating score' },
+        { error: 'Invalid rating score. Must be between 1 and 5' },
         { status: 400 }
       );
     }
 
     const goal = await prisma.goal.findUnique({
       where: {
-        id: params.goalId,
+        id: goalId,
       },
       include: {
         employee: true,
@@ -59,24 +70,40 @@ export async function POST(
       );
     }
 
-    // Upsert rating - one rating per goal
-    const rating = await prisma.rating.upsert({
-      where: {
-        goalId: params.goalId,
-      },
-      update: {
-        managerScore: score,
-        managerComments: comments,
-        managerRatedById: session.user.id,
-        managerRatedAt: new Date(),
-      },
-      create: {
-        goalId: params.goalId,
-        managerScore: score,
-        managerComments: comments,
-        managerRatedById: session.user.id,
-        managerRatedAt: new Date(),
-      },
+    // Check if rating exists first
+    const existingRating = await prisma.rating.findUnique({
+      where: { goalId: goalId }
+    });
+
+    if (existingRating) {
+      // Update existing rating - preserve self-rating fields
+      await prisma.rating.update({
+        where: { goalId: goalId },
+        data: {
+          managerScore: score,
+          managerComments: comments || null,
+          managerRatedById: session.user.id,
+          managerRatedAt: new Date(),
+          // Self-rating fields are automatically preserved
+        }
+      });
+    } else {
+      // Create new rating - only manager fields, do not include relations in create
+      await prisma.rating.create({
+        data: {
+          goalId: goalId,
+          managerScore: score,
+          managerComments: comments || null,
+          managerRatedById: session.user.id,
+          managerRatedAt: new Date(),
+          // Do not set self-rating fields - they will be null by default
+        }
+      });
+    }
+
+    // Fetch the rating with relations after creation/update
+    const rating = await prisma.rating.findUnique({
+      where: { goalId: goalId },
       include: {
         selfRatedBy: {
           select: { id: true, name: true, email: true }
@@ -86,6 +113,13 @@ export async function POST(
         }
       }
     });
+
+    if (!rating) {
+      return NextResponse.json(
+        { error: 'Failed to create or retrieve rating' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       id: rating.id,
@@ -102,12 +136,15 @@ export async function POST(
     });
   } catch (error) {
     console.error('Error submitting manager rating:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const statusCode = error instanceof Error && errorMessage.includes('not found') ? 404 : 500;
+    
     return NextResponse.json(
       {
         error: 'Failed to submit rating',
-        message: error instanceof Error ? error.message : 'Unknown error occurred'
+        message: errorMessage
       },
-      { status: 500 }
+      { status: statusCode }
     );
   }
 }

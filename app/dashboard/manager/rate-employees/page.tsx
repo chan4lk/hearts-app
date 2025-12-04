@@ -22,6 +22,7 @@ export default function RateEmployeesPage() {
   const [goals, setGoals] = useState<GoalWithRatingExtended[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [submittingRatingId, setSubmittingRatingId] = useState<string | null>(null);
   const [filterEmployee, setFilterEmployee] = useState<string>('all');
   const [filterRating, setFilterRating] = useState<string>('all');
   const [employeeStats, setEmployeeStats] = useState<EmployeeStats[]>([]);
@@ -49,6 +50,8 @@ export default function RateEmployeesPage() {
 
     goals.forEach(goal => {
       const { employee } = goal;
+      if (!employee) return; // Skip if employee is null
+      
       const currentStats = statsMap.get(employee.id) || {
         id: employee.id,
         name: employee.name,
@@ -106,19 +109,45 @@ export default function RateEmployeesPage() {
   };
 
   const handleRatingChange = async (goalId: string, value: number) => {
-    if (isNaN(value) || !goalId) {
-      toast.error('Invalid rating value or goal ID');
+    if (isNaN(value) || !goalId || value === 0) {
+      return; // Don't submit if value is 0 (Not Rated)
+    }
+
+    // Find the goal to restore if update fails
+    const goalToRestore = goals.find(g => g.id === goalId);
+    if (!goalToRestore) {
+      toast.error('Goal not found');
       return;
     }
 
+    // Optimistic update - update UI immediately (allows changing rating)
+    setGoals(prevGoals =>
+      prevGoals.map(goal =>
+        goal.id === goalId
+          ? {
+              ...goal,
+              rating: {
+                ...goal.rating, // Preserve existing rating properties (like selfScore)
+                id: goal.rating?.id || '',
+                goalId: goalId,
+                managerScore: value,
+                score: value,
+                managerComments: goal.rating?.managerComments || '',
+                comments: goal.rating?.comments || '',
+                managerRatedAt: new Date().toISOString(),
+                managerRatedById: session?.user?.id || goal.rating?.managerRatedById,
+                updatedAt: new Date().toISOString()
+              }
+            }
+          : goal
+      )
+    );
+
     try {
       setSubmitting(true);
-      
-      // First verify the goal exists and can be rated
-      const goal = goals.find(g => g.id === goalId);
-      if (!goal) {
-        throw new Error('Goal not found');
-      }
+      setSubmittingRatingId(goalId);
+
+      console.log('Submitting rating:', { goalId, value });
 
       const response = await fetch(`/api/goals/${goalId}/manager-rating`, {
         method: 'POST',
@@ -128,66 +157,77 @@ export default function RateEmployeesPage() {
         },
         body: JSON.stringify({
           score: value,
-          comments: ''
+          comments: '' // Allow empty comments
         })
       });
 
+      console.log('Rating response status:', response.status);
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || errorData.message || 'Failed to update rating');
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+        }
+        const errorMessage = errorData.message || errorData.error || `Failed to update rating (${response.status})`;
+        console.error('Rating error:', errorMessage, errorData);
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
+      console.log('Rating updated successfully:', data);
 
-      // Update the goals state with the new rating
-      setGoals(prevGoals =>
-        prevGoals.map(goal =>
+      // Update with server response to ensure data consistency
+      setGoals(prevGoals => {
+        const updatedGoals = prevGoals.map(goal =>
           goal.id === goalId
             ? {
                 ...goal,
                 rating: {
-                  id: data.id,
+                  ...goal.rating, // Preserve existing rating properties (like selfScore)
+                  id: data.id || goal.rating?.id || '',
                   goalId: goalId,
                   managerScore: value,
                   score: value, // Keep for backward compatibility
-                  managerComments: data.managerComments || '',
-                  comments: data.managerComments || '',
-                  managerRatedAt: data.managerRatedAt,
-                  updatedAt: data.updatedAt
+                  managerComments: data.managerComments || goal.rating?.managerComments || '',
+                  comments: data.managerComments || goal.rating?.comments || '',
+                  managerRatedAt: data.managerRatedAt || new Date().toISOString(),
+                  managerRatedById: session?.user?.id || goal.rating?.managerRatedById,
+                  updatedAt: data.updatedAt || new Date().toISOString()
                 }
               }
             : goal
-        )
-      );
+        );
+        
+        // Update employee stats with the updated goals
+        const stats = calculateEmployeeStats(updatedGoals);
+        setEmployeeStats(stats);
+        
+        return updatedGoals;
+      });
 
-      // Update employee stats
-      const stats = calculateEmployeeStats(goals.map(goal =>
-        goal.id === goalId
-          ? {
-              ...goal,
-              rating: {
-                id: data.id,
-                goalId: goalId,
-                managerScore: value,
-                score: value,
-                managerComments: data.managerComments || '',
-                comments: data.managerComments || ''
-              }
-            }
-          : goal
-      ));
-      setEmployeeStats(stats);
-
-      toast.success('Rating updated successfully');
+      toast.success(`Rating updated to ${value} stars`);
     } catch (error) {
       console.error('Error updating rating:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to update rating');
+      // Revert optimistic update on error
+      if (goalToRestore) {
+        setGoals(prevGoals =>
+          prevGoals.map(goal =>
+            goal.id === goalId ? goalToRestore : goal
+          )
+        );
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update rating';
+      toast.error(errorMessage);
     } finally {
       setSubmitting(false);
+      setSubmittingRatingId(null);
     }
   };
 
   const filteredGoals = goals.filter(goal => {
+    if (!goal.employee) return false;
     if (filterEmployee !== 'all' && goal.employee.id !== filterEmployee) return false;
     if (filterRating !== 'all' && goal.rating?.score !== parseInt(filterRating)) return false;
     return true;
@@ -221,8 +261,11 @@ export default function RateEmployeesPage() {
           <GoalsTable
             goals={filteredGoals}
             onGoalClick={(goal) => setSelectedGoal(goal as GoalWithRatingExtended)}
+            onRatingChange={handleRatingChange}
             showEmployee={true}
-            showManager={true}
+            showManager={false}
+            showRating={true}
+            submittingRating={submittingRatingId}
           />
 
           {/* Goal Detail Modal */}

@@ -1,27 +1,30 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Goal } from './types';
-import { BsSearch, BsFilter, BsEye, BsPencil, BsTrash, BsCheckCircle, BsXCircle, BsClock, BsGear, BsFlag, BsPlayCircle, BsCircle, BsPauseCircle } from 'react-icons/bs';
+import { Goal, GoalWithRatingExtended } from './types';
+import { BsSearch, BsFilter, BsEye, BsPencil, BsTrash, BsCheckCircle, BsXCircle, BsClock, BsGear, BsFlag, BsPlayCircle, BsCircle, BsPauseCircle, BsStar, BsStarFill } from 'react-icons/bs';
 import { Badge } from '@/app/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { useSession } from 'next-auth/react';
 import { showToast } from '@/app/utils/toast';
 
 interface GoalsTableProps {
-  goals: Goal[];
+  goals: (Goal | GoalWithRatingExtended)[];
   searchQuery?: string;
   selectedStatus?: string;
   onSearchChange?: (query: string) => void;
   onStatusChange?: (status: string) => void;
-  onGoalClick?: (goal: Goal) => void;
-  onEdit?: (goal: Goal) => void;
-  onDelete?: (goal: Goal) => void;
-  onStatusUpdate?: (goalId: string, newStatus: string, updatedGoal: Goal) => void;
+  onGoalClick?: (goal: Goal | GoalWithRatingExtended) => void;
+  onEdit?: (goal: Goal | GoalWithRatingExtended) => void;
+  onDelete?: (goal: Goal | GoalWithRatingExtended) => void;
+  onStatusUpdate?: (goalId: string, newStatus: string, updatedGoal: Goal | GoalWithRatingExtended) => void;
+  onRatingChange?: (goalId: string, rating: number) => void;
   showEmployee?: boolean;
   showManager?: boolean;
   showActions?: boolean;
+  showRating?: boolean;
   disableStatusUpdate?: boolean;
+  submittingRating?: string | null;
 }
 
 const STATUS_OPTIONS = [
@@ -132,6 +135,21 @@ const getPriorityBadge = (priority: string) => {
   );
 };
 
+const RATING_OPTIONS = [
+  { value: 0, label: 'Not Rated', stars: '' },
+  { value: 1, label: 'Poor (1)', stars: '⭐' },
+  { value: 2, label: 'Fair (2)', stars: '⭐⭐' },
+  { value: 3, label: 'Good (3)', stars: '⭐⭐⭐' },
+  { value: 4, label: 'Very Good (4)', stars: '⭐⭐⭐⭐' },
+  { value: 5, label: 'Excellent (5)', stars: '⭐⭐⭐⭐⭐' }
+];
+
+const getRatingDisplay = (rating: number | null | undefined) => {
+  if (!rating || rating === 0) return 'Not Rated';
+  const option = RATING_OPTIONS.find(opt => opt.value === rating);
+  return option ? `${option.stars} ${rating}` : `${rating}/5`;
+};
+
 export default function GoalsTable({
   goals,
   searchQuery = '',
@@ -142,16 +160,19 @@ export default function GoalsTable({
   onEdit,
   onDelete,
   onStatusUpdate,
+  onRatingChange,
   showEmployee = false,
   showManager = false,
   showActions = false,
-  disableStatusUpdate = false
+  showRating = false,
+  disableStatusUpdate = false,
+  submittingRating = null
 }: GoalsTableProps) {
   const { data: session } = useSession();
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
   const [localSelectedStatus, setLocalSelectedStatus] = useState(selectedStatus);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
-  const [localGoals, setLocalGoals] = useState<Goal[]>(goals);
+  const [localGoals, setLocalGoals] = useState<(Goal | GoalWithRatingExtended)[]>(goals);
 
   const handleSearchChange = (value: string) => {
     setLocalSearchQuery(value);
@@ -279,6 +300,9 @@ export default function GoalsTable({
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Manager</th>
               )}
               <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Category</th>
+              {showRating && (
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Rating</th>
+              )}
               {(onGoalClick || onEdit || onDelete) && (
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Actions</th>
               )}
@@ -287,7 +311,7 @@ export default function GoalsTable({
           <tbody>
             {filteredGoals.length === 0 ? (
               <tr>
-                <td colSpan={4 + (showEmployee ? 1 : 0) + (showManager ? 1 : 0) + ((onGoalClick || onEdit || onDelete) ? 1 : 0)} className="py-8 text-center text-gray-400">
+                <td colSpan={4 + (showEmployee ? 1 : 0) + (showManager ? 1 : 0) + (showRating ? 1 : 0) + ((onGoalClick || onEdit || onDelete) ? 1 : 0)} className="py-8 text-center text-gray-400">
                   <div className="flex flex-col items-center justify-center">
                     <BsFlag className="w-8 h-8 mb-2 text-gray-500" />
                     <p>No goals found</p>
@@ -331,6 +355,65 @@ export default function GoalsTable({
                   <td className="py-3 px-4 text-sm text-gray-300">
                     {goal.category}
                   </td>
+                  {showRating && (
+                    <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+                      {onRatingChange ? (
+                        <Select
+                          key={`rating-${goal.id}-${(goal as any).rating?.managerScore ?? (goal as any).rating?.score ?? 0}`}
+                          value={String((goal as any).rating?.managerScore ?? (goal as any).rating?.score ?? 0)}
+                          onValueChange={(value) => {
+                            const ratingValue = parseInt(value);
+                            if (ratingValue > 0) {
+                              onRatingChange(goal.id, ratingValue);
+                            }
+                          }}
+                          disabled={submittingRating === goal.id}
+                        >
+                          <SelectTrigger className="bg-gray-800/50 border border-white/10 text-white/90 text-xs px-3 py-1.5 h-auto hover:bg-gray-700/50 transition-colors cursor-pointer min-w-[120px]">
+                            <div className="flex items-center gap-1.5">
+                              {((goal as any).rating?.managerScore ?? (goal as any).rating?.score) ? (
+                                <>
+                                  <SelectValue>
+                                    {getRatingDisplay((goal as any).rating?.managerScore ?? (goal as any).rating?.score)}
+                                  </SelectValue>
+                                </>
+                              ) : (
+                                <>
+                                  <BsStar className="w-3 h-3 text-gray-400" />
+                                  <SelectValue>Not Rated</SelectValue>
+                                </>
+                              )}
+                            </div>
+                          </SelectTrigger>
+                          <SelectContent className="bg-gray-800 border-gray-700" onClick={(e) => e.stopPropagation()}>
+                            {RATING_OPTIONS.map(option => (
+                              <SelectItem 
+                                key={option.value} 
+                                value={String(option.value)}
+                                className="text-white/90 hover:bg-gray-700 focus:bg-gray-700"
+                              >
+                                <div className="flex items-center gap-2">
+                                  {option.value > 0 && <BsStarFill className="w-3 h-3 text-yellow-400" />}
+                                  <span>{option.label}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center gap-1.5 text-xs text-gray-300">
+                          {((goal as any).rating?.managerScore ?? (goal as any).rating?.score) ? (
+                            <>
+                              <BsStarFill className="w-3 h-3 text-yellow-400" />
+                              <span>{getRatingDisplay((goal as any).rating?.managerScore ?? (goal as any).rating?.score)}</span>
+                            </>
+                          ) : (
+                            <span className="text-gray-500">Not Rated</span>
+                          )}
+                        </div>
+                      )}
+                    </td>
+                  )}
                   {(onGoalClick || onEdit || onDelete) && (
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>

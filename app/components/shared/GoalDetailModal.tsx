@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, BsArrowRight, BsChevronDown, BsChevronUp, BsPencil, BsTrash, BsPerson, BsGear, BsFlag, BsBuilding, BsPlayCircle, BsPauseCircle, BsCircle, BsArrowRepeat } from 'react-icons/bs';
-import { Goal } from '@/app/components/shared/types';
+import { Goal, GoalWithRatingExtended } from '@/app/components/shared/types';
 import { IconType } from 'react-icons';
 import { showToast } from '@/app/utils/toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,11 +12,11 @@ import GoalActivityTimeline from '@/app/components/goals/GoalActivityTimeline';
 import { useSession } from 'next-auth/react';
 
 interface GoalDetailModalProps {
-  goal: Goal;
+  goal: Goal | GoalWithRatingExtended;
   onClose: () => void;
   onSubmitGoal?: (goalId: string) => Promise<void>;
-  onEdit?: (goal: Goal) => void;
-  onDelete?: (goal: Goal) => void;
+  onEdit?: (goal: Goal | GoalWithRatingExtended) => void;
+  onDelete?: (goal: Goal | GoalWithRatingExtended) => void;
 }
 
 type StatusConfig = {

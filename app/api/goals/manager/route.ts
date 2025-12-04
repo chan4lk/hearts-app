@@ -46,6 +46,13 @@ export async function GET(req: Request) {
             email: true,
           },
         },
+        manager: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
         rating: {
           select: {
             id: true,
@@ -64,14 +71,20 @@ export async function GET(req: Request) {
     });
     console.log('Found goals:', goals); // Debug log
 
-    // Transform the data to include ratings
+    // Transform the data to include ratings and all goal fields
     const goalsWithRatings = goals.map(goal => ({
       id: goal.id,
       title: goal.title,
       description: goal.description,
       status: goal.status,
       dueDate: goal.dueDate.toISOString(),
+      category: goal.category,
+      department: goal.department,
+      priority: goal.priority,
+      managerId: goal.managerId || '',
+      isApprovalProcess: false, // Default value since this field doesn't exist in the database
       employee: goal.employee,
+      manager: goal.manager,
       rating: goal.rating || null,
       createdAt: goal.createdAt.toISOString(),
       updatedAt: goal.updatedAt.toISOString(),
