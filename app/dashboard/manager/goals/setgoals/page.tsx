@@ -16,6 +16,7 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { HeroSection } from './components/sections/HeroSection';
 import { StatsSection } from './components/sections/StatsSection';
 import { GoalList } from './components/sections/GoalList';
+import Filters from './components/sections/Filters';
 import { CreateGoalModal } from './components/modals/CreateGoalModal';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
@@ -54,6 +55,8 @@ function ManagerGoalSettingPageContent() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [selectedEmployee, setSelectedEmployee] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedPriority, setSelectedPriority] = useState('');
   const [formData, setFormData] = useState<GoalFormData>({
     title: '',
     description: '',
@@ -393,17 +396,28 @@ function ManagerGoalSettingPageContent() {
           <StatsSection stats={stats} />
         </div>
 
+        <Filters
+          selectedEmployee={selectedEmployee}
+          onEmployeeChange={setSelectedEmployee}
+          selectedStatus={selectedStatus}
+          onStatusChange={setSelectedStatus}
+          selectedPriority={selectedPriority}
+          onPriorityChange={setSelectedPriority}
+          assignedEmployees={assignedEmployees}
+        />
+
         {/* Goal Templates Section */}
+
         <div className="space-y-4">
           {/* View Templates Button */}
           <motion.button
             onClick={() => setShowTemplates(!showTemplates)}
-            className="w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-4 
+            className="w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 
               shadow-md border border-white/10 dark:border-gray-700/30 
               hover:bg-white/90 dark:hover:bg-gray-700/80 transition-all duration-300
               text-gray-900 dark:text-white font-medium flex items-center justify-center gap-2"
           >
-            {showTemplates ? 'Hide Templates' : 'View Templates'}
+            {showTemplates ? 'Hide Templates' : 'Create Goals Using Templates'}
             <BsArrowUpRight className={`transform transition-transform duration-300 ${showTemplates ? 'rotate-180' : ''}`} />
           </motion.button>
 
@@ -436,9 +450,9 @@ function ManagerGoalSettingPageContent() {
 
         <GoalList
           goals={goals}
-          assignedEmployees={assignedEmployees}
           selectedEmployee={selectedEmployee}
-          onEmployeeChange={setSelectedEmployee}
+          selectedStatus={selectedStatus}
+          selectedPriority={selectedPriority}
           onViewGoal={(goal) => {
             setViewedGoal(goal);
             setIsViewModalOpen(true);
@@ -448,8 +462,6 @@ function ManagerGoalSettingPageContent() {
             setGoalToDelete(goalId);
             setIsDeleteModalOpen(true);
           }}
-          onRefresh={handleRefresh}
-          refreshing={refreshing}
         />
 
         {/* Modals */}
