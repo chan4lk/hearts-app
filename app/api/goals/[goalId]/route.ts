@@ -3,6 +3,37 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+// Standard include for goal queries (matching the main goals route)
+const goalInclude = {
+  employee: {
+    select: { id: true, name: true, email: true }
+  },
+  manager: {
+    select: { id: true, name: true, email: true }
+  },
+  createdBy: {
+    select: { id: true, name: true, email: true }
+  },
+  updatedBy: {
+    select: { id: true, name: true, email: true }
+  },
+  rating: {
+    select: {
+      id: true,
+      selfScore: true,
+      selfComments: true,
+      selfRatedById: true,
+      selfRatedAt: true,
+      managerScore: true,
+      managerComments: true,
+      managerRatedById: true,
+      managerRatedAt: true,
+      createdAt: true,
+      updatedAt: true
+    }
+  }
+};
+
 // GET a specific goal
 export async function GET(req: Request, { params }: { params: { goalId: string } }) {
   try {
@@ -160,22 +191,7 @@ export async function PUT(req: Request, { params }: { params: { goalId: string }
     const goal = await prisma.goal.update({
       where: { id: params.goalId },
       data: updateData,
-      include: {
-        employee: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        },
-        manager: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
+      include: goalInclude
     });
 
     return NextResponse.json({

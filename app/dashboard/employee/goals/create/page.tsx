@@ -184,16 +184,33 @@ function GoalsPageContent() {
 
       const { goal } = await response.json();
       
-      // Update the goals list optimistically
-      const updatedGoals = goals.map(g => 
-        g.id === editGoal.id ? goal : g
-      );
-      setGoals(updatedGoals);
+      // Update the goals list optimistically - no need to refetch
+      // Merge with existing goal to preserve any computed properties
+      setGoals(prevGoals => {
+        const goalExists = prevGoals.some(g => g.id === editGoal.id);
+        if (!goalExists) {
+          // If goal doesn't exist in list, add it (shouldn't happen, but safety check)
+          return [...prevGoals, goal];
+        }
+        return prevGoals.map(g => {
+          if (g.id === editGoal.id) {
+            // Merge updated goal with existing goal to preserve all properties
+            return {
+              ...g,
+              ...goal,
+              // Ensure dates are properly formatted
+              dueDate: goal.dueDate || g.dueDate,
+              createdAt: goal.createdAt || g.createdAt,
+              updatedAt: goal.updatedAt || g.updatedAt
+            };
+          }
+          return g;
+        });
+      });
       
       setIsEditModalOpen(false);
       setEditGoal(null);
       showNotificationWithTimeout('Goal updated successfully!', 'success');
-      fetchGoals(); // Refresh to get the latest data
     } catch (error) {
       console.error('Error updating goal:', error);
       showNotificationWithTimeout(

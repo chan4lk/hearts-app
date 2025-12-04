@@ -230,14 +230,36 @@ export default function EmployeeDashboard() {
         throw new Error('Failed to update goal');
       }
 
+      const { goal: updatedGoal } = await response.json();
+
+      // Update local state immediately (optimistic update)
+      // Merge with existing goal to preserve any computed properties
+      setGoals(prevGoals => {
+        const goalExists = prevGoals.some(g => g.id === editingGoal.id);
+        if (!goalExists) {
+          // If goal doesn't exist in list, add it (shouldn't happen, but safety check)
+          return [...prevGoals, updatedGoal];
+        }
+        return prevGoals.map(g => {
+          if (g.id === editingGoal.id) {
+            // Merge updated goal with existing goal to preserve all properties
+            return {
+              ...g,
+              ...updatedGoal,
+              // Ensure dates are properly formatted
+              dueDate: updatedGoal.dueDate || g.dueDate,
+              createdAt: updatedGoal.createdAt || g.createdAt,
+              updatedAt: updatedGoal.updatedAt || g.updatedAt
+            };
+          }
+          return g;
+        });
+      });
+
       showToast.success('Goal Updated!', 'Your goal has been updated successfully');
       setShowEditGoalModal(false);
       setEditingGoal(null);
       resetForm();
-
-      // Refresh goals
-      const refreshedGoals = await fetchGoals();
-      setGoals(refreshedGoals);
     } catch (error) {
       showToast.error('Error', error instanceof Error ? error.message : 'Failed to update goal');
     } finally {
