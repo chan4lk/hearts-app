@@ -2,14 +2,14 @@ import { BsClipboardData, BsCheckCircle, BsPencil, BsXCircle, BsStarFill } from 
 import { Goal } from '@/app/components/shared/types';
 import { motion } from 'framer-motion';
 import { useSession } from 'next-auth/react';
-import ManagerRatingBadge from '../../components/ManagerRatingBadge';
+import SelfRatingBadge from './SelfRatingBadge';
 
 interface StatsSectionProps {
   goals: Goal[];
-  onViewManagerRatings?: () => void;
+  onViewSelfRatings?: () => void;
 }
 
-export function StatsSection({ goals, onViewManagerRatings }: StatsSectionProps) {
+export function StatsSection({ goals, onViewSelfRatings }: StatsSectionProps) {
   const { data: session } = useSession();
   const userId = session?.user?.id;
   
@@ -137,8 +137,8 @@ export function StatsSection({ goals, onViewManagerRatings }: StatsSectionProps)
         </motion.div>
       ))}
       
-      {/* Manager Rating Badge */}
-      <ManagerRatingBadge goals={selfCreatedGoals} onViewRatings={onViewManagerRatings} />
+      {/* Self Rating Badge */}
+      <SelfRatingBadge goals={selfCreatedGoals} onViewRatings={onViewSelfRatings} />
     </div>
   );
 }

@@ -14,7 +14,7 @@ import Filters from "./components/Filters";
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { GoalWithRating, FilterStatus, RatingStatus, FilterRating } from "@/app/components/shared/types";
-import { BsX, BsPersonCheck, BsStarFill, BsArrowRight } from 'react-icons/bs';
+import { BsX, BsPersonCheck, BsStarFill, BsArrowRight, BsStar } from 'react-icons/bs';
 
 export default function SelfRatingPage() {
   const { data: session, status } = useSession();
@@ -31,7 +31,7 @@ export default function SelfRatingPage() {
   const [filterRating, setFilterRating] = useState<FilterRating>('all');
   const [ratingStatus, setRatingStatus] = useState<RatingStatus>('all');
   const [selectedPriority, setSelectedPriority] = useState('');
-  const [showManagerRatingsModal, setShowManagerRatingsModal] = useState(false);
+  const [showSelfRatingsModal, setShowSelfRatingsModal] = useState(false);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -205,7 +205,7 @@ export default function SelfRatingPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <StatsSection goals={goals} onViewManagerRatings={() => setShowManagerRatingsModal(true)} />
+            <StatsSection goals={goals} onViewSelfRatings={() => setShowSelfRatingsModal(true)} />
           </motion.div>
 
           {/* Filters Section */}
@@ -277,36 +277,36 @@ export default function SelfRatingPage() {
             )}
           </AnimatePresence>
 
-          {/* Manager Ratings Modal */}
+          {/* Self Ratings Modal */}
           <AnimatePresence>
-            {showManagerRatingsModal && (
+            {showSelfRatingsModal && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-40 p-4"
-                onClick={() => setShowManagerRatingsModal(false)}
+                onClick={() => setShowSelfRatingsModal(false)}
               >
                 <motion.div
                   initial={{ scale: 0.95, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.95, opacity: 0 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden border-2 border-amber-500/40 flex flex-col"
+                  className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden border-2 border-yellow-500/40 flex flex-col"
                 >
                   {/* Compact Header - Sticky */}
-                  <div className="sticky top-0 z-10 bg-gradient-to-r from-amber-900/40 via-amber-800/40 to-orange-900/40 backdrop-blur-md border-b-2 border-amber-500/50 px-4 py-3 flex items-center justify-between flex-shrink-0">
+                  <div className="sticky top-0 z-10 bg-gradient-to-r from-yellow-900/40 via-yellow-800/40 to-orange-900/40 backdrop-blur-md border-b-2 border-yellow-500/50 px-4 py-3 flex items-center justify-between flex-shrink-0">
                     <div className="flex items-center gap-2.5">
-                      <div className="p-1.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg shadow-lg">
-                        <BsPersonCheck className="w-4 h-4 text-white" />
+                      <div className="p-1.5 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg shadow-lg">
+                        <BsStar className="w-4 h-4 text-white" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-white">Manager Ratings</h3>
-                        <p className="text-[11px] text-amber-200/80">Feedback on your performance</p>
+                        <h3 className="text-lg font-bold text-white">Self Ratings</h3>
+                        <p className="text-[11px] text-yellow-200/80">Your self-assessment on your goals</p>
                       </div>
                     </div>
                     <button
-                      onClick={() => setShowManagerRatingsModal(false)}
+                      onClick={() => setShowSelfRatingsModal(false)}
                       className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
                       aria-label="Close"
                     >
@@ -319,16 +319,16 @@ export default function SelfRatingPage() {
                     {(() => {
                       const userId = session?.user?.id;
                       const selfCreatedGoals = goals.filter(goal => goal.createdBy?.id === userId);
-                      const ratedGoals = selfCreatedGoals.filter(goal => goal.rating?.managerScore);
+                      const ratedGoals = selfCreatedGoals.filter(goal => goal.rating?.selfScore || goal.rating?.score);
                       
                       if (ratedGoals.length === 0) {
                         return (
                           <div className="text-center py-16">
-                            <div className="mb-4 inline-flex p-4 bg-amber-500/10 rounded-full">
-                              <BsPersonCheck className="w-12 h-12 text-amber-400/50" />
+                            <div className="mb-4 inline-flex p-4 bg-yellow-500/10 rounded-full">
+                              <BsStar className="w-12 h-12 text-yellow-400/50" />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-300 mb-2">No Manager Ratings Yet</h3>
-                            <p className="text-sm text-gray-400">Your manager hasn't rated any goals yet.</p>
+                            <h3 className="text-lg font-semibold text-gray-300 mb-2">No Self Ratings Yet</h3>
+                            <p className="text-sm text-gray-400">You haven't rated any goals yet. Start rating your goals to track your progress.</p>
                           </div>
                         );
                       }
@@ -336,7 +336,7 @@ export default function SelfRatingPage() {
                       return (
                         <div className="space-y-3">
                           {ratedGoals.map((goal, index) => {
-                            const rating = goal.rating?.managerScore || 0;
+                            const rating = goal.rating?.selfScore || goal.rating?.score || 0;
                             const ratingColors = {
                               1: { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/20', icon: 'from-red-500 to-red-600' },
                               2: { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/20', icon: 'from-orange-500 to-orange-600' },
@@ -347,10 +347,10 @@ export default function SelfRatingPage() {
                             const ratingStyle = ratingColors[rating as keyof typeof ratingColors] || { bg: 'bg-gray-500/10', text: 'text-gray-400', border: 'border-gray-500/20', icon: 'from-gray-500 to-gray-600' };
                             const ratingLabels = {
                               1: "Needs Improvement",
-                              2: "Below Expectations",
-                              3: "Meets Expectations",
-                              4: "Exceeds Expectations",
-                              5: "Outstanding"
+                              2: "Below Average",
+                              3: "Average",
+                              4: "Above Average",
+                              5: "Excellent"
                             };
 
                             return (
@@ -362,9 +362,9 @@ export default function SelfRatingPage() {
                                 whileHover={{ scale: 1.01, y: -2 }}
                                 onClick={() => {
                                   setSelectedGoal(goal);
-                                  // Keep manager ratings modal open
+                                  // Keep self ratings modal open
                                 }}
-                                className="group relative bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border-2 border-gray-700/50 hover:border-amber-500/60 transition-all cursor-pointer hover:shadow-lg hover:shadow-amber-500/10"
+                                className="group relative bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border-2 border-gray-700/50 hover:border-yellow-500/60 transition-all cursor-pointer hover:shadow-lg hover:shadow-yellow-500/10"
                               >
                                 {/* Rating Badge */}
                                 <div className="absolute top-3 right-3">
@@ -378,7 +378,7 @@ export default function SelfRatingPage() {
 
                                 <div className="pr-20">
                                   {/* Goal Title */}
-                                  <h4 className="text-base font-bold text-white mb-2 group-hover:text-amber-300 transition-colors line-clamp-1">
+                                  <h4 className="text-base font-bold text-white mb-2 group-hover:text-yellow-300 transition-colors line-clamp-1">
                                     {goal.title}
                                   </h4>
                                   
@@ -396,29 +396,29 @@ export default function SelfRatingPage() {
                                         {ratingLabels[rating as keyof typeof ratingLabels] || 'Not Rated'}
                                       </span>
                                     </div>
-                                    {goal.rating?.managerRatedAt && (
+                                    {goal.rating?.selfRatedAt && (
                                       <span className="text-xs text-gray-500">
-                                        {new Date(goal.rating.managerRatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                        {new Date(goal.rating.selfRatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                       </span>
                                     )}
                                   </div>
 
-                                  {/* Manager Comments */}
-                                  {goal.rating?.managerComments && (
-                                    <div className="mt-3 p-3 bg-black/30 rounded-lg border border-amber-500/20">
+                                  {/* Self Comments */}
+                                  {(goal.rating?.selfComments || goal.rating?.comments) && (
+                                    <div className="mt-3 p-3 bg-black/30 rounded-lg border border-yellow-500/20">
                                       <div className="flex items-start gap-2">
-                                        <div className="p-1 bg-amber-500/20 rounded flex-shrink-0 mt-0.5">
-                                          <BsPersonCheck className="w-3 h-3 text-amber-400" />
+                                        <div className="p-1 bg-yellow-500/20 rounded flex-shrink-0 mt-0.5">
+                                          <BsStar className="w-3 h-3 text-yellow-400" />
                                         </div>
                                         <p className="text-sm text-gray-300 italic flex-1">
-                                          "{goal.rating.managerComments}"
+                                          "{goal.rating?.selfComments || goal.rating?.comments}"
                                         </p>
                                       </div>
                                     </div>
                                   )}
 
                                   {/* Click Indicator */}
-                                  <div className="mt-3 flex items-center gap-2 text-xs text-amber-400/70 group-hover:text-amber-400 transition-colors">
+                                  <div className="mt-3 flex items-center gap-2 text-xs text-yellow-400/70 group-hover:text-yellow-400 transition-colors">
                                     <span>View details</span>
                                     <BsArrowRight className="w-3 h-3 transform group-hover:translate-x-1 transition-transform" />
                                   </div>
