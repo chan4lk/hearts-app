@@ -13,7 +13,9 @@ import {
   BsGear,
   BsPlayCircle,
   BsCircle,
-  BsPauseCircle
+  BsPauseCircle,
+  BsBullseye,
+  BsInbox
 } from 'react-icons/bs';
 import { Badge } from '@/app/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -202,9 +204,15 @@ export default function AdminGoalsTable({
                   colSpan={7 + (showEmployee ? 1 : 0) + (showManager ? 1 : 0)} 
                   className="py-8 text-center text-gray-400"
                 >
-                  <div className="flex flex-col items-center justify-center">
-                    <BsSquare className="w-8 h-8 mb-2 text-gray-500" />
-                    <p>No goals found</p>
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <div className="relative mb-4">
+                      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full blur-xl"></div>
+                      <div className="relative w-16 h-16 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-full flex items-center justify-center border-2 border-indigo-500/30">
+                        <BsBullseye className="w-8 h-8 text-indigo-400" />
+                      </div>
+                    </div>
+                    <p className="text-lg font-medium text-gray-300 mb-1">No goals found</p>
+                    <p className="text-sm text-gray-500">Try adjusting your filters to see more results</p>
                   </div>
                 </td>
               </tr>
