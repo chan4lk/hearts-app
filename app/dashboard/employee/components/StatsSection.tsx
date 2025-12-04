@@ -14,7 +14,6 @@ export default function StatsSection({ stats, goals = [], onViewManagerRatings }
   const draftCount = goals.filter(g => g.status === 'DRAFT').length;
   const approvedCount = goals.filter(g => g.status === 'APPROVED').length;
   const rejectedCount = goals.filter(g => g.status === 'REJECTED').length;
-  const pendingCount = goals.filter(g => g.status === 'PENDING').length;
   const completedCount = goals.filter(g => g.status === 'COMPLETED').length;
   const totalCount = goals.length;
 
@@ -34,14 +33,6 @@ export default function StatsSection({ stats, goals = [], onViewManagerRatings }
       gradient: 'from-gray-500 to-slate-500',
       bgColor: 'bg-gray-500/10',
       borderColor: 'border-gray-500/30'
-    },
-    {
-      title: 'Pending',
-      value: pendingCount,
-      icon: <BsClock className="w-4 h-4" />,
-      gradient: 'from-amber-500 to-orange-500',
-      bgColor: 'bg-amber-500/10',
-      borderColor: 'border-amber-500/30'
     },
     {
       title: 'Approved',
@@ -70,7 +61,7 @@ export default function StatsSection({ stats, goals = [], onViewManagerRatings }
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
       {statsList.map((stat, index) => (
         <motion.div
           key={stat.title}
