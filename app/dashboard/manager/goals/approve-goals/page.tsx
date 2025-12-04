@@ -518,7 +518,7 @@ export default function ApproveGoalsPage() {
                   }
                 }}
                 showEmployee={true}
-                showManager={true}
+                showManager={false}
               />
             </>
           )}
