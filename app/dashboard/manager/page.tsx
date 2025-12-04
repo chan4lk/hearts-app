@@ -15,7 +15,6 @@ import { BsStars, BsLightbulb } from 'react-icons/bs';
 import { Goal, EmployeeStats, DashboardStats } from '@/app/components/shared/types';
 
 export default function ManagerDashboard() {
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState('all');
   const [selectedGoalType, setSelectedGoalType] = useState('all'); // 'all', 'assigned', 'self-created'
@@ -129,11 +128,6 @@ export default function ManagerDashboard() {
   const filteredGoals = goals.filter(goal => {
     if (!goal.employee) return false;
 
-    const query = searchQuery.toLowerCase().trim();
-    const titleMatch = goal.title.toLowerCase().includes(query);
-    const employeeNameMatch = goal.employee.name?.toLowerCase().includes(query) || false;
-    const employeeEmailMatch = goal.employee.email?.toLowerCase().includes(query) || false;
-    const matchesSearch = titleMatch || employeeNameMatch || employeeEmailMatch;
     const matchesStatus = !selectedStatus || goal.status === selectedStatus;
     const matchesEmployee = selectedEmployee === 'all' || goal.employee.email === selectedEmployee;
     
@@ -143,7 +137,7 @@ export default function ManagerDashboard() {
       || (selectedGoalType === 'self-created' && isSelfCreatedGoal(goal));
     const matchesPriority = !selectedPriority || goal.priority === selectedPriority;
     
-    return matchesSearch && matchesStatus && matchesEmployee && matchesGoalType && matchesPriority && !isCurrentUserGoal(goal);
+    return matchesStatus && matchesEmployee && matchesGoalType && matchesPriority && !isCurrentUserGoal(goal);
   });
 
   if (loading) {
@@ -160,8 +154,6 @@ export default function ManagerDashboard() {
 
           {/* Filters Section */}
           <Filters
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
             selectedStatus={selectedStatus}
             setSelectedStatus={setSelectedStatus}
             selectedEmployee={selectedEmployee}
