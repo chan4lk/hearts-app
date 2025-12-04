@@ -56,10 +56,7 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
     if (onUseGoal) {
       onUseGoal(goal);
     }
-
-    if (onSelectGoal) {
-      onSelectGoal(goal);
-    }
+    // Don't call onSelectGoal here - that's only for manual closing
     // Don't close suggestions modal - allow user to select multiple goals
     // setShowSuggestions(false);
   };
@@ -110,7 +107,7 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4"
             onClick={(e) => {
               if (e.target === e.currentTarget) {
                 setShowSuggestions(false);
@@ -137,6 +134,7 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
                   <button
                     onClick={() => {
                       setShowSuggestions(false);
+                      // Close the parent modal state when manually closed
                       if (!showTriggerButton && onSelectGoal) {
                         onSelectGoal({} as GoalSuggestion);
                       }

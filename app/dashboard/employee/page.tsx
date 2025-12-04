@@ -520,6 +520,7 @@ export default function EmployeeDashboard() {
               autoGenerate={true}
               showTriggerButton={false}
               onSelectGoal={() => {
+                // Close the modal when user manually closes it (X button or click outside)
                 setShowAIGoalSuggestions(false);
               }}
               onUseGoal={handleAIGoalSelect}
