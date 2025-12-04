@@ -21,6 +21,7 @@ interface GoalsTableProps {
   showEmployee?: boolean;
   showManager?: boolean;
   showActions?: boolean;
+  disableStatusUpdate?: boolean;
 }
 
 const STATUS_OPTIONS = [
@@ -143,7 +144,8 @@ export default function GoalsTable({
   onStatusUpdate,
   showEmployee = false,
   showManager = false,
-  showActions = false
+  showActions = false,
+  disableStatusUpdate = false
 }: GoalsTableProps) {
   const { data: session } = useSession();
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
@@ -307,7 +309,7 @@ export default function GoalsTable({
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                      {getStatusBadge(goal.status, goal, session, handleQuickStatusUpdate, updatingStatus)}
+                      {getStatusBadge(goal.status, goal, session, disableStatusUpdate ? undefined : handleQuickStatusUpdate, updatingStatus)}
                     </div>
                   </td>
                   <td className="py-3 px-4">
