@@ -4,20 +4,22 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
+let prismaClient: PrismaClient;
+
 // Create a new PrismaClient instance
-const prismaClient =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL,
-      },
+prismaClient = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
     },
-  });
+  },
+});
 
 // In development, store the client in the global scope to prevent hot reloading issues
 if (process.env.NODE_ENV === 'development') {
-  globalForPrisma.prisma = prismaClient;
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = prismaClient;
+  }
 }
 
 export const prisma = prismaClient; 
