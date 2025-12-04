@@ -121,37 +121,39 @@ export default function StatsDisplay({ stats, roleStats }: StatsDisplayProps) {
               relative overflow-hidden
               ${stat.bgColor}
               backdrop-blur-sm 
-              rounded-lg 
+              rounded-xl 
               p-3 
-              border 
+              border-2 
               ${stat.borderColor}
               hover:border-opacity-60 
               transition-all 
-              duration-200 
+              duration-300 
               group 
-              cursor-pointer 
-              hover:shadow-lg
+              cursor-pointer
+              hover:shadow-xl
+              hover:scale-105
+              flex items-center gap-3
             `}
             tabIndex={0}
             aria-label={`${stat.title}: ${stat.value}`}
             title={`${stat.title}: ${stat.value}`}
           >
             {/* Animated background gradient on hover */}
-            <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-10 transition-opacity duration-200`}></div>
+            <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
             
             {/* Content */}
-            <div className="relative flex items-center gap-2.5">
+            <div className="relative flex items-center gap-3 w-full">
               {/* Icon */}
-              <div className={`p-1.5 rounded-md bg-gradient-to-r ${stat.color} text-white flex-shrink-0`}>
+              <div className={`p-2 rounded-lg bg-gradient-to-r ${stat.color} text-white shadow-lg flex-shrink-0`}>
                 {stat.icon}
               </div>
               
               {/* Value and Title */}
-              <div className="flex-1 min-w-0">
-                <div className="text-xl font-bold text-white leading-tight">
+              <div className="flex flex-col">
+                <div className="text-xl font-bold text-white group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:text-transparent group-hover:from-white group-hover:to-gray-200 transition-all duration-300">
                   {stat.value}
                 </div>
-                <div className="text-xs font-medium text-gray-400 truncate">
+                <div className="text-xs font-medium text-gray-400">
                   {stat.title}
                 </div>
               </div>
