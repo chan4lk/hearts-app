@@ -207,17 +207,43 @@ export default function GoalsTable({
       const data = await response.json();
       const updatedGoal = data.goal || data;
 
-      // Update local state immediately for instant feedback
+      // Find the current goal to preserve any fields not in the API response
+      const currentGoal = localGoals.find(g => g.id === goalId);
+      if (!currentGoal) {
+        throw new Error('Goal not found in local state');
+      }
+
+      // Transform the updated goal to match the expected format
+      const transformedGoal: Goal | GoalWithRatingExtended = {
+        ...currentGoal,
+        ...updatedGoal,
+        id: updatedGoal.id,
+        title: updatedGoal.title,
+        description: updatedGoal.description,
+        status: updatedGoal.status,
+        dueDate: updatedGoal.dueDate ? (typeof updatedGoal.dueDate === 'string' ? updatedGoal.dueDate : updatedGoal.dueDate.toISOString()) : currentGoal.dueDate,
+        category: updatedGoal.category || currentGoal.category,
+        department: updatedGoal.department || currentGoal.department,
+        priority: updatedGoal.priority || currentGoal.priority,
+        createdAt: updatedGoal.createdAt ? (typeof updatedGoal.createdAt === 'string' ? updatedGoal.createdAt : updatedGoal.createdAt.toISOString()) : currentGoal.createdAt,
+        updatedAt: updatedGoal.updatedAt ? (typeof updatedGoal.updatedAt === 'string' ? updatedGoal.updatedAt : updatedGoal.updatedAt.toISOString()) : currentGoal.updatedAt,
+        employeeId: updatedGoal.employeeId || currentGoal.employeeId,
+        managerId: updatedGoal.managerId || currentGoal.managerId,
+        employee: updatedGoal.employee || currentGoal.employee,
+        manager: updatedGoal.manager || currentGoal.manager,
+        rating: updatedGoal.rating || (currentGoal as any)?.rating,
+        isApprovalProcess: (currentGoal as any)?.isApprovalProcess || false
+      } as Goal | GoalWithRatingExtended;
+
+      // Update local state immediately with full updated goal object
       setLocalGoals(prevGoals =>
         prevGoals.map(goal =>
-          goal.id === goalId
-            ? { ...goal, status: updatedGoal.status }
-            : goal
+          goal.id === goalId ? transformedGoal : goal
         )
       );
 
-      // Notify parent component if callback provided
-      onStatusUpdate?.(goalId, newStatus, updatedGoal);
+      // Notify parent component if callback provided with full updated goal
+      onStatusUpdate?.(goalId, newStatus, transformedGoal as Goal | GoalWithRatingExtended);
 
       showToast.success('Status Updated', `Goal status updated to ${newStatus.replace('_', ' ')}`);
     } catch (error) {

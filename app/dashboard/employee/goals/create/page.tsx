@@ -245,7 +245,6 @@ function GoalsPageContent() {
       
       setIsDeleteModalOpen(false);
       setDeleteGoal(null);
-      showNotificationWithTimeout('Goal deleted successfully!', 'success');
       fetchGoals(); // Refresh to get the latest data
     } catch (error) {
       console.error('Error deleting goal:', error);

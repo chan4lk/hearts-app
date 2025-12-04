@@ -579,7 +579,7 @@ export default function EmployeeDashboard() {
               onStatusUpdate={(goalId, newStatus, updatedGoal) => {
                 setGoals(prevGoals =>
                   prevGoals.map(goal =>
-                    goal.id === goalId ? { ...goal, status: updatedGoal.status } : goal
+                    goal.id === goalId ? { ...updatedGoal, status: updatedGoal.status } as Goal : goal
                   )
                 );
               }}

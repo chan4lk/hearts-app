@@ -103,7 +103,22 @@ export async function PATCH(
         employee: { select: { id: true, name: true, email: true } },
         manager: { select: { id: true, name: true, email: true } },
         createdBy: { select: { id: true, name: true, email: true } },
-        updatedBy: { select: { id: true, name: true, email: true } }
+        updatedBy: { select: { id: true, name: true, email: true } },
+        rating: {
+          select: {
+            id: true,
+            selfScore: true,
+            selfComments: true,
+            selfRatedById: true,
+            selfRatedAt: true,
+            managerScore: true,
+            managerComments: true,
+            managerRatedById: true,
+            managerRatedAt: true,
+            createdAt: true,
+            updatedAt: true
+          }
+        }
       }
     });
 
