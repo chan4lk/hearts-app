@@ -159,7 +159,8 @@ export async function GET(req: Request) {
         break;
 
       case 'pending-approval':
-        // Pending goals for manager to review (MANAGER/ADMIN only)
+        // DRAFT, APPROVED, and REJECTED goals for manager to review (MANAGER/ADMIN only)
+        // Managers can review and change status multiple times
         if (userRole !== 'MANAGER' && userRole !== 'ADMIN') {
           return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
@@ -169,7 +170,8 @@ export async function GET(req: Request) {
           select: { id: true }
         });
 
-        whereClause.status = 'PENDING';
+        // Include DRAFT, APPROVED, and REJECTED goals so managers can review and change status
+        whereClause.status = { in: ['DRAFT', 'APPROVED', 'REJECTED'] };
         whereClause.employeeId = { in: pendingEmployees.map(e => e.id) };
         break;
 

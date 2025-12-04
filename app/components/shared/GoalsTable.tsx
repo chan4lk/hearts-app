@@ -63,18 +63,41 @@ const getStatusBadge = (status: string, goal?: Goal, session?: any, onStatusChan
   const isGoalManager = goal && session && goal.managerId === session.user?.id;
   
   // Employees can update APPROVED, IN_PROGRESS, ON_HOLD, BLOCKED, and COMPLETED goals to progress statuses
-  // Managers/Admins can approve/reject DRAFT/PENDING goals, or update APPROVED/IN_PROGRESS/COMPLETED goals
+  // Managers/Admins can approve/reject DRAFT goals, change APPROVED/REJECTED, or update progress statuses
   // Allow updates if:
   // 1. Status update is not disabled
   // 2. onStatusChange callback is provided
   // 3. For employees: goal is APPROVED, IN_PROGRESS, ON_HOLD, BLOCKED, or COMPLETED
-  // 4. For managers: goal is in a state they can update
+  // 4. For managers: goal is DRAFT, APPROVED, REJECTED, or progress statuses
+  // Note: For managers on approve-goals page, they can update any DRAFT goal of their employees
+  // IMPORTANT: Always allow managers/admins to update DRAFT, APPROVED, or REJECTED statuses
   const canUpdate = goal && session && onStatusChange && !disableStatusUpdate && (
     (isEmployee && (status === 'APPROVED' || status === 'IN_PROGRESS' || status === 'ON_HOLD' || status === 'BLOCKED' || status === 'COMPLETED')) ||
-    (isManagerOrAdmin && (status === 'PENDING' || status === 'DRAFT' || status === 'APPROVED' || status === 'IN_PROGRESS' || status === 'ON_HOLD' || status === 'BLOCKED' || status === 'COMPLETED'))
+    (isManagerOrAdmin && (status === 'DRAFT' || status === 'APPROVED' || status === 'REJECTED' || status === 'IN_PROGRESS' || status === 'ON_HOLD' || status === 'BLOCKED' || status === 'COMPLETED'))
   );
+  
+  // Enhanced debug logging for DRAFT status
+  if (status === 'DRAFT') {
+    console.log('🔍 DRAFT Status Dropdown Check:', {
+      goalId: goal?.id,
+      goalTitle: goal?.title,
+      status,
+      hasSession: !!session,
+      userRole: session?.user?.role,
+      userId: session?.user?.id,
+      isManagerOrAdmin,
+      hasOnStatusChange: !!onStatusChange,
+      disableStatusUpdate,
+      canUpdate,
+      goalManagerId: goal?.managerId,
+      goalEmployeeId: goal?.employeeId
+    });
+  }
 
-  if (canUpdate && goal) {
+  // Force dropdown for DRAFT status if manager/admin (even if canUpdate check fails)
+  const shouldShowDropdown = canUpdate || (status === 'DRAFT' && isManagerOrAdmin && onStatusChange && !disableStatusUpdate);
+  
+  if (shouldShowDropdown && goal) {
     // Determine allowed statuses based on current status and user role
     const getAvailableStatuses = () => {
       const statusLabels: Record<string, string> = {
@@ -108,12 +131,20 @@ const getStatusBadge = (status: string, goal?: Goal, session?: any, onStatusChan
         
         return allOptions;
       } else if (isManagerOrAdmin) {
-        // Managers can approve/reject DRAFT/PENDING, or update progress statuses
-        if (status === 'PENDING' || status === 'DRAFT') {
+        // Managers can approve/reject DRAFT status, or update other statuses
+        if (status === 'DRAFT') {
           const options = [
             { value: 'APPROVED', label: 'Approved' },
-            { value: 'REJECTED', label: 'Rejected' },
-            { value: 'MODIFIED', label: 'Modified' }
+            { value: 'REJECTED', label: 'Rejected' }
+          ];
+          // Include current status (DRAFT) so user can see current state
+          options.unshift({ value: 'DRAFT', label: 'Draft' });
+          return options;
+        } else if (status === 'APPROVED' || status === 'REJECTED') {
+          // Allow changing between APPROVED and REJECTED multiple times
+          const options = [
+            { value: 'APPROVED', label: 'Approved' },
+            { value: 'REJECTED', label: 'Rejected' }
           ];
           // Include current status
           if (!options.some(opt => opt.value === status) && statusLabels[status]) {
@@ -139,6 +170,11 @@ const getStatusBadge = (status: string, goal?: Goal, session?: any, onStatusChan
     };
 
     const availableStatuses = getAvailableStatuses();
+    
+    // Ensure we have options before rendering
+    if (availableStatuses.length === 0) {
+      console.warn('No available statuses for goal:', goal.id, 'status:', status);
+    }
 
     return (
       <Select

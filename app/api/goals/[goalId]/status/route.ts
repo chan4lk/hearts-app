@@ -37,8 +37,23 @@ export async function PATCH(
     const isManagerOrAdmin = session.user.role === 'MANAGER' || session.user.role === 'ADMIN';
     const isGoalManager = goal.managerId === session.user.id;
 
-    // Employees can update their own goals, managers/admins can update goals they manage
-    if (!isEmployee && !(isManagerOrAdmin && isGoalManager)) {
+    // Check if manager is the manager of the employee who owns this goal
+    // This is important for DRAFT goals created by employees where goal.managerId might be null
+    let isEmployeeManager = false;
+    if (isManagerOrAdmin && goal.employee) {
+      const employeeUser = await prisma.user.findUnique({
+        where: { id: goal.employeeId },
+        select: { managerId: true }
+      });
+      isEmployeeManager = employeeUser?.managerId === session.user.id;
+    }
+
+    // Employees can update their own goals
+    // Managers/Admins can update:
+    // 1. Goals they directly manage (goal.managerId === session.user.id)
+    // 2. Goals of employees they manage (employee.managerId === session.user.id)
+    // This allows managers to approve/reject DRAFT goals created by their employees
+    if (!isEmployee && !(isManagerOrAdmin && (isGoalManager || isEmployeeManager))) {
       return NextResponse.json(
         { error: 'You do not have permission to update this goal status' },
         { status: 403 }
@@ -65,18 +80,26 @@ export async function PATCH(
       }
     }
 
-    // Managers/Admins can approve/reject/modify DRAFT or PENDING goals, or update APPROVED/IN_PROGRESS goals
+    // Managers/Admins can approve/reject DRAFT goals, change APPROVED/REJECTED, or update progress statuses
     if (isManagerOrAdmin) {
-      if (goal.status === 'DRAFT' || goal.status === 'PENDING') {
-        // Managers can approve, reject, or request modifications for DRAFT or PENDING goals
-        if (status !== 'APPROVED' && status !== 'REJECTED' && status !== 'MODIFIED') {
+      if (goal.status === 'DRAFT') {
+        // Managers can approve or reject DRAFT goals
+        if (status !== 'APPROVED' && status !== 'REJECTED') {
           return NextResponse.json(
-            { error: 'Managers can only approve, reject, or modify draft/pending goals' },
+            { error: 'Managers can only approve or reject draft goals' },
             { status: 400 }
           );
         }
-      } else if (goal.status === 'APPROVED' || goal.status === 'IN_PROGRESS' || goal.status === 'ON_HOLD' || goal.status === 'BLOCKED' || goal.status === 'COMPLETED') {
-        // Managers can update approved/in-progress/completed goals to other progress statuses
+      } else if (goal.status === 'APPROVED' || goal.status === 'REJECTED') {
+        // Managers can change between APPROVED and REJECTED multiple times
+        if (status !== 'APPROVED' && status !== 'REJECTED') {
+          return NextResponse.json(
+            { error: 'Managers can only change between Approved and Rejected status' },
+            { status: 400 }
+          );
+        }
+      } else if (goal.status === 'IN_PROGRESS' || goal.status === 'ON_HOLD' || goal.status === 'BLOCKED' || goal.status === 'COMPLETED') {
+        // Managers can update progress statuses
         const managerAllowedStatuses = ['IN_PROGRESS', 'COMPLETED', 'ON_HOLD', 'BLOCKED'];
         if (!managerAllowedStatuses.includes(status)) {
           return NextResponse.json(
@@ -86,7 +109,7 @@ export async function PATCH(
         }
       } else {
         return NextResponse.json(
-          { error: 'Managers can only update draft, pending, approved, in-progress, or completed goals' },
+          { error: 'Managers can only update draft, approved, rejected, or progress status goals' },
           { status: 400 }
         );
       }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -191,6 +191,22 @@ export default function ApproveGoalsPage() {
     setSelectedGoal(goal);
     setSelectedGoalDetails(null); // Close the details modal
     
+    // Optimistically update the UI immediately
+    const newStatus = action === 'approve' ? 'APPROVED' : 'REJECTED';
+    const updatedGoal: Goal = {
+      ...goal,
+      status: newStatus,
+      managerComments: comment || null,
+      approvedAt: action === 'approve' ? new Date().toISOString() : goal.approvedAt,
+      rejectedAt: action === 'reject' ? new Date().toISOString() : goal.rejectedAt,
+      approvedBy: action === 'approve' ? session?.user?.id || null : goal.approvedBy,
+      rejectedBy: action === 'reject' ? session?.user?.id || null : goal.rejectedBy
+    };
+    
+    // Update local state immediately
+    setGoals(prevGoals => prevGoals.filter(g => g.id !== goal.id));
+    setSelectedGoal(null);
+    
     try {
       setIsSubmitting(true);
       const response = await fetch(`/api/goals/${goal.id}/${action}`, {
@@ -206,19 +222,169 @@ export default function ApproveGoalsPage() {
       }
 
       toast.success(`Goal ${action === 'approve' ? 'approved' : 'rejected'} successfully!`);
+      
+      // Optionally refresh to get the latest data, but UI is already updated
+      // Only refresh if needed for stats or other data
       await fetchGoals();
-      setSelectedGoal(null);
     } catch (err) {
       console.error(`Error ${action}ing goal:`, err);
+      // Revert optimistic update on error
+      setGoals(prevGoals => [...prevGoals, goal]);
       toast.error(`Failed to ${action} goal`);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const filteredGoals = goals.filter(goal => 
-    selectedEmployee === 'all' || (goal.employee && goal.employee.id === selectedEmployee)
-  );
+  const handleApprove = (goalId: string, updatedGoal: Goal | GoalWithRatingExtended) => {
+    // Store original goal for potential revert
+    const originalGoal = goals.find(g => g.id === goalId);
+    
+    // Optimistically update the goals list IMMEDIATELY - update the goal status (don't remove it)
+    // Use functional update to ensure we're working with latest state
+    setGoals(prevGoals => {
+      const updated = prevGoals.map(g => g.id === goalId ? updatedGoal as Goal : g);
+      console.log('✅ Optimistically updated goal:', goalId, 'New status:', updatedGoal.status);
+      return updated;
+    });
+    
+    // Close modal immediately
+    setSelectedGoalDetails(null);
+    
+    // Update employee stats optimistically using the updatedGoal
+    if (updatedGoal.employee) {
+      setEmployeeStats(prevStats => 
+        prevStats.map(stat => {
+          if (updatedGoal.employee && updatedGoal.employee.id === stat.id) {
+            return {
+              ...stat,
+              pendingGoals: Math.max(0, stat.pendingGoals - 1),
+              approvedGoals: stat.approvedGoals + 1
+            };
+          }
+          return stat;
+        })
+      );
+    }
+    
+    // Make API call in background and revert on error
+    fetch(`/api/goals/${goalId}/approve`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ managerComments: (updatedGoal as Goal).managerComments || '' }),
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to approve goal');
+      }
+      console.log('✅ Goal approved successfully:', goalId);
+      // Success - no need to revert, UI is already updated
+    })
+    .catch(err => {
+      console.error('❌ Error approving goal:', err);
+      // Revert optimistic update on error - restore original goal state
+      if (originalGoal) {
+        setGoals(prevGoals => 
+          prevGoals.map(g => g.id === goalId ? originalGoal : g)
+        );
+        if (originalGoal.employee) {
+          setEmployeeStats(prevStats => 
+            prevStats.map(stat => {
+              if (originalGoal.employee && originalGoal.employee.id === stat.id) {
+                return {
+                  ...stat,
+                  pendingGoals: stat.pendingGoals + 1,
+                  approvedGoals: Math.max(0, stat.approvedGoals - 1)
+                };
+              }
+              return stat;
+            })
+          );
+        }
+      }
+      toast.error('Failed to approve goal. Please try again.');
+    });
+  };
+
+  const handleReject = (goalId: string, updatedGoal: Goal | GoalWithRatingExtended) => {
+    // Store original goal for potential revert
+    const originalGoal = goals.find(g => g.id === goalId);
+    
+    // Optimistically update the goals list IMMEDIATELY - update the goal status (don't remove it)
+    // Use functional update to ensure we're working with latest state
+    setGoals(prevGoals => {
+      const updated = prevGoals.map(g => g.id === goalId ? updatedGoal as Goal : g);
+      console.log('✅ Optimistically updated goal:', goalId, 'New status:', updatedGoal.status);
+      return updated;
+    });
+    
+    // Close modal immediately
+    setSelectedGoalDetails(null);
+    
+    // Update employee stats optimistically using the updatedGoal
+    if (updatedGoal.employee) {
+      setEmployeeStats(prevStats => 
+        prevStats.map(stat => {
+          if (updatedGoal.employee && updatedGoal.employee.id === stat.id) {
+            return {
+              ...stat,
+              pendingGoals: Math.max(0, stat.pendingGoals - 1),
+              rejectedGoals: stat.rejectedGoals + 1
+            };
+          }
+          return stat;
+        })
+      );
+    }
+    
+    // Make API call in background and revert on error
+    fetch(`/api/goals/${goalId}/reject`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ managerComments: (updatedGoal as Goal).managerComments || '' }),
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to reject goal');
+      }
+      console.log('✅ Goal rejected successfully:', goalId);
+      // Success - no need to revert, UI is already updated
+    })
+    .catch(err => {
+      console.error('❌ Error rejecting goal:', err);
+      // Revert optimistic update on error - restore original goal state
+      if (originalGoal) {
+        setGoals(prevGoals => 
+          prevGoals.map(g => g.id === goalId ? originalGoal : g)
+        );
+        if (originalGoal.employee) {
+          setEmployeeStats(prevStats => 
+            prevStats.map(stat => {
+              if (originalGoal.employee && originalGoal.employee.id === stat.id) {
+                return {
+                  ...stat,
+                  pendingGoals: stat.pendingGoals + 1,
+                  rejectedGoals: Math.max(0, stat.rejectedGoals - 1)
+                };
+              }
+              return stat;
+            })
+          );
+        }
+      }
+      toast.error('Failed to reject goal. Please try again.');
+    });
+  };
+
+  // Filter goals: show DRAFT, APPROVED, and REJECTED goals (for approval/review), and filter by selected employee
+  // Use useMemo to ensure filtering happens correctly when goals change
+  const filteredGoals = useMemo(() => {
+    return goals.filter(goal => {
+      const matchesEmployee = selectedEmployee === 'all' || (goal.employee && goal.employee.id === selectedEmployee);
+      const matchesStatus = goal.status === 'DRAFT' || goal.status === 'APPROVED' || goal.status === 'REJECTED';
+      return matchesEmployee && matchesStatus;
+    });
+  }, [goals, selectedEmployee]);
 
   if (isLoading) {
     return <LoadingComponent />;
@@ -306,6 +472,51 @@ export default function ApproveGoalsPage() {
               <GoalsTable
                 goals={filteredGoals}
                 onGoalClick={(goal) => setSelectedGoalDetails(goal)}
+                onStatusUpdate={(goalId, newStatus, updatedGoal) => {
+                  // Handle status update - keep goal in list regardless of status (DRAFT, APPROVED, or REJECTED)
+                  console.log('Status updated:', goalId, newStatus);
+                  
+                  // Always update the goal in the list (don't remove it)
+                  setGoals(prevGoals => 
+                    prevGoals.map(g => g.id === goalId ? updatedGoal as Goal : g)
+                  );
+                  
+                  // Update employee stats
+                  if (updatedGoal.employee) {
+                    setEmployeeStats(prevStats => 
+                      prevStats.map(stat => {
+                        if (updatedGoal.employee && updatedGoal.employee.id === stat.id) {
+                          const oldGoal = goals.find(g => g.id === goalId);
+                          const oldStatus = oldGoal?.status;
+                          const newStatusValue = newStatus;
+                          
+                          let stats = { ...stat };
+                          
+                          // Decrement old status
+                          if (oldStatus === 'PENDING' || oldStatus === 'DRAFT') {
+                            stats.pendingGoals = Math.max(0, stats.pendingGoals - 1);
+                          } else if (oldStatus === 'APPROVED') {
+                            stats.approvedGoals = Math.max(0, stats.approvedGoals - 1);
+                          } else if (oldStatus === 'REJECTED') {
+                            stats.rejectedGoals = Math.max(0, stats.rejectedGoals - 1);
+                          }
+                          
+                          // Increment new status
+                          if (newStatusValue === 'APPROVED') {
+                            stats.approvedGoals = stats.approvedGoals + 1;
+                          } else if (newStatusValue === 'REJECTED') {
+                            stats.rejectedGoals = stats.rejectedGoals + 1;
+                          } else if (newStatusValue === 'PENDING' || newStatusValue === 'DRAFT') {
+                            stats.pendingGoals = stats.pendingGoals + 1;
+                          }
+                          
+                          return stats;
+                        }
+                        return stat;
+                      })
+                    );
+                  }
+                }}
                 showEmployee={true}
                 showManager={true}
               />
