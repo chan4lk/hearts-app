@@ -25,6 +25,10 @@ interface GoalsTableProps {
   showRating?: boolean;
   disableStatusUpdate?: boolean;
   submittingRating?: string | null;
+  showCheckbox?: boolean;
+  selectedGoalIds?: string[];
+  onGoalSelect?: (goalId: string, selected: boolean) => void;
+  onSelectAll?: (selected: boolean) => void;
 }
 
 const STATUS_OPTIONS = [

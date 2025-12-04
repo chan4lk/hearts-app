@@ -22,9 +22,11 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import LoadingComponent from '@/app/components/LoadingScreen';
 import { Role } from '@prisma/client';
-import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
+import AdminGoalsTable from './components/AdminGoalsTable';
+import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import { Goal, User as UserType } from '@/app/components/shared/types';
+import { showToast } from '@/app/utils/toast';
 import Link from 'next/link';
 
 interface DashboardStats {
@@ -85,6 +87,10 @@ export default function AdminDashboard() {
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [goalsLoading, setGoalsLoading] = useState(false);
   const [showGoals, setShowGoals] = useState(false);
+  const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [goalsToBulkDelete, setGoalsToBulkDelete] = useState<string[]>([]);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -157,6 +163,78 @@ export default function AdminDashboard() {
     const matchesCategory = !selectedCategory || goal.category === selectedCategory;
     return matchesUser && matchesStatus && matchesPriority && matchesCategory;
   });
+
+  // Handle delete goal
+  const handleDeleteGoal = (goal: Goal) => {
+    setGoalToDelete(goal);
+    setShowDeleteModal(true);
+  };
+
+  // Confirm delete goal
+  const confirmDeleteGoal = async () => {
+    if (!goalToDelete) return;
+    
+    try {
+      const response = await fetch(`/api/goals/${goalToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete goal');
+      }
+
+      setGoals(prev => prev.filter(g => g.id !== goalToDelete.id));
+      setShowDeleteModal(false);
+      setGoalToDelete(null);
+      showToast.success('Goal Deleted!', 'The goal has been deleted successfully');
+      fetchAllGoals(); // Refresh goals
+    } catch (error) {
+      console.error('Error deleting goal:', error);
+      showToast.error('Error', error instanceof Error ? error.message : 'Failed to delete goal');
+    }
+  };
+
+  // Handle bulk delete
+  const handleBulkDelete = (goalIds: string[]) => {
+    setGoalsToBulkDelete(goalIds);
+    setShowBulkDeleteModal(true);
+  };
+
+  // Confirm bulk delete
+  const confirmBulkDelete = async () => {
+    if (goalsToBulkDelete.length === 0) return;
+
+    try {
+      // Delete goals in parallel
+      const deletePromises = goalsToBulkDelete.map(goalId =>
+        fetch(`/api/goals/${goalId}`, { method: 'DELETE' })
+      );
+
+      const results = await Promise.allSettled(deletePromises);
+      const successful = results.filter(r => r.status === 'fulfilled' && r.value.ok).length;
+      const failed = results.length - successful;
+
+      if (successful > 0) {
+        setGoals(prev => prev.filter(g => !goalsToBulkDelete.includes(g.id)));
+        showToast.success(
+          'Goals Deleted!', 
+          `Successfully deleted ${successful} goal${successful !== 1 ? 's' : ''}${failed > 0 ? ` (${failed} failed)` : ''}`
+        );
+      }
+
+      if (failed > 0 && successful === 0) {
+        showToast.error('Error', `Failed to delete ${failed} goal${failed !== 1 ? 's' : ''}`);
+      }
+
+      setShowBulkDeleteModal(false);
+      setGoalsToBulkDelete([]);
+      fetchAllGoals(); // Refresh goals
+    } catch (error) {
+      console.error('Error bulk deleting goals:', error);
+      showToast.error('Error', 'Failed to delete goals');
+    }
+  };
+
 
   if (isLoading) {
     return <LoadingComponent />;
@@ -391,11 +469,13 @@ export default function AdminDashboard() {
                       <div className="text-gray-400">Loading goals...</div>
                     </div>
                   ) : (
-                    <GoalsTable
+                    <AdminGoalsTable
                       goals={filteredGoals}
                       selectedStatus={selectedStatus === 'all' ? '' : selectedStatus}
                       onStatusChange={(status) => setSelectedStatus(status === '' ? 'all' : status)}
                       onGoalClick={(goal) => setSelectedGoal(goal)}
+                      onDelete={handleDeleteGoal}
+                      onBulkDelete={handleBulkDelete}
                       showEmployee={true}
                       showManager={true}
                     />
@@ -403,47 +483,6 @@ export default function AdminDashboard() {
                 </motion.div>
               )}
             </AnimatePresence>
-          </motion.div>
-
-          {/* Recent Activity */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl shadow-2xl"
-          >
-            <div className="p-6 border-b border-white/10">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-white">Recent Activity</h2>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-gray-400">Live</span>
-                </div>
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {activities.slice(0, 8).map((activity, index) => (
-                  <div key={index} className="group flex items-start gap-4 p-4 rounded-xl bg-gray-700/20 hover:bg-gray-700/30 transition-all duration-300">
-                    <div className="mt-1 group-hover:scale-110 transition-transform duration-300">
-                      {getStatusIcon(activity.status)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-medium text-white">{activity.type}</h3>
-                        <div className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(activity.status)}`}>
-                          {activity.status}
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-400">{activity.description}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-gray-400">{activity.timestamp}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </motion.div>
         </div>
       </div>
@@ -455,6 +494,35 @@ export default function AdminDashboard() {
           onClose={() => setSelectedGoal(null)}
         />
       )}
+
+      {/* Single Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setGoalToDelete(null);
+        }}
+        onConfirm={confirmDeleteGoal}
+        title="Delete Goal"
+        message={goalToDelete ? `Are you sure you want to delete "${goalToDelete.title}"? This action cannot be undone.` : 'Are you sure you want to delete this goal? This action cannot be undone.'}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
+
+      {/* Bulk Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showBulkDeleteModal}
+        onClose={() => {
+          setShowBulkDeleteModal(false);
+          setGoalsToBulkDelete([]);
+        }}
+        onConfirm={confirmBulkDelete}
+        title="Delete Selected Goals"
+        message={`Are you sure you want to delete ${goalsToBulkDelete.length} selected goal${goalsToBulkDelete.length !== 1 ? 's' : ''}? This action cannot be undone.`}
+        confirmText="Delete All"
+        cancelText="Cancel"
+      />
+
     </DashboardLayout>
   );
 }
