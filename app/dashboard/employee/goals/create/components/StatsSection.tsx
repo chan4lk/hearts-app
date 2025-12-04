@@ -1,22 +1,28 @@
-import { BsClipboardData, BsCheckCircle, BsPencil, BsXCircle, BsClock } from 'react-icons/bs';
+import { BsClipboardData, BsCheckCircle, BsPencil, BsXCircle } from 'react-icons/bs';
 import { Goal } from '@/app/components/shared/types';
 import { motion } from 'framer-motion';
+import { useSession } from 'next-auth/react';
 
 interface StatsSectionProps {
   goals: Goal[];
 }
 
 export default function StatsSection({ goals }: StatsSectionProps) {
-  const draftCount = goals.filter(g => g.status === 'DRAFT').length;
-  const approvedCount = goals.filter(g => g.status === 'APPROVED').length;
-  const rejectedCount = goals.filter(g => g.status === 'REJECTED').length;
-  const completedCount = goals.filter(g => g.status === 'COMPLETED').length;
-  const pendingCount = goals.filter(g => g.status === 'PENDING').length;
-  const totalCount = goals.length;
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+
+  // Filter to only show self-created goals
+  const selfCreatedGoals = goals.filter(goal => goal.createdBy?.id === userId);
+
+  const draftCount = selfCreatedGoals.filter(g => g.status === 'DRAFT').length;
+  const approvedCount = selfCreatedGoals.filter(g => g.status === 'APPROVED').length;
+  const rejectedCount = selfCreatedGoals.filter(g => g.status === 'REJECTED').length;
+  const completedCount = selfCreatedGoals.filter(g => g.status === 'COMPLETED').length;
+  const totalCount = selfCreatedGoals.length;
 
   const statsList = [
     {
-      title: 'Total Goals',
+      title: 'My Goals',
       value: totalCount,
       icon: <BsClipboardData className="w-4 h-4" />,
       gradient: 'from-indigo-500 to-purple-500',
@@ -30,14 +36,6 @@ export default function StatsSection({ goals }: StatsSectionProps) {
       gradient: 'from-gray-500 to-slate-500',
       bgColor: 'bg-gray-500/10',
       borderColor: 'border-gray-500/30'
-    },
-    {
-      title: 'Pending',
-      value: pendingCount,
-      icon: <BsClock className="w-4 h-4" />,
-      gradient: 'from-amber-500 to-orange-500',
-      bgColor: 'bg-amber-500/10',
-      borderColor: 'border-amber-500/30'
     },
     {
       title: 'Approved',
@@ -66,7 +64,7 @@ export default function StatsSection({ goals }: StatsSectionProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       {statsList.map((stat, index) => (
         <motion.div
           key={stat.title}

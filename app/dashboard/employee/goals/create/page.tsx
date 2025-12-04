@@ -32,6 +32,7 @@ function GoalsPageContent() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedPriority, setSelectedPriority] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
@@ -392,6 +393,8 @@ function GoalsPageContent() {
               onStatusChange={setSelectedStatus}
               selectedCategory={selectedCategory}
               onCategoryChange={setSelectedCategory}
+              selectedPriority={selectedPriority}
+              onPriorityChange={setSelectedPriority}
             />
           </motion.div>
 
@@ -405,6 +408,7 @@ function GoalsPageContent() {
               goals={goals}
               selectedStatus={selectedStatus}
               selectedCategory={selectedCategory}
+              selectedPriority={selectedPriority}
               setSelectedStatus={setSelectedStatus}
               setSelectedCategory={setSelectedCategory}
               onViewGoal={setSelectedViewGoal}

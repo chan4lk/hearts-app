@@ -33,15 +33,6 @@ export const HeroSection = ({ onCreateClick, totalGoals, completedGoals }: HeroS
           </h2>
           <p className="text-purple-100 text-xs">Define your personal objectives and growth targets</p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={onCreateClick}
-          className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-all duration-200 border border-white/30"
-        >
-          <BsPlus className="w-5 h-5" />
-          <span className="text-sm font-medium">Create Goal</span>
-        </motion.button>
       </div>
     </motion.div>
   );
