@@ -9,8 +9,9 @@ import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import { Goal, GoalStats } from '@/app/components/shared/types';
-import { BsStars, BsLightbulb, BsX, BsPlus } from 'react-icons/bs';
+import { BsStars, BsLightbulb, BsX, BsPlus, BsPersonCheck, BsStarFill, BsStar } from 'react-icons/bs';
 import { showToast } from '@/app/utils/toast';
+import { RATING_LABELS } from '@/app/components/shared/constants';
 import LoadingComponent from '@/app/components/LoadingScreen';
 import { useSession } from 'next-auth/react';
 import AIGoalSuggestions from '@/app/components/ai/AIGoalSuggestions';
@@ -32,6 +33,7 @@ export default function EmployeeDashboard() {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
+  const [showManagerRatingsModal, setShowManagerRatingsModal] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -433,7 +435,11 @@ export default function EmployeeDashboard() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <StatsSection stats={getGoalStats()} goals={goals} />
+            <StatsSection 
+              stats={getGoalStats()} 
+              goals={goals}
+              onViewManagerRatings={() => setShowManagerRatingsModal(true)}
+            />
           </motion.div>
 
           {/* Quick Actions */}
@@ -681,6 +687,137 @@ export default function EmployeeDashboard() {
             confirmText="Delete"
             cancelText="Cancel"
           />
+
+          {/* Manager Ratings Modal */}
+          <AnimatePresence>
+            {showManagerRatingsModal && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                onClick={() => setShowManagerRatingsModal(false)}
+              >
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-amber-500/30"
+                >
+                  <div className="sticky top-0 bg-gray-900/95 backdrop-blur-sm border-b border-amber-500/30 p-6 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-amber-500/20 rounded-lg">
+                        <BsPersonCheck className="w-6 h-6 text-amber-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-white">Manager Ratings</h3>
+                        <p className="text-sm text-gray-400">View all goals with manager feedback</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowManagerRatingsModal(false)}
+                      className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                    >
+                      <BsX className="w-6 h-6 text-gray-400 hover:text-white" />
+                    </button>
+                  </div>
+                  <div className="p-6">
+                    {(() => {
+                      const ratedGoals = goals.filter(goal => goal.rating?.managerScore);
+                      
+                      if (ratedGoals.length === 0) {
+                        return (
+                          <div className="text-center py-12">
+                            <BsPersonCheck className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                            <h3 className="text-lg font-semibold text-gray-300 mb-2">No Manager Ratings Yet</h3>
+                            <p className="text-gray-400">Your manager hasn't rated any goals yet.</p>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="space-y-4">
+                          {ratedGoals.map((goal) => {
+                            const rating = goal.rating?.managerScore || 0;
+                            const ratingColors = {
+                              1: 'bg-red-500/10 text-red-400',
+                              2: 'bg-orange-500/10 text-orange-400',
+                              3: 'bg-yellow-500/10 text-yellow-400',
+                              4: 'bg-blue-500/10 text-blue-400',
+                              5: 'bg-green-500/10 text-green-400'
+                            };
+                            const ratingColor = ratingColors[rating as keyof typeof ratingColors] || 'bg-gray-500/10 text-gray-400';
+                            const ratingLabels = {
+                              1: "Needs Improvement",
+                              2: "Below Expectations",
+                              3: "Meets Expectations",
+                              4: "Exceeds Expectations",
+                              5: "Outstanding"
+                            };
+
+                            return (
+                              <motion.div
+                                key={goal.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                whileHover={{ scale: 1.01 }}
+                                onClick={() => {
+                                  setSelectedGoal(goal);
+                                  setShowManagerRatingsModal(false);
+                                  setShowDetailModal(true);
+                                }}
+                                className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50 hover:border-amber-500/50 transition-all cursor-pointer"
+                              >
+                                <div className="flex items-start justify-between gap-4">
+                                  <div className="flex-1">
+                                    <h4 className="text-lg font-semibold text-white mb-2">{goal.title}</h4>
+                                    <p className="text-sm text-gray-400 line-clamp-2 mb-3">{goal.description}</p>
+                                    <div className="flex items-center gap-4 flex-wrap">
+                                      <div className={`flex items-center gap-1 px-3 py-1.5 rounded-lg ${ratingColor}`}>
+                                        {Array.from({ length: 5 }).map((_, i) => (
+                                          <span key={i}>
+                                            {i < rating ? (
+                                              <BsStarFill className="w-4 h-4" />
+                                            ) : (
+                                              <BsStar className="w-4 h-4 opacity-30" />
+                                            )}
+                                          </span>
+                                        ))}
+                                        <span className="ml-2 font-semibold">{rating}/5</span>
+                                      </div>
+                                      <span className="text-sm text-gray-400">
+                                        {ratingLabels[rating as keyof typeof ratingLabels] || 'Not Rated'}
+                                      </span>
+                                      {goal.rating?.managerRatedAt && (
+                                        <span className="text-xs text-gray-500">
+                                          Rated on {new Date(goal.rating.managerRatedAt).toLocaleDateString()}
+                                        </span>
+                                      )}
+                                    </div>
+                                    {goal.rating?.managerComments && (
+                                      <div className="mt-3 p-3 bg-black/20 rounded-lg">
+                                        <p className="text-sm text-gray-300 italic">
+                                          "{goal.rating.managerComments}"
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    Click to view details
+                                  </div>
+                                </div>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </DashboardLayout>

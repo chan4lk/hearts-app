@@ -7,9 +7,10 @@ import ManagerRatingBadge from './ManagerRatingBadge';
 interface StatsSectionProps {
   stats: GoalStats;
   goals?: Goal[];
+  onViewManagerRatings?: () => void;
 }
 
-export default function StatsSection({ stats, goals = [] }: StatsSectionProps) {
+export default function StatsSection({ stats, goals = [], onViewManagerRatings }: StatsSectionProps) {
   const { data: session } = useSession();
   const userName = session?.user?.name || 'User';
 
@@ -148,7 +149,7 @@ export default function StatsSection({ stats, goals = [] }: StatsSectionProps) {
         </motion.div>
 
         {/* Manager Rating Badge */}
-        <ManagerRatingBadge goals={goals} />
+        <ManagerRatingBadge goals={goals} onViewRatings={onViewManagerRatings} />
       </div>
     </div>
   );

@@ -8,9 +8,10 @@ import { useSession } from 'next-auth/react';
 
 interface ManagerRatingBadgeProps {
   goals: any[];
+  onViewRatings?: () => void;
 }
 
-export default function ManagerRatingBadge({ goals }: ManagerRatingBadgeProps) {
+export default function ManagerRatingBadge({ goals, onViewRatings }: ManagerRatingBadgeProps) {
   const { data: session } = useSession();
   const [managerRatings, setManagerRatings] = useState<{
     total: number;
@@ -78,7 +79,9 @@ export default function ManagerRatingBadge({ goals }: ManagerRatingBadgeProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
       whileHover={{ scale: 1.02, y: -2 }}
-      className="group relative bg-gray-900/90 rounded-xl overflow-hidden"
+      whileTap={{ scale: 0.98 }}
+      onClick={onViewRatings}
+      className="group relative bg-gray-900/90 rounded-xl overflow-hidden cursor-pointer"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
       <div className="absolute inset-0 border border-white/10 group-hover:border-amber-500/20 rounded-xl transition-colors"></div>
