@@ -54,26 +54,20 @@ export default function GoalsSection({
   );
 
   return (
-    <div className="relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl shadow-xl border border-white/10">
-      {/* Decorative Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-indigo-500/5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-purple-500/5 rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2"></div>
-      </div>
-
-      <div className="relative p-4">
+    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl border border-white/20 dark:border-gray-700/50 overflow-hidden shadow-lg">
+      <div className="p-4">
         {/* Header Section */}
-        <div className="flex flex-col gap-4 mb-6">
+        <div className="px-4 py-3 border-b border-gray-700/50 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="bg-indigo-500/10 p-2 rounded-lg backdrop-blur-sm">
                 <BsListUl className="w-5 h-5 text-indigo-400" />
               </div>
-              <h2 className="text-lg font-semibold text-white/90">Goals Overview</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Goals Overview</h2>
             </div>
 
             {/* View Toggle Buttons */}
-            <div className="flex gap-2 p-1 bg-gray-800 rounded-lg backdrop-blur-sm">
+            <div className="flex gap-2 p-1 bg-gray-800/50 rounded-lg backdrop-blur-sm">
               <button
                 onClick={() => setActiveView('assigned')}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-all ${

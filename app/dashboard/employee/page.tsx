@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
+import HeroSection from './components/HeroSection';
 import StatsSection from './components/StatsSection';
+import Filters from './components/Filters';
 import GoalsSection from './components/GoalsSection';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
@@ -22,6 +24,7 @@ export default function EmployeeDashboard() {
   const { data: session, status } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedPriority, setSelectedPriority] = useState('');
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
@@ -322,7 +325,8 @@ export default function EmployeeDashboard() {
   const filteredGoals = goals.filter(goal => {
     const matchesSearch = goal.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = !selectedStatus || goal.status === selectedStatus;
-    return matchesSearch && matchesStatus;
+    const matchesPriority = !selectedPriority || goal.priority === selectedPriority;
+    return matchesSearch && matchesStatus && matchesPriority;
   });
 
   const getGoalStats = (): GoalStats => {
@@ -429,7 +433,9 @@ export default function EmployeeDashboard() {
         <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
         
         <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
-      
+          {/* Hero Section */}
+          <HeroSection />
+
           {/* Stats Section */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -439,6 +445,20 @@ export default function EmployeeDashboard() {
               stats={getGoalStats()} 
               goals={goals}
               onViewManagerRatings={() => setShowManagerRatingsModal(true)}
+            />
+          </motion.div>
+
+          {/* Filters Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Filters
+              selectedStatus={selectedStatus}
+              onStatusChange={setSelectedStatus}
+              selectedPriority={selectedPriority}
+              onPriorityChange={setSelectedPriority}
             />
           </motion.div>
 
@@ -564,7 +584,6 @@ export default function EmployeeDashboard() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10"
           >
             <GoalsSection
               goals={filteredGoals}

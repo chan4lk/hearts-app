@@ -370,49 +370,6 @@ export default function GoalsTable({
 
   return (
     <div className="bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl shadow-xl border border-white/10 p-4">
-      {/* Search and Filter Section */}
-      {(onSearchChange || onStatusChange) && (
-        <div className="flex flex-col sm:flex-row gap-3 mb-4">
-          {onSearchChange && (
-            <div className="relative group flex-1">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <BsSearch className="w-4 h-4 text-gray-400 group-hover:text-indigo-400 transition-colors" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search goals..."
-                value={localSearchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-800 text-white/90 text-sm rounded-lg border border-white/10 
-                         focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent 
-                         hover:bg-white/10 transition-colors placeholder-gray-400"
-              />
-            </div>
-          )}
-
-          {onStatusChange && (
-            <div className="relative group sm:w-48">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <BsFilter className="w-4 h-4 text-gray-400 group-hover:text-indigo-400 transition-colors" />
-              </div>
-              <select
-                value={localSelectedStatus}
-                onChange={(e) => handleStatusChange(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-800 text-white/90 text-sm rounded-lg 
-                         border border-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 
-                         hover:bg-white/10 transition-colors appearance-none cursor-pointer"
-              >
-                {STATUS_OPTIONS.map(option => (
-                  <option key={option.value} value={option.value} className="bg-gray-800">
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
