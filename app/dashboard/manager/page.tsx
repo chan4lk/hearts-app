@@ -18,6 +18,7 @@ export default function ManagerDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState('all');
+  const [selectedGoalType, setSelectedGoalType] = useState('all'); // 'all', 'assigned', 'self-created'
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState<EmployeeStats[]>([]);
@@ -29,6 +30,22 @@ export default function ManagerDashboard() {
   // Helper function to check if a goal belongs to the current user
   const isCurrentUserGoal = (goal: Goal) => {
     return goal.employee?.email === session?.user?.email;
+  };
+
+  // Helper function to check if goal is manager-assigned
+  const isAssignedGoal = (goal: Goal) => {
+    // Goal is assigned if it has a managerId set
+    return goal.managerId && goal.managerId !== null && goal.managerId !== '';
+  };
+
+  // Helper function to check if goal is employee self-created
+  const isSelfCreatedGoal = (goal: Goal) => {
+    // Goal is self-created if:
+    // 1. createdBy exists and matches the employee
+    // 2. AND either no managerId or managerId is null/empty
+    return goal.createdBy 
+      && goal.createdBy.id === goal.employeeId 
+      && (!goal.managerId || goal.managerId === null || goal.managerId === '');
   };
 
   // Calculate statistics for employee goals
@@ -119,7 +136,12 @@ export default function ManagerDashboard() {
     const matchesStatus = !selectedStatus || goal.status === selectedStatus;
     const matchesEmployee = selectedEmployee === 'all' || goal.employee.email === selectedEmployee;
     
-    return matchesSearch && matchesStatus && matchesEmployee && !isCurrentUserGoal(goal);
+    // Filter by goal type
+    const matchesGoalType = selectedGoalType === 'all' 
+      || (selectedGoalType === 'assigned' && isAssignedGoal(goal))
+      || (selectedGoalType === 'self-created' && isSelfCreatedGoal(goal));
+    
+    return matchesSearch && matchesStatus && matchesEmployee && matchesGoalType && !isCurrentUserGoal(goal);
   });
 
   if (loading) {
@@ -142,6 +164,8 @@ export default function ManagerDashboard() {
             setSelectedStatus={setSelectedStatus}
             selectedEmployee={selectedEmployee}
             setSelectedEmployee={setSelectedEmployee}
+            selectedGoalType={selectedGoalType}
+            setSelectedGoalType={setSelectedGoalType}
             employees={employees}
           />
 
@@ -205,7 +229,8 @@ export default function ManagerDashboard() {
             goals={filteredGoals}
             onGoalClick={handleGoalClick}
             showEmployee={true}
-            showManager={true}
+            showManager={false}
+            showActions={false}
             disableStatusUpdate={true}
           />
         </div>

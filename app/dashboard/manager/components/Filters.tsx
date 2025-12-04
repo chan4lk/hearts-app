@@ -1,4 +1,4 @@
-import { BsSearch, BsFilter, BsPerson } from 'react-icons/bs';
+import { BsSearch, BsFilter, BsPerson, BsFolder2Open } from 'react-icons/bs';
 import { EmployeeStats } from '@/app/components/shared/types';
 
 interface FiltersProps {
@@ -8,6 +8,8 @@ interface FiltersProps {
   setSelectedStatus: (status: string) => void;
   selectedEmployee: string;
   setSelectedEmployee: (employee: string) => void;
+  selectedGoalType?: string;
+  setSelectedGoalType?: (type: string) => void;
   employees: EmployeeStats[];
 }
 
@@ -78,6 +80,8 @@ export default function Filters({
   setSelectedStatus,
   selectedEmployee,
   setSelectedEmployee,
+  selectedGoalType = 'all',
+  setSelectedGoalType,
   employees
 }: FiltersProps) {
   const selectedStatusConfig = selectedStatus && STATUS_CONFIG[selectedStatus as keyof typeof STATUS_CONFIG]
@@ -131,9 +135,22 @@ export default function Filters({
     ? 'text-cyan-300'
     : 'text-white';
 
+  // Goal type filter styling
+  const goalTypeBorderColor = selectedGoalType !== 'all'
+    ? 'border-purple-500/50'
+    : 'border-gray-700';
+
+  const goalTypeBgColor = selectedGoalType !== 'all'
+    ? 'bg-purple-500/10'
+    : 'bg-gray-900/50';
+
+  const goalTypeTextColor = selectedGoalType !== 'all'
+    ? 'text-purple-300'
+    : 'text-white';
+
   return (
     <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-3 border border-gray-700/50">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Search Input */}
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none z-10">
@@ -235,6 +252,32 @@ export default function Filters({
               ))}
           </select>
         </div>
+
+        {/* Goal Type Filter */}
+        {setSelectedGoalType && (
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none z-10">
+              <div className="p-1.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-md">
+                <BsFolder2Open className="w-3 h-3 text-white" />
+              </div>
+            </div>
+            <select
+              value={selectedGoalType}
+              onChange={(e) => setSelectedGoalType(e.target.value)}
+              className={`w-full pl-10 pr-8 py-2.5 ${goalTypeBgColor} ${goalTypeTextColor} rounded-md border ${goalTypeBorderColor} focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:border-purple-500 focus:ring-purple-500 text-sm font-medium appearance-none cursor-pointer transition-all duration-200 hover:border-opacity-70 hover:shadow-sm`}
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 12 12'%3E%3Cpath fill='%239CA3AF' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 0.75rem center',
+                color: selectedGoalType !== 'all' ? undefined : 'rgb(209 213 219)'
+              }}
+            >
+              <option value="all" style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}>All Goal Types</option>
+              <option value="assigned" style={{ backgroundColor: '#1f2937', color: '#a78bfa' }}>Assigned Goals</option>
+              <option value="self-created" style={{ backgroundColor: '#1f2937', color: '#f472b6' }}>Employee Created Self Goals</option>
+            </select>
+          </div>
+        )}
       </div>
     </div>
   );
