@@ -440,7 +440,20 @@ export default function GoalsTable({
                   )}
                   {showManager && (
                     <td className="py-3 px-4 text-sm text-gray-300">
-                      {goal.manager?.name || 'Unassigned'}
+                      {(() => {
+                        // Check if this is a self-created goal
+                        // Self-created goals have no manager assigned
+                        const isSelfCreated = goal.employee && 
+                          (!goal.manager || 
+                           !goal.managerId || 
+                           goal.managerId === null || 
+                           goal.managerId === '');
+                        
+                        if (isSelfCreated) {
+                          return 'Self-Created';
+                        }
+                        return goal.manager?.name || 'Unassigned';
+                      })()}
                     </td>
                   )}
                   <td className="py-3 px-4 text-sm text-gray-300">
