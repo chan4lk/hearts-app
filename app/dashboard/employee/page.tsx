@@ -110,7 +110,8 @@ export default function EmployeeDashboard() {
       priority: goal.priority?.toUpperCase() || 'MEDIUM'
     });
     setShowCreateGoalModal(true);
-    setShowAIGoalSuggestions(false);
+    // Keep AI suggestions modal open so user can select multiple goals
+    // setShowAIGoalSuggestions(false);
   };
 
   // Reset form
@@ -516,6 +517,8 @@ export default function EmployeeDashboard() {
           {/* AI Goal Suggestions - Component has its own modal */}
           {showAIGoalSuggestions && (
             <AIGoalSuggestions
+              autoGenerate={true}
+              showTriggerButton={false}
               onSelectGoal={() => {
                 setShowAIGoalSuggestions(false);
               }}
