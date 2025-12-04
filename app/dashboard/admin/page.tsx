@@ -2,34 +2,18 @@
 
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { 
-  BsPeople, 
-  BsLightning, 
   BsClock, 
-  BsShieldExclamation, 
-  BsGraphUp, 
-  BsPersonPlus, 
-  BsThreeDotsVertical, 
-  BsArrowUpRight, 
-  BsActivity, 
-  BsGear, 
-  BsBell, 
-  BsBullseye,
-  BsEye,
-  BsPlus,
   BsCheckCircle,
   BsExclamationTriangle,
   BsXCircle,
-  BsCalendar,
-  BsSpeedometer2,
-  BsDatabase,
-  BsServer,
-  BsGlobe,
-  BsCpu,
-  BsWifi,
-  BsHddNetwork,
+  BsActivity,
   BsChevronRight,
-  BsDot
+  BsPeople,
+  BsBullseye
 } from 'react-icons/bs';
+import HeroSection from './components/HeroSection';
+import StatsSection from './components/StatsSection';
+import Filters from './components/Filters';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -40,13 +24,6 @@ import { Role } from '@prisma/client';
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { Goal, User as UserType } from '@/app/components/shared/types';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem
-} from '@/app/components/ui/select';
 
 interface DashboardStats {
   totalUsers: number;
@@ -204,136 +181,24 @@ export default function AdminDashboard() {
     }
   };
 
-  const statsCards = [
-    { 
-      title: 'Total Users', 
-      value: stats.totalUsers, 
-      icon: BsPeople, 
-      gradient: 'from-blue-500 via-blue-600 to-cyan-500',
-      
-    },
-    { 
-      title: 'Employees', 
-      value: stats.employeeCount, 
-      icon: BsPeople, 
-      gradient: 'from-emerald-500 via-emerald-600 to-teal-500',
-      
-    },
-    { 
-      title: 'Managers', 
-      value: stats.managerCount, 
-      icon: BsGraphUp, 
-      gradient: 'from-purple-500 via-purple-600 to-pink-500',
-      
-    },
-    { 
-      title: 'Admins', 
-      value: stats.adminCount, 
-      icon: BsShieldExclamation, 
-      gradient: 'from-orange-500 via-orange-600 to-red-500',
-      
-    },
-    { 
-      title: 'Goals', 
-      value: stats.totalGoals, 
-      icon: BsBullseye, 
-      gradient: 'from-indigo-500 via-indigo-600 to-purple-500',
-      
-    }
-  ];
 
   return (
     <DashboardLayout type="admin">
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
-        {/* Animated Background Elements */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-emerald-600/20 to-blue-600/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-purple-600/10 to-pink-600/10 rounded-full blur-3xl animate-pulse delay-500"></div>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        {/* Subtle Background Pattern */}
+        <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
+        
+        <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
+          {/* Hero Section */}
+          <HeroSection />
 
-        <div className="relative z-10 p-3 sm:p-4 lg:p-6 space-y-4">
-          {/* Glassmorphism Header */}
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
+          {/* Stats Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-                         className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-4 shadow-2xl"
           >
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="space-y-2">
-                                 <div className="flex items-center gap-3">
-                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
-                     <BsActivity className="w-6 h-6 text-white" />
-                   </div>
-                   <div>
-                     <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white via-blue-100 to-indigo-200 bg-clip-text text-transparent">
-                       Welcome back, {session?.user?.name}
-                     </h1>
-                     <p className="text-gray-300 text-xs sm:text-sm mt-1">Here's an overview of your organization's performance metrics and recent activities.</p>
-                   </div>
-                 </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full backdrop-blur-sm">
-                  <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-emerald-400">System Operational</span>
-                </div>
-                <div className="hidden sm:flex items-center gap-2 text-gray-300">
-                  <BsClock className="w-4 h-4" />
-                  <span className="text-sm font-mono">
-                    {currentTime.toLocaleTimeString()}
-                  </span>
-                </div>
-              </div>
-            </div>
+            <StatsSection stats={stats} />
           </motion.div>
-
-                     {/* Compact Stats Grid */}
-           <div className="grid grid-cols-5 gap-1.5">
-             {statsCards.map((card, index) => (
-               <motion.div 
-                 key={card.title}
-                 initial={{ opacity: 0, y: 20 }}
-                 animate={{ opacity: 1, y: 0 }}
-                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                                 className="group relative overflow-hidden backdrop-blur-xl bg-white/5 border border-white/10 rounded-lg p-2 hover:shadow-xl hover:shadow-blue-500/20 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
-                                 whileHover={{ scale: 1.05 }}
-                                 whileTap={{ scale: 0.95 }}
-               >
-                 {/* Unique Gradient Overlay */}
-                 <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                 
-                 {/* Animated Background Pattern */}
-                 <div className="absolute inset-0 opacity-10">
-                   <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)] group-hover:scale-150 transition-transform duration-700"></div>
-                 </div>
-
-                 <div className="relative z-10 flex flex-col items-center justify-center h-16">
-                   {/* Unique Icon Container */}
-                   <div className="relative mb-1">
-                     <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full blur-sm opacity-0 group-hover:opacity-50 transition-opacity duration-300"></div>
-                     <div className="relative bg-gradient-to-r from-blue-500 to-purple-600 rounded-full p-1.5 group-hover:scale-110 transition-transform duration-300">
-                       <card.icon className="w-3 h-3 text-white" />
-                     </div>
-                   </div>
-                   
-                   {/* Compact Value Display */}
-                   <div className="text-center">
-                     <div className="text-lg font-bold text-white group-hover:text-blue-300 transition-colors duration-300">
-                       {card.value}
-                     </div>
-                     <div className="text-xs text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-1 group-hover:translate-y-0">
-                       {card.title}
-                     </div>
-                   </div>
-                   
-                   {/* Unique Hover Indicator */}
-                   <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-500 group-hover:w-3/4 transition-all duration-300"></div>
-                 </div>
-               </motion.div>
-             ))}
-           </div>
 
                      {/* Main Content Grid */}
            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -471,53 +336,13 @@ export default function AdminDashboard() {
               </div>
               
               {/* Filters */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1">
-                  <Select value={selectedUser} onValueChange={setSelectedUser}>
-                    <SelectTrigger className="w-full bg-gray-800/50 border-white/10 text-white">
-                      <SelectValue placeholder="Filter by User">
-                        {selectedUser === 'all' ? 'All Users' : users.find(u => u.id === selectedUser)?.name || 'Select User'}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-white/10">
-                      <SelectItem value="all" className="text-white focus:bg-gray-700">
-                        <div className="flex items-center gap-2">
-                          <BsPeople className="w-4 h-4" />
-                          <span>All Users</span>
-                        </div>
-                      </SelectItem>
-                      {users.filter(u => u.role !== 'ADMIN').map((user) => (
-                        <SelectItem key={user.id} value={user.id} className="text-white focus:bg-gray-700">
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-xs text-white">
-                              {user.name.charAt(0)}
-                            </div>
-                            <span>{user.name}</span>
-                            <span className="text-xs text-gray-400">({user.role})</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="sm:w-48">
-                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                    <SelectTrigger className="w-full bg-gray-800/50 border-white/10 text-white">
-                      <SelectValue placeholder="Filter by Status">
-                        {selectedStatus === 'all' ? 'All Statuses' : selectedStatus}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-white/10">
-                      <SelectItem value="all" className="text-white focus:bg-gray-700">All Statuses</SelectItem>
-                      <SelectItem value="PENDING" className="text-white focus:bg-gray-700">Pending</SelectItem>
-                      <SelectItem value="APPROVED" className="text-white focus:bg-gray-700">Approved</SelectItem>
-                      <SelectItem value="REJECTED" className="text-white focus:bg-gray-700">Rejected</SelectItem>
-                      <SelectItem value="COMPLETED" className="text-white focus:bg-gray-700">Completed</SelectItem>
-                      <SelectItem value="DRAFT" className="text-white focus:bg-gray-700">Draft</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              <Filters
+                selectedUser={selectedUser}
+                onUserChange={setSelectedUser}
+                selectedStatus={selectedStatus}
+                onStatusChange={setSelectedStatus}
+                users={users}
+              />
             </div>
             <div className="p-6">
               {goalsLoading ? (
