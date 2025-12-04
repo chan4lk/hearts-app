@@ -19,24 +19,14 @@ export async function GET(req: Request) {
       return new NextResponse('Forbidden', { status: 403 });
     }
 
-    // Get all employees managed by this manager
-    const employees = await prisma.user.findMany({
-      where: {
-        managerId: session.user.id,
-      },
-    });
-    console.log('Found employees:', employees); // Debug log
-
-    const employeeIds = employees.map(emp => emp.id);
-    console.log('Employee IDs:', employeeIds); // Debug log
-
-    // Fetch goals for all managed employees
+    // Fetch goals assigned by this manager to their employees
+    // Exclude REJECTED and DRAFT status goals - only show goals that can be rated
     const goals = await prisma.goal.findMany({
       where: {
-        employeeId: {
-          in: employeeIds,
+        managerId: session.user.id, // Only goals assigned by this manager
+        status: {
+          notIn: ['REJECTED', 'DRAFT', 'DELETED'], // Exclude REJECTED, DRAFT, and DELETED
         },
-        status: GoalStatus.APPROVED,
       },
       include: {
         employee: {
