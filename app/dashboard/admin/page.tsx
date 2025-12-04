@@ -78,6 +78,8 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<UserType[]>([]);
   const [selectedUser, setSelectedUser] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedPriority, setSelectedPriority] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [goalsLoading, setGoalsLoading] = useState(false);
 
@@ -148,7 +150,9 @@ export default function AdminDashboard() {
   const filteredGoals = goals.filter(goal => {
     const matchesUser = selectedUser === 'all' || goal.employee?.id === selectedUser;
     const matchesStatus = selectedStatus === 'all' || goal.status === selectedStatus;
-    return matchesUser && matchesStatus;
+    const matchesPriority = !selectedPriority || goal.priority === selectedPriority;
+    const matchesCategory = !selectedCategory || goal.category === selectedCategory;
+    return matchesUser && matchesStatus && matchesPriority && matchesCategory;
   });
 
   if (isLoading) {
@@ -341,6 +345,10 @@ export default function AdminDashboard() {
                 onUserChange={setSelectedUser}
                 selectedStatus={selectedStatus}
                 onStatusChange={setSelectedStatus}
+                selectedPriority={selectedPriority}
+                onPriorityChange={setSelectedPriority}
+                selectedCategory={selectedCategory}
+                onCategoryChange={setSelectedCategory}
                 users={users}
               />
             </div>

@@ -1,4 +1,4 @@
-import { BsFilter, BsPerson, BsFlag } from 'react-icons/bs';
+import { BsFilter, BsPerson, BsFlag, BsFolder2Open } from 'react-icons/bs';
 import { motion } from 'framer-motion';
 import { User as UserType } from '@/app/components/shared/types';
 
@@ -9,6 +9,8 @@ interface FiltersProps {
   onStatusChange: (value: string) => void;
   selectedPriority?: string;
   onPriorityChange?: (value: string) => void;
+  selectedCategory?: string;
+  onCategoryChange?: (value: string) => void;
   users: UserType[];
 }
 
@@ -90,6 +92,8 @@ export default function Filters({
   onStatusChange,
   selectedPriority = '',
   onPriorityChange,
+  selectedCategory = '',
+  onCategoryChange,
   users
 }: FiltersProps) {
   const selectedStatusConfig = selectedStatus && selectedStatus !== 'all' && STATUS_CONFIG[selectedStatus as keyof typeof STATUS_CONFIG]
@@ -133,7 +137,7 @@ export default function Filters({
       transition={{ delay: 0.1 }}
       className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 border-2 border-gray-700/50"
     >
-      <div className={`grid grid-cols-1 md:grid-cols-2 ${onPriorityChange ? 'lg:grid-cols-3' : ''} gap-3`}>
+      <div className={`grid grid-cols-1 md:grid-cols-2 ${onPriorityChange || onCategoryChange ? 'lg:grid-cols-3' : ''} ${onPriorityChange && onCategoryChange ? 'xl:grid-cols-4' : ''} gap-3`}>
         {/* User Filter */}
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none z-10">
@@ -211,6 +215,35 @@ export default function Filters({
               <option value="MEDIUM" style={{ backgroundColor: '#1f2937', color: '#fcd34d' }}>Medium</option>
               <option value="HIGH" style={{ backgroundColor: '#1f2937', color: '#fb923c' }}>High</option>
               <option value="URGENT" style={{ backgroundColor: '#1f2937', color: '#fca5a5' }}>Urgent</option>
+            </select>
+          </div>
+        )}
+
+        {/* Category Filter */}
+        {onCategoryChange && (
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none z-10">
+              <div className="p-1.5 rounded-md bg-gradient-to-r from-purple-500 to-indigo-500">
+                <BsFolder2Open className="w-3 h-3 text-white" />
+              </div>
+            </div>
+            <select
+              value={selectedCategory}
+              onChange={(e) => onCategoryChange(e.target.value)}
+              className="w-full pl-10 pr-8 py-2.5 bg-gray-900/50 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-purple-500 focus:border-purple-500 text-sm font-medium appearance-none cursor-pointer transition-all duration-200 hover:border-opacity-70 hover:shadow-sm"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 12 12'%3E%3Cpath fill='%239CA3AF' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 0.75rem center'
+              }}
+            >
+              <option value="" style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}>All Categories</option>
+              <option value="PROFESSIONAL" style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}>Professional</option>
+              <option value="TECHNICAL" style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}>Technical</option>
+              <option value="LEADERSHIP" style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}>Leadership</option>
+              <option value="PERSONAL" style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}>Personal</option>
+              <option value="TRAINING" style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}>Training</option>
+              <option value="KPI" style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}>KPI</option>
             </select>
           </div>
         )}
