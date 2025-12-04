@@ -53,7 +53,7 @@ model Goal {
   approvedBy         String?
   rejectedAt         DateTime?
   rejectedBy         String?
-  status             GoalStatus     @default(PENDING)
+  status             GoalStatus     @default(DRAFT)
   managerComments    String?
   category           GoalCategory   @default(PROFESSIONAL)
   createdById        String?

@@ -14,6 +14,9 @@ enum GoalStatus {
   REJECTED = 'REJECTED',
   COMPLETED = 'COMPLETED',
   DELETED = 'DELETED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  ON_HOLD = 'ON_HOLD',
+  BLOCKED = 'BLOCKED',
 }
 
 // Define valid status transitions
@@ -22,12 +25,15 @@ type StatusTransitions = {
 };
 
 const validTransitions: StatusTransitions = {
-  [GoalStatus.DRAFT]: [GoalStatus.PENDING],
-  [GoalStatus.PENDING]: [GoalStatus.APPROVED, GoalStatus.REJECTED, GoalStatus.MODIFIED],
-  [GoalStatus.MODIFIED]: [GoalStatus.PENDING],
-  [GoalStatus.APPROVED]: [GoalStatus.COMPLETED],
-  [GoalStatus.REJECTED]: [GoalStatus.DRAFT],
+  [GoalStatus.DRAFT]: [GoalStatus.PENDING, GoalStatus.APPROVED, GoalStatus.REJECTED, GoalStatus.MODIFIED], // Employee can submit DRAFT to PENDING, or Manager can review DRAFT directly
+  [GoalStatus.PENDING]: [GoalStatus.APPROVED, GoalStatus.REJECTED, GoalStatus.MODIFIED], // Manager reviews submitted DRAFT
+  [GoalStatus.MODIFIED]: [GoalStatus.PENDING, GoalStatus.DRAFT], // Employee resubmits after modifications (can go back to DRAFT or submit to PENDING)
+  [GoalStatus.APPROVED]: [GoalStatus.IN_PROGRESS, GoalStatus.COMPLETED, GoalStatus.ON_HOLD, GoalStatus.BLOCKED], // Employee can start working
+  [GoalStatus.IN_PROGRESS]: [GoalStatus.COMPLETED, GoalStatus.ON_HOLD, GoalStatus.BLOCKED],
+  [GoalStatus.REJECTED]: [GoalStatus.DRAFT], // Employee can revise and resubmit
   [GoalStatus.COMPLETED]: [],
+  [GoalStatus.ON_HOLD]: [GoalStatus.IN_PROGRESS, GoalStatus.COMPLETED],
+  [GoalStatus.BLOCKED]: [GoalStatus.IN_PROGRESS, GoalStatus.COMPLETED],
   [GoalStatus.DELETED]: []
 };
 
@@ -259,15 +265,15 @@ export async function POST(req: Request) {
     }
 
     // Determine initial status:
-    // - Manager/Admin assigns goal to employee → PENDING (needs manager review)
+    // - Manager/Admin assigns goal to employee → APPROVED (employee can start immediately)
     // - Employee creates goal for themselves → DRAFT (needs manager review)
-    let initialStatus: string;
+    let initialStatus: GoalStatus;
     if (isAdminOrManager && !isSelfGoal) {
       // Manager assigning goal to employee
-      initialStatus = 'PENDING';
+      initialStatus = GoalStatus.APPROVED;
     } else {
       // Employee creating goal for themselves
-      initialStatus = 'DRAFT';
+      initialStatus = GoalStatus.DRAFT;
     }
 
     // Create the goal
@@ -286,6 +292,16 @@ export async function POST(req: Request) {
         updatedById: userId
       },
       include: goalInclude
+    });
+
+    // Log for debugging - verify status is set correctly
+    console.log('Goal created with status:', {
+      goalId: goal.id,
+      status: goal.status,
+      createdBy: userRole,
+      isManagerAssigning: isAdminOrManager && !isSelfGoal,
+      targetEmployeeId,
+      userId
     });
 
     return NextResponse.json({
@@ -453,7 +469,7 @@ export async function PATCH(request: Request) {
       if (
         (newStatus === 'PENDING' && !isGoalEmployee) ||
         (['APPROVED', 'REJECTED', 'MODIFIED'].includes(newStatus) && !isAdminOrManager) ||
-        (newStatus === 'COMPLETED' && !isGoalEmployee) ||
+        (['COMPLETED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED'].includes(newStatus) && !isGoalEmployee && !isAdminOrManager) ||
         (newStatus === 'DRAFT' && !isGoalEmployee)
       ) {
         return NextResponse.json({ error: 'Unauthorized status change' }, { status: 403 });

@@ -204,7 +204,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
                 department: goalData.department || 'ENGINEERING',
                 priority: goalData.priority || 'MEDIUM',
                 dueDate: new Date(goalData.dueDate),
-                status: GoalStatus.PENDING, // Manager assigned goals start as PENDING
+                status: GoalStatus.APPROVED, // Manager assigned goals start as APPROVED (employee can start immediately)
                 employeeId: goalData.employeeId,
                 managerId: session.user.id,
                 createdById: session.user.id,

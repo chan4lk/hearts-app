@@ -3,10 +3,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-// Simple status update for employees on pending or approved goals
-// Allowed statuses: IN_PROGRESS, NOT_STARTED, COMPLETED, ON_HOLD, BLOCKED
-// Manager-assigned goals start as PENDING and can be updated directly by employees
-// Employee-created goals must be approved first, then can be updated
+// Status update endpoint for goals
+// Manager-assigned goals: Start as APPROVED → Employee can update to IN_PROGRESS → COMPLETED and others
+// Employee-created goals: Start as DRAFT → Manager reviews (APPROVED/REJECTED/MODIFIED) → If APPROVED, employee can update to IN_PROGRESS → COMPLETED and others
 export async function PATCH(
   req: Request,
   { params }: { params: { goalId: string } }
@@ -46,16 +45,17 @@ export async function PATCH(
       );
     }
 
-    // Employees can update PENDING or APPROVED goals to progress statuses
+    // Employees can update APPROVED goals to progress statuses
+    // Manager-assigned goals start as APPROVED, so employees can start immediately
     if (isEmployee) {
-      if (goal.status !== 'APPROVED' && goal.status !== 'PENDING') {
+      if (goal.status !== 'APPROVED' && goal.status !== 'IN_PROGRESS' && goal.status !== 'ON_HOLD' && goal.status !== 'BLOCKED') {
         return NextResponse.json(
-          { error: 'Status can only be updated for pending or approved goals' },
+          { error: 'Status can only be updated for approved or in-progress goals' },
           { status: 400 }
         );
       }
-      // Employees can only set progress-related statuses
-      const employeeAllowedStatuses = ['IN_PROGRESS', 'NOT_STARTED', 'COMPLETED', 'ON_HOLD', 'BLOCKED'];
+      // Employees can set progress-related statuses from APPROVED or update existing progress statuses
+      const employeeAllowedStatuses = ['IN_PROGRESS', 'COMPLETED', 'ON_HOLD', 'BLOCKED'];
       if (!employeeAllowedStatuses.includes(status)) {
         return NextResponse.json(
           { error: `Invalid status for employee. Allowed: ${employeeAllowedStatuses.join(', ')}` },
@@ -64,18 +64,18 @@ export async function PATCH(
       }
     }
 
-    // Managers/Admins can approve/reject PENDING or DRAFT goals, or update APPROVED goals
+    // Managers/Admins can approve/reject/modify DRAFT or PENDING goals, or update APPROVED/IN_PROGRESS goals
     if (isManagerOrAdmin) {
-      if (goal.status === 'PENDING' || goal.status === 'DRAFT') {
-        // Managers can approve or reject
-        if (status !== 'APPROVED' && status !== 'REJECTED') {
+      if (goal.status === 'DRAFT' || goal.status === 'PENDING') {
+        // Managers can approve, reject, or request modifications for DRAFT or PENDING goals
+        if (status !== 'APPROVED' && status !== 'REJECTED' && status !== 'MODIFIED') {
           return NextResponse.json(
-            { error: 'Managers can only approve or reject pending/draft goals' },
+            { error: 'Managers can only approve, reject, or modify draft/pending goals' },
             { status: 400 }
           );
         }
-      } else if (goal.status === 'APPROVED') {
-        // Managers can update approved goals to progress statuses
+      } else if (goal.status === 'APPROVED' || goal.status === 'IN_PROGRESS' || goal.status === 'ON_HOLD' || goal.status === 'BLOCKED') {
+        // Managers can update approved/in-progress goals to other progress statuses
         const managerAllowedStatuses = ['IN_PROGRESS', 'COMPLETED', 'ON_HOLD', 'BLOCKED'];
         if (!managerAllowedStatuses.includes(status)) {
           return NextResponse.json(
@@ -85,7 +85,7 @@ export async function PATCH(
         }
       } else {
         return NextResponse.json(
-          { error: 'Managers can only update pending, draft, or approved goals' },
+          { error: 'Managers can only update draft, pending, approved, or in-progress goals' },
           { status: 400 }
         );
       }
