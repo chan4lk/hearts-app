@@ -99,6 +99,35 @@ export default function AdminDashboard() {
     return () => clearInterval(timer);
   }, []);
 
+  // Fetch dashboard data function
+  const fetchDashboardData = async () => {
+    try {
+      const [statsRes, activitiesRes, usersRes] = await Promise.all([
+        fetch('/api/admin/stats'),
+        fetch('/api/admin/activities'),
+        fetch('/api/users'),
+      ]);
+
+      if (!statsRes.ok || !activitiesRes.ok ) {
+        throw new Error('Failed to fetch dashboard data');
+      }
+
+      const [statsData, activitiesData, usersData] = await Promise.all([
+        statsRes.json(),
+        activitiesRes.json(),
+        usersRes.ok ? usersRes.json() : { users: [] },
+      ]);
+
+      setStats(statsData);
+      setActivities(activitiesData);
+      setUsers(usersData.users || []);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!session) {
       router.push('/login');
@@ -109,34 +138,6 @@ export default function AdminDashboard() {
       router.push('/dashboard');
       return;
     }
-
-    const fetchDashboardData = async () => {
-      try {
-        const [statsRes, activitiesRes, usersRes] = await Promise.all([
-          fetch('/api/admin/stats'),
-          fetch('/api/admin/activities'),
-          fetch('/api/users'),
-        ]);
-
-        if (!statsRes.ok || !activitiesRes.ok ) {
-          throw new Error('Failed to fetch dashboard data');
-        }
-
-        const [statsData, activitiesData, usersData] = await Promise.all([
-          statsRes.json(),
-          activitiesRes.json(),
-          usersRes.ok ? usersRes.json() : { users: [] },
-        ]);
-
-        setStats(statsData);
-        setActivities(activitiesData);
-        setUsers(usersData.users || []);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
 
     fetchDashboardData();
     fetchAllGoals();
@@ -175,6 +176,13 @@ export default function AdminDashboard() {
     if (!goalToDelete) return;
     
     try {
+      // Optimistically update goals and stats immediately
+      setGoals(prev => prev.filter(g => g.id !== goalToDelete.id));
+      setStats(prev => ({
+        ...prev,
+        totalGoals: Math.max(0, prev.totalGoals - 1)
+      }));
+
       const response = await fetch(`/api/goals/${goalToDelete.id}`, {
         method: 'DELETE',
       });
@@ -183,13 +191,18 @@ export default function AdminDashboard() {
         throw new Error('Failed to delete goal');
       }
 
-      setGoals(prev => prev.filter(g => g.id !== goalToDelete.id));
       setShowDeleteModal(false);
       setGoalToDelete(null);
       showToast.success('Goal Deleted!', 'The goal has been deleted successfully');
-      fetchAllGoals(); // Refresh goals
+      
+      // Refresh goals and stats from server to ensure sync
+      fetchAllGoals();
+      fetchDashboardData();
     } catch (error) {
       console.error('Error deleting goal:', error);
+      // Revert optimistic update on error
+      fetchAllGoals();
+      fetchDashboardData();
       showToast.error('Error', error instanceof Error ? error.message : 'Failed to delete goal');
     }
   };
@@ -215,7 +228,13 @@ export default function AdminDashboard() {
       const failed = results.length - successful;
 
       if (successful > 0) {
+        // Optimistically update goals and stats immediately
         setGoals(prev => prev.filter(g => !goalsToBulkDelete.includes(g.id)));
+        setStats(prev => ({
+          ...prev,
+          totalGoals: Math.max(0, prev.totalGoals - successful)
+        }));
+        
         showToast.success(
           'Goals Deleted!', 
           `Successfully deleted ${successful} goal${successful !== 1 ? 's' : ''}${failed > 0 ? ` (${failed} failed)` : ''}`
@@ -228,7 +247,10 @@ export default function AdminDashboard() {
 
       setShowBulkDeleteModal(false);
       setGoalsToBulkDelete([]);
-      fetchAllGoals(); // Refresh goals
+      
+      // Refresh goals and stats from server to ensure sync
+      fetchAllGoals();
+      fetchDashboardData();
     } catch (error) {
       console.error('Error bulk deleting goals:', error);
       showToast.error('Error', 'Failed to delete goals');
@@ -432,13 +454,13 @@ export default function AdminDashboard() {
               </div>
               
               {/* Filters */}
-              <AnimatePresence>
+              <AnimatePresence mode="wait">
                 {showGoals && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
+                    transition={{ duration: 0.2, ease: 'easeInOut' }}
                   >
                     <Filters
                       selectedUser={selectedUser}
@@ -455,13 +477,13 @@ export default function AdminDashboard() {
                 )}
               </AnimatePresence>
             </div>
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
               {showGoals && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
+                  transition={{ duration: 0.2, ease: 'easeInOut' }}
                   className="p-6"
                 >
                   {goalsLoading ? (
