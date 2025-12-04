@@ -41,7 +41,7 @@ export const GoalsList = ({
   });
 
   return (
-    <div className="relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl shadow-xl border border-white/10">
+    <div className="relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl shadow-sm">
       {/* Decorative Elements */}
       
       <div className="relative p-4">
