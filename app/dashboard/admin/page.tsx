@@ -9,7 +9,9 @@ import {
   BsActivity,
   BsChevronRight,
   BsPeople,
-  BsBullseye
+  BsBullseye,
+  BsEye,
+  BsEyeSlash
 } from 'react-icons/bs';
 import HeroSection from './components/HeroSection';
 import StatsSection from './components/StatsSection';
@@ -314,42 +316,76 @@ export default function AdminDashboard() {
           
 
           {/* All Users Goals Section */}
-          <AnimatePresence>
-            {showGoals && (
-              <motion.div 
-                initial={{ opacity: 0, y: 20, height: 0 }}
-                animate={{ opacity: 1, y: 0, height: 'auto' }}
-                exit={{ opacity: 0, y: 20, height: 0 }}
-                transition={{ duration: 0.3 }}
-                className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
-              >
-                <div className="p-6 border-b border-white/10">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                        <BsBullseye className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-semibold text-white">All Users Goals</h2>
-                        <p className="text-sm text-gray-400">View and manage goals across all users</p>
-                      </div>
-                    </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+          >
+            <div className="p-6 border-b border-white/10">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <BsBullseye className="w-5 h-5 text-white" />
                   </div>
-                  
-                  {/* Filters */}
-                  <Filters
-                    selectedUser={selectedUser}
-                    onUserChange={setSelectedUser}
-                    selectedStatus={selectedStatus}
-                    onStatusChange={setSelectedStatus}
-                    selectedPriority={selectedPriority}
-                    onPriorityChange={setSelectedPriority}
-                    selectedCategory={selectedCategory}
-                    onCategoryChange={setSelectedCategory}
-                    users={users}
-                  />
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">All Users Goals</h2>
+                    <p className="text-sm text-gray-400">View and manage goals across all users</p>
+                  </div>
                 </div>
-                <div className="p-6">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowGoals(!showGoals)}
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600/80 hover:bg-indigo-600 text-white rounded-lg shadow-sm hover:shadow transition-all duration-200 border border-indigo-500/30 hover:border-indigo-400/50"
+                >
+                  {showGoals ? (
+                    <>
+                      <BsEyeSlash className="w-4 h-4" />
+                      <span className="text-sm font-medium">Hide Goals</span>
+                    </>
+                  ) : (
+                    <>
+                      <BsEye className="w-4 h-4" />
+                      <span className="text-sm font-medium">Show Goals</span>
+                    </>
+                  )}
+                </motion.button>
+              </div>
+              
+              {/* Filters */}
+              <AnimatePresence>
+                {showGoals && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Filters
+                      selectedUser={selectedUser}
+                      onUserChange={setSelectedUser}
+                      selectedStatus={selectedStatus}
+                      onStatusChange={setSelectedStatus}
+                      selectedPriority={selectedPriority}
+                      onPriorityChange={setSelectedPriority}
+                      selectedCategory={selectedCategory}
+                      onCategoryChange={setSelectedCategory}
+                      users={users}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            <AnimatePresence>
+              {showGoals && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="p-6"
+                >
                   {goalsLoading ? (
                     <div className="flex items-center justify-center py-12">
                       <div className="text-gray-400">Loading goals...</div>
@@ -364,10 +400,10 @@ export default function AdminDashboard() {
                       showManager={true}
                     />
                   )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
 
           {/* Recent Activity */}
           <motion.div 
