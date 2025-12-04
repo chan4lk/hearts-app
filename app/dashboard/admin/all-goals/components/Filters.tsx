@@ -1,6 +1,6 @@
 'use client';
 
-import { BsFilter, BsPerson, BsFlag, BsFolder2Open, BsSearch } from 'react-icons/bs';
+import { BsFilter, BsPerson, BsFlag, BsFolder2Open } from 'react-icons/bs';
 import { motion } from 'framer-motion';
 import { User as UserType } from '@/app/components/shared/types';
 import { CATEGORIES } from '@/app/components/shared/constants';
@@ -14,8 +14,6 @@ interface FiltersProps {
   onPriorityChange?: (value: string) => void;
   selectedCategory?: string;
   onCategoryChange?: (value: string) => void;
-  searchQuery: string;
-  onSearchChange: (value: string) => void;
   users: UserType[];
 }
 
@@ -99,8 +97,6 @@ export default function Filters({
   onPriorityChange,
   selectedCategory = '',
   onCategoryChange,
-  searchQuery,
-  onSearchChange,
   users
 }: FiltersProps) {
   const selectedStatusConfig = selectedStatus && selectedStatus !== 'all' && STATUS_CONFIG[selectedStatus as keyof typeof STATUS_CONFIG]
@@ -143,10 +139,10 @@ export default function Filters({
   // Determine grid columns based on available filters
   let gridCols = 'md:grid-cols-2';
   if (hasOptionalFilters) {
-    gridCols = 'md:grid-cols-3 lg:grid-cols-4';
+    gridCols = 'md:grid-cols-3 lg:grid-cols-3';
   }
   if (hasAllOptionalFilters) {
-    gridCols = 'md:grid-cols-3 lg:grid-cols-5';
+    gridCols = 'md:grid-cols-3 lg:grid-cols-4';
   }
 
   return (
@@ -157,22 +153,6 @@ export default function Filters({
       className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 border-2 border-gray-700/50"
     >
       <div className={`grid grid-cols-1 ${gridCols} gap-3`}>
-        {/* Search Bar */}
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none z-10">
-            <div className="p-1.5 rounded-md bg-gradient-to-r from-blue-500 to-indigo-500">
-              <BsSearch className="w-3 h-3 text-white" />
-            </div>
-          </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search goals..."
-            className="w-full pl-10 pr-3 py-2.5 bg-gray-900/50 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium placeholder-gray-400 transition-all duration-200 hover:border-opacity-70 hover:shadow-sm"
-          />
-        </div>
-
         {/* User Filter */}
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none z-10">

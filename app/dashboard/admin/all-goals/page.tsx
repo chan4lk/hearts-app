@@ -24,7 +24,6 @@ export default function AllGoalsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (!session) {
@@ -71,14 +70,8 @@ export default function AllGoalsPage() {
     const matchesStatus = selectedStatus === 'all' || goal.status === selectedStatus;
     const matchesPriority = !selectedPriority || goal.priority === selectedPriority;
     const matchesCategory = selectedCategory === 'all' || goal.category === selectedCategory;
-    const matchesSearch = 
-      !searchQuery ||
-      goal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      goal.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      goal.employee?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      goal.manager?.name?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    return matchesUser && matchesStatus && matchesPriority && matchesCategory && matchesSearch;
+    return matchesUser && matchesStatus && matchesPriority && matchesCategory;
   });
 
   if (loading) {
@@ -118,8 +111,6 @@ export default function AllGoalsPage() {
               onPriorityChange={setSelectedPriority}
               selectedCategory={selectedCategory}
               onCategoryChange={setSelectedCategory}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
               users={users}
             />
           </motion.div>
@@ -146,6 +137,7 @@ export default function AllGoalsPage() {
                   }}
                   showEmployee={true}
                   showManager={true}
+                  disableStatusUpdate={true}
                 />
               </div>
             </div>
