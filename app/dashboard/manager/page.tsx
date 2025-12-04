@@ -19,6 +19,7 @@ export default function ManagerDashboard() {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState('all');
   const [selectedGoalType, setSelectedGoalType] = useState('all'); // 'all', 'assigned', 'self-created'
+  const [selectedPriority, setSelectedPriority] = useState('');
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState<EmployeeStats[]>([]);
@@ -140,8 +141,9 @@ export default function ManagerDashboard() {
     const matchesGoalType = selectedGoalType === 'all' 
       || (selectedGoalType === 'assigned' && isAssignedGoal(goal))
       || (selectedGoalType === 'self-created' && isSelfCreatedGoal(goal));
+    const matchesPriority = !selectedPriority || goal.priority === selectedPriority;
     
-    return matchesSearch && matchesStatus && matchesEmployee && matchesGoalType && !isCurrentUserGoal(goal);
+    return matchesSearch && matchesStatus && matchesEmployee && matchesGoalType && matchesPriority && !isCurrentUserGoal(goal);
   });
 
   if (loading) {
@@ -166,6 +168,8 @@ export default function ManagerDashboard() {
             setSelectedEmployee={setSelectedEmployee}
             selectedGoalType={selectedGoalType}
             setSelectedGoalType={setSelectedGoalType}
+            selectedPriority={selectedPriority}
+            setSelectedPriority={setSelectedPriority}
             employees={employees}
           />
 

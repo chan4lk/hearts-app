@@ -27,6 +27,7 @@ export default function ApproveGoalsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [selectedPriority, setSelectedPriority] = useState<string>('');
   const [employeeStats, setEmployeeStats] = useState<EmployeeStats[]>([]);
 
   // Admin-only: Manager selection
@@ -381,9 +382,10 @@ export default function ApproveGoalsPage() {
       const validStatuses = ['DRAFT', 'APPROVED', 'REJECTED'];
       const matchesStatus = validStatuses.includes(goal.status) && 
         (!selectedStatus || goal.status === selectedStatus);
-      return matchesEmployee && matchesStatus;
+      const matchesPriority = !selectedPriority || goal.priority === selectedPriority;
+      return matchesEmployee && matchesStatus && matchesPriority;
     });
-  }, [goals, selectedEmployee, selectedStatus]);
+  }, [goals, selectedEmployee, selectedStatus, selectedPriority]);
 
   if (isLoading) {
     return <LoadingComponent />;
@@ -458,6 +460,8 @@ export default function ApproveGoalsPage() {
                     onEmployeeChange={setSelectedEmployee}
                     selectedStatus={selectedStatus}
                     onStatusChange={setSelectedStatus}
+                    selectedPriority={selectedPriority}
+                    onPriorityChange={setSelectedPriority}
                     employeeStats={employeeStats}
                   />
                 </div>
