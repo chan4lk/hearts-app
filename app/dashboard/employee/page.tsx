@@ -448,20 +448,6 @@ export default function EmployeeDashboard() {
             />
           </motion.div>
 
-          {/* Filters Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <Filters
-              selectedStatus={selectedStatus}
-              onStatusChange={setSelectedStatus}
-              selectedPriority={selectedPriority}
-              onPriorityChange={setSelectedPriority}
-            />
-          </motion.div>
-
           {/* Quick Actions */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -578,6 +564,20 @@ export default function EmployeeDashboard() {
               </motion.div>
             )}
           </AnimatePresence>
+             {/* Filters Section */}
+             <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Filters
+              selectedStatus={selectedStatus}
+              onStatusChange={setSelectedStatus}
+              selectedPriority={selectedPriority}
+              onPriorityChange={setSelectedPriority}
+            />
+          </motion.div>
+
 
           {/* Goals Section */}
           <motion.div
