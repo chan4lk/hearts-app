@@ -164,13 +164,15 @@ export async function PUT(req: Request, { params }: { params: { goalId: string }
     const isAdmin = session.user.role === 'ADMIN';
     const isManager = session.user.role === 'MANAGER';
     const isGoalEmployee = existingGoal.employeeId === session.user.id;
+    const isGoalManager = existingGoal.managerId === session.user.id;
 
     // Allow updates if:
     // 1. User is ADMIN (can update any goal regardless of status)
-    // 2. User is the employee and goal is in DRAFT or PENDING state
-    if (!isAdmin && (!isGoalEmployee || !(existingGoal.status === 'DRAFT' || existingGoal.status === 'PENDING'))) {
+    // 2. User is the manager who assigned the goal (can update goals they assigned)
+    // 3. User is the employee and goal is in DRAFT or PENDING state
+    if (!isAdmin && !isGoalManager && (!isGoalEmployee || !(existingGoal.status === 'DRAFT' || existingGoal.status === 'PENDING'))) {
       return NextResponse.json(
-        { error: 'You can only edit goals in DRAFT or PENDING status, or you must be an admin' },
+        { error: 'You can only edit goals you assigned, or goals in DRAFT/PENDING status that belong to you' },
         { status: 403 }
       );
     }
@@ -233,13 +235,15 @@ export async function DELETE(req: Request, { params }: { params: { goalId: strin
     const isAdmin = session.user.role === 'ADMIN';
     const isManager = session.user.role === 'MANAGER';
     const isGoalEmployee = existingGoal.employeeId === session.user.id;
+    const isGoalManager = existingGoal.managerId === session.user.id;
 
     // Allow deletion if:
     // 1. User is ADMIN (can delete any goal regardless of status)
-    // 2. User is the employee and goal is in DRAFT or PENDING state
-    if (!isAdmin && (!isGoalEmployee || !(existingGoal.status === 'DRAFT' || existingGoal.status === 'PENDING'))) {
+    // 2. User is the manager who assigned the goal (can delete goals they assigned)
+    // 3. User is the employee and goal is in DRAFT or PENDING state
+    if (!isAdmin && !isGoalManager && (!isGoalEmployee || !(existingGoal.status === 'DRAFT' || existingGoal.status === 'PENDING'))) {
       return NextResponse.json(
-        { error: 'You can only delete goals in DRAFT or PENDING status, or you must be an admin' },
+        { error: 'You can only delete goals you assigned, or goals in DRAFT/PENDING status that belong to you' },
         { status: 403 }
       );
     }
@@ -253,22 +257,7 @@ export async function DELETE(req: Request, { params }: { params: { goalId: strin
         updatedAt: new Date(),
         updatedById: session.user.id
       },
-      include: {
-        employee: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        },
-        manager: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
+      include: goalInclude
     });
 
     return NextResponse.json({

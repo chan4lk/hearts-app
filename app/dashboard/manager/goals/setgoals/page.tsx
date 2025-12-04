@@ -237,29 +237,46 @@ function ManagerGoalSettingPageContent() {
 
   const handleUpdateGoal = async (updatedData: GoalFormData) => {
     if (!selectedGoal) return;
+    
+    // Optimistic update - update UI immediately
+    const optimisticGoal: Goal = {
+      ...selectedGoal,
+      ...updatedData,
+      updatedAt: new Date().toISOString()
+    };
+    
+    setGoals(prev => prev.map(goal => 
+      goal.id === selectedGoal.id ? optimisticGoal : goal
+    ));
+    
     // Close the modal immediately for a more responsive UX
     setIsEditModalOpen(false);
+    const goalToView = selectedGoal;
     setSelectedGoal(null);
-    setLoading(true);
+    
     try {
       // Make API call
-      const response = await fetch(`/api/goals/${selectedGoal.id}`, {
+      const response = await fetch(`/api/goals/${goalToView.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedData),
       });
 
-      if (!response.ok) throw new Error('Failed to update goal');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update goal');
+      }
 
-      const updatedGoal = await response.json();
+      const result = await response.json();
+      const updatedGoal = result.goal || result;
 
       // Ensure date fields are valid Date objects or valid ISO strings
       updatedGoal.dueDate = new Date(updatedGoal.dueDate).toISOString();
       updatedGoal.updatedAt = new Date(updatedGoal.updatedAt).toISOString();
 
-      // Update with server data
+      // Update with server data (replace optimistic update)
       setGoals(prev => prev.map(goal => 
-        goal.id === selectedGoal.id ? updatedGoal : goal
+        goal.id === goalToView.id ? updatedGoal : goal
       ));
       setViewedGoal(updatedGoal);
 
@@ -269,29 +286,50 @@ function ManagerGoalSettingPageContent() {
       
     } catch (error) {
       console.error('Error updating goal:', error);
-      showToast.goal.error('Failed to update goal');
-    } finally {
-      setLoading(false);
+      // Revert optimistic update on error
+      setGoals(prev => prev.map(goal => 
+        goal.id === goalToView.id ? goalToView : goal
+      ));
+      showToast.goal.error(error instanceof Error ? error.message : 'Failed to update goal');
+      // Reopen edit modal on error
+      setSelectedGoal(goalToView);
+      setIsEditModalOpen(true);
     }
   };
 
   const handleDelete = async () => {
     if (!goalToDelete) return;
 
+    // Store the goal to restore if deletion fails
+    const goalToRestore = goals.find(g => g.id === goalToDelete);
+    
+    // Optimistic update - remove from UI immediately
+    setGoals(prev => prev.filter(goal => goal.id !== goalToDelete));
+    setIsDeleteModalOpen(false);
+    const deletedGoalId = goalToDelete;
+    setGoalToDelete(null);
+    showToast.goal.deleted();
+
     try {
-      const response = await fetch(`/api/goals/${goalToDelete}`, {
+      const response = await fetch(`/api/goals/${deletedGoalId}`, {
         method: 'DELETE',
       });
 
-      if (!response.ok) throw new Error('Failed to delete goal');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete goal');
+      }
 
-      setGoals(prev => prev.filter(goal => goal.id !== goalToDelete));
-      setIsDeleteModalOpen(false);
-      setGoalToDelete(null);
-      showToast.goal.deleted();
+      // Success - goal is already removed from UI
     } catch (error) {
       console.error('Error deleting goal:', error);
-      showToast.goal.error('Failed to delete goal');
+      // Revert optimistic update on error
+      if (goalToRestore) {
+        setGoals(prev => [...prev, goalToRestore].sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        ));
+      }
+      showToast.goal.error(error instanceof Error ? error.message : 'Failed to delete goal');
     }
   };
 

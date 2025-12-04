@@ -350,11 +350,13 @@ export async function DELETE(request: Request) {
     const isGoalManager = goal.managerId === session.user.id;
     const isGoalEmployee = goal.employeeId === session.user.id;
 
-    // Only allow deletion if:
-    // 1. User is admin/manager and goal is in DRAFT or PENDING state
-    // 2. User is the employee and goal is in DRAFT state
+    // Allow deletion if:
+    // 1. User is ADMIN (can delete any goal)
+    // 2. User is the manager who assigned the goal (can delete goals they assigned)
+    // 3. User is the employee and goal is in DRAFT state
     if (
-      !isAdminOrManager && 
+      !(session.user.role === 'ADMIN') && 
+      !isGoalManager && 
       !(isGoalEmployee && goal.status === 'DRAFT')
     ) {
       return NextResponse.json(
