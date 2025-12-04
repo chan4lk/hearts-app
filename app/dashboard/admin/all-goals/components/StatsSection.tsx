@@ -1,4 +1,4 @@
-import { BsBullseye, BsCheckCircle, BsXCircle, BsClock, BsFileEarmark, BsCheck2All } from 'react-icons/bs';
+import { BsBullseye, BsCheckCircle, BsXCircle, BsFileEarmark, BsCheck2All } from 'react-icons/bs';
 import { motion } from 'framer-motion';
 import { Goal } from '@/app/components/shared/types';
 
@@ -11,7 +11,6 @@ export default function StatsSection({ goals }: StatsSectionProps) {
     total: goals.length,
     approved: goals.filter(g => g.status === 'APPROVED').length,
     rejected: goals.filter(g => g.status === 'REJECTED').length,
-    pending: goals.filter(g => g.status === 'PENDING').length,
     draft: goals.filter(g => g.status === 'DRAFT').length,
     completed: goals.filter(g => g.status === 'COMPLETED').length
   };
@@ -32,14 +31,6 @@ export default function StatsSection({ goals }: StatsSectionProps) {
       gradient: 'from-gray-500 to-slate-500',
       bgColor: 'bg-gray-500/10',
       borderColor: 'border-gray-500/30'
-    },
-    {
-      title: 'Pending',
-      value: stats.pending,
-      icon: <BsClock className="w-4 h-4" />,
-      gradient: 'from-amber-500 to-orange-500',
-      bgColor: 'bg-amber-500/10',
-      borderColor: 'border-amber-500/30'
     },
     {
       title: 'Approved',
@@ -68,7 +59,7 @@ export default function StatsSection({ goals }: StatsSectionProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       {statsList.map((stat, index) => (
         <motion.div
           key={stat.title}
