@@ -433,7 +433,7 @@ export default function EmployeeDashboard() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <StatsSection stats={getGoalStats()} />
+            <StatsSection stats={getGoalStats()} goals={goals} />
           </motion.div>
 
           {/* Quick Actions */}

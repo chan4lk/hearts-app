@@ -11,7 +11,6 @@ import LoadingComponent from '@/app/components/LoadingScreen';
 
 import { GoalWithRatingExtended, EmployeeStats } from "@/app/components/shared/types";
 import HeroSection from "./components/HeroSection";
-import StatsSection from "./components/StatsSection";
 import EmployeeFilter from "./components/EmployeeFilter";
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
@@ -250,7 +249,6 @@ export default function RateEmployeesPage() {
 
         <div className="relative z-10 p-6 space-y-8">
           <HeroSection />
-          <StatsSection goals={goals} viewMode={'list'} setViewMode={() => {}} />
           <EmployeeFilter 
             filterEmployee={filterEmployee} 
             setFilterEmployee={setFilterEmployee} 
@@ -266,6 +264,7 @@ export default function RateEmployeesPage() {
             showManager={false}
             showRating={true}
             submittingRating={submittingRatingId}
+            disableStatusUpdate={true}
           />
 
           {/* Goal Detail Modal */}

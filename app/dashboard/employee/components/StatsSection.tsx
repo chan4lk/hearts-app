@@ -1,13 +1,15 @@
 import { BsBarChart, BsCheckCircle, BsClock, BsTrophy, BsArrowUp, BsLightningCharge, BsStars } from 'react-icons/bs';
-import { GoalStats } from '@/app/components/shared/types';
+import { GoalStats, Goal } from '@/app/components/shared/types';
 import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
+import ManagerRatingBadge from './ManagerRatingBadge';
 
 interface StatsSectionProps {
   stats: GoalStats;
+  goals?: Goal[];
 }
 
-export default function StatsSection({ stats }: StatsSectionProps) {
+export default function StatsSection({ stats, goals = [] }: StatsSectionProps) {
   const { data: session } = useSession();
   const userName = session?.user?.name || 'User';
 
@@ -38,7 +40,7 @@ export default function StatsSection({ stats }: StatsSectionProps) {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         {/* Total Goals */}
         <motion.div 
           whileHover={{ scale: 1.02, y: -2 }}
@@ -144,6 +146,9 @@ export default function StatsSection({ stats }: StatsSectionProps) {
             </div>
           </div>
         </motion.div>
+
+        {/* Manager Rating Badge */}
+        <ManagerRatingBadge goals={goals} />
       </div>
     </div>
   );
