@@ -81,6 +81,7 @@ export interface Goal {
     name: string;
     email: string;
   };
+  rating?: Rating | null;
 }
 export interface EmployeeStats {
   id: string;

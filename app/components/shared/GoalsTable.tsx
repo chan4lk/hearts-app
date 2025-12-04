@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Goal, GoalWithRatingExtended } from './types';
-import { BsSearch, BsFilter, BsEye, BsPencil, BsTrash, BsCheckCircle, BsXCircle, BsClock, BsGear, BsFlag, BsPlayCircle, BsCircle, BsPauseCircle, BsStar, BsStarFill } from 'react-icons/bs';
+import { BsSearch, BsFilter, BsEye, BsPencil, BsTrash, BsCheckCircle, BsXCircle, BsClock, BsGear, BsFlag, BsPlayCircle, BsCircle, BsPauseCircle, BsStar, BsStarFill, BsChevronDown } from 'react-icons/bs';
 import { Badge } from '@/app/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { useSession } from 'next-auth/react';
@@ -41,7 +41,7 @@ const STATUS_OPTIONS = [
   { value: 'BLOCKED', label: 'Blocked' }
 ];
 
-const getStatusBadge = (status: string, goal?: Goal, session?: any, onStatusChange?: (goalId: string, newStatus: string) => void, updatingStatus?: string | null) => {
+const getStatusBadge = (status: string, goal?: Goal, session?: any, onStatusChange?: (goalId: string, newStatus: string) => void, updatingStatus?: string | null, disableStatusUpdate?: boolean) => {
   const configs: Record<string, { bg: string; text: string; icon: any }> = {
     APPROVED: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', icon: BsCheckCircle },
     REJECTED: { bg: 'bg-rose-500/20', text: 'text-rose-400', icon: BsXCircle },
@@ -62,52 +62,119 @@ const getStatusBadge = (status: string, goal?: Goal, session?: any, onStatusChan
   const isManagerOrAdmin = goal && session && (session.user?.role === 'MANAGER' || session.user?.role === 'ADMIN');
   const isGoalManager = goal && session && goal.managerId === session.user?.id;
   
-  const canUpdate = goal && session && onStatusChange && (
-    (isEmployee && (status === 'PENDING' || status === 'APPROVED')) ||
-    (isManagerOrAdmin && isGoalManager && (status === 'PENDING' || status === 'DRAFT' || status === 'APPROVED'))
+  // Employees can update APPROVED, IN_PROGRESS, ON_HOLD, BLOCKED, and COMPLETED goals to progress statuses
+  // Managers/Admins can approve/reject DRAFT/PENDING goals, or update APPROVED/IN_PROGRESS/COMPLETED goals
+  // Allow updates if:
+  // 1. Status update is not disabled
+  // 2. onStatusChange callback is provided
+  // 3. For employees: goal is APPROVED, IN_PROGRESS, ON_HOLD, BLOCKED, or COMPLETED
+  // 4. For managers: goal is in a state they can update
+  const canUpdate = goal && session && onStatusChange && !disableStatusUpdate && (
+    (isEmployee && (status === 'APPROVED' || status === 'IN_PROGRESS' || status === 'ON_HOLD' || status === 'BLOCKED' || status === 'COMPLETED')) ||
+    (isManagerOrAdmin && (status === 'PENDING' || status === 'DRAFT' || status === 'APPROVED' || status === 'IN_PROGRESS' || status === 'ON_HOLD' || status === 'BLOCKED' || status === 'COMPLETED'))
   );
 
   if (canUpdate && goal) {
+    // Determine allowed statuses based on current status and user role
+    const getAvailableStatuses = () => {
+      const statusLabels: Record<string, string> = {
+        'IN_PROGRESS': 'In Progress',
+        'ON_HOLD': 'On Hold',
+        'BLOCKED': 'Blocked',
+        'COMPLETED': 'Completed',
+        'APPROVED': 'Approved',
+        'REJECTED': 'Rejected',
+        'MODIFIED': 'Modified',
+        'PENDING': 'Pending',
+        'DRAFT': 'Draft',
+        'NOT_STARTED': 'Not Started'
+      };
+
+      if (isEmployee) {
+        // Employees can update APPROVED/IN_PROGRESS/ON_HOLD/BLOCKED/COMPLETED goals to progress statuses
+        // When COMPLETED, they can change back to other statuses
+        const allOptions = [
+          { value: 'IN_PROGRESS', label: 'In Progress' },
+          { value: 'ON_HOLD', label: 'On Hold' },
+          { value: 'BLOCKED', label: 'Blocked' },
+          { value: 'COMPLETED', label: 'Completed' }
+        ];
+        
+        // Include current status if it's not already in the list
+        const currentStatusIncluded = allOptions.some(opt => opt.value === status);
+        if (!currentStatusIncluded && statusLabels[status]) {
+          allOptions.unshift({ value: status, label: statusLabels[status] });
+        }
+        
+        return allOptions;
+      } else if (isManagerOrAdmin) {
+        // Managers can approve/reject DRAFT/PENDING, or update progress statuses
+        if (status === 'PENDING' || status === 'DRAFT') {
+          const options = [
+            { value: 'APPROVED', label: 'Approved' },
+            { value: 'REJECTED', label: 'Rejected' },
+            { value: 'MODIFIED', label: 'Modified' }
+          ];
+          // Include current status
+          if (!options.some(opt => opt.value === status) && statusLabels[status]) {
+            options.unshift({ value: status, label: statusLabels[status] });
+          }
+          return options;
+        } else {
+          // Managers can update progress statuses including COMPLETED
+          const options = [
+            { value: 'IN_PROGRESS', label: 'In Progress' },
+            { value: 'COMPLETED', label: 'Completed' },
+            { value: 'ON_HOLD', label: 'On Hold' },
+            { value: 'BLOCKED', label: 'Blocked' }
+          ];
+          // Include current status
+          if (!options.some(opt => opt.value === status) && statusLabels[status]) {
+            options.unshift({ value: status, label: statusLabels[status] });
+          }
+          return options;
+        }
+      }
+      return [];
+    };
+
+    const availableStatuses = getAvailableStatuses();
+
     return (
       <Select
         value={status}
-        onValueChange={(newStatus) => onStatusChange(goal.id, newStatus)}
+        onValueChange={(newStatus) => {
+          if (newStatus !== status) {
+            onStatusChange(goal.id, newStatus);
+          }
+        }}
         disabled={updatingStatus === goal.id}
       >
-        <SelectTrigger className={`${config.bg} ${config.text} border-0 text-xs px-2 py-1 h-auto hover:opacity-80 transition-opacity cursor-pointer`} onClick={(e) => e.stopPropagation()}>
-          <div className="flex items-center gap-1">
-            <Icon className="w-3 h-3" />
+        <SelectTrigger className={`${config.bg} ${config.text} border border-white/20 text-xs px-3 py-1.5 h-auto hover:opacity-90 hover:border-white/30 transition-all cursor-pointer min-w-[150px] font-medium`} onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-2">
+            <Icon className="w-3.5 h-3.5" />
             <SelectValue>{status.replace('_', ' ')}</SelectValue>
+            <BsGear className="w-3 h-3 ml-auto opacity-50 rotate-90" />
           </div>
         </SelectTrigger>
-        <SelectContent className="bg-gray-800 border-gray-700" onClick={(e) => e.stopPropagation()}>
-          {isEmployee ? (
-            // Employee can update to these statuses
-            <>
-              <SelectItem value="NOT_STARTED">Not Started</SelectItem>
-              <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-              <SelectItem value="ON_HOLD">On Hold</SelectItem>
-              <SelectItem value="BLOCKED">Blocked</SelectItem>
-              <SelectItem value="COMPLETED">Completed</SelectItem>
-            </>
-          ) : (
-            // Manager/Admin can approve/reject or update approved goals
-            <>
-              {(status === 'PENDING' || status === 'DRAFT') ? (
-                <>
-                  <SelectItem value="APPROVED">Approved</SelectItem>
-                  <SelectItem value="REJECTED">Rejected</SelectItem>
-                </>
-              ) : (
-                <>
-                  <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                  <SelectItem value="COMPLETED">Completed</SelectItem>
-                  <SelectItem value="ON_HOLD">On Hold</SelectItem>
-                  <SelectItem value="BLOCKED">Blocked</SelectItem>
-                </>
-              )}
-            </>
-          )}
+        <SelectContent className="bg-gray-800 border-gray-700 z-50" onClick={(e) => e.stopPropagation()}>
+          {availableStatuses.map((statusOption) => {
+            const isCurrentStatus = statusOption.value === status;
+            const optionConfig = configs[statusOption.value] || configs.PENDING;
+            return (
+              <SelectItem 
+                key={statusOption.value} 
+                value={statusOption.value}
+                className={`hover:bg-gray-700 cursor-pointer ${isCurrentStatus ? 'bg-gray-700/50 font-semibold' : ''}`}
+              >
+                <div className="flex items-center gap-2">
+                  {optionConfig.icon && <optionConfig.icon className="w-3.5 h-3.5" />}
+                  <span>{statusOption.label}</span>
+                  {isCurrentStatus && <span className="ml-auto text-xs opacity-60">(Current)</span>}
+                </div>
+              </SelectItem>
+            );
+          })}
         </SelectContent>
       </Select>
     );
@@ -359,7 +426,7 @@ export default function GoalsTable({
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                      {getStatusBadge(goal.status, goal, session, disableStatusUpdate ? undefined : handleQuickStatusUpdate, updatingStatus)}
+                      {getStatusBadge(goal.status, goal, session, disableStatusUpdate ? undefined : handleQuickStatusUpdate, updatingStatus, disableStatusUpdate)}
                     </div>
                   </td>
                   <td className="py-3 px-4">

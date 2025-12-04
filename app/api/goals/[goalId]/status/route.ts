@@ -47,14 +47,15 @@ export async function PATCH(
 
     // Employees can update APPROVED goals to progress statuses
     // Manager-assigned goals start as APPROVED, so employees can start immediately
+    // Employees can also update COMPLETED goals back to other statuses if needed
     if (isEmployee) {
-      if (goal.status !== 'APPROVED' && goal.status !== 'IN_PROGRESS' && goal.status !== 'ON_HOLD' && goal.status !== 'BLOCKED') {
+      if (goal.status !== 'APPROVED' && goal.status !== 'IN_PROGRESS' && goal.status !== 'ON_HOLD' && goal.status !== 'BLOCKED' && goal.status !== 'COMPLETED') {
         return NextResponse.json(
-          { error: 'Status can only be updated for approved or in-progress goals' },
+          { error: 'Status can only be updated for approved, in-progress, on-hold, blocked, or completed goals' },
           { status: 400 }
         );
       }
-      // Employees can set progress-related statuses from APPROVED or update existing progress statuses
+      // Employees can set progress-related statuses from APPROVED or update existing progress statuses (including COMPLETED)
       const employeeAllowedStatuses = ['IN_PROGRESS', 'COMPLETED', 'ON_HOLD', 'BLOCKED'];
       if (!employeeAllowedStatuses.includes(status)) {
         return NextResponse.json(
@@ -74,8 +75,8 @@ export async function PATCH(
             { status: 400 }
           );
         }
-      } else if (goal.status === 'APPROVED' || goal.status === 'IN_PROGRESS' || goal.status === 'ON_HOLD' || goal.status === 'BLOCKED') {
-        // Managers can update approved/in-progress goals to other progress statuses
+      } else if (goal.status === 'APPROVED' || goal.status === 'IN_PROGRESS' || goal.status === 'ON_HOLD' || goal.status === 'BLOCKED' || goal.status === 'COMPLETED') {
+        // Managers can update approved/in-progress/completed goals to other progress statuses
         const managerAllowedStatuses = ['IN_PROGRESS', 'COMPLETED', 'ON_HOLD', 'BLOCKED'];
         if (!managerAllowedStatuses.includes(status)) {
           return NextResponse.json(
@@ -85,7 +86,7 @@ export async function PATCH(
         }
       } else {
         return NextResponse.json(
-          { error: 'Managers can only update draft, pending, approved, or in-progress goals' },
+          { error: 'Managers can only update draft, pending, approved, in-progress, or completed goals' },
           { status: 400 }
         );
       }
