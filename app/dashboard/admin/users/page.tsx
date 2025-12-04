@@ -272,6 +272,35 @@ export default function UsersPage() {
     }
   };
 
+  // Handle quick role update from table
+  const handleQuickRoleUpdate = (userId: string, newRole: string, updatedUser: User) => {
+    // Optimistically update the user list
+    setUsers(prev => prev.map(user => 
+      user.id === userId ? updatedUser : user
+    ));
+    
+    // Update managers list if role changed
+    if (newRole === 'MANAGER' || newRole === 'ADMIN') {
+      setManagers(prev => {
+        const exists = prev.find(m => m.id === userId);
+        if (!exists) {
+          return [...prev, updatedUser];
+        }
+        return prev.map(m => m.id === userId ? updatedUser : m);
+      });
+    } else {
+      setManagers(prev => prev.filter(m => m.id !== userId));
+    }
+  };
+
+  // Handle quick status update from table
+  const handleQuickStatusUpdate = (userId: string, newStatus: string, updatedUser: User) => {
+    // Optimistically update the user list
+    setUsers(prev => prev.map(user => 
+      user.id === userId ? updatedUser : user
+    ));
+  };
+
   if (isLoading) {
     return <LoadingComponent />;
   }
@@ -343,6 +372,8 @@ export default function UsersPage() {
                     setIsFormOpen(true);
                   }}
                   onDeleteAction={handleDeleteUser}
+                  onRoleUpdate={handleQuickRoleUpdate}
+                  onStatusUpdate={handleQuickStatusUpdate}
                 />
               </div>
             </div>
