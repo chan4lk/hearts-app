@@ -24,6 +24,7 @@ export default function RateEmployeesPage() {
   const [filterEmployee, setFilterEmployee] = useState<string>('all');
   const [filterRating, setFilterRating] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedPriority, setSelectedPriority] = useState('');
   const [employeeStats, setEmployeeStats] = useState<EmployeeStats[]>([]);
   const [selectedGoal, setSelectedGoal] = useState<GoalWithRatingExtended | null>(null);
 
@@ -230,6 +231,7 @@ export default function RateEmployeesPage() {
     if (filterEmployee !== 'all' && goal.employee.id !== filterEmployee) return false;
     if (filterRating !== 'all' && (goal.rating?.managerScore || goal.rating?.score) !== parseInt(filterRating)) return false;
     if (selectedStatus && goal.status !== selectedStatus) return false;
+    if (selectedPriority && goal.priority !== selectedPriority) return false;
     return true;
   });
 
@@ -261,6 +263,8 @@ export default function RateEmployeesPage() {
             onStatusChange={setSelectedStatus}
             selectedRating={filterRating}
             onRatingChange={setFilterRating}
+            selectedPriority={selectedPriority}
+            onPriorityChange={setSelectedPriority}
             employeeStats={employeeStats}
           />
 

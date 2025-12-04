@@ -1,10 +1,12 @@
-import { BsFilter, BsPerson } from 'react-icons/bs';
+import { BsFilter, BsPerson, BsFlag } from 'react-icons/bs';
 
 interface EmployeeFilterProps {
   selectedEmployee: string;
   onEmployeeChange: (value: string) => void;
   selectedStatus?: string;
   onStatusChange?: (value: string) => void;
+  selectedPriority?: string;
+  onPriorityChange?: (value: string) => void;
   employeeStats: Array<{
     id: string;
     name: string;
