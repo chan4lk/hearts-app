@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { BsPeople, BsCheckCircle, BsPersonBadge, BsBuilding } from 'react-icons/bs';
 import { Toaster } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
@@ -11,10 +10,9 @@ import LoadingComponent from '@/app/components/LoadingScreen';
 import UserTable from './components/UserTable';
 import UserForm from './components/UserForm';
 import UserDetails from './components/UserDetails';
-import UserFilters from './components/UserFilters';
-import StatsCard from './components/StatsCard';
+import UserFilters from './components/Filters';
+import StatsSection from './components/StatsSection';
 import HeroSection from './components/HeroSection';
-import BackgroundElements from './components/BackgroundElements';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import { User, FormData, Filters } from '@/app/components/shared/types';
 import { Role } from '.prisma/client';
@@ -278,104 +276,76 @@ export default function UsersPage() {
     return <LoadingComponent />;
   }
 
-  const statsCards = [
-    {
-      icon: BsPeople,
-      title: 'Total Users',
-      value: users.length,
-      total: users.length,
-      color: 'from-blue-500 to-blue-600',
-      delay: 0.5
-    },
-    {
-      icon: BsCheckCircle,
-      title: 'Active Users',
-      value: users.filter(u => u.status === 'ACTIVE').length,
-      total: users.length,
-      color: 'from-green-500 to-green-600',
-      delay: 0.6
-    },
-    {
-      icon: BsPersonBadge,
-      title: 'Managers',
-      value: users.filter(u => u.role === 'MANAGER').length,
-      total: users.length,
-      color: 'from-purple-500 to-purple-600',
-      delay: 0.7
-    },
-    {
-      icon: BsBuilding,
-      title: 'Employees',
-      value: users.filter(u => u.role === 'EMPLOYEE').length,
-      total: users.length,
-      color: 'from-orange-500 to-orange-600',
-      delay: 0.8
-    }
-  ];
+
+  // Calculate stats for StatsSection
+  const userStats = {
+    total: users.length,
+    active: users.filter(u => u.status === 'ACTIVE').length,
+    managers: users.filter(u => u.role === 'MANAGER').length,
+    employees: users.filter(u => u.role === 'EMPLOYEE').length
+  };
 
   return (
     <DashboardLayout type="admin">
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        <BackgroundElements />
-
-        <div className="relative z-10 p-3 space-y-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        {/* Subtle Background Pattern */}
+        <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
+        
+        <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
+          {/* Hero Section */}
           <HeroSection onAddUser={() => {
             setSelectedUser(null);
             setIsFormOpen(true);
           }} />
 
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+          {/* Stats Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
           >
-            {statsCards.map((card, index) => (
-              <StatsCard key={index} {...card} />
-            ))}
+            <StatsSection users={userStats} />
           </motion.div>
 
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="space-y-4"
+          {/* Filters */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
           >
-            <motion.div variants={itemVariants}>
-              <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/30">
-                <div className="p-4">
-                  <UserFilters
-                    onFilterChangeAction={setFilters}
-                    onSearchAction={setSearchTerm}
-                    managers={managers.map((user: User) => ({
-                      id: user.id,
-                      name: user.name,
-                      role: user.role
-                    }))}
-                    currentUserRole={session?.user?.role as Role}
-                  />
-                </div>
-              </div>
-            </motion.div>
+            <UserFilters
+              onFilterChangeAction={setFilters}
+              onSearchAction={setSearchTerm}
+              managers={managers.map((user: User) => ({
+                id: user.id,
+                name: user.name,
+                role: user.role
+              }))}
+              currentUserRole={session?.user?.role as Role}
+            />
+          </motion.div>
 
-            <motion.div variants={itemVariants}>
-              <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/30 overflow-hidden">
-                <div className="p-4">
-                  <UserTable
-                    users={filteredUsers}
-                    onViewDetailsAction={(user: User) => {
-                      setSelectedUser(user);
-                      setIsDetailsOpen(true);
-                    }}
-                    onEditAction={(user: User) => {
-                      setSelectedUser(user);
-                      setIsFormOpen(true);
-                    }}
-                    onDeleteAction={handleDeleteUser}
-                  />
-                </div>
+          {/* User Table */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl shadow-xl">
+              <div className="p-4">
+                <UserTable
+                  users={filteredUsers}
+                  onViewDetailsAction={(user: User) => {
+                    setSelectedUser(user);
+                    setIsDetailsOpen(true);
+                  }}
+                  onEditAction={(user: User) => {
+                    setSelectedUser(user);
+                    setIsFormOpen(true);
+                  }}
+                  onDeleteAction={handleDeleteUser}
+                />
               </div>
-            </motion.div>
+            </div>
           </motion.div>
         </div>
 
@@ -482,18 +452,3 @@ export default function UsersPage() {
     </DashboardLayout>
   );
 }
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
