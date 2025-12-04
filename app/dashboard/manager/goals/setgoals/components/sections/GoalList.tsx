@@ -43,7 +43,7 @@ export function GoalList({
             goals={filteredGoals}
             onGoalClick={onViewGoal}
             showEmployee={true}
-            showManager={true}
+            showManager={false}
             disableStatusUpdate={true}
           />
         </div>
