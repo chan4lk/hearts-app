@@ -9,7 +9,7 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { Goal, EmployeeStats } from '@/app/components/shared/types';
 import HeroSection from './components/HeroSection';
 import StatsSection from './components/StatsSection';
-import EmployeeFilter from './components/EmployeeFilter';
+import Filters from './components/Filters';
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import LoadingComponent from '@/app/components/LoadingScreen';
@@ -26,6 +26,7 @@ export default function ApproveGoalsPage() {
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [employeeStats, setEmployeeStats] = useState<EmployeeStats[]>([]);
 
   // Admin-only: Manager selection
@@ -376,15 +377,17 @@ export default function ApproveGoalsPage() {
     });
   };
 
-  // Filter goals: show DRAFT, APPROVED, and REJECTED goals (for approval/review), and filter by selected employee
+  // Filter goals: show DRAFT, APPROVED, and REJECTED goals (for approval/review), and filter by selected employee and status
   // Use useMemo to ensure filtering happens correctly when goals change
   const filteredGoals = useMemo(() => {
     return goals.filter(goal => {
       const matchesEmployee = selectedEmployee === 'all' || (goal.employee && goal.employee.id === selectedEmployee);
-      const matchesStatus = goal.status === 'DRAFT' || goal.status === 'APPROVED' || goal.status === 'REJECTED';
+      const validStatuses = ['DRAFT', 'APPROVED', 'REJECTED'];
+      const matchesStatus = validStatuses.includes(goal.status) && 
+        (!selectedStatus || goal.status === selectedStatus);
       return matchesEmployee && matchesStatus;
     });
-  }, [goals, selectedEmployee]);
+  }, [goals, selectedEmployee, selectedStatus]);
 
   if (isLoading) {
     return <LoadingComponent />;
@@ -454,17 +457,18 @@ export default function ApproveGoalsPage() {
               <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-4 border border-white/20 dark:border-gray-700/50 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white">Goal Approval Dashboard</h2>
-                  <EmployeeFilter
+                  <Filters
                     selectedEmployee={selectedEmployee}
                     onEmployeeChange={setSelectedEmployee}
+                    selectedStatus={selectedStatus}
+                    onStatusChange={setSelectedStatus}
                     employeeStats={employeeStats}
                   />
                 </div>
 
                 <StatsSection
-                  goalsCount={goals.length}
+                  goals={goals}
                   employeesCount={employeeStats.length}
-                  avgGoalsPerEmployee={employeeStats.length > 0 ? goals.length / employeeStats.length : 0}
                 />
               </div>
 
