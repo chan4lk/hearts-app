@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import { Goal, EmployeeStats } from '@/app/components/shared/types';
+import { Goal, GoalWithRatingExtended, EmployeeStats } from '@/app/components/shared/types';
 import HeroSection from './components/HeroSection';
 import StatsSection from './components/StatsSection';
 import Filters from './components/Filters';
@@ -197,11 +197,7 @@ export default function ApproveGoalsPage() {
     const updatedGoal: Goal = {
       ...goal,
       status: newStatus,
-      managerComments: comment || null,
-      approvedAt: action === 'approve' ? new Date().toISOString() : goal.approvedAt,
-      rejectedAt: action === 'reject' ? new Date().toISOString() : goal.rejectedAt,
-      approvedBy: action === 'approve' ? session?.user?.id || null : goal.approvedBy,
-      rejectedBy: action === 'reject' ? session?.user?.id || null : goal.rejectedBy
+      managerComments: comment || null
     };
     
     // Update local state immediately
