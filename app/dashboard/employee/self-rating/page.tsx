@@ -3,18 +3,18 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import LoadingComponent from '@/app/components/LoadingScreen';
 
 import { toast } from "sonner";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
-import { BackgroundElements } from "./components/BackgroundElements";
 import { HeroSection } from "./components/HeroSection";
 import { StatsSection } from "./components/StatsSection";
-import { FiltersSection } from "./components/FiltersSection";
+import Filters from "./components/Filters";
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
-import { GoalWithRating, ViewMode, FilterStatus, RatingStatus, FilterRating } from "@/app/components/shared/types";
+import { GoalWithRating, FilterStatus, RatingStatus, FilterRating } from "@/app/components/shared/types";
+import { BsX, BsPersonCheck, BsStarFill, BsArrowRight } from 'react-icons/bs';
 
 export default function SelfRatingPage() {
   const { data: session, status } = useSession();
@@ -22,6 +22,7 @@ export default function SelfRatingPage() {
   const [loading, setLoading] = useState(true);
   const [goals, setGoals] = useState<GoalWithRating[]>([]);
   const [submitting, setSubmitting] = useState<Record<string, boolean>>({});
+  const [submittingRatingId, setSubmittingRatingId] = useState<string | null>(null);
   const [ratingComments, setRatingComments] = useState<Record<string, string>>({});
   const [selectedGoal, setSelectedGoal] = useState<GoalWithRating | null>(null);
   
@@ -29,6 +30,8 @@ export default function SelfRatingPage() {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [filterRating, setFilterRating] = useState<FilterRating>('all');
   const [ratingStatus, setRatingStatus] = useState<RatingStatus>('all');
+  const [selectedPriority, setSelectedPriority] = useState('');
+  const [showManagerRatingsModal, setShowManagerRatingsModal] = useState(false);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -86,10 +89,10 @@ export default function SelfRatingPage() {
   };
 
   const handleSelfRating = async (goalId: string, value: number) => {
-    if (isNaN(value) || submitting[goalId]) return;
+    if (isNaN(value) || value === 0 || submittingRatingId === goalId) return;
 
     try {
-      setSubmitting(prev => ({ ...prev, [goalId]: true }));
+      setSubmittingRatingId(goalId);
 
       const response = await fetch(`/api/goals/${goalId}/self-rating`, {
         method: 'POST',
@@ -113,6 +116,7 @@ export default function SelfRatingPage() {
             ? {
                 ...goal,
                 rating: {
+                  ...goal.rating,
                   id: updatedRating.id,
                   selfScore: value,
                   score: value, // Keep for backward compatibility
@@ -133,27 +137,33 @@ export default function SelfRatingPage() {
         return newComments;
       });
 
-      toast.success('Self-rating updated successfully');
+      toast.success(`Self-rating updated to ${value} stars`);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to update rating';
       toast.error(message);
     } finally {
-      setSubmitting(prev => ({ ...prev, [goalId]: false }));
+      setSubmittingRatingId(null);
     }
   };
 
   const filteredGoals = useMemo(() => {
-    return goals.filter(goal => {
+    const userId = session?.user?.id;
+    
+    // Filter to only show self-created goals
+    const selfCreatedGoals = goals.filter(goal => goal.createdBy?.id === userId);
+    
+    return selfCreatedGoals.filter(goal => {
       const matchesStatus = filterStatus === 'all' || goal.status === filterStatus;
-      const matchesRating = filterRating === 'all' || goal.rating?.score === parseInt(filterRating);
+      const matchesRating = filterRating === 'all' || goal.rating?.selfScore === parseInt(filterRating) || goal.rating?.score === parseInt(filterRating);
       const matchesRatingStatus = 
         ratingStatus === 'all' || 
-        (ratingStatus === 'rated' && goal.rating) || 
-        (ratingStatus === 'unrated' && !goal.rating);
+        (ratingStatus === 'rated' && (goal.rating?.selfScore || goal.rating?.score)) || 
+        (ratingStatus === 'unrated' && !goal.rating?.selfScore && !goal.rating?.score);
+      const matchesPriority = !selectedPriority || goal.priority === selectedPriority;
       
-      return matchesStatus && matchesRating && matchesRatingStatus;
+      return matchesStatus && matchesRating && matchesRatingStatus && matchesPriority;
     });
-  }, [goals, filterStatus, filterRating, ratingStatus]);
+  }, [goals, filterStatus, filterRating, ratingStatus, selectedPriority, session?.user?.id]);
 
   const stats = useMemo(() => {
     const ratedGoals = goals.filter(g => g.rating?.score);
@@ -182,48 +192,248 @@ export default function SelfRatingPage() {
 
   return (
     <DashboardLayout type="employee">
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-       
-        <BackgroundElements />
-
-        <div className="relative z-10 p-6 space-y-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        {/* Subtle Background Pattern */}
+        <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
+        
+        <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
+          {/* Hero Section */}
           <HeroSection userRole={session?.user?.role} />
 
-          <StatsSection stats={stats} />
+          {/* Stats Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <StatsSection goals={goals} onViewManagerRatings={() => setShowManagerRatingsModal(true)} />
+          </motion.div>
 
-          <FiltersSection
-            viewMode={'list'}
-            setViewMode={() => {}}
-            filterStatus={filterStatus}
-            setFilterStatus={setFilterStatus}
-            filterRating={filterRating}
-            setFilterRating={setFilterRating}
-            ratingStatus={ratingStatus}
-            setRatingStatus={setRatingStatus}
-          />
+          {/* Filters Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Filters
+              selectedStatus={filterStatus === 'all' ? '' : filterStatus}
+              onStatusChange={(value) => setFilterStatus(value === '' ? 'all' : value as FilterStatus)}
+              selectedRating={filterRating === 'all' ? '' : filterRating}
+              onRatingChange={(value) => setFilterRating(value === '' ? 'all' : value as FilterRating)}
+              selectedRatingStatus={ratingStatus === 'all' ? '' : ratingStatus}
+              onRatingStatusChange={(value) => setRatingStatus(value === '' ? 'all' : value as RatingStatus)}
+              selectedPriority={selectedPriority}
+              onPriorityChange={setSelectedPriority}
+            />
+          </motion.div>
 
           {/* Goals Table */}
-          <GoalsTable
-            goals={filteredGoals}
-            selectedStatus={filterStatus === 'all' ? '' : filterStatus}
-            onStatusChange={(status) => setFilterStatus(status === '' ? 'all' : status as FilterStatus)}
-            onGoalClick={(goal) => setSelectedGoal(goal as GoalWithRating)}
-            onStatusUpdate={(goalId, newStatus, updatedGoal) => {
-              setGoals(prevGoals =>
-                prevGoals.map(goal =>
-                  goal.id === goalId ? { ...goal, status: updatedGoal.status } : goal
-                )
-              );
-            }}
-          />
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <GoalsTable
+              goals={filteredGoals}
+              selectedStatus={filterStatus === 'all' ? '' : filterStatus}
+              onStatusChange={(status) => setFilterStatus(status === '' ? 'all' : status as FilterStatus)}
+              onGoalClick={(goal) => setSelectedGoal(goal as GoalWithRating)}
+              onStatusUpdate={(goalId, newStatus, updatedGoal) => {
+                setGoals(prevGoals =>
+                  prevGoals.map(goal =>
+                    goal.id === goalId ? { ...goal, status: updatedGoal.status } : goal
+                  )
+                );
+              }}
+              showRating={true}
+              onRatingChange={handleSelfRating}
+              submittingRating={submittingRatingId}
+              showActions={false}
+            />
+          </motion.div>
 
           {/* Goal Detail Modal with Rating */}
-          {selectedGoal && (
-            <GoalDetailModal
-              goal={selectedGoal}
-              onClose={() => setSelectedGoal(null)}
-            />
-          )}
+          <AnimatePresence>
+            {selectedGoal && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4"
+                onClick={() => setSelectedGoal(null)}
+              >
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-2xl border border-white/10"
+                >
+                  <GoalDetailModal
+                    goal={selectedGoal}
+                    onClose={() => setSelectedGoal(null)}
+                  />
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Manager Ratings Modal */}
+          <AnimatePresence>
+            {showManagerRatingsModal && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-40 p-4"
+                onClick={() => setShowManagerRatingsModal(false)}
+              >
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden border-2 border-amber-500/40 flex flex-col"
+                >
+                  {/* Compact Header - Sticky */}
+                  <div className="sticky top-0 z-10 bg-gradient-to-r from-amber-900/40 via-amber-800/40 to-orange-900/40 backdrop-blur-md border-b-2 border-amber-500/50 px-4 py-3 flex items-center justify-between flex-shrink-0">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-1.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg shadow-lg">
+                        <BsPersonCheck className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-white">Manager Ratings</h3>
+                        <p className="text-[11px] text-amber-200/80">Feedback on your performance</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowManagerRatingsModal(false)}
+                      className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+                      aria-label="Close"
+                    >
+                      <BsX className="w-5 h-5 text-gray-300 hover:text-white" />
+                    </button>
+                  </div>
+
+                  {/* Scrollable Content */}
+                  <div className="overflow-y-auto flex-1 p-4">
+                    {(() => {
+                      const userId = session?.user?.id;
+                      const selfCreatedGoals = goals.filter(goal => goal.createdBy?.id === userId);
+                      const ratedGoals = selfCreatedGoals.filter(goal => goal.rating?.managerScore);
+                      
+                      if (ratedGoals.length === 0) {
+                        return (
+                          <div className="text-center py-16">
+                            <div className="mb-4 inline-flex p-4 bg-amber-500/10 rounded-full">
+                              <BsPersonCheck className="w-12 h-12 text-amber-400/50" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-300 mb-2">No Manager Ratings Yet</h3>
+                            <p className="text-sm text-gray-400">Your manager hasn't rated any goals yet.</p>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="space-y-3">
+                          {ratedGoals.map((goal, index) => {
+                            const rating = goal.rating?.managerScore || 0;
+                            const ratingColors = {
+                              1: { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/20', icon: 'from-red-500 to-red-600' },
+                              2: { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/20', icon: 'from-orange-500 to-orange-600' },
+                              3: { bg: 'bg-yellow-500/10', text: 'text-yellow-400', border: 'border-yellow-500/20', icon: 'from-yellow-500 to-yellow-600' },
+                              4: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20', icon: 'from-blue-500 to-blue-600' },
+                              5: { bg: 'bg-green-500/10', text: 'text-green-400', border: 'border-green-500/20', icon: 'from-green-500 to-green-600' }
+                            };
+                            const ratingStyle = ratingColors[rating as keyof typeof ratingColors] || { bg: 'bg-gray-500/10', text: 'text-gray-400', border: 'border-gray-500/20', icon: 'from-gray-500 to-gray-600' };
+                            const ratingLabels = {
+                              1: "Needs Improvement",
+                              2: "Below Expectations",
+                              3: "Meets Expectations",
+                              4: "Exceeds Expectations",
+                              5: "Outstanding"
+                            };
+
+                            return (
+                              <motion.div
+                                key={goal.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                                whileHover={{ scale: 1.01, y: -2 }}
+                                onClick={() => {
+                                  setSelectedGoal(goal);
+                                  // Keep manager ratings modal open
+                                }}
+                                className="group relative bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border-2 border-gray-700/50 hover:border-amber-500/60 transition-all cursor-pointer hover:shadow-lg hover:shadow-amber-500/10"
+                              >
+                                {/* Rating Badge */}
+                                <div className="absolute top-3 right-3">
+                                  <div className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${ratingStyle.bg} border ${ratingStyle.border} backdrop-blur-sm`}>
+                                    <div className={`p-1 rounded bg-gradient-to-r ${ratingStyle.icon}`}>
+                                      <BsStarFill className="w-3 h-3 text-white" />
+                                    </div>
+                                    <span className={`text-sm font-bold ${ratingStyle.text}`}>{rating}/5</span>
+                                  </div>
+                                </div>
+
+                                <div className="pr-20">
+                                  {/* Goal Title */}
+                                  <h4 className="text-base font-bold text-white mb-2 group-hover:text-amber-300 transition-colors line-clamp-1">
+                                    {goal.title}
+                                  </h4>
+                                  
+                                  {/* Description */}
+                                  {goal.description && (
+                                    <p className="text-sm text-gray-400 line-clamp-2 mb-3 group-hover:text-gray-300 transition-colors">
+                                      {goal.description}
+                                    </p>
+                                  )}
+
+                                  {/* Rating Details */}
+                                  <div className="flex items-center gap-3 flex-wrap mb-3">
+                                    <div className={`px-2.5 py-1 rounded-md ${ratingStyle.bg} border ${ratingStyle.border}`}>
+                                      <span className={`text-xs font-semibold ${ratingStyle.text}`}>
+                                        {ratingLabels[rating as keyof typeof ratingLabels] || 'Not Rated'}
+                                      </span>
+                                    </div>
+                                    {goal.rating?.managerRatedAt && (
+                                      <span className="text-xs text-gray-500">
+                                        {new Date(goal.rating.managerRatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Manager Comments */}
+                                  {goal.rating?.managerComments && (
+                                    <div className="mt-3 p-3 bg-black/30 rounded-lg border border-amber-500/20">
+                                      <div className="flex items-start gap-2">
+                                        <div className="p-1 bg-amber-500/20 rounded flex-shrink-0 mt-0.5">
+                                          <BsPersonCheck className="w-3 h-3 text-amber-400" />
+                                        </div>
+                                        <p className="text-sm text-gray-300 italic flex-1">
+                                          "{goal.rating.managerComments}"
+                                        </p>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Click Indicator */}
+                                  <div className="mt-3 flex items-center gap-2 text-xs text-amber-400/70 group-hover:text-amber-400 transition-colors">
+                                    <span>View details</span>
+                                    <BsArrowRight className="w-3 h-3 transform group-hover:translate-x-1 transition-transform" />
+                                  </div>
+                                </div>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </DashboardLayout>

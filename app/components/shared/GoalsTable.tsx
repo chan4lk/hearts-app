@@ -253,6 +253,11 @@ const getRatingDisplay = (rating: number | null | undefined) => {
   return option ? `${option.stars} ${rating}` : `${rating}/5`;
 };
 
+// Helper to get the rating value (checks selfScore, managerScore, then score)
+const getRatingValue = (goal: any) => {
+  return goal?.rating?.selfScore ?? goal?.rating?.managerScore ?? goal?.rating?.score ?? 0;
+};
+
 export default function GoalsTable({
   goals,
   searchQuery = '',
@@ -445,8 +450,8 @@ export default function GoalsTable({
                     <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
                       {onRatingChange ? (
                         <Select
-                          key={`rating-${goal.id}-${(goal as any).rating?.managerScore ?? (goal as any).rating?.score ?? 0}`}
-                          value={String((goal as any).rating?.managerScore ?? (goal as any).rating?.score ?? 0)}
+                          key={`rating-${goal.id}-${getRatingValue(goal)}`}
+                          value={String(getRatingValue(goal))}
                           onValueChange={(value) => {
                             const ratingValue = parseInt(value);
                             if (ratingValue > 0) {
@@ -457,10 +462,10 @@ export default function GoalsTable({
                         >
                           <SelectTrigger className="bg-gray-800/50 border border-white/10 text-white/90 text-xs px-3 py-1.5 h-auto hover:bg-gray-700/50 transition-colors cursor-pointer min-w-[120px]">
                             <div className="flex items-center gap-1.5">
-                              {((goal as any).rating?.managerScore ?? (goal as any).rating?.score) ? (
+                              {getRatingValue(goal) > 0 ? (
                                 <>
                                   <SelectValue>
-                                    {getRatingDisplay((goal as any).rating?.managerScore ?? (goal as any).rating?.score)}
+                                    {getRatingDisplay(getRatingValue(goal))}
                                   </SelectValue>
                                 </>
                               ) : (
@@ -488,10 +493,10 @@ export default function GoalsTable({
                         </Select>
                       ) : (
                         <div className="flex items-center gap-1.5 text-xs text-gray-300">
-                          {((goal as any).rating?.managerScore ?? (goal as any).rating?.score) ? (
+                          {getRatingValue(goal) > 0 ? (
                             <>
                               <BsStarFill className="w-3 h-3 text-yellow-400" />
-                              <span>{getRatingDisplay((goal as any).rating?.managerScore ?? (goal as any).rating?.score)}</span>
+                              <span>{getRatingDisplay(getRatingValue(goal))}</span>
                             </>
                           ) : (
                             <span className="text-gray-500">Not Rated</span>
