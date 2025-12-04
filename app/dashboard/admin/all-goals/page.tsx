@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
+import AdminGoalsTable from '../components/AdminGoalsTable';
+import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import LoadingComponent from '@/app/components/LoadingScreen';
 import { Goal, User as UserType } from '@/app/components/shared/types';
 import { motion } from 'framer-motion';
+import { showToast } from '@/app/utils/toast';
 import HeroSection from './components/HeroSection';
 import StatsSection from './components/StatsSection';
 import Filters from './components/Filters';
@@ -24,6 +26,10 @@ export default function AllGoalsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [loading, setLoading] = useState(true);
+  const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [goalsToBulkDelete, setGoalsToBulkDelete] = useState<string[]>([]);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
 
   useEffect(() => {
     if (!session) {
@@ -74,6 +80,87 @@ export default function AllGoalsPage() {
     return matchesUser && matchesStatus && matchesPriority && matchesCategory;
   });
 
+  // Handle delete goal
+  const handleDeleteGoal = (goal: Goal) => {
+    setGoalToDelete(goal);
+    setShowDeleteModal(true);
+  };
+
+  // Confirm delete goal
+  const confirmDeleteGoal = async () => {
+    if (!goalToDelete) return;
+    
+    try {
+      // Optimistically update goals immediately
+      setGoals(prev => prev.filter(g => g.id !== goalToDelete.id));
+
+      const response = await fetch(`/api/goals/${goalToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete goal');
+      }
+
+      setShowDeleteModal(false);
+      setGoalToDelete(null);
+      showToast.success('Goal Deleted!', 'The goal has been deleted successfully');
+      fetchData(); // Refresh goals
+    } catch (error) {
+      console.error('Error deleting goal:', error);
+      // Revert optimistic update on error
+      fetchData();
+      showToast.error('Error', error instanceof Error ? error.message : 'Failed to delete goal');
+    }
+  };
+
+  // Handle bulk delete
+  const handleBulkDelete = (goalIds: string[]) => {
+    setGoalsToBulkDelete(goalIds);
+    setShowBulkDeleteModal(true);
+  };
+
+  // Confirm bulk delete
+  const confirmBulkDelete = async () => {
+    if (goalsToBulkDelete.length === 0) return;
+
+    try {
+      // Optimistically update goals immediately
+      setGoals(prev => prev.filter(g => !goalsToBulkDelete.includes(g.id)));
+
+      // Delete goals in parallel
+      const deletePromises = goalsToBulkDelete.map(goalId =>
+        fetch(`/api/goals/${goalId}`, { method: 'DELETE' })
+      );
+
+      const results = await Promise.allSettled(deletePromises);
+      const successful = results.filter(r => r.status === 'fulfilled' && r.value.ok).length;
+      const failed = results.length - successful;
+
+      if (successful > 0) {
+        showToast.success(
+          'Goals Deleted!', 
+          `Successfully deleted ${successful} goal${successful !== 1 ? 's' : ''}${failed > 0 ? ` (${failed} failed)` : ''}`
+        );
+      }
+
+      if (failed > 0 && successful === 0) {
+        showToast.error('Error', `Failed to delete ${failed} goal${failed !== 1 ? 's' : ''}`);
+      }
+
+      setShowBulkDeleteModal(false);
+      setGoalsToBulkDelete([]);
+      
+      // Refresh goals from server to ensure sync
+      fetchData();
+    } catch (error) {
+      console.error('Error bulk deleting goals:', error);
+      // Revert optimistic update on error
+      fetchData();
+      showToast.error('Error', 'Failed to delete goals');
+    }
+  };
+
   if (loading) {
     return <LoadingComponent />;
   }
@@ -123,21 +210,15 @@ export default function AllGoalsPage() {
           >
             <div className="relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl shadow-xl">
               <div className="p-4">
-                <GoalsTable
+                <AdminGoalsTable
                   goals={filteredGoals}
                   selectedStatus={selectedStatus === 'all' ? '' : selectedStatus}
                   onStatusChange={(status) => setSelectedStatus(status === '' ? 'all' : status)}
                   onGoalClick={(goal) => setSelectedGoal(goal)}
-                  onStatusUpdate={(goalId, newStatus, updatedGoal) => {
-                    setGoals(prevGoals =>
-                      prevGoals.map(goal =>
-                        goal.id === goalId ? { ...goal, status: updatedGoal.status } : goal
-                      )
-                    );
-                  }}
+                  onDelete={handleDeleteGoal}
+                  onBulkDelete={handleBulkDelete}
                   showEmployee={true}
                   showManager={true}
-                  disableStatusUpdate={true}
                 />
               </div>
             </div>
@@ -152,6 +233,34 @@ export default function AllGoalsPage() {
           onClose={() => setSelectedGoal(null)}
         />
       )}
+
+      {/* Single Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setGoalToDelete(null);
+        }}
+        onConfirm={confirmDeleteGoal}
+        title="Delete Goal"
+        message={goalToDelete ? `Are you sure you want to delete "${goalToDelete.title}"? This action cannot be undone.` : 'Are you sure you want to delete this goal? This action cannot be undone.'}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
+
+      {/* Bulk Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showBulkDeleteModal}
+        onClose={() => {
+          setShowBulkDeleteModal(false);
+          setGoalsToBulkDelete([]);
+        }}
+        onConfirm={confirmBulkDelete}
+        title="Delete Selected Goals"
+        message={`Are you sure you want to delete ${goalsToBulkDelete.length} selected goal${goalsToBulkDelete.length !== 1 ? 's' : ''}? This action cannot be undone.`}
+        confirmText="Delete All"
+        cancelText="Cancel"
+      />
     </DashboardLayout>
   );
 }
