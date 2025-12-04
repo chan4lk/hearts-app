@@ -432,7 +432,7 @@ export default function GoalsTable({
               {showRating && (
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Rating</th>
               )}
-              {(onGoalClick || onEdit || onDelete) && (
+              {showActions && (
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Actions</th>
               )}
             </tr>
@@ -440,7 +440,7 @@ export default function GoalsTable({
           <tbody>
             {filteredGoals.length === 0 ? (
               <tr>
-                <td colSpan={4 + (showEmployee ? 1 : 0) + (showManager ? 1 : 0) + (showRating ? 1 : 0) + ((onGoalClick || onEdit || onDelete) ? 1 : 0)} className="py-8 text-center text-gray-400">
+                <td colSpan={4 + (showEmployee ? 1 : 0) + (showManager ? 1 : 0) + (showRating ? 1 : 0) + (showActions ? 1 : 0)} className="py-8 text-center text-gray-400">
                   <div className="flex flex-col items-center justify-center">
                     <BsFlag className="w-8 h-8 mb-2 text-gray-500" />
                     <p>No goals found</p>
@@ -543,7 +543,7 @@ export default function GoalsTable({
                       )}
                     </td>
                   )}
-                  {(onGoalClick || onEdit || onDelete) && (
+                  {showActions && (
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                         {onGoalClick && (
