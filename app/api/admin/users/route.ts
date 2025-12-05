@@ -25,17 +25,15 @@ function isManagerialRole(role: Role): boolean {
 }
 
 // Helper function to check if a manager can manage a given role
+// Allow any MANAGER or ADMIN to manage any user (including other managers/admins)
+// Only restriction is that employees cannot be managers (filtered in frontend)
 function canManage(managerRole: Role, userRole: Role): boolean {
-  if (userRole === Role.ADMIN) {
-    return managerRole === Role.ADMIN; // Only ADMIN can manage ADMIN
+  // Only MANAGER or ADMIN can be assigned as managers (employees are filtered out in frontend)
+  if (managerRole !== Role.MANAGER && managerRole !== Role.ADMIN) {
+    return false;
   }
-  if (userRole === Role.MANAGER) {
-    return managerRole === Role.ADMIN || managerRole === Role.MANAGER; // ADMIN or MANAGER can manage MANAGER
-  }
-  if (userRole === Role.EMPLOYEE) {
-    return managerRole === Role.ADMIN || managerRole === Role.MANAGER; // ADMIN or MANAGER can manage EMPLOYEE
-  }
-  return false;
+  // Any MANAGER or ADMIN can manage any user role (ADMIN, MANAGER, or EMPLOYEE)
+  return true;
 }
 
 // GET all users
@@ -149,9 +147,10 @@ export async function POST(req: Request) {
         );
       }
 
+      // Only MANAGER or ADMIN can be assigned as managers
       if (!canManage(manager.role, role)) {
         return NextResponse.json(
-          { error: `A user with role ${role} can only be managed by: ${role === Role.ADMIN ? 'ADMIN' : 'ADMIN or MANAGER'}` },
+          { error: 'Only users with MANAGER or ADMIN role can be assigned as managers' },
           { status: 400 }
         );
       }
@@ -264,10 +263,11 @@ export async function PUT(req: Request) {
         );
       }
 
+      // Only MANAGER or ADMIN can be assigned as managers
       if (!canManage(manager.role, role)) {
         console.log('Update failed: Manager role mismatch', { userRole: role, managerRole: manager.role });
         return NextResponse.json(
-          { error: `A user with role ${role} can only be managed by: ${role === Role.ADMIN ? 'ADMIN' : 'ADMIN or MANAGER'}` },
+          { error: 'Only users with MANAGER or ADMIN role can be assigned as managers' },
           { status: 400 }
         );
       }
@@ -281,30 +281,58 @@ export async function PUT(req: Request) {
       );
     }
 
-    // Check for circular manager relationships
+    // Check for circular manager relationships (only prevent chains, not immediate bidirectional assignments)
     if (managerId) {
       const potentialManager = await prisma.user.findUnique({
         where: { id: managerId },
-        include: {
-          manager: true
+        select: {
+          id: true,
+          managerId: true
         }
       });
 
-      // Check if the user being updated is in the manager chain of the potential manager
-      let currentManager = potentialManager?.manager;
-      while (currentManager) {
-        if (currentManager.id === id) {
-          return NextResponse.json(
-            { error: 'Circular manager relationship detected' },
-            { status: 400 }
-          );
-        }
-        currentManager = await prisma.user.findUnique({
-          where: { id: currentManager.id },
-          include: {
-            manager: true
+      // Only check for circular chains if the potential manager already has a manager
+      // Allow immediate bidirectional assignments (A manages B, B manages A)
+      if (potentialManager?.managerId && potentialManager.managerId !== id) {
+        // Check if the user being updated is in the manager chain of the potential manager
+        // This prevents chains like A -> B -> C -> A
+        const visitedIds = new Set<string>();
+        visitedIds.add(managerId);
+        
+        let currentManagerId: string | null = potentialManager.managerId;
+        let chainLength = 0;
+        const maxChainLength = 50; // Safety limit to prevent infinite loops
+        
+        while (currentManagerId && chainLength < maxChainLength) {
+          if (currentManagerId === id) {
+            return NextResponse.json(
+              { error: 'Circular manager relationship detected' },
+              { status: 400 }
+            );
           }
-        }).then((user: { manager: any } | null) => user?.manager || null);
+          
+          if (visitedIds.has(currentManagerId)) {
+            // Already visited this manager, break to prevent infinite loop
+            break;
+          }
+          
+          visitedIds.add(currentManagerId);
+          
+          // Get the next manager in the chain
+          const nextUser: { managerId: string | null } | null = await prisma.user.findUnique({
+            where: { id: currentManagerId },
+            select: {
+              managerId: true
+            }
+          });
+          
+          if (!nextUser || !nextUser.managerId) {
+            break;
+          }
+          
+          currentManagerId = nextUser.managerId;
+          chainLength++;
+        }
       }
     }
 

@@ -14,13 +14,6 @@ interface UserFormProps {
   isEditing: boolean;
 }
 
-function canBeManager(managerRole: Role, userRole: Role) {
-  if (userRole === Role.ADMIN) return managerRole === Role.ADMIN;
-  if (userRole === Role.MANAGER) return managerRole === Role.ADMIN || managerRole === Role.MANAGER;
-  if (userRole === Role.EMPLOYEE) return managerRole === Role.ADMIN || managerRole === Role.MANAGER;
-  return false;
-}
-
 export default function UserForm({ initialData, managers, onSubmitAction, onCancelAction, isEditing }: UserFormProps) {
   const formRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState<FormData>({
@@ -60,13 +53,14 @@ export default function UserForm({ initialData, managers, onSubmitAction, onCanc
     return Object.keys(newErrors).length === 0;
   };
 
-  // Always show manager field as managers can manage any user type
+  // Always show manager field - any user can have a manager
   const shouldShowManagerField = true;
 
   // Filter out the current user from available managers to prevent self-assignment
+  // The managers prop already only contains MANAGER and ADMIN roles (filtered in page.tsx)
+  // So we just need to prevent self-assignment - allow any manager/admin to be assigned
   const availableManagers = managers.filter(manager => 
-    (!initialData || manager.id !== initialData.id) &&
-    canBeManager(manager.role as Role, formData.role)
+    !initialData || manager.id !== initialData.id
   );
 
   const handleSubmit = async (e: React.FormEvent) => {

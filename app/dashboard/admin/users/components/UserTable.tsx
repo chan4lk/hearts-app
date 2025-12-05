@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { BsTrash, BsPencil, BsPerson, BsEye, BsGear } from 'react-icons/bs';
+import { useState, useMemo } from 'react';
+import { BsTrash, BsPencil, BsPerson, BsEye, BsGear, BsArrowUp, BsArrowDown, BsArrowsExpand } from 'react-icons/bs';
 import { User } from '@/app/components/shared/types';
 import { Role } from '.prisma/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
@@ -16,6 +16,9 @@ interface UserTableProps {
   onStatusUpdate?: (userId: string, newStatus: string, updatedUser: User) => void;
 }
 
+type SortColumn = 'name' | 'email' | 'role' | 'status' | 'manager';
+type SortDirection = 'asc' | 'desc' | null;
+
 export default function UserTable({ 
   users, 
   onViewDetailsAction, 
@@ -26,6 +29,8 @@ export default function UserTable({
 }: UserTableProps) {
   const [updatingRole, setUpdatingRole] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
   // Get role config for dropdown styling
   const getRoleConfig = (role: string | undefined) => {
@@ -152,16 +157,115 @@ export default function UserTable({
     }
   };
 
+  // Handle column sorting
+  const handleSort = (column: SortColumn) => {
+    if (sortColumn === column) {
+      // Cycle through: asc -> desc -> null
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortColumn(null);
+        setSortDirection(null);
+      }
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  // Sort users based on current sort column and direction
+  const sortedUsers = useMemo(() => {
+    if (!sortColumn || !sortDirection) {
+      return users;
+    }
+
+    return [...users].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      switch (sortColumn) {
+        case 'name':
+          aValue = a.name?.toLowerCase() || '';
+          bValue = b.name?.toLowerCase() || '';
+          break;
+        case 'email':
+          aValue = a.email?.toLowerCase() || '';
+          bValue = b.email?.toLowerCase() || '';
+          break;
+        case 'role':
+          aValue = a.role || '';
+          bValue = b.role || '';
+          break;
+        case 'status':
+          aValue = a.status || '';
+          bValue = b.status || '';
+          break;
+        case 'manager':
+          aValue = a.manager?.name?.toLowerCase() || 'zzz'; // Unassigned at the end
+          bValue = b.manager?.name?.toLowerCase() || 'zzz';
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) {
+        return sortDirection === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortDirection === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  }, [users, sortColumn, sortDirection]);
+
+  // Get sort icon for a column
+  const getSortIcon = (column: SortColumn) => {
+    if (sortColumn !== column) {
+      return <BsArrowsExpand className="w-3 h-3 text-gray-500 opacity-50" />;
+    }
+    if (sortDirection === 'asc') {
+      return <BsArrowUp className="w-3 h-3 text-indigo-400" />;
+    }
+    if (sortDirection === 'desc') {
+      return <BsArrowDown className="w-3 h-3 text-indigo-400" />;
+    }
+    return <BsArrowsExpand className="w-3 h-3 text-gray-500 opacity-50" />;
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
           <tr className="border-b border-white/10">
-            <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Name</th>
-            <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Email</th>
+            <th 
+              className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
+              onClick={() => handleSort('name')}
+            >
+              <div className="flex items-center gap-2">
+                <span>Name</span>
+                {getSortIcon('name')}
+              </div>
+            </th>
+            <th 
+              className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
+              onClick={() => handleSort('email')}
+            >
+              <div className="flex items-center gap-2">
+                <span>Email</span>
+                {getSortIcon('email')}
+              </div>
+            </th>
             <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Role</th>
             <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Status</th>
-            <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Manager</th>
+            <th 
+              className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
+              onClick={() => handleSort('manager')}
+            >
+              <div className="flex items-center gap-2">
+                <span>Manager</span>
+                {getSortIcon('manager')}
+              </div>
+            </th>
             <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Actions</th>
           </tr>
         </thead>
@@ -182,7 +286,7 @@ export default function UserTable({
               </td>
             </tr>
           ) : (
-            users.map((user) => {
+            sortedUsers.map((user) => {
               const roleConfig = getRoleConfig(user.role);
               const statusConfig = getStatusConfig(user.status);
               
