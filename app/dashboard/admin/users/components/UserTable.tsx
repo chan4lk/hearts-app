@@ -255,8 +255,24 @@ export default function UserTable({
                 {getSortIcon('email')}
               </div>
             </th>
-            <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Role</th>
-            <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Status</th>
+            <th 
+              className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
+              onClick={() => handleSort('role')}
+            >
+              <div className="flex items-center gap-2">
+                <span>Role</span>
+                {getSortIcon('role')}
+              </div>
+            </th>
+            <th 
+              className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
+              onClick={() => handleSort('status')}
+            >
+              <div className="flex items-center gap-2">
+                <span>Status</span>
+                {getSortIcon('status')}
+              </div>
+            </th>
             <th 
               className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
               onClick={() => handleSort('manager')}
