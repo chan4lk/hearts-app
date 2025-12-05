@@ -33,7 +33,7 @@ export function HeroSection({ onCreateClick, onBulkCreateClick }: HeroSectionPro
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onCreateClick}
-            className="bg-gray-500/20 hover:bg-white/30 backdrop-blur-sm rounded-lg px-3 py-2 text-sm font-medium text-white flex items-center gap-1.5 transition-colors"
+            className="bg-gray-900/60 hover:bg-gray-900/80 backdrop-blur-sm rounded-lg px-3 py-2 text-sm font-medium text-white flex items-center gap-1.5 transition-colors border border-white/20 shadow-lg"
           >
             <BsPlus className="w-4 h-4" />
             Create Goal
@@ -42,7 +42,7 @@ export function HeroSection({ onCreateClick, onBulkCreateClick }: HeroSectionPro
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onBulkCreateClick}
-            className="bg-gray-500/20 hover:bg-white/30 backdrop-blur-sm rounded-lg px-3 py-2 text-sm font-medium text-white flex items-center gap-1.5 transition-colors"
+            className="bg-gray-900/60 hover:bg-gray-900/80 backdrop-blur-sm rounded-lg px-3 py-2 text-sm font-medium text-white flex items-center gap-1.5 transition-colors border border-white/20 shadow-lg"
           >
             <BsStack className="w-4 h-4" />
             Bulk Create Goals
