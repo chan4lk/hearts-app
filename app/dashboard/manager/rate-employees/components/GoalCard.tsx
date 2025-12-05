@@ -68,7 +68,7 @@ export default function GoalCard({ goal, submitting, onRatingChange, viewMode = 
                     ? 'text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-white/70' 
                     : 'text-gray-900 dark:text-white'
                 }`}>
-                  {goal.employee.name} - {goal.title}
+                  {goal.employee?.name || 'Unknown'} - {goal.title}
                 </h3>
                 <span className={`px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap
                   ${isGridView ? 'bg-white/20 text-white' : categoryConfig.iconColor + ' bg-opacity-20'}`}>
@@ -84,7 +84,7 @@ export default function GoalCard({ goal, submitting, onRatingChange, viewMode = 
                   {goal.status}
                 </span>
                 <span className={`text-xs ${isGridView ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'}`}>
-                  {goal.employee.email}
+                  {goal.employee?.email || 'N/A'}
                 </span>
                 <span className={`text-xs ${isGridView ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'}`}>
                   Due {new Date(goal.dueDate).toLocaleDateString()}

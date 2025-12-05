@@ -1,4 +1,4 @@
-import { BsShield, BsClock, BsXCircle, BsArrowRight, BsCheckCircle, BsChat } from 'react-icons/bs';
+import { BsShield, BsClock, BsXCircle, BsArrowRight, BsCheckCircle, BsChat, BsPlayCircle, BsStopCircle, BsPauseCircle, BsExclamationCircle } from 'react-icons/bs';
 import { StatusStyle, Goal } from '@/app/components/shared/types';
 import React from 'react';
 
@@ -44,6 +44,30 @@ export const STATUS_STYLES: Record<Exclude<GoalStatus, 'DELETED'>, StatusStyle> 
     text: 'text-gray-400',
     icon: createIcon(BsChat, 'w-4 h-4'),
     gradient: 'from-gray-500/10'
+  },
+  IN_PROGRESS: {
+    bg: 'bg-blue-500/10',
+    text: 'text-blue-400',
+    icon: createIcon(BsPlayCircle, 'w-4 h-4'),
+    gradient: 'from-blue-500/10'
+  },
+  NOT_STARTED: {
+    bg: 'bg-gray-500/10',
+    text: 'text-gray-400',
+    icon: createIcon(BsStopCircle, 'w-4 h-4'),
+    gradient: 'from-gray-500/10'
+  },
+  ON_HOLD: {
+    bg: 'bg-amber-500/10',
+    text: 'text-amber-400',
+    icon: createIcon(BsPauseCircle, 'w-4 h-4'),
+    gradient: 'from-amber-500/10'
+  },
+  BLOCKED: {
+    bg: 'bg-red-500/10',
+    text: 'text-red-400',
+    icon: createIcon(BsExclamationCircle, 'w-4 h-4'),
+    gradient: 'from-red-500/10'
   }
 };
 

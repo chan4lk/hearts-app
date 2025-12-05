@@ -13,18 +13,18 @@ import { StatsSection } from "./components/StatsSection";
 import Filters from "./components/Filters";
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
-import { GoalWithRating, FilterStatus, RatingStatus, FilterRating } from "@/app/components/shared/types";
+import { Goal, FilterStatus, RatingStatus, FilterRating } from "@/app/components/shared/types";
 import { BsX, BsPersonCheck, BsStarFill, BsArrowRight, BsStar } from 'react-icons/bs';
 
 export default function SelfRatingPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [goals, setGoals] = useState<GoalWithRating[]>([]);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [submitting, setSubmitting] = useState<Record<string, boolean>>({});
   const [submittingRatingId, setSubmittingRatingId] = useState<string | null>(null);
   const [ratingComments, setRatingComments] = useState<Record<string, string>>({});
-  const [selectedGoal, setSelectedGoal] = useState<GoalWithRating | null>(null);
+  const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   
   // Initialize with type-safe values
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
@@ -72,9 +72,9 @@ export default function SelfRatingPage() {
         console.warn('Failed to fetch ratings, proceeding without them:', error);
       }
 
-      const goalsWithRatings = goalsData.goals.map((goal: GoalWithRating) => ({
+      const goalsWithRatings = goalsData.goals.map((goal: Goal) => ({
         ...goal,
-        rating: ratingsData.ratings?.find((r: any) => r.goalId === goal.id)
+        rating: ratingsData.ratings?.find((r: any) => r.goalId === goal.id) || goal.rating
       }));
       
       setGoals(goalsWithRatings);
@@ -236,7 +236,7 @@ export default function SelfRatingPage() {
               goals={filteredGoals}
               selectedStatus={filterStatus === 'all' ? '' : filterStatus}
               onStatusChange={(status) => setFilterStatus(status === '' ? 'all' : status as FilterStatus)}
-              onGoalClick={(goal) => setSelectedGoal(goal as GoalWithRating)}
+              onGoalClick={(goal) => setSelectedGoal(goal as Goal)}
               onStatusUpdate={(goalId, newStatus, updatedGoal) => {
                 setGoals(prevGoals =>
                   prevGoals.map(goal =>
