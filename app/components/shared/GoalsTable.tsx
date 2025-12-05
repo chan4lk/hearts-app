@@ -1,12 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Goal, GoalWithRatingExtended } from './types';
-import { BsSearch, BsFilter, BsEye, BsPencil, BsTrash, BsCheckCircle, BsXCircle, BsClock, BsGear, BsFlag, BsPlayCircle, BsCircle, BsPauseCircle, BsStar, BsStarFill, BsChevronDown } from 'react-icons/bs';
+import { BsSearch, BsFilter, BsEye, BsPencil, BsTrash, BsCheckCircle, BsXCircle, BsClock, BsGear, BsFlag, BsPlayCircle, BsCircle, BsPauseCircle, BsStar, BsStarFill, BsChevronDown, BsArrowUp, BsArrowDown, BsArrowsExpand } from 'react-icons/bs';
 import { Badge } from '@/app/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { useSession } from 'next-auth/react';
 import { showToast } from '@/app/utils/toast';
+
+type SortColumn = 'title' | 'status' | 'priority' | 'dueDate' | 'employee' | 'manager' | 'category';
+type SortDirection = 'asc' | 'desc' | null;
 
 interface GoalsTableProps {
   goals: (Goal | GoalWithRatingExtended)[];
@@ -285,6 +288,8 @@ export default function GoalsTable({
   const [localSelectedStatus, setLocalSelectedStatus] = useState(selectedStatus);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [localGoals, setLocalGoals] = useState<(Goal | GoalWithRatingExtended)[]>(goals);
+  const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
   const handleSearchChange = (value: string) => {
     setLocalSearchQuery(value);
@@ -377,6 +382,90 @@ export default function GoalsTable({
     return matchesSearch && matchesStatus;
   });
 
+  // Handle column sorting
+  const handleSort = (column: SortColumn) => {
+    if (sortColumn === column) {
+      // Cycle through: asc -> desc -> null
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortColumn(null);
+        setSortDirection(null);
+      }
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  // Sort goals based on current sort column and direction
+  const sortedGoals = useMemo(() => {
+    if (!sortColumn || !sortDirection) {
+      return filteredGoals;
+    }
+
+    return [...filteredGoals].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      switch (sortColumn) {
+        case 'title':
+          aValue = a.title?.toLowerCase() || '';
+          bValue = b.title?.toLowerCase() || '';
+          break;
+        case 'status':
+          aValue = a.status || '';
+          bValue = b.status || '';
+          break;
+        case 'priority':
+          const priorityOrder: Record<string, number> = { URGENT: 4, HIGH: 3, MEDIUM: 2, LOW: 1 };
+          aValue = priorityOrder[a.priority || 'MEDIUM'] || 0;
+          bValue = priorityOrder[b.priority || 'MEDIUM'] || 0;
+          break;
+        case 'dueDate':
+          aValue = new Date(a.dueDate).getTime();
+          bValue = new Date(b.dueDate).getTime();
+          break;
+        case 'employee':
+          aValue = a.employee?.name?.toLowerCase() || 'zzz';
+          bValue = b.employee?.name?.toLowerCase() || 'zzz';
+          break;
+        case 'manager':
+          aValue = a.manager?.name?.toLowerCase() || 'zzz';
+          bValue = b.manager?.name?.toLowerCase() || 'zzz';
+          break;
+        case 'category':
+          aValue = a.category?.toLowerCase() || '';
+          bValue = b.category?.toLowerCase() || '';
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) {
+        return sortDirection === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortDirection === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  }, [filteredGoals, sortColumn, sortDirection]);
+
+  // Get sort icon for a column
+  const getSortIcon = (column: SortColumn) => {
+    if (sortColumn !== column) {
+      return <BsArrowsExpand className="w-3 h-3 text-gray-500 opacity-50" />;
+    }
+    if (sortDirection === 'asc') {
+      return <BsArrowUp className="w-3 h-3 text-indigo-400" />;
+    }
+    if (sortDirection === 'desc') {
+      return <BsArrowDown className="w-3 h-3 text-indigo-400" />;
+    }
+    return <BsArrowsExpand className="w-3 h-3 text-gray-500 opacity-50" />;
+  };
+
   return (
     <div className="bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl shadow-xl border border-white/10 p-4">
       {/* Table */}
@@ -384,17 +473,73 @@ export default function GoalsTable({
         <table className="w-full">
           <thead>
             <tr className="border-b border-white/10">
-              <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Title</th>
-              <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Status</th>
-              <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Priority</th>
-              <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Due Date</th>
+              <th 
+                className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
+                onClick={() => handleSort('title')}
+              >
+                <div className="flex items-center gap-2">
+                  <span>Title</span>
+                  {getSortIcon('title')}
+                </div>
+              </th>
+              <th 
+                className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
+                onClick={() => handleSort('status')}
+              >
+                <div className="flex items-center gap-2">
+                  <span>Status</span>
+                  {getSortIcon('status')}
+                </div>
+              </th>
+              <th 
+                className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
+                onClick={() => handleSort('priority')}
+              >
+                <div className="flex items-center gap-2">
+                  <span>Priority</span>
+                  {getSortIcon('priority')}
+                </div>
+              </th>
+              <th 
+                className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
+                onClick={() => handleSort('dueDate')}
+              >
+                <div className="flex items-center gap-2">
+                  <span>Due Date</span>
+                  {getSortIcon('dueDate')}
+                </div>
+              </th>
               {showEmployee && (
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Employee</th>
+                <th 
+                  className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
+                  onClick={() => handleSort('employee')}
+                >
+                  <div className="flex items-center gap-2">
+                    <span>Employee</span>
+                    {getSortIcon('employee')}
+                  </div>
+                </th>
               )}
               {showManager && (
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Manager</th>
+                <th 
+                  className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
+                  onClick={() => handleSort('manager')}
+                >
+                  <div className="flex items-center gap-2">
+                    <span>Manager</span>
+                    {getSortIcon('manager')}
+                  </div>
+                </th>
               )}
-              <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Category</th>
+              <th 
+                className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
+                onClick={() => handleSort('category')}
+              >
+                <div className="flex items-center gap-2">
+                  <span>Category</span>
+                  {getSortIcon('category')}
+                </div>
+              </th>
               {showRating && (
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Rating</th>
               )}
@@ -404,7 +549,7 @@ export default function GoalsTable({
             </tr>
           </thead>
           <tbody>
-            {filteredGoals.length === 0 ? (
+            {sortedGoals.length === 0 ? (
               <tr>
                 <td colSpan={4 + (showEmployee ? 1 : 0) + (showManager ? 1 : 0) + (showRating ? 1 : 0) + (showActions ? 1 : 0)} className="py-8 text-center text-gray-400">
                   <div className="flex flex-col items-center justify-center">
@@ -414,7 +559,7 @@ export default function GoalsTable({
                 </td>
               </tr>
             ) : (
-              filteredGoals.map((goal) => (
+              sortedGoals.map((goal) => (
                 <tr 
                   key={goal.id} 
                   className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer"
