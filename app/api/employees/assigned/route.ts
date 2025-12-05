@@ -30,16 +30,11 @@ export async function GET(request: Request) {
 
     console.log('Fetching employees for manager:', targetManagerId);
 
-    // For admin, get all assigned users (managers, admins, employees)
-    // For manager, get only assigned employees
-    const whereClause = session.user.role === Role.ADMIN
-      ? {
-          managerId: targetManagerId
-        }
-      : {
-          managerId: targetManagerId,
-          role: Role.EMPLOYEE
-        };
+    // Get all assigned users (managers, admins, employees) - any user can be assigned as a manager
+    // Previously we only allowed employees, but now any MANAGER or ADMIN can be assigned
+    const whereClause = {
+      managerId: targetManagerId
+    };
 
     const employees = await prisma.user.findMany({
       where: whereClause,
