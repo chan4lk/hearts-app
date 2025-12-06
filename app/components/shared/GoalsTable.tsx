@@ -70,39 +70,25 @@ const getStatusBadge = (status: string, goal?: Goal, session?: any, onStatusChan
   const isGoalManager = goal && session && goal.managerId === session.user?.id;
   
   // Employees can update APPROVED, IN_PROGRESS, ON_HOLD, BLOCKED, and COMPLETED goals to progress statuses
+  // BUT DRAFT status is READ-ONLY for employees (needs manager approval/rejection)
   // Managers/Admins can approve/reject DRAFT goals, change APPROVED/REJECTED, or update progress statuses
   // Allow updates if:
   // 1. Status update is not disabled
   // 2. onStatusChange callback is provided
-  // 3. For employees: goal is APPROVED, IN_PROGRESS, ON_HOLD, BLOCKED, or COMPLETED
+  // 3. For employees: goal is NOT DRAFT (can update APPROVED, IN_PROGRESS, ON_HOLD, BLOCKED, or COMPLETED)
   // 4. For managers: goal is DRAFT, APPROVED, REJECTED, or progress statuses
   // Note: For managers on approve-goals page, they can update any DRAFT goal of their employees
-  // IMPORTANT: Always allow managers/admins to update DRAFT, APPROVED, or REJECTED statuses
+  // IMPORTANT: DRAFT status is READ-ONLY for employees - they cannot change it
   const canUpdate = goal && session && onStatusChange && !disableStatusUpdate && (
-    (isEmployee && (status === 'APPROVED' || status === 'IN_PROGRESS' || status === 'ON_HOLD' || status === 'BLOCKED' || status === 'COMPLETED')) ||
+    (isEmployee && status !== 'DRAFT' && (status === 'APPROVED' || status === 'IN_PROGRESS' || status === 'ON_HOLD' || status === 'BLOCKED' || status === 'COMPLETED' || status === 'NOT_STARTED')) ||
     (isManagerOrAdmin && (status === 'DRAFT' || status === 'APPROVED' || status === 'REJECTED' || status === 'IN_PROGRESS' || status === 'ON_HOLD' || status === 'BLOCKED' || status === 'COMPLETED'))
   );
   
-  // Enhanced debug logging for DRAFT status
-  if (status === 'DRAFT') {
-    console.log('🔍 DRAFT Status Dropdown Check:', {
-      goalId: goal?.id,
-      goalTitle: goal?.title,
-      status,
-      hasSession: !!session,
-      userRole: session?.user?.role,
-      userId: session?.user?.id,
-      isManagerOrAdmin,
-      hasOnStatusChange: !!onStatusChange,
-      disableStatusUpdate,
-      canUpdate,
-      goalManagerId: goal?.managerId,
-      goalEmployeeId: goal?.employeeId
-    });
-  }
-
-  // Force dropdown for DRAFT status if manager/admin (even if canUpdate check fails)
-  const shouldShowDropdown = canUpdate || (status === 'DRAFT' && isManagerOrAdmin && onStatusChange && !disableStatusUpdate);
+  // For employees: Never show dropdown for DRAFT status (it's read-only - needs manager approval)
+  // For managers/admins: Show dropdown for DRAFT status (they can approve/reject)
+  // Explicitly block dropdown for employees when status is DRAFT
+  const isEmployeeViewingDraft = isEmployee && status === 'DRAFT';
+  const shouldShowDropdown = !isEmployeeViewingDraft && (canUpdate || (status === 'DRAFT' && isManagerOrAdmin && onStatusChange && !disableStatusUpdate));
   
   if (shouldShowDropdown && goal) {
     // Determine allowed statuses based on current status and user role
@@ -121,18 +107,23 @@ const getStatusBadge = (status: string, goal?: Goal, session?: any, onStatusChan
       };
 
       if (isEmployee) {
-        // Employees can update APPROVED/IN_PROGRESS/ON_HOLD/BLOCKED/COMPLETED goals to progress statuses
-        // When COMPLETED, they can change back to other statuses
+        // Employees can only update work/progress statuses, NOT approval statuses
+        // Employees can update: IN_PROGRESS, ON_HOLD, BLOCKED, COMPLETED, NOT_STARTED
+        // Employees CANNOT update: DRAFT (read-only), APPROVED, REJECTED (manager-only)
         const allOptions = [
+          { value: 'NOT_STARTED', label: 'Not Started' },
           { value: 'IN_PROGRESS', label: 'In Progress' },
           { value: 'ON_HOLD', label: 'On Hold' },
           { value: 'BLOCKED', label: 'Blocked' },
           { value: 'COMPLETED', label: 'Completed' }
         ];
         
-        // Include current status if it's not already in the list
+        // Include current status if it's a work/progress status (not approval status)
+        const workStatuses = ['NOT_STARTED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED', 'COMPLETED'];
+        const isWorkStatus = workStatuses.includes(status);
         const currentStatusIncluded = allOptions.some(opt => opt.value === status);
-        if (!currentStatusIncluded && statusLabels[status]) {
+        
+        if (!currentStatusIncluded && isWorkStatus && statusLabels[status]) {
           allOptions.unshift({ value: status, label: statusLabels[status] });
         }
         
@@ -224,9 +215,13 @@ const getStatusBadge = (status: string, goal?: Goal, session?: any, onStatusChan
   }
 
   return (
-    <Badge className={`${config.bg} ${config.text} border-0 text-xs px-2 py-1 flex items-center gap-1`}>
+    <Badge 
+      className={`${config.bg} ${config.text} border-0 text-xs px-2 py-1 flex items-center gap-1 ${isEmployeeViewingDraft ? 'opacity-60 cursor-not-allowed' : ''}`}
+      title={isEmployeeViewingDraft ? 'Draft status requires manager approval/rejection' : undefined}
+    >
       <Icon className="w-3 h-3" />
       {status.replace('_', ' ')}
+      {isEmployeeViewingDraft && <span className="ml-1 text-[10px] opacity-50"></span>}
     </Badge>
   );
 };
@@ -308,7 +303,33 @@ export default function GoalsTable({
 
   const handleQuickStatusUpdate = async (goalId: string, newStatus: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
+    
+    // Find the current goal to preserve fields
+    const currentGoal = localGoals.find(g => g.id === goalId);
+    if (!currentGoal) {
+      showToast.error('Update Failed', 'Goal not found');
+      return;
+    }
+
+    // OPTIMISTIC UPDATE: Update UI immediately before API call
+    const optimisticGoal: Goal | GoalWithRatingExtended = {
+      ...currentGoal,
+      status: newStatus as any,
+      updatedAt: new Date().toISOString()
+    } as Goal | GoalWithRatingExtended;
+
+    // Update local state IMMEDIATELY (optimistic update)
+    setLocalGoals(prevGoals =>
+      prevGoals.map(goal =>
+        goal.id === goalId ? optimisticGoal : goal
+      )
+    );
+
+    // Notify parent component IMMEDIATELY (optimistic update)
+    onStatusUpdate?.(goalId, newStatus, optimisticGoal);
+
     setUpdatingStatus(goalId);
+    
     try {
       const response = await fetch(`/api/goals/${goalId}/status`, {
         method: 'PATCH',
@@ -323,12 +344,6 @@ export default function GoalsTable({
 
       const data = await response.json();
       const updatedGoal = data.goal || data;
-
-      // Find the current goal to preserve any fields not in the API response
-      const currentGoal = localGoals.find(g => g.id === goalId);
-      if (!currentGoal) {
-        throw new Error('Goal not found in local state');
-      }
 
       // Transform the updated goal to match the expected format
       const transformedGoal: Goal | GoalWithRatingExtended = {
@@ -352,18 +367,28 @@ export default function GoalsTable({
         isApprovalProcess: (currentGoal as any)?.isApprovalProcess || false
       } as Goal | GoalWithRatingExtended;
 
-      // Update local state immediately with full updated goal object
+      // Update local state with server response (sync with server)
       setLocalGoals(prevGoals =>
         prevGoals.map(goal =>
           goal.id === goalId ? transformedGoal : goal
         )
       );
 
-      // Notify parent component if callback provided with full updated goal
-      onStatusUpdate?.(goalId, newStatus, transformedGoal as Goal | GoalWithRatingExtended);
+      // Notify parent component with server response
+      onStatusUpdate?.(goalId, newStatus, transformedGoal);
 
       showToast.success('Status Updated', `Goal status updated to ${newStatus.replace('_', ' ')}`);
     } catch (error) {
+      // REVERT optimistic update on error
+      setLocalGoals(prevGoals =>
+        prevGoals.map(goal =>
+          goal.id === goalId ? currentGoal : goal
+        )
+      );
+      
+      // Revert parent component state
+      onStatusUpdate?.(goalId, currentGoal.status, currentGoal as Goal | GoalWithRatingExtended);
+      
       showToast.error('Update Failed', error instanceof Error ? error.message : 'Failed to update status');
     } finally {
       setUpdatingStatus(null);

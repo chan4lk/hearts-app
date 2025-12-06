@@ -17,8 +17,12 @@ export async function PATCH(
     }
 
     const { status } = await req.json();
+    
+    if (!status) {
+      return NextResponse.json({ error: 'Status is required' }, { status: 400 });
+    }
 
-    // Status validation will be done after checking user role and goal status
+    console.log(`📝 Status update request: goalId=${params.goalId}, newStatus=${status}, userId=${session.user.id}, role=${session.user.role}`);
 
     // Get the goal
     const goal = await prisma.goal.findUnique({
@@ -49,11 +53,12 @@ export async function PATCH(
     }
 
     // Employees can update their own goals
-    // Managers/Admins can update:
+    // Admins can update ANY goal status (full permissions)
+    // Managers can update:
     // 1. Goals they directly manage (goal.managerId === session.user.id)
     // 2. Goals of employees they manage (employee.managerId === session.user.id)
     // This allows managers to approve/reject DRAFT goals created by their employees
-    if (!isEmployee && !(isManagerOrAdmin && (isGoalManager || isEmployeeManager))) {
+    if (!isEmployee && session.user.role !== 'ADMIN' && !(isManagerOrAdmin && (isGoalManager || isEmployeeManager))) {
       return NextResponse.json(
         { error: 'You do not have permission to update this goal status' },
         { status: 403 }
@@ -64,15 +69,18 @@ export async function PATCH(
     // Manager-assigned goals start as APPROVED, so employees can start immediately
     // Employees can also update COMPLETED goals back to other statuses if needed
     if (isEmployee) {
-      if (goal.status !== 'APPROVED' && goal.status !== 'IN_PROGRESS' && goal.status !== 'ON_HOLD' && goal.status !== 'BLOCKED' && goal.status !== 'COMPLETED') {
+      // Allow employees to update from APPROVED or any work/progress status
+      const allowedCurrentStatuses = ['APPROVED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED', 'COMPLETED', 'NOT_STARTED', 'REJECTED'];
+      if (!allowedCurrentStatuses.includes(goal.status)) {
         return NextResponse.json(
-          { error: 'Status can only be updated for approved, in-progress, on-hold, blocked, or completed goals' },
+          { error: 'Status can only be updated for approved, in-progress, on-hold, blocked, completed, not-started, or rejected goals' },
           { status: 400 }
         );
       }
-      // Employees can set progress-related statuses from APPROVED or update existing progress statuses (including COMPLETED)
-      const employeeAllowedStatuses = ['IN_PROGRESS', 'COMPLETED', 'ON_HOLD', 'BLOCKED'];
+      // Employees can set progress-related statuses from APPROVED or update existing progress statuses
+      const employeeAllowedStatuses = ['NOT_STARTED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED', 'COMPLETED'];
       if (!employeeAllowedStatuses.includes(status)) {
+        console.error(`❌ Employee status update rejected: currentStatus=${goal.status}, requestedStatus=${status}, allowedStatuses=${employeeAllowedStatuses.join(', ')}`);
         return NextResponse.json(
           { error: `Invalid status for employee. Allowed: ${employeeAllowedStatuses.join(', ')}` },
           { status: 400 }
@@ -81,8 +89,12 @@ export async function PATCH(
     }
 
     // Managers/Admins can approve/reject DRAFT goals, change APPROVED/REJECTED, or update progress statuses
+    // Admins have full permissions to update any status
     if (isManagerOrAdmin) {
-      if (goal.status === 'DRAFT') {
+      // Admins can update any status to any status
+      if (session.user.role === 'ADMIN') {
+        // No restrictions for admins - they can update any status
+      } else if (goal.status === 'DRAFT') {
         // Managers can approve or reject DRAFT goals
         if (status !== 'APPROVED' && status !== 'REJECTED') {
           return NextResponse.json(
@@ -100,7 +112,7 @@ export async function PATCH(
         }
       } else if (goal.status === 'IN_PROGRESS' || goal.status === 'ON_HOLD' || goal.status === 'BLOCKED' || goal.status === 'COMPLETED') {
         // Managers can update progress statuses
-        const managerAllowedStatuses = ['IN_PROGRESS', 'COMPLETED', 'ON_HOLD', 'BLOCKED'];
+        const managerAllowedStatuses = ['IN_PROGRESS', 'COMPLETED', 'ON_HOLD', 'BLOCKED', 'NOT_STARTED'];
         if (!managerAllowedStatuses.includes(status)) {
           return NextResponse.json(
             { error: `Invalid status for manager. Allowed: ${managerAllowedStatuses.join(', ')}` },
@@ -152,8 +164,9 @@ export async function PATCH(
     });
   } catch (error) {
     console.error('Error updating goal status:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to update goal status';
     return NextResponse.json(
-      { error: 'Failed to update goal status' },
+      { error: errorMessage },
       { status: 500 }
     );
   }
