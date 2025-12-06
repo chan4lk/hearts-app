@@ -34,6 +34,7 @@ import {
 } from 'react-icons/bs';
 import dynamic from 'next/dynamic';
 import { useSettings } from '@/app/providers';
+import NotificationsDropdown from '@/app/components/shared/NotificationsDropdown';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -475,6 +476,10 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
           </div>
           {/* Right side: User Menu - Visible on both mobile and desktop */}
           <div className="flex items-center space-x-4">
+            {/* Notifications Bell */}
+            {session?.user?.id && (
+              <NotificationsDropdown userId={session.user.id} />
+            )}
             {/* User Menu */}
             <div className="relative" ref={userMenuRef}>
               <button 

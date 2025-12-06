@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma'; // Prisma client with ReviewCycle model
+import { NotificationType } from '@prisma/client';
 
 // GET all review cycles
 export async function GET() {
@@ -163,31 +164,48 @@ export async function POST(req: Request) {
           }
         }
       });
+
+      // Create notification for the employee when review cycle is updated
+      await prisma.notification.create({
+        data: {
+          type: NotificationType.REVIEW_CYCLE_UPDATED,
+          message: `Your review cycle information has been updated by ${session.user.name || 'Admin'}`,
+          userId: reviewCycle.user.id,
+        },
+      });
     } else {
-      // Create new review cycle (upsert by userId)
+      // Check if review cycle already exists for this user
+      const existingCycle = await prisma.reviewCycle.findUnique({
+        where: { userId },
+        select: { id: true, createdAt: true }
+      });
+
+      const isNew = !existingCycle;
+
+      // Create or update review cycle (upsert by userId)
       reviewCycle = await prisma.reviewCycle.upsert({
         where: { userId },
-      update: {
-        reportingPersonId: reportingPersonId || null,
-        jobCategory: jobCategory || null,
-        designation: designation || null,
-        dateOfAppointment: parsedDateOfAppointment,
-        after6Months: after6Months || null,
-        reviewMonth: reviewMonth || null,
-        adjustedReviewMonth: adjustedReviewMonth || null,
-        updatedById: session.user.id,
-        updatedAt: new Date()
-      },
-      create: {
-        userId,
-        reportingPersonId: reportingPersonId || null,
-        jobCategory: jobCategory || null,
-        designation: designation || null,
-        dateOfAppointment: parsedDateOfAppointment,
-        after6Months: after6Months || null,
-        reviewMonth: reviewMonth || null,
-        adjustedReviewMonth: adjustedReviewMonth || null,
-        updatedById: session.user.id
+        update: {
+          reportingPersonId: reportingPersonId || null,
+          jobCategory: jobCategory || null,
+          designation: designation || null,
+          dateOfAppointment: parsedDateOfAppointment,
+          after6Months: after6Months || null,
+          reviewMonth: reviewMonth || null,
+          adjustedReviewMonth: adjustedReviewMonth || null,
+          updatedById: session.user.id,
+          updatedAt: new Date()
+        },
+        create: {
+          userId,
+          reportingPersonId: reportingPersonId || null,
+          jobCategory: jobCategory || null,
+          designation: designation || null,
+          dateOfAppointment: parsedDateOfAppointment,
+          after6Months: after6Months || null,
+          reviewMonth: reviewMonth || null,
+          adjustedReviewMonth: adjustedReviewMonth || null,
+          updatedById: session.user.id
         },
         include: {
           user: {
@@ -221,6 +239,28 @@ export async function POST(req: Request) {
           }
         }
       });
+
+      // Create notification for the employee
+      await prisma.notification.create({
+        data: {
+          type: isNew ? NotificationType.REVIEW_CYCLE_CREATED : NotificationType.REVIEW_CYCLE_UPDATED,
+          message: isNew 
+            ? `Your review cycle has been created by ${session.user.name || 'Admin'}`
+            : `Your review cycle information has been updated by ${session.user.name || 'Admin'}`,
+          userId: reviewCycle.user.id,
+        },
+      });
+
+      // Also notify reporting person if assigned (only on create or if reporting person changed)
+      if (reviewCycle.reportingPersonId && (isNew || !existingCycle || existingCycle.id !== reviewCycle.id)) {
+        await prisma.notification.create({
+          data: {
+            type: NotificationType.REVIEW_CYCLE_UPDATED,
+            message: `You have been assigned as reporting person for ${reviewCycle.user.name}'s review cycle`,
+            userId: reviewCycle.reportingPersonId,
+          },
+        });
+      }
     }
 
     return NextResponse.json({ success: true, reviewCycle });
@@ -250,18 +290,39 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Review cycle ID is required' }, { status: 400 });
     }
 
-    // Check if review cycle exists
+    // Check if review cycle exists and get user info
     const existing = await prisma.reviewCycle.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      }
     });
 
     if (!existing) {
       return NextResponse.json({ error: 'Review cycle not found' }, { status: 404 });
     }
 
+    // Store user info before deletion
+    const userId = existing.userId;
+    const userName = existing.user.name;
+
     // Delete the review cycle
     await prisma.reviewCycle.delete({
       where: { id }
+    });
+
+    // Create notification for the employee when review cycle is deleted
+    await prisma.notification.create({
+      data: {
+        type: NotificationType.REVIEW_CYCLE_UPDATED, // Using updated type since deleted doesn't exist
+        message: `Your review cycle has been deleted by ${session.user.name || 'Admin'}`,
+        userId: userId,
+      },
     });
 
     return NextResponse.json({ success: true, message: 'Review cycle deleted successfully' });
