@@ -65,7 +65,9 @@ export default function RateEmployeesPage() {
       };
 
       currentStats.totalGoals++;
-      if (goal.rating?.managerScore ?? goal.rating?.score) {
+      // Only count goals with managerScore (not fallback to score)
+      const managerScore = goal.rating?.managerScore;
+      if (managerScore !== null && managerScore !== undefined && managerScore > 0) {
         currentStats.ratedGoals++;
       }
       
@@ -132,21 +134,108 @@ export default function RateEmployeesPage() {
         } : currentGoal.rating
       };
 
+      // Update local state IMMEDIATELY (optimistic update)
       setGoals(prevGoals => {
         const updatedGoals = prevGoals.map(goal =>
           goal.id === goalId ? goalWithoutRating : goal
         );
         
-        // Update employee stats
+        // Update employee stats immediately
         const stats = calculateEmployeeStats(updatedGoals);
         setEmployeeStats(stats);
         
         return updatedGoals;
       });
-      
-      // TODO: Call API to delete rating if needed
-      // For now, just update UI optimistically
-      toast.success('Rating removed');
+
+      setSubmittingRatingId(goalId);
+      setSubmitting(true);
+
+      try {
+        // Call API to remove rating
+        const response = await fetch(`/api/goals/${goalId}/manager-rating`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            score: 0, // 0 means remove rating
+            comments: ''
+          })
+        });
+
+        if (!response.ok) {
+          let errorData;
+          try {
+            errorData = await response.json();
+          } catch (e) {
+            errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+          }
+          const errorMessage = errorData.message || errorData.error || `Failed to remove rating (${response.status})`;
+          throw new Error(errorMessage);
+        }
+
+        const data = await response.json();
+
+        // Update with server response
+        setGoals(prevGoals => {
+          const updatedGoals = prevGoals.map(goal =>
+            goal.id === goalId
+              ? {
+                  ...goal,
+                  rating: data.id ? {
+                    ...goal.rating,
+                    id: data.id,
+                    goalId: goalId,
+                    managerScore: data.score !== null && data.score !== undefined ? data.score : undefined,
+                    score: data.score !== null && data.score !== undefined ? data.score : (data.selfScore || undefined),
+                    selfScore: data.selfScore || goal.rating?.selfScore,
+                    managerComments: data.comments || undefined,
+                    comments: data.comments || goal.rating?.selfComments || undefined,
+                    managerRatedAt: data.managerRatedAt || undefined,
+                    managerRatedById: data.managerRatedBy?.id || undefined,
+                    updatedAt: data.updatedAt || new Date().toISOString()
+                  } : (goal.rating ? {
+                    ...goal.rating,
+                    managerScore: undefined,
+                    score: goal.rating.selfScore || undefined,
+                    managerRatedAt: undefined,
+                    managerRatedById: undefined,
+                    updatedAt: new Date().toISOString()
+                  } : null)
+                }
+              : goal
+          );
+          
+          // Update employee stats with server response
+          const stats = calculateEmployeeStats(updatedGoals);
+          setEmployeeStats(stats);
+          
+          return updatedGoals;
+        });
+
+        toast.success('Rating removed successfully');
+      } catch (error) {
+        // REVERT optimistic update on error
+        setGoals(prevGoals => {
+          const revertedGoals = prevGoals.map(goal =>
+            goal.id === goalId ? currentGoal : goal
+          );
+          
+          // Revert employee stats
+          const stats = calculateEmployeeStats(revertedGoals);
+          setEmployeeStats(stats);
+          
+          return revertedGoals;
+        });
+        
+        const errorMessage = error instanceof Error ? error.message : 'Failed to remove rating';
+        toast.error(errorMessage);
+      } finally {
+        setSubmitting(false);
+        setSubmittingRatingId(null);
+      }
+
       return;
     }
     

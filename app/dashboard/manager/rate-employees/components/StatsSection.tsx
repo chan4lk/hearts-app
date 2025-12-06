@@ -10,10 +10,22 @@ interface StatsSectionProps {
 export default function StatsSection({ goals, employeesCount }: StatsSectionProps) {
   // Calculate stats from goals
   const totalGoals = goals.length;
-  const ratedGoals = goals.filter(g => g.rating?.managerScore || g.rating?.score).length;
-  const averageRating = totalGoals > 0
-    ? (goals.reduce((acc, goal) => acc + (goal.rating?.managerScore || goal.rating?.score || 0), 0) / totalGoals).toFixed(1)
+  // Only count goals with managerScore (not fallback to score)
+  const ratedGoals = goals.filter(g => {
+    const managerScore = g.rating?.managerScore;
+    return managerScore !== null && managerScore !== undefined && managerScore > 0;
+  }).length;
+  
+  // Calculate average only from rated goals (with managerScore)
+  const ratedGoalsList = goals.filter(g => {
+    const managerScore = g.rating?.managerScore;
+    return managerScore !== null && managerScore !== undefined && managerScore > 0;
+  });
+  
+  const averageRating = ratedGoalsList.length > 0
+    ? (ratedGoalsList.reduce((acc, goal) => acc + (goal.rating?.managerScore || 0), 0) / ratedGoalsList.length).toFixed(1)
     : '0.0';
+  
   const completionRate = totalGoals > 0 
     ? Math.round((ratedGoals / totalGoals) * 100)
     : 0;

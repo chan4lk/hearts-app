@@ -32,9 +32,72 @@ export async function POST(
     const body = await request.json();
     const { score, comments } = body;
 
+    // Handle score = 0 to remove rating
+    if (score === 0) {
+      const existingRating = await prisma.rating.findUnique({
+        where: { goalId: goalId }
+      });
+
+      if (existingRating) {
+        // If rating exists, remove manager rating but preserve self-rating
+        await prisma.rating.update({
+          where: { goalId: goalId },
+          data: {
+            managerScore: null,
+            managerComments: null,
+            managerRatedById: null,
+            managerRatedAt: null,
+            // Preserve self-rating fields
+          }
+        });
+
+        // Fetch updated rating
+        const rating = await prisma.rating.findUnique({
+          where: { goalId: goalId },
+          include: {
+            selfRatedBy: {
+              select: { id: true, name: true, email: true }
+            },
+            managerRatedBy: {
+              select: { id: true, name: true, email: true }
+            }
+          }
+        });
+
+        return NextResponse.json({
+          id: rating?.id || '',
+          goalId: goalId,
+          selfScore: rating?.selfScore,
+          selfComments: rating?.selfComments,
+          selfRatedBy: rating?.selfRatedBy,
+          selfRatedAt: rating?.selfRatedAt,
+          score: rating?.managerScore || null,
+          comments: rating?.managerComments,
+          managerRatedBy: rating?.managerRatedBy,
+          managerRatedAt: rating?.managerRatedAt,
+          updatedAt: rating?.updatedAt,
+        });
+      } else {
+        // No rating exists, nothing to remove
+        return NextResponse.json({
+          id: '',
+          goalId: goalId,
+          selfScore: null,
+          selfComments: null,
+          selfRatedBy: null,
+          selfRatedAt: null,
+          score: null,
+          comments: null,
+          managerRatedBy: null,
+          managerRatedAt: null,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    }
+
     if (!score || score < 1 || score > 5) {
       return NextResponse.json(
-        { error: 'Invalid rating score. Must be between 1 and 5' },
+        { error: 'Invalid rating score. Must be between 1 and 5, or 0 to remove rating' },
         { status: 400 }
       );
     }
