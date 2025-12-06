@@ -185,8 +185,10 @@ export default function ReviewCycleTable({ reviewCycles, onEdit, onDelete, onRef
                     key={cycle.id}
                     className={`border-b transition-colors ${
                       hasAdjustment
-                        ? 'bg-amber-500/10 hover:bg-amber-500/20 border-l-4 border-l-amber-500 border-amber-500/30'
-                        : 'border-white/5 hover:bg-white/5'
+                        ? 'bg-indigo-500/10 hover:bg-indigo-500/15 border-l-4 border-l-indigo-500 border-indigo-400/20'
+                        : index % 2 === 0 
+                          ? 'bg-gray-800/30 hover:bg-gray-700/40 border-white/5'
+                          : 'bg-gray-800/50 hover:bg-gray-700/50 border-white/5'
                     }`}
                   >
                     <td className="py-3 px-4 text-sm text-gray-300">{cycle.user.name}</td>
@@ -201,17 +203,19 @@ export default function ReviewCycleTable({ reviewCycles, onEdit, onDelete, onRef
                     <td className="py-3 px-4 text-sm text-gray-300">{cycle.after6Months || '-'}</td>
                     <td className={`py-3 px-4 text-sm ${hasAdjustment ? 'text-gray-400' : 'text-gray-300'}`}>
                       {hasAdjustment ? (
-                        <span className="line-through decoration-2 decoration-amber-400">
+                        <span className="line-through decoration-2 decoration-indigo-400/60">
                           {cycle.reviewMonth}
                         </span>
                       ) : (
                         cycle.reviewMonth || '-'
                       )}
                     </td>
-                    <td className={`py-3 px-4 text-sm ${hasAdjustment ? 'text-green-400 font-semibold' : 'text-gray-300'}`}>
+                    <td className={`py-3 px-4 text-sm ${hasAdjustment ? 'text-indigo-300 font-semibold' : 'text-gray-300'}`}>
                       {hasAdjustment ? (
                         <span className="flex items-center gap-2">
-                          <span className="text-green-400">{cycle.adjustedReviewMonth}</span>
+                          <span className="text-indigo-300 bg-indigo-500/20 px-2 py-0.5 rounded">
+                            {cycle.adjustedReviewMonth}
+                          </span>
                         </span>
                       ) : (
                         cycle.adjustedReviewMonth || '-'
