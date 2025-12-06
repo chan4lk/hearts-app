@@ -77,7 +77,7 @@ export default function ReviewCyclesPage() {
       setReviewCycles(data);
     } catch (error) {
       console.error('Error fetching review cycles:', error);
-      showToast.error('Failed to load review cycles');
+      showToast.error('Failed to load review cycles', error);
     } finally {
       setLoading(false);
     }
