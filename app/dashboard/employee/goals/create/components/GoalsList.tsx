@@ -52,7 +52,7 @@ export const GoalsList = ({
             selectedStatus={selectedStatus === 'all' ? '' : selectedStatus}
             onStatusChange={(status) => setSelectedStatus(status === '' ? 'all' : status)}
             onGoalClick={onViewGoal}
-            showActions={true}
+            showActions={false}
           />
         </div>
       </div>
