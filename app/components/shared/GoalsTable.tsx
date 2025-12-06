@@ -85,7 +85,7 @@ const getStatusBadge = (status: string, goal?: Goal | GoalWithRatingExtended, se
   // Note: For managers on approve-goals page, they can update any DRAFT goal of their employees
   // IMPORTANT: DRAFT status is READ-ONLY for employees - they cannot change it
   const canUpdate = goal && session && onStatusChange && !disableStatusUpdate && (
-    (isEmployee && status !== 'DRAFT' && (status === 'APPROVED' || status === 'IN_PROGRESS' || status === 'ON_HOLD' || status === 'BLOCKED' || status === 'COMPLETED' || status === 'NOT_STARTED')) ||
+    (isEmployee && status !== 'DRAFT' && (status === 'APPROVED' || status === 'REJECTED' || status === 'IN_PROGRESS' || status === 'ON_HOLD' || status === 'BLOCKED' || status === 'COMPLETED' || status === 'NOT_STARTED')) ||
     (isManagerOrAdmin && (status === 'DRAFT' || status === 'APPROVED' || status === 'REJECTED' || status === 'IN_PROGRESS' || status === 'ON_HOLD' || status === 'BLOCKED' || status === 'COMPLETED'))
   );
   
@@ -133,9 +133,10 @@ const getStatusBadge = (status: string, goal?: Goal | GoalWithRatingExtended, se
       };
 
       if (isEmployee) {
-        // Employees can only update work/progress statuses, NOT approval statuses
-        // Employees can update: IN_PROGRESS, ON_HOLD, BLOCKED, COMPLETED, NOT_STARTED
-        // Employees CANNOT update: DRAFT (read-only), APPROVED, REJECTED (manager-only)
+        // Employees can update work/progress statuses
+        // Employees can update from: APPROVED, REJECTED, or any work/progress status
+        // Employees can set to: NOT_STARTED, IN_PROGRESS, ON_HOLD, BLOCKED, COMPLETED
+        // Employees CANNOT update: DRAFT (read-only)
         const allOptions = [
           { value: 'NOT_STARTED', label: 'Not Started' },
           { value: 'IN_PROGRESS', label: 'In Progress' },
@@ -144,12 +145,15 @@ const getStatusBadge = (status: string, goal?: Goal | GoalWithRatingExtended, se
           { value: 'COMPLETED', label: 'Completed' }
         ];
         
-        // Include current status if it's a work/progress status (not approval status)
-        const workStatuses = ['NOT_STARTED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED', 'COMPLETED'];
-        const isWorkStatus = workStatuses.includes(status);
+        // Include current status if it's a work/progress status or APPROVED/REJECTED
+        const validCurrentStatuses = ['APPROVED', 'REJECTED', 'NOT_STARTED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED', 'COMPLETED'];
+        const isValidCurrentStatus = validCurrentStatuses.includes(status);
         const currentStatusIncluded = allOptions.some(opt => opt.value === status);
         
-        if (!currentStatusIncluded && isWorkStatus && statusLabels[status]) {
+        // If current status is APPROVED or REJECTED, include it in options so employee can see where they're starting from
+        if (status === 'APPROVED' || status === 'REJECTED') {
+          allOptions.unshift({ value: status, label: statusLabels[status] });
+        } else if (!currentStatusIncluded && isValidCurrentStatus && statusLabels[status]) {
           allOptions.unshift({ value: status, label: statusLabels[status] });
         }
         

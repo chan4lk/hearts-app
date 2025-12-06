@@ -32,19 +32,21 @@ export default function ManagerDashboard() {
   };
 
   // Helper function to check if goal is manager-assigned (by current manager)
-  const isAssignedGoal = (goal: Goal) => {
+  const isAssignedGoal = (goal: Goal): boolean => {
     // Goal is assigned if it has a managerId set and matches current manager
-    return goal.managerId && goal.managerId === session?.user?.id;
+    return !!(goal.managerId && goal.managerId === session?.user?.id);
   };
 
   // Helper function to check if goal is employee self-created
-  const isSelfCreatedGoal = (goal: Goal) => {
+  const isSelfCreatedGoal = (goal: Goal): boolean => {
     // Goal is self-created if:
     // 1. createdBy exists and matches the employee
     // 2. AND either no managerId or managerId is null/empty
-    return goal.createdBy 
+    return !!(
+      goal.createdBy 
       && goal.createdBy.id === goal.employeeId 
-      && (!goal.managerId || goal.managerId === null || goal.managerId === '');
+      && (!goal.managerId || goal.managerId === null || goal.managerId === '')
+    );
   };
 
   // Calculate statistics for employee goals
@@ -242,8 +244,26 @@ export default function ManagerDashboard() {
             onStatusUpdate={handleStatusUpdate}
             onPriorityUpdate={handlePriorityUpdate}
             onDueDateUpdate={handleDueDateUpdate}
-            canEditPriority={(goal) => isAssignedGoal(goal)}
-            canEditDueDate={(goal) => isAssignedGoal(goal)}
+            canEditPriority={(goal) => {
+              // For assigned goals, always allow editing
+              if (isAssignedGoal(goal)) return true;
+              // For self-created goals, allow editing if status is DRAFT or APPROVED
+              // Once rejected, priority becomes read-only until approved again
+              if (isSelfCreatedGoal(goal)) {
+                return goal.status === 'DRAFT' || goal.status === 'APPROVED';
+              }
+              return false;
+            }}
+            canEditDueDate={(goal) => {
+              // For assigned goals, always allow editing
+              if (isAssignedGoal(goal)) return true;
+              // For self-created goals, allow editing if status is DRAFT or APPROVED
+              // Once rejected, due date becomes read-only until approved again
+              if (isSelfCreatedGoal(goal)) {
+                return goal.status === 'DRAFT' || goal.status === 'APPROVED';
+              }
+              return false;
+            }}
             allowedStatuses={(goal) => {
               // Only allow status updates for employee self-created goals
               if (isSelfCreatedGoal(goal)) {
