@@ -203,7 +203,7 @@ export default function ReviewCycleTable({ reviewCycles, onEdit, onDelete, onRef
                     <td className="py-3 px-4 text-sm text-gray-300">{cycle.after6Months || '-'}</td>
                     <td className={`py-3 px-4 text-sm ${hasAdjustment ? 'text-gray-400' : 'text-gray-300'}`}>
                       {hasAdjustment ? (
-                        <span className="line-through decoration-2 decoration-indigo-400/60">
+                        <span className="line-through decoration-2 decoration-red-400/70">
                           {cycle.reviewMonth}
                         </span>
                       ) : (
