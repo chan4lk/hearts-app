@@ -11,6 +11,8 @@ interface GoalListProps {
   onViewGoal: (goal: Goal) => void;
   onEditGoal: (goal: Goal) => void;
   onDeleteGoal: (goalId: string) => void;
+  onPriorityUpdate?: (goalId: string, newPriority: string, updatedGoal: Goal) => void;
+  onDueDateUpdate?: (goalId: string, newDueDate: string, updatedGoal: Goal) => void;
 }
 
 const itemVariants = {
@@ -27,6 +29,8 @@ export function GoalList({
   onViewGoal,
   onEditGoal,
   onDeleteGoal,
+  onPriorityUpdate,
+  onDueDateUpdate,
 }: GoalListProps) {
   const filteredGoals = goals.filter(goal => {
     const matchesEmployee = selectedEmployee === 'all' || goal.employee?.id === selectedEmployee;
@@ -45,6 +49,8 @@ export function GoalList({
             showEmployee={true}
             showManager={false}
             disableStatusUpdate={true}
+            onPriorityUpdate={onPriorityUpdate}
+            onDueDateUpdate={onDueDateUpdate}
           />
         </div>
       </div>

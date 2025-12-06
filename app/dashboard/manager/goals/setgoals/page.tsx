@@ -368,6 +368,34 @@ function ManagerGoalSettingPageContent() {
     setRefreshing(false);
   };
 
+  const handlePriorityUpdate = (goalId: string, newPriority: string, updatedGoal: Goal) => {
+    // Update the goals state immediately
+    setGoals(prevGoals =>
+      prevGoals.map(goal =>
+        goal.id === goalId ? updatedGoal : goal
+      )
+    );
+    // Update stats
+    updateStats(
+      goals.map(goal => goal.id === goalId ? updatedGoal : goal),
+      assignedEmployees
+    );
+  };
+
+  const handleDueDateUpdate = (goalId: string, newDueDate: string, updatedGoal: Goal) => {
+    // Update the goals state immediately
+    setGoals(prevGoals =>
+      prevGoals.map(goal =>
+        goal.id === goalId ? updatedGoal : goal
+      )
+    );
+    // Update stats (though due date doesn't affect stats, we refresh for consistency)
+    updateStats(
+      goals.map(goal => goal.id === goalId ? updatedGoal : goal),
+      assignedEmployees
+    );
+  };
+
   if (error) {
     return <ErrorFallback error={error} resetErrorBoundary={() => setError(null)} />;
   }
@@ -462,6 +490,8 @@ function ManagerGoalSettingPageContent() {
             setGoalToDelete(goalId);
             setIsDeleteModalOpen(true);
           }}
+          onPriorityUpdate={handlePriorityUpdate}
+          onDueDateUpdate={handleDueDateUpdate}
         />
 
         {/* Modals */}

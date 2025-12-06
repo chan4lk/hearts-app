@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Goal, GoalWithRatingExtended } from './types';
-import { BsSearch, BsFilter, BsEye, BsPencil, BsTrash, BsCheckCircle, BsXCircle, BsClock, BsGear, BsFlag, BsPlayCircle, BsCircle, BsPauseCircle, BsStar, BsStarFill, BsChevronDown, BsArrowUp, BsArrowDown, BsArrowsExpand, BsBullseye } from 'react-icons/bs';
+import { BsSearch, BsFilter, BsEye, BsPencil, BsTrash, BsCheckCircle, BsXCircle, BsClock, BsGear, BsFlag, BsPlayCircle, BsCircle, BsPauseCircle, BsStar, BsStarFill, BsChevronDown, BsArrowUp, BsArrowDown, BsArrowsExpand, BsBullseye, BsCalendar } from 'react-icons/bs';
 import { Badge } from '@/app/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { useSession } from 'next-auth/react';
@@ -22,6 +22,7 @@ interface GoalsTableProps {
   onDelete?: (goal: Goal | GoalWithRatingExtended) => void;
   onStatusUpdate?: (goalId: string, newStatus: string, updatedGoal: Goal | GoalWithRatingExtended) => void;
   onPriorityUpdate?: (goalId: string, newPriority: string, updatedGoal: Goal | GoalWithRatingExtended) => void;
+  onDueDateUpdate?: (goalId: string, newDueDate: string, updatedGoal: Goal | GoalWithRatingExtended) => void;
   onRatingChange?: (goalId: string, rating: number) => void;
   showEmployee?: boolean;
   showManager?: boolean;
@@ -335,6 +336,7 @@ export default function GoalsTable({
   onDelete,
   onStatusUpdate,
   onPriorityUpdate,
+  onDueDateUpdate,
   onRatingChange,
   showEmployee = false,
   showManager = false,
@@ -348,6 +350,7 @@ export default function GoalsTable({
   const [localSelectedStatus, setLocalSelectedStatus] = useState(selectedStatus);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [updatingPriority, setUpdatingPriority] = useState<string | null>(null);
+  const [updatingDueDate, setUpdatingDueDate] = useState<string | null>(null);
   const [localGoals, setLocalGoals] = useState<(Goal | GoalWithRatingExtended)[]>(goals);
   const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
@@ -620,6 +623,100 @@ export default function GoalsTable({
     }
   };
 
+  const handleQuickDueDateUpdate = async (goalId: string, newDueDate: string, e?: any) => {
+    e?.stopPropagation();
+    
+    // Find the current goal to preserve fields
+    const currentGoal = localGoals.find(g => g.id === goalId);
+    if (!currentGoal) {
+      showToast.error('Update Failed', 'Goal not found');
+      return;
+    }
+
+    // OPTIMISTIC UPDATE: Update UI immediately before API call
+    const optimisticGoal: Goal | GoalWithRatingExtended = {
+      ...currentGoal,
+      dueDate: newDueDate,
+      updatedAt: new Date().toISOString()
+    } as Goal | GoalWithRatingExtended;
+
+    // Update local state IMMEDIATELY (optimistic update)
+    setLocalGoals(prevGoals =>
+      prevGoals.map(goal =>
+        goal.id === goalId ? optimisticGoal : goal
+      )
+    );
+
+    // Notify parent component IMMEDIATELY (optimistic update)
+    onDueDateUpdate?.(goalId, newDueDate, optimisticGoal);
+
+    setUpdatingDueDate(goalId);
+    
+    try {
+      const response = await fetch(`/api/goals/${goalId}/due-date`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dueDate: newDueDate }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update due date');
+      }
+
+      const data = await response.json();
+      const updatedGoal = data.goal || data;
+
+      // Transform the updated goal to match the expected format
+      const transformedGoal: Goal | GoalWithRatingExtended = {
+        ...currentGoal,
+        ...updatedGoal,
+        id: updatedGoal.id,
+        title: updatedGoal.title || currentGoal.title,
+        description: updatedGoal.description || currentGoal.description,
+        status: currentGoal.status, // Preserve original status
+        priority: currentGoal.priority, // Preserve original priority
+        dueDate: updatedGoal.dueDate ? (typeof updatedGoal.dueDate === 'string' ? updatedGoal.dueDate : updatedGoal.dueDate.toISOString()) : newDueDate,
+        category: updatedGoal.category || currentGoal.category,
+        department: updatedGoal.department || currentGoal.department,
+        createdAt: updatedGoal.createdAt ? (typeof updatedGoal.createdAt === 'string' ? updatedGoal.createdAt : updatedGoal.createdAt.toISOString()) : currentGoal.createdAt,
+        updatedAt: updatedGoal.updatedAt ? (typeof updatedGoal.updatedAt === 'string' ? updatedGoal.updatedAt : updatedGoal.updatedAt.toISOString()) : currentGoal.updatedAt,
+        employeeId: updatedGoal.employeeId || currentGoal.employeeId,
+        managerId: updatedGoal.managerId || currentGoal.managerId,
+        employee: updatedGoal.employee || currentGoal.employee,
+        manager: updatedGoal.manager || currentGoal.manager,
+        rating: updatedGoal.rating || (currentGoal as any)?.rating,
+        isApprovalProcess: (currentGoal as any)?.isApprovalProcess || false
+      } as Goal | GoalWithRatingExtended;
+
+      // Update local state with server response (sync with server)
+      setLocalGoals(prevGoals =>
+        prevGoals.map(goal =>
+          goal.id === goalId ? transformedGoal : goal
+        )
+      );
+
+      // Notify parent component with server response
+      onDueDateUpdate?.(goalId, newDueDate, transformedGoal);
+
+      showToast.success('Due Date Updated', `Goal due date updated`);
+    } catch (error) {
+      // REVERT optimistic update on error
+      setLocalGoals(prevGoals =>
+        prevGoals.map(goal =>
+          goal.id === goalId ? currentGoal : goal
+        )
+      );
+      
+      // Revert parent component state
+      onDueDateUpdate?.(goalId, currentGoal.dueDate, currentGoal as Goal | GoalWithRatingExtended);
+      
+      showToast.error('Update Failed', error instanceof Error ? error.message : 'Failed to update due date');
+    } finally {
+      setUpdatingDueDate(null);
+    }
+  };
+
   const filteredGoals = useMemo(() => {
     return localGoals.filter(goal => {
       const matchesSearch = 
@@ -840,8 +937,25 @@ export default function GoalsTable({
                   <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
                     {getPriorityBadge(goal.priority || 'MEDIUM', goal, session, onPriorityUpdate ? handleQuickPriorityUpdate : undefined, updatingPriority)}
                   </td>
-                  <td className="py-3 px-4 text-sm text-gray-300">
-                    {new Date(goal.dueDate).toLocaleDateString()}
+                  <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+                    {onDueDateUpdate ? (
+                      <div className="relative">
+                        <input
+                          type="date"
+                          value={new Date(goal.dueDate).toISOString().split('T')[0]}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              handleQuickDueDateUpdate(goal.id, e.target.value, e);
+                            }
+                          }}
+                          disabled={updatingDueDate === goal.id}
+                          className="bg-gray-800/50 border border-white/10 text-white/90 text-xs px-3 py-1.5 pr-8 rounded-md hover:bg-gray-700/50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        />
+                        <BsCalendar className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none w-3 h-3" />
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-300">{new Date(goal.dueDate).toLocaleDateString()}</span>
+                    )}
                   </td>
                   {showEmployee && (
                     <td className="py-3 px-4 text-sm text-gray-300">
