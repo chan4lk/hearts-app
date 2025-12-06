@@ -29,6 +29,9 @@ interface GoalsTableProps {
   showActions?: boolean;
   showRating?: boolean;
   disableStatusUpdate?: boolean;
+  canEditPriority?: (goal: Goal | GoalWithRatingExtended) => boolean;
+  canEditDueDate?: (goal: Goal | GoalWithRatingExtended) => boolean;
+  allowedStatuses?: (goal: Goal | GoalWithRatingExtended) => string[];
   submittingRating?: string | null;
   showCheckbox?: boolean;
   selectedGoalIds?: string[];
@@ -50,7 +53,7 @@ const STATUS_OPTIONS = [
   { value: 'BLOCKED', label: 'Blocked' }
 ];
 
-const getStatusBadge = (status: string, goal?: Goal, session?: any, onStatusChange?: (goalId: string, newStatus: string) => void, updatingStatus?: string | null, disableStatusUpdate?: boolean) => {
+const getStatusBadge = (status: string, goal?: Goal | GoalWithRatingExtended, session?: any, onStatusChange?: (goalId: string, newStatus: string) => void, updatingStatus?: string | null, disableStatusUpdate?: boolean, allowedStatuses?: (goal: Goal | GoalWithRatingExtended) => string[]) => {
   const configs: Record<string, { bg: string; text: string; icon: any }> = {
     APPROVED: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', icon: BsCheckCircle },
     REJECTED: { bg: 'bg-rose-500/20', text: 'text-rose-400', icon: BsXCircle },
@@ -95,6 +98,27 @@ const getStatusBadge = (status: string, goal?: Goal, session?: any, onStatusChan
   if (shouldShowDropdown && goal) {
     // Determine allowed statuses based on current status and user role
     const getAvailableStatuses = () => {
+      // If allowedStatuses function provided, use it
+      if (allowedStatuses && goal) {
+        const allowed = allowedStatuses(goal);
+        const statusLabels: Record<string, string> = {
+          'IN_PROGRESS': 'In Progress',
+          'ON_HOLD': 'On Hold',
+          'BLOCKED': 'Blocked',
+          'COMPLETED': 'Completed',
+          'APPROVED': 'Approved',
+          'REJECTED': 'Rejected',
+          'MODIFIED': 'Modified',
+          'PENDING': 'Pending',
+          'DRAFT': 'Draft',
+          'NOT_STARTED': 'Not Started'
+        };
+        return allowed.map(statusValue => ({
+          value: statusValue,
+          label: statusLabels[statusValue] || statusValue.replace('_', ' ')
+        }));
+      }
+
       const statusLabels: Record<string, string> = {
         'IN_PROGRESS': 'In Progress',
         'ON_HOLD': 'On Hold',
@@ -171,9 +195,17 @@ const getStatusBadge = (status: string, goal?: Goal, session?: any, onStatusChan
 
     const availableStatuses = getAvailableStatuses();
     
-    // Ensure we have options before rendering
+    // If no available statuses (empty array from allowedStatuses), don't show dropdown - make it read-only
     if (availableStatuses.length === 0) {
-      console.warn('No available statuses for goal:', goal.id, 'status:', status);
+      // Return read-only badge instead of dropdown
+      return (
+        <Badge 
+          className={`${config.bg} ${config.text} border-0 text-xs px-2 py-1 flex items-center gap-1`}
+        >
+          <Icon className="w-3 h-3" />
+          {status.replace('_', ' ')}
+        </Badge>
+      );
     }
 
     return (
@@ -235,7 +267,7 @@ const PRIORITY_OPTIONS = [
   { value: 'LOW', label: 'Low' }
 ];
 
-const getPriorityBadge = (priority: string, goal?: Goal, session?: any, onPriorityChange?: (goalId: string, newPriority: string) => void, updatingPriority?: string | null) => {
+const getPriorityBadge = (priority: string, goal?: Goal | GoalWithRatingExtended, session?: any, onPriorityChange?: (goalId: string, newPriority: string) => void, updatingPriority?: string | null, canEditPriority?: (goal: Goal | GoalWithRatingExtended) => boolean) => {
   const configs: Record<string, { bg: string; text: string }> = {
     URGENT: { bg: 'bg-red-500/20', text: 'text-red-400' },
     HIGH: { bg: 'bg-rose-500/20', text: 'text-rose-400' },
@@ -244,10 +276,12 @@ const getPriorityBadge = (priority: string, goal?: Goal, session?: any, onPriori
   };
   const config = configs[priority] || configs.MEDIUM;
   
-  // Check if priority can be updated (employees can update their own goals, managers/admins can update any)
+  // Check if priority can be updated - use canEditPriority function if provided, otherwise use default logic
   const canUpdate = goal && session && onPriorityChange && (
-    (goal.employeeId === session.user?.id) || 
-    (session.user?.role === 'MANAGER' || session.user?.role === 'ADMIN')
+    canEditPriority ? canEditPriority(goal) : (
+      (goal.employeeId === session.user?.id) || 
+      (session.user?.role === 'MANAGER' || session.user?.role === 'ADMIN')
+    )
   );
   
   if (canUpdate && goal) {
@@ -343,7 +377,10 @@ export default function GoalsTable({
   showActions = false,
   showRating = false,
   disableStatusUpdate = false,
-  submittingRating = null
+  submittingRating = null,
+  canEditPriority,
+  canEditDueDate,
+  allowedStatuses
 }: GoalsTableProps) {
   const { data: session } = useSession();
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
@@ -931,14 +968,14 @@ export default function GoalsTable({
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                      {getStatusBadge(goal.status, goal, session, disableStatusUpdate ? undefined : handleQuickStatusUpdate, updatingStatus, disableStatusUpdate)}
+                      {getStatusBadge(goal.status, goal, session, disableStatusUpdate ? undefined : handleQuickStatusUpdate, updatingStatus, disableStatusUpdate, allowedStatuses)}
                     </div>
                   </td>
                   <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
-                    {getPriorityBadge(goal.priority || 'MEDIUM', goal, session, onPriorityUpdate ? handleQuickPriorityUpdate : undefined, updatingPriority)}
+                    {getPriorityBadge(goal.priority || 'MEDIUM', goal, session, onPriorityUpdate ? handleQuickPriorityUpdate : undefined, updatingPriority, canEditPriority)}
                   </td>
                   <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
-                    {onDueDateUpdate ? (
+                    {onDueDateUpdate && (!canEditDueDate || canEditDueDate(goal)) ? (
                       <div className="relative">
                         <input
                           type="date"

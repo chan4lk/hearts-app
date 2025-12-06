@@ -32,10 +32,10 @@ export default function ManagerDashboard() {
     return goal.employee?.email === session?.user?.email;
   };
 
-  // Helper function to check if goal is manager-assigned
+  // Helper function to check if goal is manager-assigned (by current manager)
   const isAssignedGoal = (goal: Goal) => {
-    // Goal is assigned if it has a managerId set
-    return goal.managerId && goal.managerId !== null && goal.managerId !== '';
+    // Goal is assigned if it has a managerId set and matches current manager
+    return goal.managerId && goal.managerId === session?.user?.id;
   };
 
   // Helper function to check if goal is employee self-created
@@ -123,6 +123,33 @@ export default function ManagerDashboard() {
 
   const handleGoalClick = (goal: Goal) => {
     setSelectedGoalDetails(goal);
+  };
+
+  // Handler for priority update - only for assigned goals
+  const handlePriorityUpdate = (goalId: string, newPriority: string, updatedGoal: Goal) => {
+    setGoals(prevGoals =>
+      prevGoals.map(goal =>
+        goal.id === goalId ? updatedGoal : goal
+      )
+    );
+  };
+
+  // Handler for due date update - only for assigned goals
+  const handleDueDateUpdate = (goalId: string, newDueDate: string, updatedGoal: Goal) => {
+    setGoals(prevGoals =>
+      prevGoals.map(goal =>
+        goal.id === goalId ? updatedGoal : goal
+      )
+    );
+  };
+
+  // Handler for status update - for all goals (but restricted to approved/rejected for non-assigned)
+  const handleStatusUpdate = (goalId: string, newStatus: string, updatedGoal: Goal) => {
+    setGoals(prevGoals =>
+      prevGoals.map(goal =>
+        goal.id === goalId ? updatedGoal : goal
+      )
+    );
   };
 
   const filteredGoals = goals.filter(goal => {
@@ -227,7 +254,26 @@ export default function ManagerDashboard() {
             showEmployee={true}
             showManager={false}
             showActions={false}
-            disableStatusUpdate={true}
+            onStatusUpdate={handleStatusUpdate}
+            onPriorityUpdate={handlePriorityUpdate}
+            onDueDateUpdate={handleDueDateUpdate}
+            canEditPriority={(goal) => isAssignedGoal(goal)}
+            canEditDueDate={(goal) => isAssignedGoal(goal)}
+            allowedStatuses={(goal) => {
+              // Only allow status updates for employee self-created goals
+              if (isSelfCreatedGoal(goal)) {
+                // For DRAFT self-created goals, allow manager to approve/reject
+                if (goal.status === 'DRAFT') {
+                  return ['DRAFT', 'APPROVED', 'REJECTED'];
+                }
+                // For APPROVED/REJECTED self-created goals, allow switching between them
+                if (goal.status === 'APPROVED' || goal.status === 'REJECTED') {
+                  return ['APPROVED', 'REJECTED'];
+                }
+              }
+              // For all other goals (assigned goals, etc.), return empty array to make status read-only
+              return [];
+            }}
           />
         </div>
 
