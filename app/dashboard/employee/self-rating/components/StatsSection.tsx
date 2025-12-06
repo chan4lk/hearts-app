@@ -10,21 +10,16 @@ interface StatsSectionProps {
 }
 
 export function StatsSection({ goals, onViewSelfRatings }: StatsSectionProps) {
-  const { data: session } = useSession();
-  const userId = session?.user?.id;
+  // Show all goals (both assigned and self-created)
+  // Calculate status counts for all goals
+  const draftCount = goals.filter(g => g.status === 'DRAFT').length;
+  const approvedCount = goals.filter(g => g.status === 'APPROVED').length;
+  const rejectedCount = goals.filter(g => g.status === 'REJECTED').length;
+  const completedCount = goals.filter(g => g.status === 'COMPLETED').length;
+  const totalCount = goals.length;
   
-  // Filter to only show self-created goals
-  const selfCreatedGoals = goals.filter(goal => goal.createdBy?.id === userId);
-  
-  // Calculate status counts
-  const draftCount = selfCreatedGoals.filter(g => g.status === 'DRAFT').length;
-  const approvedCount = selfCreatedGoals.filter(g => g.status === 'APPROVED').length;
-  const rejectedCount = selfCreatedGoals.filter(g => g.status === 'REJECTED').length;
-  const completedCount = selfCreatedGoals.filter(g => g.status === 'COMPLETED').length;
-  const totalCount = selfCreatedGoals.length;
-  
-  // Calculate self-rating stats
-  const ratedGoals = selfCreatedGoals.filter(g => g.rating?.selfScore || g.rating?.score);
+  // Calculate self-rating stats for all goals
+  const ratedGoals = goals.filter(g => g.rating?.selfScore || g.rating?.score);
   const ratedCount = ratedGoals.length;
   const totalRating = ratedGoals.reduce((acc, goal) => acc + (goal.rating?.selfScore || goal.rating?.score || 0), 0);
   const averageRating = ratedCount > 0 ? (totalRating / ratedCount).toFixed(1) : '0.0';
@@ -138,7 +133,7 @@ export function StatsSection({ goals, onViewSelfRatings }: StatsSectionProps) {
       ))}
       
       {/* Self Rating Badge */}
-      <SelfRatingBadge goals={selfCreatedGoals} onViewRatings={onViewSelfRatings} />
+      <SelfRatingBadge goals={goals} onViewRatings={onViewSelfRatings} />
     </div>
   );
 }

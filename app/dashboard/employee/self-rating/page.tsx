@@ -50,6 +50,8 @@ export default function SelfRatingPage() {
   const fetchGoals = async () => {
     try {
       setLoading(true);
+      // Fetch all goals assigned to the employee (both assigned by manager and self-created)
+      // view=my-goals returns all goals where employeeId = userId (includes both assigned and self-created)
       const goalsResponse = await fetch("/api/goals?view=my-goals");
 
       if (!goalsResponse.ok) {
@@ -62,6 +64,10 @@ export default function SelfRatingPage() {
         throw new Error("Invalid goals response format");
       }
 
+      // Use all goals from the API (already filtered by employeeId in the API)
+      // This includes both assigned goals and self-created goals
+      const allEmployeeGoals = goalsData.goals;
+
       let ratingsData = { ratings: [] };
       try {
         const ratingsResponse = await fetch("/api/goals/ratings/self");
@@ -72,7 +78,7 @@ export default function SelfRatingPage() {
         console.warn('Failed to fetch ratings, proceeding without them:', error);
       }
 
-      const goalsWithRatings = goalsData.goals.map((goal: Goal) => ({
+      const goalsWithRatings = allEmployeeGoals.map((goal: Goal) => ({
         ...goal,
         rating: ratingsData.ratings?.find((r: any) => r.goalId === goal.id) || goal.rating
       }));
@@ -187,12 +193,8 @@ export default function SelfRatingPage() {
   };
 
   const filteredGoals = useMemo(() => {
-    const userId = session?.user?.id;
-    
-    // Filter to only show self-created goals
-    const selfCreatedGoals = goals.filter(goal => goal.createdBy?.id === userId);
-    
-    return selfCreatedGoals.filter(goal => {
+    // Show all goals assigned to the employee (both assigned and self-created)
+    return goals.filter(goal => {
       const matchesStatus = filterStatus === 'all' || goal.status === filterStatus;
       const matchesRating = filterRating === 'all' || goal.rating?.selfScore === parseInt(filterRating) || goal.rating?.score === parseInt(filterRating);
       const matchesRatingStatus = 
