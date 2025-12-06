@@ -312,8 +312,13 @@ const getRatingDisplay = (rating: number | null | undefined) => {
   return option ? `${option.stars} ${rating}` : `${rating}/5`;
 };
 
-// Helper to get the rating value (checks selfScore, managerScore, then score)
-const getRatingValue = (goal: any) => {
+// Helper to get the rating value (checks managerScore first if showRating is true, otherwise selfScore, then score)
+const getRatingValue = (goal: any, prioritizeManagerScore = false) => {
+  if (prioritizeManagerScore) {
+    // For manager rating page, prioritize managerScore
+    return goal?.rating?.managerScore ?? goal?.rating?.score ?? goal?.rating?.selfScore ?? 0;
+  }
+  // For other pages, check selfScore, managerScore, then score
   return goal?.rating?.selfScore ?? goal?.rating?.managerScore ?? goal?.rating?.score ?? 0;
 };
 
@@ -344,6 +349,8 @@ export default function GoalsTable({
   const [localGoals, setLocalGoals] = useState<(Goal | GoalWithRatingExtended)[]>(goals);
   const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const [ratingUpdateCounter, setRatingUpdateCounter] = useState(0);
+  const [optimisticRatings, setOptimisticRatings] = useState<Record<string, number>>({});
 
   const handleSearchChange = (value: string) => {
     setLocalSearchQuery(value);
@@ -357,10 +364,72 @@ export default function GoalsTable({
 
   // Update local goals when props change
   useEffect(() => {
-    setLocalGoals(goals);
-  }, [goals]);
+    // Simple sync: always use props as source of truth, except for goals with optimistic updates
+    setLocalGoals(prevLocalGoals => {
+      // On initial mount or when goals prop is empty, use props directly
+      if (prevLocalGoals.length === 0 || goals.length === 0) {
+        return goals;
+      }
+      
+      // Check if this is a refresh (different goal IDs or count)
+      const prevIds = new Set(prevLocalGoals.map(g => g.id));
+      const newIds = new Set(goals.map(g => g.id));
+      const isRefresh = prevLocalGoals.length !== goals.length || 
+                       Array.from(newIds).some(id => !prevIds.has(id));
+      
+      if (isRefresh) {
+        // On refresh, clear optimistic ratings and use fresh props
+        setOptimisticRatings({});
+        return goals;
+      }
+      
+      // For incremental updates, merge keeping optimistic updates
+      return goals.map(propGoal => {
+        const localGoal = prevLocalGoals.find(g => g.id === propGoal.id);
+        if (!localGoal) return propGoal;
+        
+        // If we have an active optimistic rating, keep the local version
+        if (optimisticRatings[propGoal.id] !== undefined) {
+          return localGoal;
+        }
+        
+        // Otherwise use prop (server data is source of truth)
+        return propGoal;
+      });
+    });
+  }, [goals]); // Remove optimisticRatings from dependencies to prevent loops
+  
+  // Clear optimistic ratings when they match server response (but not immediately on mount)
+  useEffect(() => {
+    // Only clear if localGoals has actually changed (not just initial mount)
+    if (localGoals.length === 0) return;
+    
+    setOptimisticRatings(prev => {
+      const updated = { ...prev };
+      let changed = false;
+      
+      Object.keys(updated).forEach(goalId => {
+        const optimisticRating = updated[goalId];
+        const goal = localGoals.find(g => g.id === goalId);
+        if (goal) {
+          const serverRating = getRatingValue(goal, true);
+          // Only clear if server rating matches optimistic and rating is > 0 (meaning it was actually set)
+          if (optimisticRating === serverRating && serverRating > 0) {
+            delete updated[goalId];
+            changed = true;
+          }
+        } else {
+          // Goal not found, clear optimistic rating
+          delete updated[goalId];
+          changed = true;
+        }
+      });
+      
+      return changed ? updated : prev;
+    });
+  }, [localGoals]);
 
-  const handleQuickPriorityUpdate = async (goalId: string, newPriority: string, e?: React.MouseEvent) => {
+  const handleQuickPriorityUpdate = async (goalId: string, newPriority: string, e?: any) => {
     e?.stopPropagation();
     
     // Find the current goal to preserve fields
@@ -549,17 +618,19 @@ export default function GoalsTable({
     }
   };
 
-  const filteredGoals = localGoals.filter(goal => {
-    const matchesSearch = 
-      goal.title.toLowerCase().includes(localSearchQuery.toLowerCase()) ||
-      goal.description.toLowerCase().includes(localSearchQuery.toLowerCase()) ||
-      (showEmployee && goal.employee?.name?.toLowerCase().includes(localSearchQuery.toLowerCase())) ||
-      (showManager && goal.manager?.name?.toLowerCase().includes(localSearchQuery.toLowerCase()));
-    
-    const matchesStatus = !localSelectedStatus || goal.status === localSelectedStatus;
-    
-    return matchesSearch && matchesStatus;
-  });
+  const filteredGoals = useMemo(() => {
+    return localGoals.filter(goal => {
+      const matchesSearch = 
+        goal.title.toLowerCase().includes(localSearchQuery.toLowerCase()) ||
+        goal.description.toLowerCase().includes(localSearchQuery.toLowerCase()) ||
+        (showEmployee && goal.employee?.name?.toLowerCase().includes(localSearchQuery.toLowerCase())) ||
+        (showManager && goal.manager?.name?.toLowerCase().includes(localSearchQuery.toLowerCase()));
+      
+      const matchesStatus = !localSelectedStatus || goal.status === localSelectedStatus;
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [localGoals, localSearchQuery, localSelectedStatus, showEmployee, showManager]);
 
   // Handle column sorting
   const handleSort = (column: SortColumn) => {
@@ -796,34 +867,93 @@ export default function GoalsTable({
                   <td className="py-3 px-4 text-sm text-gray-300">
                     {goal.category}
                   </td>
-                  {showRating && (
-                    <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
-                      {onRatingChange ? (
-                        <Select
-                          key={`rating-${goal.id}-${getRatingValue(goal)}`}
-                          value={String(getRatingValue(goal))}
-                          onValueChange={(value) => {
+                  {showRating && (() => {
+                    // Calculate current rating value - prioritize optimistic, then goal's rating
+                    const currentRatingValue = optimisticRatings[goal.id] !== undefined 
+                      ? optimisticRatings[goal.id] 
+                      : getRatingValue(goal, true);
+                    const displayValue = currentRatingValue ?? 0;
+                    
+                    return (
+                      <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+                        {onRatingChange ? (
+                          <Select
+                            key={`rating-${goal.id}-${displayValue}-${ratingUpdateCounter}`}
+                            value={String(displayValue)}
+                            onValueChange={(value) => {
                             const ratingValue = parseInt(value);
-                            if (ratingValue > 0) {
-                              onRatingChange(goal.id, ratingValue);
+                            if (!isNaN(ratingValue)) {
+                              // Immediately update optimistic rating state for instant UI feedback
+                              if (ratingValue > 0) {
+                                setOptimisticRatings(prev => ({ ...prev, [goal.id]: ratingValue }));
+                              } else {
+                                // Remove from optimistic ratings if setting to 0
+                                setOptimisticRatings(prev => {
+                                  const updated = { ...prev };
+                                  delete updated[goal.id];
+                                  return updated;
+                                });
+                              }
+                              
+                              // Also update local goals state
+                              setLocalGoals(prevGoals => {
+                                const currentGoal = prevGoals.find(g => g.id === goal.id);
+                                if (!currentGoal) return prevGoals;
+                                
+                                // Create completely new rating object to ensure React detects change
+                                const updatedRating = ratingValue > 0 ? {
+                                  ...(currentGoal.rating || {}),
+                                  id: currentGoal.rating?.id || 'temp',
+                                  goalId: goal.id,
+                                  managerScore: ratingValue,
+                                  score: ratingValue,
+                                  selfScore: (currentGoal as any).rating?.selfScore,
+                                  managerComments: currentGoal.rating?.managerComments || '',
+                                  comments: currentGoal.rating?.managerComments || currentGoal.rating?.comments || '',
+                                  managerRatedAt: new Date().toISOString(),
+                                  managerRatedById: session?.user?.id || currentGoal.rating?.managerRatedById,
+                                  updatedAt: new Date().toISOString()
+                                } : {
+                                  ...(currentGoal.rating || {}),
+                                  managerScore: undefined,
+                                  score: undefined,
+                                  updatedAt: new Date().toISOString()
+                                };
+                                
+                                const updatedGoal: Goal | GoalWithRatingExtended = {
+                                  ...currentGoal,
+                                  rating: updatedRating as any,
+                                  updatedAt: new Date().toISOString()
+                                } as Goal | GoalWithRatingExtended;
+                                
+                                // Force re-render
+                                setRatingUpdateCounter(prev => prev + 1);
+                                
+                                return prevGoals.map(g => g.id === goal.id ? { ...updatedGoal } : g);
+                              });
+                              
+                              // Call parent handler (only if rating > 0)
+                              if (ratingValue > 0) {
+                                onRatingChange(goal.id, ratingValue);
+                              }
                             }
                           }}
                           disabled={submittingRating === goal.id}
                         >
                           <SelectTrigger className="bg-gray-800/50 border border-white/10 text-white/90 text-xs px-3 py-1.5 h-auto hover:bg-gray-700/50 transition-colors cursor-pointer min-w-[120px]">
                             <div className="flex items-center gap-1.5">
-                              {getRatingValue(goal) > 0 ? (
-                                <>
-                                  <SelectValue>
-                                    {getRatingDisplay(getRatingValue(goal))}
-                                  </SelectValue>
-                                </>
-                              ) : (
-                                <>
-                                  <BsStar className="w-3 h-3 text-gray-400" />
-                                  <SelectValue>Not Rated</SelectValue>
-                                </>
-                              )}
+                              {displayValue > 0 ? (
+                                  <>
+                                    <SelectValue>
+                                      {getRatingDisplay(displayValue)}
+                                    </SelectValue>
+                                  </>
+                                ) : (
+                                  <>
+                                    <BsStar className="w-3 h-3 text-gray-400" />
+                                    <SelectValue>Not Rated</SelectValue>
+                                  </>
+                                )}
                             </div>
                           </SelectTrigger>
                           <SelectContent className="bg-gray-800 border-gray-700" onClick={(e) => e.stopPropagation()}>
@@ -841,20 +971,24 @@ export default function GoalsTable({
                             ))}
                           </SelectContent>
                         </Select>
-                      ) : (
-                        <div className="flex items-center gap-1.5 text-xs text-gray-300">
-                          {getRatingValue(goal) > 0 ? (
-                            <>
-                              <BsStarFill className="w-3 h-3 text-yellow-400" />
-                              <span>{getRatingDisplay(getRatingValue(goal))}</span>
-                            </>
-                          ) : (
-                            <span className="text-gray-500">Not Rated</span>
-                          )}
-                        </div>
-                      )}
-                    </td>
-                  )}
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-xs text-gray-300">
+                            {(() => {
+                              const ratingValue = getRatingValue(goal, showRating);
+                              return ratingValue > 0 ? (
+                                <>
+                                  <BsStarFill className="w-3 h-3 text-yellow-400" />
+                                  <span>{getRatingDisplay(ratingValue)}</span>
+                                </>
+                              ) : (
+                                <span className="text-gray-500">Not Rated</span>
+                              );
+                            })()}
+                          </div>
+                        )}
+                      </td>
+                    );
+                  })()}
                   {showActions && (
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>

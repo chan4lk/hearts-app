@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -239,14 +239,16 @@ export default function RateEmployeesPage() {
     }
   };
 
-  const filteredGoals = goals.filter(goal => {
-    if (!goal.employee) return false;
-    if (filterEmployee !== 'all' && goal.employee.id !== filterEmployee) return false;
-    if (filterRating !== 'all' && (goal.rating?.managerScore || goal.rating?.score) !== parseInt(filterRating)) return false;
-    if (selectedStatus && goal.status !== selectedStatus) return false;
-    if (selectedPriority && goal.priority !== selectedPriority) return false;
-    return true;
-  });
+  const filteredGoals = useMemo(() => {
+    return goals.filter(goal => {
+      if (!goal.employee) return false;
+      if (filterEmployee !== 'all' && goal.employee.id !== filterEmployee) return false;
+      if (filterRating !== 'all' && (goal.rating?.managerScore || goal.rating?.score) !== parseInt(filterRating)) return false;
+      if (selectedStatus && goal.status !== selectedStatus) return false;
+      if (selectedPriority && goal.priority !== selectedPriority) return false;
+      return true;
+    });
+  }, [goals, filterEmployee, filterRating, selectedStatus, selectedPriority]);
 
   if (loading) {
     return <LoadingComponent />;
