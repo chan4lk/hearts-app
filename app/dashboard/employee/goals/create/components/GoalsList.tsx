@@ -14,6 +14,7 @@ interface GoalsListProps {
   onViewGoal: (goal: Goal) => void;
   onRefresh: () => void;
   refreshing?: boolean;
+  onPriorityUpdate?: (goalId: string, newPriority: string, updatedGoal: Goal) => void;
 }
 
 export const GoalsList = ({
@@ -26,6 +27,7 @@ export const GoalsList = ({
   onViewGoal,
   onRefresh,
   refreshing = false,
+  onPriorityUpdate,
 }: GoalsListProps) => {
   const { data: session } = useSession();
   const userId = session?.user?.id;
@@ -53,6 +55,7 @@ export const GoalsList = ({
             onStatusChange={(status) => setSelectedStatus(status === '' ? 'all' : status)}
             onGoalClick={onViewGoal}
             showActions={false}
+            onPriorityUpdate={onPriorityUpdate}
           />
         </div>
       </div>

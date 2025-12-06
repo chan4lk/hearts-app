@@ -21,6 +21,7 @@ interface GoalsTableProps {
   onEdit?: (goal: Goal | GoalWithRatingExtended) => void;
   onDelete?: (goal: Goal | GoalWithRatingExtended) => void;
   onStatusUpdate?: (goalId: string, newStatus: string, updatedGoal: Goal | GoalWithRatingExtended) => void;
+  onPriorityUpdate?: (goalId: string, newPriority: string, updatedGoal: Goal | GoalWithRatingExtended) => void;
   onRatingChange?: (goalId: string, rating: number) => void;
   showEmployee?: boolean;
   showManager?: boolean;
@@ -226,13 +227,69 @@ const getStatusBadge = (status: string, goal?: Goal, session?: any, onStatusChan
   );
 };
 
-const getPriorityBadge = (priority: string) => {
+const PRIORITY_OPTIONS = [
+  { value: 'URGENT', label: 'Urgent' },
+  { value: 'HIGH', label: 'High' },
+  { value: 'MEDIUM', label: 'Medium' },
+  { value: 'LOW', label: 'Low' }
+];
+
+const getPriorityBadge = (priority: string, goal?: Goal, session?: any, onPriorityChange?: (goalId: string, newPriority: string) => void, updatingPriority?: string | null) => {
   const configs: Record<string, { bg: string; text: string }> = {
+    URGENT: { bg: 'bg-red-500/20', text: 'text-red-400' },
     HIGH: { bg: 'bg-rose-500/20', text: 'text-rose-400' },
     MEDIUM: { bg: 'bg-amber-500/20', text: 'text-amber-400' },
     LOW: { bg: 'bg-emerald-500/20', text: 'text-emerald-400' }
   };
   const config = configs[priority] || configs.MEDIUM;
+  
+  // Check if priority can be updated (employees can update their own goals, managers/admins can update any)
+  const canUpdate = goal && session && onPriorityChange && (
+    (goal.employeeId === session.user?.id) || 
+    (session.user?.role === 'MANAGER' || session.user?.role === 'ADMIN')
+  );
+  
+  if (canUpdate && goal) {
+    return (
+      <Select
+        key={`priority-${goal.id}-${priority}`}
+        value={priority}
+        onValueChange={(newPriority) => {
+          if (newPriority && newPriority !== priority) {
+            onPriorityChange(goal.id, newPriority);
+          }
+        }}
+        disabled={updatingPriority === goal.id}
+      >
+        <SelectTrigger className={`${config.bg} ${config.text} border border-white/20 text-xs px-3 py-1.5 h-auto hover:opacity-90 hover:border-white/30 transition-all cursor-pointer min-w-[120px] font-medium`} onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-2">
+            <SelectValue>{priority}</SelectValue>
+            <BsGear className="w-3 h-3 ml-auto opacity-50 rotate-90" />
+          </div>
+        </SelectTrigger>
+        <SelectContent className="bg-gray-800 border-gray-700 z-50" onClick={(e) => e.stopPropagation()}>
+          {PRIORITY_OPTIONS.map((priorityOption) => {
+            const isCurrentPriority = priorityOption.value === priority;
+            const optionConfig = configs[priorityOption.value] || configs.MEDIUM;
+            return (
+              <SelectItem 
+                key={priorityOption.value} 
+                value={priorityOption.value}
+                className={`hover:bg-gray-700 cursor-pointer ${isCurrentPriority ? 'bg-gray-700/50 font-semibold' : ''}`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${optionConfig.bg.replace('/20', '')}`}></span>
+                  <span>{priorityOption.label}</span>
+                  {isCurrentPriority && <span className="ml-auto text-xs opacity-60">(Current)</span>}
+                </div>
+              </SelectItem>
+            );
+          })}
+        </SelectContent>
+      </Select>
+    );
+  }
+  
   return (
     <Badge className={`${config.bg} ${config.text} border-0 text-xs px-2 py-1`}>
       {priority}
@@ -270,6 +327,7 @@ export default function GoalsTable({
   onEdit,
   onDelete,
   onStatusUpdate,
+  onPriorityUpdate,
   onRatingChange,
   showEmployee = false,
   showManager = false,
@@ -282,6 +340,7 @@ export default function GoalsTable({
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
   const [localSelectedStatus, setLocalSelectedStatus] = useState(selectedStatus);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [updatingPriority, setUpdatingPriority] = useState<string | null>(null);
   const [localGoals, setLocalGoals] = useState<(Goal | GoalWithRatingExtended)[]>(goals);
   const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
@@ -300,6 +359,99 @@ export default function GoalsTable({
   useEffect(() => {
     setLocalGoals(goals);
   }, [goals]);
+
+  const handleQuickPriorityUpdate = async (goalId: string, newPriority: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    
+    // Find the current goal to preserve fields
+    const currentGoal = localGoals.find(g => g.id === goalId);
+    if (!currentGoal) {
+      showToast.error('Update Failed', 'Goal not found');
+      return;
+    }
+
+    // OPTIMISTIC UPDATE: Update UI immediately before API call
+    const optimisticGoal: Goal | GoalWithRatingExtended = {
+      ...currentGoal,
+      priority: newPriority as any,
+      updatedAt: new Date().toISOString()
+    } as Goal | GoalWithRatingExtended;
+
+    // Update local state IMMEDIATELY (optimistic update)
+    setLocalGoals(prevGoals =>
+      prevGoals.map(goal =>
+        goal.id === goalId ? optimisticGoal : goal
+      )
+    );
+
+    // Notify parent component IMMEDIATELY (optimistic update)
+    onPriorityUpdate?.(goalId, newPriority, optimisticGoal);
+
+    setUpdatingPriority(goalId);
+    
+    try {
+      const response = await fetch(`/api/goals/${goalId}/priority`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priority: newPriority }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update priority');
+      }
+
+      const data = await response.json();
+      const updatedGoal = data.goal || data;
+
+      // Transform the updated goal to match the expected format
+      const transformedGoal: Goal | GoalWithRatingExtended = {
+        ...currentGoal,
+        ...updatedGoal,
+        id: updatedGoal.id,
+        title: updatedGoal.title,
+        description: updatedGoal.description,
+        priority: updatedGoal.priority || newPriority,
+        dueDate: updatedGoal.dueDate ? (typeof updatedGoal.dueDate === 'string' ? updatedGoal.dueDate : updatedGoal.dueDate.toISOString()) : currentGoal.dueDate,
+        category: updatedGoal.category || currentGoal.category,
+        department: updatedGoal.department || currentGoal.department,
+        createdAt: updatedGoal.createdAt ? (typeof updatedGoal.createdAt === 'string' ? updatedGoal.createdAt : updatedGoal.createdAt.toISOString()) : currentGoal.createdAt,
+        updatedAt: updatedGoal.updatedAt ? (typeof updatedGoal.updatedAt === 'string' ? updatedGoal.updatedAt : updatedGoal.updatedAt.toISOString()) : currentGoal.updatedAt,
+        employeeId: updatedGoal.employeeId || currentGoal.employeeId,
+        managerId: updatedGoal.managerId || currentGoal.managerId,
+        employee: updatedGoal.employee || currentGoal.employee,
+        manager: updatedGoal.manager || currentGoal.manager,
+        rating: updatedGoal.rating || (currentGoal as any)?.rating,
+        isApprovalProcess: (currentGoal as any)?.isApprovalProcess || false
+      } as Goal | GoalWithRatingExtended;
+
+      // Update local state with server response (sync with server)
+      setLocalGoals(prevGoals =>
+        prevGoals.map(goal =>
+          goal.id === goalId ? transformedGoal : goal
+        )
+      );
+
+      // Notify parent component with server response
+      onPriorityUpdate?.(goalId, newPriority, transformedGoal);
+
+      showToast.success('Priority Updated', `Goal priority updated to ${newPriority}`);
+    } catch (error) {
+      // REVERT optimistic update on error
+      setLocalGoals(prevGoals =>
+        prevGoals.map(goal =>
+          goal.id === goalId ? currentGoal : goal
+        )
+      );
+      
+      // Revert parent component state
+      onPriorityUpdate?.(goalId, currentGoal.priority || 'MEDIUM', currentGoal as Goal | GoalWithRatingExtended);
+      
+      showToast.error('Update Failed', error instanceof Error ? error.message : 'Failed to update priority');
+    } finally {
+      setUpdatingPriority(null);
+    }
+  };
 
   const handleQuickStatusUpdate = async (goalId: string, newStatus: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -610,8 +762,8 @@ export default function GoalsTable({
                       {getStatusBadge(goal.status, goal, session, disableStatusUpdate ? undefined : handleQuickStatusUpdate, updatingStatus, disableStatusUpdate)}
                     </div>
                   </td>
-                  <td className="py-3 px-4">
-                    {getPriorityBadge(goal.priority || 'MEDIUM')}
+                  <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+                    {getPriorityBadge(goal.priority || 'MEDIUM', goal, session, onPriorityUpdate ? handleQuickPriorityUpdate : undefined, updatingPriority)}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-300">
                     {new Date(goal.dueDate).toLocaleDateString()}

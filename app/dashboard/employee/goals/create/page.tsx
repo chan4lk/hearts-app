@@ -414,6 +414,13 @@ function GoalsPageContent() {
               onViewGoal={setSelectedViewGoal}
               onRefresh={handleRefresh}
               refreshing={refreshing}
+              onPriorityUpdate={(goalId, newPriority, updatedGoal) => {
+                setGoals(prevGoals =>
+                  prevGoals.map(goal =>
+                    goal.id === goalId ? { ...goal, priority: updatedGoal.priority } : goal
+                  )
+                );
+              }}
             />
           </motion.div>
         </div>
