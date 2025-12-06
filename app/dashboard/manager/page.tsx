@@ -6,7 +6,7 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { useSession } from 'next-auth/react';
 import StatsDisplay from './components/StatsDisplay';
 import Filters from './components/Filters';
-import GoalsTable from '@/app/components/shared/GoalsTable';
+import GoalsSection from './components/GoalsSection';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import LoadingComponent from '@/app/components/LoadingScreen';
 import AIPerformanceInsights from '@/app/components/ai/AIPerformanceInsights';
@@ -17,7 +17,6 @@ import { Goal, EmployeeStats, DashboardStats } from '@/app/components/shared/typ
 export default function ManagerDashboard() {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState('all');
-  const [selectedGoalType, setSelectedGoalType] = useState('all'); // 'all', 'assigned', 'self-created'
   const [selectedPriority, setSelectedPriority] = useState('');
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -152,20 +151,6 @@ export default function ManagerDashboard() {
     );
   };
 
-  const filteredGoals = goals.filter(goal => {
-    if (!goal.employee) return false;
-
-    const matchesStatus = !selectedStatus || goal.status === selectedStatus;
-    const matchesEmployee = selectedEmployee === 'all' || goal.employee.email === selectedEmployee;
-    
-    // Filter by goal type
-    const matchesGoalType = selectedGoalType === 'all' 
-      || (selectedGoalType === 'assigned' && isAssignedGoal(goal))
-      || (selectedGoalType === 'self-created' && isSelfCreatedGoal(goal));
-    const matchesPriority = !selectedPriority || goal.priority === selectedPriority;
-    
-    return matchesStatus && matchesEmployee && matchesGoalType && matchesPriority && !isCurrentUserGoal(goal);
-  });
 
   if (loading) {
     return <LoadingComponent />;
@@ -173,9 +158,11 @@ export default function ManagerDashboard() {
 
   return (
     <DashboardLayout type="manager">
-      <div className="min-h-screen bg-gray-900 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        {/* Subtle Background Pattern */}
+        <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
         
-        <div className="max-w-7xl mx-auto space-y-4">
+        <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
           {/* Stats Section */}
           <StatsDisplay stats={stats} roleStats={roleStats} />
 
@@ -185,8 +172,6 @@ export default function ManagerDashboard() {
             setSelectedStatus={setSelectedStatus}
             selectedEmployee={selectedEmployee}
             setSelectedEmployee={setSelectedEmployee}
-            selectedGoalType={selectedGoalType}
-            setSelectedGoalType={setSelectedGoalType}
             selectedPriority={selectedPriority}
             setSelectedPriority={setSelectedPriority}
             employees={employees}
@@ -247,13 +232,13 @@ export default function ManagerDashboard() {
             </motion.div>
           )}
 
-          {/* Goals Table */}
-          <GoalsTable
-            goals={filteredGoals}
+          {/* Goals Section with Tabs */}
+          <GoalsSection
+            goals={goals.filter(goal => goal.employee && !isCurrentUserGoal(goal))}
+            selectedStatus={selectedStatus}
+            selectedEmployee={selectedEmployee}
+            selectedPriority={selectedPriority}
             onGoalClick={handleGoalClick}
-            showEmployee={true}
-            showManager={false}
-            showActions={false}
             onStatusUpdate={handleStatusUpdate}
             onPriorityUpdate={handlePriorityUpdate}
             onDueDateUpdate={handleDueDateUpdate}
@@ -274,6 +259,8 @@ export default function ManagerDashboard() {
               // For all other goals (assigned goals, etc.), return empty array to make status read-only
               return [];
             }}
+            isAssignedGoal={isAssignedGoal}
+            isSelfCreatedGoal={isSelfCreatedGoal}
           />
         </div>
 
