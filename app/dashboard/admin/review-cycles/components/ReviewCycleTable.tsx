@@ -103,7 +103,7 @@ export default function ReviewCycleTable({ reviewCycles, onEdit, onDelete, onRef
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-700/50">
+              <tr className="border-b border-blue-800/50 bg-blue-900/20">
                 <th
                   className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
                   onClick={() => handleSort('user.name')}
@@ -174,7 +174,7 @@ export default function ReviewCycleTable({ reviewCycles, onEdit, onDelete, onRef
                   </td>
                 </tr>
               ) : (
-                sortedCycles.map((cycle) => (
+                sortedCycles.map((cycle, index) => (
                   <tr
                     key={cycle.id}
                     className="border-b border-white/5 hover:bg-white/5 transition-colors"

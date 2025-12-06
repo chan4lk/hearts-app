@@ -147,15 +147,6 @@ export default function ReviewCyclesPage() {
         <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
         
         <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
-          {/* Back Button */}
-          <Link
-            href="/dashboard/admin"
-            className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-2"
-          >
-            <BsArrowLeft className="w-4 h-4" />
-            <span>Back to Admin Dashboard</span>
-          </Link>
-
           {/* Hero Section */}
           <HeroSection 
             onAddNew={() => setIsFormOpen(true)}
