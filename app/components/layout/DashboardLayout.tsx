@@ -29,7 +29,8 @@ import {
   BsMoon,
   BsSearch,
   BsList,
-  BsX
+  BsX,
+  BsCalendarCheck
 } from 'react-icons/bs';
 import dynamic from 'next/dynamic';
 import { useSettings } from '@/app/providers';
@@ -112,6 +113,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       { href: '/dashboard/admin', label: 'Overview', icon: BsShield },
       { href: '/dashboard/admin/users', label: 'Manage Users', icon: BsPeople },
       { href: '/dashboard/admin/all-goals', label: 'All Goals', icon: BsBullseye },
+      { href: '/dashboard/admin/review-cycles', label: 'Review Cycles', icon: BsCalendarCheck },
     ];
 
     const managerItems: NavItem[] = [

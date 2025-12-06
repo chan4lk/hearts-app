@@ -1,0 +1,674 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import { BsX, BsCalendar, BsPerson, BsBriefcase, BsSearch, BsChevronDown } from 'react-icons/bs';
+import { searchDesignations } from '@/app/constants/designations';
+import { searchJobCategories } from '@/app/constants/jobCategories';
+
+interface ReviewCycle {
+  id: string;
+  userId: string;
+  reportingPersonId?: string | null;
+  jobCategory: string | null;
+  designation: string | null;
+  dateOfAppointment: string | null;
+  after6Months: string | null;
+  reviewMonth: string | null;
+  adjustedReviewMonth: string | null;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  reportingPerson?: {
+    id: string;
+    name: string;
+    email: string;
+  } | null;
+}
+
+interface ReviewCycleFormProps {
+  reviewCycle: ReviewCycle | null;
+  onSave: (data: any) => void;
+  onClose: () => void;
+}
+
+const MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: ReviewCycleFormProps) {
+  const [users, setUsers] = useState<any[]>([]);
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  
+  // Helper function to get month name from date
+  const getMonthName = (date: Date): string => {
+    return date.toLocaleDateString('en-US', { month: 'long' });
+  };
+
+  // Helper function to calculate 6 months and 1 year from appointment date
+  const calculateReviewDates = (appointmentDate: string) => {
+    if (!appointmentDate) {
+      return { after6Months: '', reviewMonth: '' };
+    }
+
+    const date = new Date(appointmentDate);
+    if (isNaN(date.getTime())) {
+      return { after6Months: '', reviewMonth: '' };
+    }
+
+    // Calculate 6 months from appointment date
+    const sixMonthsLater = new Date(date);
+    sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
+    const after6MonthsMonth = getMonthName(sixMonthsLater);
+
+    // Calculate 1 year from appointment date
+    const oneYearLater = new Date(date);
+    oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
+    const reviewMonthMonth = getMonthName(oneYearLater);
+
+    return {
+      after6Months: after6MonthsMonth,
+      reviewMonth: reviewMonthMonth
+    };
+  };
+
+  // Initialize form data with today's date as default for new records
+  const getInitialDate = () => {
+    if (reviewCycle?.dateOfAppointment) {
+      return new Date(reviewCycle.dateOfAppointment).toISOString().split('T')[0];
+    }
+    // Default to today's date for new records
+    return new Date().toISOString().split('T')[0];
+  };
+
+  const initialDate = getInitialDate();
+  const initialCalculations = calculateReviewDates(initialDate);
+
+  const [formData, setFormData] = useState({
+    userId: reviewCycle?.userId || '',
+    reportingPersonId: reviewCycle?.reportingPersonId || '',
+    jobCategory: reviewCycle?.jobCategory || '',
+    designation: reviewCycle?.designation || '',
+    dateOfAppointment: initialDate,
+    after6Months: reviewCycle?.after6Months || initialCalculations.after6Months,
+    reviewMonth: reviewCycle?.reviewMonth || initialCalculations.reviewMonth,
+    adjustedReviewMonth: reviewCycle?.adjustedReviewMonth || ''
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [employeeSearch, setEmployeeSearch] = useState('');
+  const [showEmployeeDropdown, setShowEmployeeDropdown] = useState(false);
+  const employeeRef = useRef<HTMLDivElement>(null);
+  const [reportingPersonSearch, setReportingPersonSearch] = useState('');
+  const [showReportingPersonDropdown, setShowReportingPersonDropdown] = useState(false);
+  const reportingPersonRef = useRef<HTMLDivElement>(null);
+  const [designationSearch, setDesignationSearch] = useState('');
+  const [showDesignationDropdown, setShowDesignationDropdown] = useState(false);
+  const designationRef = useRef<HTMLDivElement>(null);
+  const [jobCategorySearch, setJobCategorySearch] = useState('');
+  const [showJobCategoryDropdown, setShowJobCategoryDropdown] = useState(false);
+  const jobCategoryRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetchUsers();
+    fetchEmployees();
+  }, []);
+
+  // Initialize form values when reviewCycle changes
+  useEffect(() => {
+    if (reviewCycle) {
+      // Set initial employee value
+      if (reviewCycle.user) {
+        setEmployeeSearch(reviewCycle.user.name);
+      }
+      // Set initial reporting person value
+      if (reviewCycle.reportingPerson) {
+        setReportingPersonSearch(reviewCycle.reportingPerson.name);
+      }
+      // Set initial designation value
+      if (reviewCycle.designation) {
+        setDesignationSearch(reviewCycle.designation);
+      }
+      // Set initial job category value
+      if (reviewCycle.jobCategory) {
+        setJobCategorySearch(reviewCycle.jobCategory);
+      }
+    }
+  }, [reviewCycle]);
+
+  // Sync search fields when users/employees load and formData has values
+  useEffect(() => {
+    if (formData.userId && users.length > 0 && !employeeSearch) {
+      const selected = users.find(u => u.id === formData.userId);
+      if (selected) {
+        setEmployeeSearch(selected.name);
+      }
+    }
+  }, [formData.userId, users]);
+
+  useEffect(() => {
+    if (formData.reportingPersonId && employees.length > 0 && !reportingPersonSearch) {
+      const selected = employees.find(e => e.id === formData.reportingPersonId);
+      if (selected) {
+        setReportingPersonSearch(selected.name);
+      }
+    }
+  }, [formData.reportingPersonId, employees]);
+
+  useEffect(() => {
+    // Close dropdowns when clicking outside
+    const handleClickOutside = (event: MouseEvent) => {
+      if (employeeRef.current && !employeeRef.current.contains(event.target as Node)) {
+        setShowEmployeeDropdown(false);
+      }
+      if (reportingPersonRef.current && !reportingPersonRef.current.contains(event.target as Node)) {
+        setShowReportingPersonDropdown(false);
+      }
+      if (designationRef.current && !designationRef.current.contains(event.target as Node)) {
+        setShowDesignationDropdown(false);
+      }
+      if (jobCategoryRef.current && !jobCategoryRef.current.contains(event.target as Node)) {
+        setShowJobCategoryDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('/api/admin/users');
+      if (response.ok) {
+        const data = await response.json();
+        // Load ALL users - no filtering by manager assignment
+        // All employees, managers, and admins can be selected
+        setUsers(data);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
+
+  const fetchEmployees = async () => {
+    try {
+      const response = await fetch('/api/admin/users');
+      if (response.ok) {
+        const data = await response.json();
+        // Load ALL users - all users can be reporting persons
+        setEmployees(data);
+      }
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+    }
+  };
+
+  // Filter users by search term only (name or email)
+  // No filtering by manager assignment - all users are available
+  const filteredUsers = users.filter(user => 
+    user.name.toLowerCase().includes(employeeSearch.toLowerCase()) ||
+    user.email.toLowerCase().includes(employeeSearch.toLowerCase())
+  );
+
+  const filteredEmployees = employees.filter(emp => 
+    emp.name.toLowerCase().includes(reportingPersonSearch.toLowerCase()) ||
+    emp.email.toLowerCase().includes(reportingPersonSearch.toLowerCase())
+  );
+
+  const filteredDesignations = searchDesignations(designationSearch);
+  const filteredJobCategories = searchJobCategories(jobCategorySearch);
+
+  const handleEmployeeSelect = (userId: string) => {
+    const selected = users.find(u => u.id === userId);
+    if (selected) {
+      setFormData(prev => ({ ...prev, userId }));
+      setEmployeeSearch(selected.name);
+      setShowEmployeeDropdown(false);
+      if (errors.userId) {
+        setErrors(prev => ({ ...prev, userId: '' }));
+      }
+    }
+  };
+
+  const handleReportingPersonSelect = (employeeId: string) => {
+    const selected = employees.find(e => e.id === employeeId);
+    if (selected) {
+      setFormData(prev => ({ ...prev, reportingPersonId: employeeId }));
+      setReportingPersonSearch(selected.name);
+      setShowReportingPersonDropdown(false);
+    }
+  };
+
+  const handleDesignationSelect = (designation: string) => {
+    setFormData(prev => ({ ...prev, designation }));
+    setDesignationSearch(designation);
+    setShowDesignationDropdown(false);
+  };
+
+  const handleJobCategorySelect = (jobCategory: string) => {
+    setFormData(prev => ({ ...prev, jobCategory }));
+    setJobCategorySearch(jobCategory);
+    setShowJobCategoryDropdown(false);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const newErrors: Record<string, string> = {};
+    if (!formData.userId) {
+      newErrors.userId = 'User is required';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setLoading(true);
+    onSave(formData);
+    setTimeout(() => setLoading(false), 500);
+  };
+
+  const handleChange = (field: string, value: string) => {
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      
+      // Auto-calculate After 6 Months and Review Month when dateOfAppointment changes
+      if (field === 'dateOfAppointment' && value) {
+        const calculations = calculateReviewDates(value);
+        updated.after6Months = calculations.after6Months;
+        updated.reviewMonth = calculations.reviewMonth;
+      }
+      
+      return updated;
+    });
+    
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const selectedUser = users.find(u => u.id === formData.userId);
+
+  return (
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold text-white">
+          {reviewCycle ? 'Edit Review Cycle' : 'Add Review Cycle'}
+        </h2>
+        <button
+          onClick={onClose}
+          className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+        >
+          <BsX className="w-5 h-5 text-gray-400 hover:text-white" />
+        </button>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Employee Selection - Searchable Dropdown */}
+        <div ref={employeeRef} className="relative">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            <BsPerson className="inline w-4 h-4 mr-2" />
+            Employee *
+          </label>
+          <div className="relative">
+            <div className="relative">
+              <BsSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={employeeSearch}
+                onChange={(e) => {
+                  setEmployeeSearch(e.target.value);
+                  setShowEmployeeDropdown(true);
+                  if (!e.target.value) {
+                    setFormData(prev => ({ ...prev, userId: '' }));
+                  }
+                }}
+                onFocus={() => setShowEmployeeDropdown(true)}
+                placeholder="Search employee by name or email..."
+                className={`w-full pl-10 pr-10 py-2 bg-gray-800 text-white rounded-lg border ${
+                  errors.userId ? 'border-red-500' : 'border-gray-700'
+                } focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowEmployeeDropdown(!showEmployeeDropdown)}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+              >
+                <BsChevronDown className={`w-4 h-4 transition-transform ${showEmployeeDropdown ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
+            {showEmployeeDropdown && (
+              <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {filteredUsers.length > 0 ? (
+                  filteredUsers.map((user) => (
+                    <div
+                      key={user.id}
+                      onClick={() => handleEmployeeSelect(user.id)}
+                      className={`px-4 py-2 cursor-pointer hover:bg-gray-700 transition-colors ${
+                        formData.userId === user.id ? 'bg-indigo-900/50' : ''
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-white font-medium">{user.name}</div>
+                          <div className="text-gray-400 text-sm">{user.email}</div>
+                        </div>
+                        {user.role && (
+                          <span className="px-2 py-0.5 text-xs rounded bg-indigo-500/20 text-indigo-300">
+                            {user.role}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="px-4 py-2 text-gray-400 text-sm">No employees found</div>
+                )}
+              </div>
+            )}
+          </div>
+          {errors.userId && (
+            <p className="mt-1 text-sm text-red-400">{errors.userId}</p>
+          )}
+        </div>
+
+        {/* Reporting Person - Searchable Dropdown */}
+        <div ref={reportingPersonRef} className="relative">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            <BsPerson className="inline w-4 h-4 mr-2" />
+            Reporting Person
+          </label>
+          <div className="relative">
+            <div className="relative">
+              <BsSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={reportingPersonSearch}
+                onChange={(e) => {
+                  setReportingPersonSearch(e.target.value);
+                  setShowReportingPersonDropdown(true);
+                  if (!e.target.value) {
+                    setFormData(prev => ({ ...prev, reportingPersonId: '' }));
+                  }
+                }}
+                onFocus={() => setShowReportingPersonDropdown(true)}
+                placeholder="Search person by name or email..."
+                className="w-full pl-10 pr-10 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowReportingPersonDropdown(!showReportingPersonDropdown)}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+              >
+                <BsChevronDown className={`w-4 h-4 transition-transform ${showReportingPersonDropdown ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
+            {showReportingPersonDropdown && (
+              <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {filteredEmployees.length > 0 ? (
+                  filteredEmployees.map((emp) => (
+                    <div
+                      key={emp.id}
+                      onClick={() => handleReportingPersonSelect(emp.id)}
+                      className={`px-4 py-2 cursor-pointer hover:bg-gray-700 transition-colors ${
+                        formData.reportingPersonId === emp.id ? 'bg-indigo-900/50' : ''
+                      }`}
+                    >
+                      <div className="text-white font-medium">{emp.name}</div>
+                      <div className="text-gray-400 text-sm">{emp.email}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="px-4 py-2 text-gray-400 text-sm">No employees found</div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Job Category - Searchable Dropdown */}
+        <div ref={jobCategoryRef} className="relative">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            <BsBriefcase className="inline w-4 h-4 mr-2" />
+            Job Category
+          </label>
+          <div className="relative">
+            <div className="relative">
+              <BsSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={jobCategorySearch}
+                onChange={(e) => {
+                  setJobCategorySearch(e.target.value);
+                  setShowJobCategoryDropdown(true);
+                  if (!e.target.value) {
+                    setFormData(prev => ({ ...prev, jobCategory: '' }));
+                  }
+                }}
+                onFocus={(e) => {
+                  setShowJobCategoryDropdown(true);
+                  // If empty, ensure all categories are shown
+                  if (!jobCategorySearch) {
+                    setJobCategorySearch('');
+                  }
+                }}
+                placeholder="Search job category..."
+                className="w-full pl-10 pr-10 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowJobCategoryDropdown(!showJobCategoryDropdown);
+                  if (!showJobCategoryDropdown && !jobCategorySearch) {
+                    // If opening dropdown with no search, show all options
+                    setJobCategorySearch('');
+                  }
+                }}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+              >
+                <BsChevronDown className={`w-4 h-4 transition-transform ${showJobCategoryDropdown ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
+            {showJobCategoryDropdown && (
+              <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {filteredJobCategories.length > 0 ? (
+                  filteredJobCategories.map((category) => (
+                    <div
+                      key={category}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleJobCategorySelect(category);
+                      }}
+                      className={`px-4 py-2 cursor-pointer hover:bg-gray-700 transition-colors ${
+                        formData.jobCategory === category ? 'bg-indigo-900/50' : ''
+                      }`}
+                    >
+                      <div className="text-white font-medium">{category}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="px-4 py-2 text-gray-400 text-sm">No job categories found</div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Designation - Searchable Dropdown */}
+        <div ref={designationRef} className="relative">
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            <BsBriefcase className="inline w-4 h-4 mr-2" />
+            Designation
+          </label>
+          <div className="relative">
+            <div className="relative">
+              <BsSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={designationSearch}
+                onChange={(e) => {
+                  setDesignationSearch(e.target.value);
+                  setShowDesignationDropdown(true);
+                  if (!e.target.value) {
+                    setFormData(prev => ({ ...prev, designation: '' }));
+                  }
+                }}
+                onFocus={(e) => {
+                  setShowDesignationDropdown(true);
+                  // If empty, ensure all designations are shown
+                  if (!designationSearch) {
+                    setDesignationSearch('');
+                  }
+                }}
+                placeholder="Search designation..."
+                className="w-full pl-10 pr-10 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowDesignationDropdown(!showDesignationDropdown);
+                  if (!showDesignationDropdown && !designationSearch) {
+                    // If opening dropdown with no search, show all options
+                    setDesignationSearch('');
+                  }
+                }}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+              >
+                <BsChevronDown className={`w-4 h-4 transition-transform ${showDesignationDropdown ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
+            {showDesignationDropdown && (
+              <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {filteredDesignations.length > 0 ? (
+                  filteredDesignations.map((designation) => (
+                    <div
+                      key={designation}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDesignationSelect(designation);
+                      }}
+                      className={`px-4 py-2 cursor-pointer hover:bg-gray-700 transition-colors ${
+                        formData.designation === designation ? 'bg-indigo-900/50' : ''
+                      }`}
+                    >
+                      <div className="text-white font-medium">{designation}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="px-4 py-2 text-gray-400 text-sm">No designations found</div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Date of Appointment */}
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            <BsCalendar className="inline w-4 h-4 mr-2" />
+            Date of Appointment (Joined Date)
+          </label>
+          <input
+            type="date"
+            value={formData.dateOfAppointment}
+            onChange={(e) => handleChange('dateOfAppointment', e.target.value)}
+            className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+          {formData.dateOfAppointment && (
+            <p className="mt-1 text-xs text-gray-400">
+              {new Date(formData.dateOfAppointment).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </p>
+          )}
+        </div>
+
+        {/* After 6 Months */}
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            After 6 Months
+          </label>
+          <select
+            value={formData.after6Months}
+            onChange={(e) => handleChange('after6Months', e.target.value)}
+            className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="">Select Month</option>
+            {MONTHS.map((month) => (
+              <option key={month} value={month}>
+                {month}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Review Month */}
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Review Month
+          </label>
+          <select
+            value={formData.reviewMonth}
+            onChange={(e) => handleChange('reviewMonth', e.target.value)}
+            className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="">Select Month</option>
+            {MONTHS.map((month) => (
+              <option key={month} value={month}>
+                {month}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Adjusted Review Month */}
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            Adjusted Review Month
+          </label>
+          <select
+            value={formData.adjustedReviewMonth}
+            onChange={(e) => handleChange('adjustedReviewMonth', e.target.value)}
+            className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="">Select Month (Optional)</option>
+            {MONTHS.map((month) => (
+              <option key={month} value={month}>
+                {month}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Form Actions */}
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-700">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Saving...' : 'Save Review Cycle'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+

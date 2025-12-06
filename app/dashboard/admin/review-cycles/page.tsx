@@ -1,0 +1,230 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { motion, AnimatePresence } from 'framer-motion';
+import DashboardLayout from '@/app/components/layout/DashboardLayout';
+import LoadingComponent from '@/app/components/LoadingScreen';
+import HeroSection from './components/HeroSection';
+import ReviewCycleTable from './components/ReviewCycleTable';
+import ReviewCycleForm from './components/ReviewCycleForm';
+import { showToast } from '@/app/utils/toast';
+import { BsArrowLeft } from 'react-icons/bs';
+import Link from 'next/link';
+import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
+
+interface ReviewCycle {
+  id: string;
+  userId: string;
+  reportingPersonId?: string | null;
+  jobCategory: string | null;
+  designation: string | null;
+  dateOfAppointment: string | null;
+  after6Months: string | null;
+  reviewMonth: string | null;
+  adjustedReviewMonth: string | null;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    manager?: {
+      id: string;
+      name: string;
+      email: string;
+    } | null;
+  };
+  reportingPerson?: {
+    id: string;
+    name: string;
+    email: string;
+  } | null;
+  updatedBy?: {
+    id: string;
+    name: string;
+    email: string;
+  } | null;
+}
+
+export default function ReviewCyclesPage() {
+  const { data: session } = useSession();
+  const router = useRouter();
+  const [reviewCycles, setReviewCycles] = useState<ReviewCycle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingCycle, setEditingCycle] = useState<ReviewCycle | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [cycleToDelete, setCycleToDelete] = useState<ReviewCycle | null>(null);
+
+  useEffect(() => {
+    if (!session?.user || session.user.role !== 'ADMIN') {
+      router.push('/dashboard');
+      return;
+    }
+    fetchReviewCycles();
+  }, [session, router]);
+
+  const fetchReviewCycles = async () => {
+    try {
+      const response = await fetch('/api/admin/review-cycles');
+      if (!response.ok) {
+        throw new Error('Failed to fetch review cycles');
+      }
+      const data = await response.json();
+      setReviewCycles(data);
+    } catch (error) {
+      console.error('Error fetching review cycles:', error);
+      showToast.error('Failed to load review cycles');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async (formData: any) => {
+    try {
+      // Include the id if editing
+      const payload = editingCycle ? { ...formData, id: editingCycle.id } : formData;
+
+      const response = await fetch('/api/admin/review-cycles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save review cycle');
+      }
+
+      showToast.success(editingCycle ? 'Review Cycle Updated' : 'Review Cycle Created', 'Review cycle information has been saved successfully');
+      setIsFormOpen(false);
+      setEditingCycle(null);
+      fetchReviewCycles();
+    } catch (error) {
+      showToast.error('Error', error instanceof Error ? error.message : 'Failed to save review cycle');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`/api/admin/review-cycles?id=${id}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete review cycle');
+      }
+
+      showToast.success('Review Cycle Deleted', 'Review cycle has been deleted successfully');
+      fetchReviewCycles();
+    } catch (error) {
+      showToast.error('Error', error instanceof Error ? error.message : 'Failed to delete review cycle');
+    }
+  };
+
+  const handleEdit = (cycle: ReviewCycle) => {
+    setEditingCycle(cycle);
+    setIsFormOpen(true);
+  };
+
+  const handleCloseForm = () => {
+    setIsFormOpen(false);
+    setEditingCycle(null);
+  };
+
+  if (loading) {
+    return <LoadingComponent />;
+  }
+
+  return (
+    <DashboardLayout type="admin">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        {/* Subtle Background Pattern */}
+        <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
+        
+        <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
+          {/* Back Button */}
+          <Link
+            href="/dashboard/admin"
+            className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-2"
+          >
+            <BsArrowLeft className="w-4 h-4" />
+            <span>Back to Admin Dashboard</span>
+          </Link>
+
+          {/* Hero Section */}
+          <HeroSection 
+            onAddNew={() => setIsFormOpen(true)}
+          />
+
+          {/* Review Cycles Table */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <ReviewCycleTable
+              reviewCycles={reviewCycles}
+              onEdit={handleEdit}
+              onDelete={(cycle) => {
+                setCycleToDelete(cycle);
+                setDeleteConfirmOpen(true);
+              }}
+              onRefresh={fetchReviewCycles}
+            />
+          </motion.div>
+
+          {/* Review Cycle Form Modal */}
+          <AnimatePresence>
+            {isFormOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                onClick={handleCloseForm}
+              >
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-white/10"
+                >
+                  <ReviewCycleForm
+                    reviewCycle={editingCycle}
+                    onSave={handleSave}
+                    onClose={handleCloseForm}
+                  />
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Delete Confirmation Modal */}
+          <DeleteConfirmationModal
+            isOpen={deleteConfirmOpen}
+            onClose={() => {
+              setDeleteConfirmOpen(false);
+              setCycleToDelete(null);
+            }}
+            onConfirm={async () => {
+              if (cycleToDelete) {
+                await handleDelete(cycleToDelete.id);
+                setDeleteConfirmOpen(false);
+                setCycleToDelete(null);
+              }
+            }}
+            title="Delete Review Cycle"
+            message={`Are you sure you want to delete the review cycle for ${cycleToDelete?.user.name}? This action cannot be undone.`}
+          />
+
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}
+
