@@ -628,7 +628,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
           <label className="block text-sm font-medium text-gray-300 mb-2">
             Review Month
             {calculatedReviewMonth && formData.reviewMonth === calculatedReviewMonth && (
-              <span className="ml-2 text-xs text-indigo-400 font-normal">(Auto-calculated)</span>
+              <span className="ml-2 text-xs text-indigo-400 font-normal"></span>
             )}
           </label>
           <select
@@ -640,7 +640,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
             {MONTHS.map((month) => (
               <option key={month} value={month}>
                 {month}
-                {month === calculatedReviewMonth && formData.reviewMonth === calculatedReviewMonth ? ' (Calculated)' : ''}
+                {month === calculatedReviewMonth && formData.reviewMonth === calculatedReviewMonth ? '' : ''}
               </option>
             ))}
           </select>
@@ -661,7 +661,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
             onChange={(e) => handleChange('adjustedReviewMonth', e.target.value)}
             className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
-            <option value="">Select Month (Optional)</option>
+            <option value="">Select Month</option>
             {MONTHS.map((month) => (
               <option key={month} value={month}>
                 {month}
@@ -696,7 +696,6 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
           {/* Show calculated review month hint when no adjustment */}
           {!formData.adjustedReviewMonth && formData.reviewMonth && calculatedReviewMonth && (
             <p className="mt-1 text-xs text-gray-400">
-              Based on appointment date: <span className="text-indigo-400 font-medium">{formData.reviewMonth}</span>
             </p>
           )}
         </div>
