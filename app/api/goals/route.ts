@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { NotificationType } from '@prisma/client';
 
 // Define GoalStatus enum locally
 enum GoalStatus {
@@ -295,6 +296,53 @@ export async function POST(req: Request) {
       },
       include: goalInclude
     });
+
+    // Create notifications
+    const { NotificationType } = await import('@prisma/client');
+    
+    // Notify employee when goal is created
+    await prisma.notification.create({
+      data: {
+        type: NotificationType.GOAL_CREATED,
+        message: isAdminOrManager && !isSelfGoal
+          ? `A new goal "${goal.title}" has been assigned to you by ${session.user.name || 'your manager'}`
+          : `You created a new goal "${goal.title}" (status: ${goal.status})`,
+        userId: targetEmployeeId,
+        goalId: goal.id,
+      },
+    });
+
+    // If manager assigns goal, notify manager about the assignment
+    if (isAdminOrManager && !isSelfGoal) {
+      await prisma.notification.create({
+        data: {
+          type: NotificationType.GOAL_CREATED,
+          message: `You assigned goal "${goal.title}" to ${goal.employee?.name || 'employee'}`,
+          userId: userId,
+          goalId: goal.id,
+        },
+      });
+    }
+
+    // If employee creates DRAFT goal, notify their manager
+    if (isSelfGoal && initialStatus === GoalStatus.DRAFT) {
+      // Fetch employee with manager info
+      const employeeWithManager = await prisma.user.findUnique({
+        where: { id: targetEmployeeId },
+        select: { id: true, name: true, email: true, managerId: true }
+      });
+      
+      if (employeeWithManager?.managerId) {
+        await prisma.notification.create({
+          data: {
+            type: NotificationType.GOAL_CREATED,
+            message: `${employeeWithManager.name || 'Employee'} created a new goal "${goal.title}" that needs your review`,
+            userId: employeeWithManager.managerId,
+            goalId: goal.id,
+          },
+        });
+      }
+    }
 
     // Log for debugging - verify status is set correctly
     console.log('Goal created with status:', {

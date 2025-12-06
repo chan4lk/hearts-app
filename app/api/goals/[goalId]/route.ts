@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { NotificationType } from '@prisma/client';
 
 // Standard include for goal queries (matching the main goals route)
 const goalInclude = {
@@ -259,6 +260,33 @@ export async function DELETE(req: Request, { params }: { params: { goalId: strin
       },
       include: goalInclude
     });
+
+    // Create notification for goal deletion
+    const deleterName = session.user.name || session.user.email || 'User';
+    
+    // Notify employee if goal was deleted
+    if (existingGoal.employeeId) {
+      await prisma.notification.create({
+        data: {
+          type: NotificationType.GOAL_DELETED,
+          message: `The goal "${existingGoal.title}" has been deleted by ${deleterName}`,
+          userId: existingGoal.employeeId,
+          goalId: existingGoal.id,
+        },
+      });
+    }
+
+    // Notify manager if they didn't delete it
+    if (existingGoal.managerId && existingGoal.managerId !== session.user.id) {
+      await prisma.notification.create({
+        data: {
+          type: NotificationType.GOAL_DELETED,
+          message: `The goal "${existingGoal.title}" assigned to ${existingGoal.employee?.name || 'employee'} has been deleted by ${deleterName}`,
+          userId: existingGoal.managerId,
+          goalId: existingGoal.id,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,

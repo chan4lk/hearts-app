@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
+import { NotificationType } from '@prisma/client';
 
 export async function POST(
   request: Request,
@@ -183,6 +184,17 @@ export async function POST(
         { status: 500 }
       );
     }
+
+    // Create notification for employee when manager rates their goal
+    const managerName = session.user.name || session.user.email || 'your manager';
+    await prisma.notification.create({
+      data: {
+        type: NotificationType.RATING_RECEIVED,
+        message: `${managerName} rated your goal "${goal.title}" with ${score} star${score > 1 ? 's' : ''}`,
+        userId: goal.employeeId,
+        goalId: goal.id,
+      },
+    });
 
     return NextResponse.json({
       id: rating.id,

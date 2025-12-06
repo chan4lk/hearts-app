@@ -156,6 +156,8 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
       case 'REVIEW_CYCLE_CREATED':
       case 'REVIEW_CYCLE_UPDATED':
         return '📋';
+      case 'REVIEW_CYCLE_DELETED':
+        return '🗑️';
       case 'GOAL_CREATED':
       case 'GOAL_UPDATED':
         return '🎯';
@@ -163,6 +165,12 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
         return '✅';
       case 'GOAL_REJECTED':
         return '❌';
+      case 'GOAL_COMPLETED':
+        return '🏆';
+      case 'GOAL_DELETED':
+        return '🗑️';
+      case 'GOAL_MODIFIED':
+        return '📝';
       case 'RATING_RECEIVED':
         return '⭐';
       default:
@@ -174,11 +182,14 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
     if (type.includes('REVIEW_CYCLE')) {
       return 'text-indigo-400';
     }
-    if (type.includes('GOAL_APPROVED') || type.includes('RATING_RECEIVED')) {
+    if (type.includes('GOAL_APPROVED') || type.includes('GOAL_COMPLETED') || type.includes('RATING_RECEIVED')) {
       return 'text-green-400';
     }
-    if (type.includes('GOAL_REJECTED')) {
+    if (type.includes('GOAL_REJECTED') || type.includes('GOAL_DELETED') || type.includes('REVIEW_CYCLE_DELETED')) {
       return 'text-red-400';
+    }
+    if (type.includes('GOAL_UPDATED') || type.includes('GOAL_MODIFIED')) {
+      return 'text-blue-400';
     }
     return 'text-blue-400';
   };

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { NotificationType } from '@prisma/client';
 
 // Status update endpoint for goals
 // Manager-assigned goals: Start as APPROVED → Employee can update to IN_PROGRESS → COMPLETED and others
@@ -157,6 +158,85 @@ export async function PATCH(
         }
       }
     });
+
+    // Create notifications based on status change
+    const oldStatus = goal.status;
+    const newStatus = status;
+    const actorName = session.user.name || session.user.email || 'User';
+
+    // Notify employee about status changes
+    if (newStatus === 'APPROVED' && oldStatus !== 'APPROVED') {
+      await prisma.notification.create({
+        data: {
+          type: NotificationType.GOAL_APPROVED,
+          message: `Your goal "${goal.title}" has been approved by ${actorName}`,
+          userId: goal.employeeId,
+          goalId: goal.id,
+        },
+      });
+    } else if (newStatus === 'REJECTED' && oldStatus !== 'REJECTED') {
+      await prisma.notification.create({
+        data: {
+          type: NotificationType.GOAL_REJECTED,
+          message: `Your goal "${goal.title}" has been rejected by ${actorName}`,
+          userId: goal.employeeId,
+          goalId: goal.id,
+        },
+      });
+    } else if (newStatus === 'COMPLETED' && oldStatus !== 'COMPLETED') {
+      // Notify manager when employee completes goal
+      if (goal.managerId) {
+        await prisma.notification.create({
+          data: {
+            type: NotificationType.GOAL_COMPLETED,
+            message: `${goal.employee?.name || 'Employee'} completed the goal "${goal.title}"`,
+            userId: goal.managerId,
+            goalId: goal.id,
+          },
+        });
+      }
+      // Also notify employee
+      await prisma.notification.create({
+        data: {
+          type: NotificationType.GOAL_COMPLETED,
+          message: `You completed the goal "${goal.title}"`,
+          userId: goal.employeeId,
+          goalId: goal.id,
+        },
+      });
+    } else if (newStatus !== oldStatus && (newStatus === 'IN_PROGRESS' || newStatus === 'ON_HOLD' || newStatus === 'BLOCKED')) {
+      // Notify manager about progress status changes
+      if (goal.managerId && isEmployee) {
+        await prisma.notification.create({
+          data: {
+            type: NotificationType.GOAL_UPDATED,
+            message: `${goal.employee?.name || 'Employee'} updated goal "${goal.title}" status to ${newStatus.replace('_', ' ')}`,
+            userId: goal.managerId,
+            goalId: goal.id,
+          },
+        });
+      }
+    }
+
+    // Notify manager when employee creates DRAFT goal and it gets approved/rejected
+    if ((newStatus === 'APPROVED' || newStatus === 'REJECTED') && oldStatus === 'DRAFT') {
+      // Fetch employee with manager info
+      const employeeWithManager = await prisma.user.findUnique({
+        where: { id: goal.employeeId },
+        select: { id: true, name: true, email: true, managerId: true }
+      });
+      
+      if (employeeWithManager?.managerId) {
+        await prisma.notification.create({
+          data: {
+            type: newStatus === 'APPROVED' ? NotificationType.GOAL_APPROVED : NotificationType.GOAL_REJECTED,
+            message: `You ${newStatus === 'APPROVED' ? 'approved' : 'rejected'} ${employeeWithManager.name || 'employee'}'s goal "${goal.title}"`,
+            userId: employeeWithManager.managerId,
+            goalId: goal.id,
+          },
+        });
+      }
+    }
 
     return NextResponse.json({
       success: true,

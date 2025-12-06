@@ -319,7 +319,7 @@ export async function DELETE(req: Request) {
     // Create notification for the employee when review cycle is deleted
     await prisma.notification.create({
       data: {
-        type: NotificationType.REVIEW_CYCLE_UPDATED, // Using updated type since deleted doesn't exist
+        type: NotificationType.REVIEW_CYCLE_DELETED,
         message: `Your review cycle has been deleted by ${session.user.name || 'Admin'}`,
         userId: userId,
       },
