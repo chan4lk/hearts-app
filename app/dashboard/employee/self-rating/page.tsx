@@ -344,7 +344,14 @@ export default function SelfRatingPage() {
                       </div>
                       <div>
                         <h3 className="text-lg font-bold text-white">Self Ratings</h3>
-                        <p className="text-[11px] text-yellow-200/80">Your self-assessment on your goals</p>
+                        <p className="text-[11px] text-yellow-200/80">
+                          {(() => {
+                            const ratedGoals = goals.filter(goal => goal.rating?.selfScore || goal.rating?.score);
+                            const totalRating = ratedGoals.reduce((acc, goal) => acc + (goal.rating?.selfScore || goal.rating?.score || 0), 0);
+                            const averageRating = ratedGoals.length > 0 ? (totalRating / ratedGoals.length).toFixed(1) : '0.0';
+                            return `${ratedGoals.length} rated • Avg: ${averageRating}/5`;
+                          })()}
+                        </p>
                       </div>
                     </div>
                     <button
@@ -359,9 +366,8 @@ export default function SelfRatingPage() {
                   {/* Scrollable Content */}
                   <div className="overflow-y-auto flex-1 p-4">
                     {(() => {
-                      const userId = session?.user?.id;
-                      const selfCreatedGoals = goals.filter(goal => goal.createdBy?.id === userId);
-                      const ratedGoals = selfCreatedGoals.filter(goal => goal.rating?.selfScore || goal.rating?.score);
+                      // Show all goals (both assigned and self-created) that have self ratings
+                      const ratedGoals = goals.filter(goal => goal.rating?.selfScore || goal.rating?.score);
                       
                       if (ratedGoals.length === 0) {
                         return (
