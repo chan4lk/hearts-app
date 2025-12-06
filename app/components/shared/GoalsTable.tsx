@@ -315,8 +315,10 @@ const getRatingDisplay = (rating: number | null | undefined) => {
 // Helper to get the rating value (checks managerScore first if showRating is true, otherwise selfScore, then score)
 const getRatingValue = (goal: any, prioritizeManagerScore = false) => {
   if (prioritizeManagerScore) {
-    // For manager rating page, prioritize managerScore
-    return goal?.rating?.managerScore ?? goal?.rating?.score ?? goal?.rating?.selfScore ?? 0;
+    // For manager rating page, only use managerScore (don't fallback to score or selfScore)
+    const managerScore = goal?.rating?.managerScore;
+    // Return managerScore only if it exists and is > 0, otherwise return 0
+    return (managerScore !== null && managerScore !== undefined && managerScore > 0) ? managerScore : 0;
   }
   // For other pages, check selfScore, managerScore, then score
   return goal?.rating?.selfScore ?? goal?.rating?.managerScore ?? goal?.rating?.score ?? 0;
