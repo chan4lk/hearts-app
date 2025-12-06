@@ -91,9 +91,41 @@ export default function SelfRatingPage() {
   const handleSelfRating = async (goalId: string, value: number) => {
     if (isNaN(value) || value === 0 || submittingRatingId === goalId) return;
 
-    try {
-      setSubmittingRatingId(goalId);
+    // Find the current goal to preserve fields
+    const currentGoal = goals.find(g => g.id === goalId);
+    if (!currentGoal) {
+      toast.error('Goal not found');
+      return;
+    }
 
+    // OPTIMISTIC UPDATE: Update UI immediately before API call
+    const optimisticRating = {
+      ...(currentGoal.rating || {}),
+      id: currentGoal.rating?.id || 'temp',
+      selfScore: value,
+      score: value, // Keep for backward compatibility
+      selfComments: ratingComments[goalId] || currentGoal.rating?.selfComments || '',
+      comments: ratingComments[goalId] || currentGoal.rating?.comments || '',
+      selfRatedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      goalId: goalId
+    };
+
+    const optimisticGoal: Goal = {
+      ...currentGoal,
+      rating: optimisticRating as any
+    };
+
+    // Update local state IMMEDIATELY (optimistic update)
+    setGoals(prevGoals =>
+      prevGoals.map(goal =>
+        goal.id === goalId ? optimisticGoal : goal
+      )
+    );
+
+    setSubmittingRatingId(goalId);
+
+    try {
       const response = await fetch(`/api/goals/${goalId}/self-rating`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -110,6 +142,7 @@ export default function SelfRatingPage() {
 
       const updatedRating = await response.json();
 
+      // Update with server response (sync with server)
       setGoals(prevGoals =>
         prevGoals.map(goal =>
           goal.id === goalId
@@ -118,8 +151,8 @@ export default function SelfRatingPage() {
                 rating: {
                   ...goal.rating,
                   id: updatedRating.id,
-                  selfScore: value,
-                  score: value, // Keep for backward compatibility
+                  selfScore: updatedRating.selfScore || value,
+                  score: updatedRating.selfScore || updatedRating.score || value,
                   selfComments: updatedRating.selfComments || updatedRating.comments || '',
                   comments: updatedRating.selfComments || updatedRating.comments || '',
                   selfRatedAt: updatedRating.selfRatedAt,
@@ -139,6 +172,13 @@ export default function SelfRatingPage() {
 
       toast.success(`Self-rating updated to ${value} stars`);
     } catch (error) {
+      // REVERT optimistic update on error
+      setGoals(prevGoals =>
+        prevGoals.map(goal =>
+          goal.id === goalId ? currentGoal : goal
+        )
+      );
+      
       const message = error instanceof Error ? error.message : 'Failed to update rating';
       toast.error(message);
     } finally {

@@ -109,43 +109,51 @@ export default function RateEmployeesPage() {
   };
 
   const handleRatingChange = async (goalId: string, value: number) => {
-    if (isNaN(value) || !goalId || value === 0) {
-      return; // Don't submit if value is 0 (Not Rated)
-    }
-
-    // Find the goal to restore if update fails
-    const goalToRestore = goals.find(g => g.id === goalId);
-    if (!goalToRestore) {
+    if (isNaN(value) || !goalId || value === 0) return;
+    
+    // Find the current goal to preserve fields
+    const currentGoal = goals.find(g => g.id === goalId);
+    if (!currentGoal) {
       toast.error('Goal not found');
       return;
     }
 
-    // Optimistic update - update UI immediately (allows changing rating)
-    setGoals(prevGoals =>
-      prevGoals.map(goal =>
-        goal.id === goalId
-          ? {
-              ...goal,
-              rating: {
-                ...goal.rating, // Preserve existing rating properties (like selfScore)
-                id: goal.rating?.id || '',
-                goalId: goalId,
-                managerScore: value,
-                score: value,
-                managerComments: goal.rating?.managerComments || '',
-                comments: goal.rating?.comments || '',
-                managerRatedAt: new Date().toISOString(),
-                managerRatedById: session?.user?.id || goal.rating?.managerRatedById,
-                updatedAt: new Date().toISOString()
-              }
-            }
-          : goal
-      )
-    );
+    // OPTIMISTIC UPDATE: Update UI immediately before API call
+    const optimisticRating = {
+      ...(currentGoal.rating || {}),
+      id: currentGoal.rating?.id || 'temp',
+      goalId: goalId,
+      managerScore: value,
+      score: value, // Keep for backward compatibility
+      managerComments: currentGoal.rating?.managerComments || '',
+      comments: currentGoal.rating?.managerComments || currentGoal.rating?.comments || '',
+      managerRatedAt: new Date().toISOString(),
+      managerRatedById: session?.user?.id || currentGoal.rating?.managerRatedById,
+      updatedAt: new Date().toISOString()
+    };
+
+    const optimisticGoal: GoalWithRatingExtended = {
+      ...currentGoal,
+      rating: optimisticRating as any
+    };
+
+    // Update local state IMMEDIATELY (optimistic update)
+    setGoals(prevGoals => {
+      const updatedGoals = prevGoals.map(goal =>
+        goal.id === goalId ? optimisticGoal : goal
+      );
+      
+      // Update employee stats immediately with optimistic data
+      const stats = calculateEmployeeStats(updatedGoals);
+      setEmployeeStats(stats);
+      
+      return updatedGoals;
+    });
+
+    setSubmittingRatingId(goalId);
+    setSubmitting(true);
 
     try {
-      setSubmitting(true);
-      setSubmittingRatingId(goalId);
 
       console.log('Submitting rating:', { goalId, value });
 
@@ -210,14 +218,19 @@ export default function RateEmployeesPage() {
       toast.success(`Rating updated to ${value} stars`);
     } catch (error) {
       console.error('Error updating rating:', error);
-      // Revert optimistic update on error
-      if (goalToRestore) {
-        setGoals(prevGoals =>
-          prevGoals.map(goal =>
-            goal.id === goalId ? goalToRestore : goal
-          )
+      // REVERT optimistic update on error
+      setGoals(prevGoals => {
+        const revertedGoals = prevGoals.map(goal =>
+          goal.id === goalId ? currentGoal : goal
         );
-      }
+        
+        // Revert employee stats
+        const stats = calculateEmployeeStats(revertedGoals);
+        setEmployeeStats(stats);
+        
+        return revertedGoals;
+      });
+      
       const errorMessage = error instanceof Error ? error.message : 'Failed to update rating';
       toast.error(errorMessage);
     } finally {
