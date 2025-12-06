@@ -174,10 +174,20 @@ export default function ReviewCycleTable({ reviewCycles, onEdit, onDelete, onRef
                   </td>
                 </tr>
               ) : (
-                sortedCycles.map((cycle, index) => (
+                sortedCycles.map((cycle, index) => {
+                  // Check if adjusted review month is different from review month
+                  const hasAdjustment = cycle.adjustedReviewMonth && 
+                                       cycle.reviewMonth && 
+                                       cycle.adjustedReviewMonth !== cycle.reviewMonth;
+                  
+                  return (
                   <tr
                     key={cycle.id}
-                    className="border-b border-white/5 hover:bg-white/5 transition-colors"
+                    className={`border-b transition-colors ${
+                      hasAdjustment
+                        ? 'bg-amber-500/10 hover:bg-amber-500/20 border-l-4 border-l-amber-500 border-amber-500/30'
+                        : 'border-white/5 hover:bg-white/5'
+                    }`}
                   >
                     <td className="py-3 px-4 text-sm text-gray-300">{cycle.user.name}</td>
                     <td className="py-3 px-4 text-sm text-gray-300">
@@ -189,9 +199,23 @@ export default function ReviewCycleTable({ reviewCycles, onEdit, onDelete, onRef
                       {formatDate(cycle.dateOfAppointment)}
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-300">{cycle.after6Months || '-'}</td>
-                    <td className="py-3 px-4 text-sm text-gray-300">{cycle.reviewMonth || '-'}</td>
-                    <td className="py-3 px-4 text-sm text-gray-300">
-                      {cycle.adjustedReviewMonth || '-'}
+                    <td className={`py-3 px-4 text-sm ${hasAdjustment ? 'text-gray-400' : 'text-gray-300'}`}>
+                      {hasAdjustment ? (
+                        <span className="line-through decoration-2 decoration-amber-400">
+                          {cycle.reviewMonth}
+                        </span>
+                      ) : (
+                        cycle.reviewMonth || '-'
+                      )}
+                    </td>
+                    <td className={`py-3 px-4 text-sm ${hasAdjustment ? 'text-green-400 font-semibold' : 'text-gray-300'}`}>
+                      {hasAdjustment ? (
+                        <span className="flex items-center gap-2">
+                          <span className="text-green-400">{cycle.adjustedReviewMonth}</span>
+                        </span>
+                      ) : (
+                        cycle.adjustedReviewMonth || '-'
+                      )}
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
@@ -212,7 +236,8 @@ export default function ReviewCycleTable({ reviewCycles, onEdit, onDelete, onRef
                       </div>
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
