@@ -97,6 +97,16 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
     reviewMonth: reviewCycle?.reviewMonth || initialCalculations.reviewMonth,
     adjustedReviewMonth: reviewCycle?.adjustedReviewMonth || ''
   });
+
+  // Track the calculated review month for comparison
+  useEffect(() => {
+    if (formData.dateOfAppointment) {
+      const calculations = calculateReviewDates(formData.dateOfAppointment);
+      setCalculatedReviewMonth(calculations.reviewMonth);
+    } else {
+      setCalculatedReviewMonth('');
+    }
+  }, [formData.dateOfAppointment]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [employeeSearch, setEmployeeSearch] = useState('');
   const [showEmployeeDropdown, setShowEmployeeDropdown] = useState(false);
@@ -110,6 +120,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
   const [jobCategorySearch, setJobCategorySearch] = useState('');
   const [showJobCategoryDropdown, setShowJobCategoryDropdown] = useState(false);
   const jobCategoryRef = useRef<HTMLDivElement>(null);
+  const [calculatedReviewMonth, setCalculatedReviewMonth] = useState<string>('');
 
   useEffect(() => {
     fetchUsers();
@@ -616,6 +627,9 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
             Review Month
+            {calculatedReviewMonth && formData.reviewMonth === calculatedReviewMonth && (
+              <span className="ml-2 text-xs text-indigo-400 font-normal">(Auto-calculated)</span>
+            )}
           </label>
           <select
             value={formData.reviewMonth}
@@ -626,9 +640,15 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
             {MONTHS.map((month) => (
               <option key={month} value={month}>
                 {month}
+                {month === calculatedReviewMonth && formData.reviewMonth === calculatedReviewMonth ? ' (Calculated)' : ''}
               </option>
             ))}
           </select>
+          {calculatedReviewMonth && formData.reviewMonth !== calculatedReviewMonth && (
+            <p className="mt-1 text-xs text-amber-400">
+              ⚠️ Changed from calculated: <span className="line-through text-gray-400">{calculatedReviewMonth}</span>
+            </p>
+          )}
         </div>
 
         {/* Adjusted Review Month */}
@@ -648,6 +668,37 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
               </option>
             ))}
           </select>
+          {/* Show comparison when adjusted month is different from review month */}
+          {formData.adjustedReviewMonth && 
+           formData.reviewMonth && 
+           formData.adjustedReviewMonth !== formData.reviewMonth && (
+            <div className="mt-2 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="text-amber-400 font-medium">Original:</span>
+                <span className="px-2 py-1 bg-gray-700/50 rounded text-gray-300 line-through decoration-amber-400 decoration-2">
+                  {formData.reviewMonth}
+                </span>
+                <span className="text-gray-500">→</span>
+                <span className="text-green-400 font-medium">Adjusted:</span>
+                <span className="px-2 py-1 bg-green-500/20 rounded text-green-300 font-semibold border border-green-500/30">
+                  {formData.adjustedReviewMonth}
+                </span>
+              </div>
+              {calculatedReviewMonth && formData.reviewMonth !== calculatedReviewMonth && (
+                <div className="mt-2 pt-2 border-t border-amber-500/20">
+                  <span className="text-xs text-gray-400">
+                    Note: Review Month was also changed from calculated: <span className="line-through">{calculatedReviewMonth}</span>
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+          {/* Show calculated review month hint when no adjustment */}
+          {!formData.adjustedReviewMonth && formData.reviewMonth && calculatedReviewMonth && (
+            <p className="mt-1 text-xs text-gray-400">
+              Based on appointment date: <span className="text-indigo-400 font-medium">{formData.reviewMonth}</span>
+            </p>
+          )}
         </div>
 
         {/* Form Actions */}
