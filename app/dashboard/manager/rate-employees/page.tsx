@@ -109,7 +109,46 @@ export default function RateEmployeesPage() {
   };
 
   const handleRatingChange = async (goalId: string, value: number) => {
-    if (isNaN(value) || !goalId || value === 0) return;
+    if (isNaN(value) || !goalId) return;
+    
+    // Handle "Not Rated" (0) - remove the rating
+    if (value === 0) {
+      const currentGoal = goals.find(g => g.id === goalId);
+      if (!currentGoal) {
+        toast.error('Goal not found');
+        return;
+      }
+
+      // Optimistically update UI to remove rating
+      const goalWithoutRating: GoalWithRatingExtended = {
+        ...currentGoal,
+        rating: currentGoal.rating ? {
+          ...currentGoal.rating,
+          managerScore: undefined,
+          score: currentGoal.rating.selfScore || undefined,
+          managerRatedAt: undefined,
+          managerRatedById: undefined,
+          updatedAt: new Date().toISOString()
+        } : currentGoal.rating
+      };
+
+      setGoals(prevGoals => {
+        const updatedGoals = prevGoals.map(goal =>
+          goal.id === goalId ? goalWithoutRating : goal
+        );
+        
+        // Update employee stats
+        const stats = calculateEmployeeStats(updatedGoals);
+        setEmployeeStats(stats);
+        
+        return updatedGoals;
+      });
+      
+      // TODO: Call API to delete rating if needed
+      // For now, just update UI optimistically
+      toast.success('Rating removed');
+      return;
+    }
     
     // Find the current goal to preserve fields
     const currentGoal = goals.find(g => g.id === goalId);

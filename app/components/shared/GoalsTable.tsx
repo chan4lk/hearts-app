@@ -413,8 +413,8 @@ export default function GoalsTable({
         const goal = localGoals.find(g => g.id === goalId);
         if (goal) {
           const serverRating = getRatingValue(goal, true);
-          // Only clear if server rating matches optimistic and rating is > 0 (meaning it was actually set)
-          if (optimisticRating === serverRating && serverRating > 0) {
+          // Clear if server rating matches optimistic (works for both positive ratings and 0 for "Not Rated")
+          if (optimisticRating === serverRating) {
             delete updated[goalId];
             changed = true;
           }
@@ -884,16 +884,8 @@ export default function GoalsTable({
                             const ratingValue = parseInt(value);
                             if (!isNaN(ratingValue)) {
                               // Immediately update optimistic rating state for instant UI feedback
-                              if (ratingValue > 0) {
-                                setOptimisticRatings(prev => ({ ...prev, [goal.id]: ratingValue }));
-                              } else {
-                                // Remove from optimistic ratings if setting to 0
-                                setOptimisticRatings(prev => {
-                                  const updated = { ...prev };
-                                  delete updated[goal.id];
-                                  return updated;
-                                });
-                              }
+                              // Set to 0 explicitly for "Not Rated" so UI updates immediately
+                              setOptimisticRatings(prev => ({ ...prev, [goal.id]: ratingValue }));
                               
                               // Also update local goals state
                               setLocalGoals(prevGoals => {
@@ -915,8 +907,15 @@ export default function GoalsTable({
                                   updatedAt: new Date().toISOString()
                                 } : {
                                   ...(currentGoal.rating || {}),
+                                  id: currentGoal.rating?.id,
+                                  goalId: goal.id,
                                   managerScore: undefined,
-                                  score: undefined,
+                                  score: (currentGoal as any).rating?.selfScore || undefined,
+                                  selfScore: (currentGoal as any).rating?.selfScore,
+                                  managerComments: undefined,
+                                  comments: (currentGoal as any).rating?.selfComments || (currentGoal as any).rating?.comments || undefined,
+                                  managerRatedAt: undefined,
+                                  managerRatedById: undefined,
                                   updatedAt: new Date().toISOString()
                                 };
                                 
@@ -932,10 +931,8 @@ export default function GoalsTable({
                                 return prevGoals.map(g => g.id === goal.id ? { ...updatedGoal } : g);
                               });
                               
-                              // Call parent handler (only if rating > 0)
-                              if (ratingValue > 0) {
-                                onRatingChange(goal.id, ratingValue);
-                              }
+                              // Call parent handler for all values (including 0 for "Not Rated")
+                              onRatingChange(goal.id, ratingValue);
                             }
                           }}
                           disabled={submittingRating === goal.id}
