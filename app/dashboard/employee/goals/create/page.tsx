@@ -416,9 +416,17 @@ function GoalsPageContent() {
               refreshing={refreshing}
               onPriorityUpdate={(goalId, newPriority, updatedGoal) => {
                 setGoals(prevGoals =>
-                  prevGoals.map(goal =>
-                    goal.id === goalId ? { ...goal, priority: updatedGoal.priority } : goal
-                  )
+                  prevGoals.map(goal => {
+                    if (goal.id === goalId) {
+                      // Only update priority, preserve all other fields including status
+                      return { 
+                        ...goal, 
+                        priority: updatedGoal.priority || goal.priority,
+                        updatedAt: updatedGoal.updatedAt || goal.updatedAt
+                      };
+                    }
+                    return goal;
+                  })
                 );
               }}
             />

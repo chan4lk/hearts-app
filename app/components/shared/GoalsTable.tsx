@@ -405,12 +405,14 @@ export default function GoalsTable({
       const updatedGoal = data.goal || data;
 
       // Transform the updated goal to match the expected format
+      // IMPORTANT: Only update priority, preserve all other fields (especially status)
       const transformedGoal: Goal | GoalWithRatingExtended = {
         ...currentGoal,
         ...updatedGoal,
         id: updatedGoal.id,
-        title: updatedGoal.title,
-        description: updatedGoal.description,
+        title: updatedGoal.title || currentGoal.title,
+        description: updatedGoal.description || currentGoal.description,
+        status: currentGoal.status, // Preserve original status - priority update shouldn't change status
         priority: updatedGoal.priority || newPriority,
         dueDate: updatedGoal.dueDate ? (typeof updatedGoal.dueDate === 'string' ? updatedGoal.dueDate : updatedGoal.dueDate.toISOString()) : currentGoal.dueDate,
         category: updatedGoal.category || currentGoal.category,
