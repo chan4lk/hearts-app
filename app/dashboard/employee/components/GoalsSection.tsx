@@ -115,7 +115,7 @@ export default function GoalsSection({
             onEdit={activeView === 'created' ? onEditGoal : undefined}
             onDelete={activeView === 'created' ? onDeleteGoal : undefined}
             onStatusUpdate={onStatusUpdate}
-            showActions={activeView === 'created'}
+            showActions={false}
           />
         </div>
       </div>
