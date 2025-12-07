@@ -251,13 +251,13 @@ export async function GET(req: Request) {
       if (effectiveContext === 'employee' || userRole === 'EMPLOYEE') {
         // Employees and admins in employee context: only show their own performance
         if (empId !== userId) {
-          return;
-        }
+        return;
+      }
       } else if (effectiveContext === 'manager' || userRole === 'MANAGER') {
         // Managers and admins in manager context: exclude their own performance, only show assigned employees
         if (empId === userId) {
-          return; // Don't include manager's own performance
-        }
+        return; // Don't include manager's own performance
+      }
         // Verify this employee is actually managed by this user
         if (!managedEmployeeIds.includes(empId)) {
           return; // Not managed by this user, skip

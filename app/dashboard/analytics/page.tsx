@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import LoadingComponent from '@/app/components/LoadingScreen';
@@ -18,14 +18,12 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer
 } from 'recharts';
-import { Download, Calendar, TrendingUp, Target, Users, Award, RefreshCw, Filter } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
-import { PageHeader } from '@/app/components/shared/PageHeader';
-import { PageContainer } from '@/app/components/shared/PageContainer';
-import { FilterBadge } from '@/app/components/shared/FilterBadge';
+import { BsBarChart } from 'react-icons/bs';
+import HeroSection from './components/HeroSection';
+import StatsSection from './components/StatsSection';
+import Filters from './components/Filters';
 
 interface AnalyticsData {
   summary: {
@@ -60,9 +58,8 @@ interface AnalyticsData {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
 export default function AnalyticsPage() {
-  const { data: session, status: sessionStatus, update: updateSession } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const router = useRouter();
-  const pathname = usePathname();
   const [loading, setLoading] = useState(true);
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [startDate, setStartDate] = useState(() => {
@@ -81,8 +78,7 @@ export default function AnalyticsPage() {
   const [employees, setEmployees] = useState<Array<{ id: string; name: string; email: string; department: string | null }>>([]);
   const [departments, setDepartments] = useState<string[]>([]);
   
-  // Use ref to track if we've initialized to prevent duplicate calls
-  const initializedRef = useRef(false);
+  // Use ref to track if filters have changed to prevent duplicate calls
   const lastFiltersRef = useRef<string>('');
 
   // Determine dashboard layout type based on context preservation or user role
@@ -407,18 +403,8 @@ export default function AnalyticsPage() {
     return <LoadingComponent />;
   }
 
-  if (!analyticsData) {
-    return (
-      <DashboardLayout type={dashboardType}>
-        <div className="p-8 text-center">
-          <p className="text-gray-400">No analytics data available</p>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  // Prepare chart data with safety checks
-  const statusData = analyticsData.breakdowns?.byStatus 
+  // Prepare chart data with safety checks (even if analyticsData is null)
+  const statusData = analyticsData?.breakdowns?.byStatus 
     ? Object.entries(analyticsData.breakdowns.byStatus)
         .filter(([_, value]) => value && value > 0)
         .map(([name, value]) => ({
@@ -427,7 +413,7 @@ export default function AnalyticsPage() {
         }))
     : [];
 
-  const categoryData = analyticsData.breakdowns?.byCategory
+  const categoryData = analyticsData?.breakdowns?.byCategory
     ? Object.entries(analyticsData.breakdowns.byCategory)
         .filter(([_, value]) => value && value > 0)
         .map(([name, value]) => ({
@@ -436,8 +422,8 @@ export default function AnalyticsPage() {
         }))
     : [];
 
-  const priorityData = analyticsData.breakdowns?.byPriority
-    ? Object.entries(analyticsData.breakdowns.byPriority)
+  const priorityData = analyticsData?.breakdowns?.byPriority
+    ? Object.entries(analyticsData.breakdowns?.byPriority || {})
         .filter(([_, value]) => value && value > 0)
         .map(([name, value]) => ({
           name,
@@ -445,7 +431,7 @@ export default function AnalyticsPage() {
         }))
     : [];
 
-  const departmentData = analyticsData.breakdowns?.byDepartment
+  const departmentData = analyticsData?.breakdowns?.byDepartment
     ? Object.entries(analyticsData.breakdowns.byDepartment)
         .filter(([_, value]) => value && value > 0)
         .map(([name, value]) => ({
@@ -454,7 +440,7 @@ export default function AnalyticsPage() {
         }))
     : [];
 
-  const monthlyData = analyticsData.trends?.monthly
+  const monthlyData = analyticsData?.trends?.monthly
     ? Object.entries(analyticsData.trends.monthly)
         .map(([month, count]) => {
           try {
@@ -477,154 +463,72 @@ export default function AnalyticsPage() {
 
   return (
     <DashboardLayout type={dashboardType}>
-      <PageContainer>
-        {/* Header */}
-        <PageHeader
-          title={
-            session?.user?.role === 'ADMIN' 
-              ? 'Analytics Dashboard' 
-              : session?.user?.role === 'MANAGER' 
-                ? 'Team Analytics Dashboard' 
-                : 'My Performance Analytics'
-          }
-          description={
-            session?.user?.role === 'ADMIN' 
-              ? 'Organization-wide performance metrics and insights' 
-              : session?.user?.role === 'MANAGER' 
-                ? 'Performance metrics for your team members' 
-                : 'Your personal performance metrics and insights'
-          }
-        >
-          {/* Date Range Filter */}
-          <FilterBadge icon={<Calendar className="h-4 w-4" />}>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="bg-transparent text-white text-sm border-none outline-none w-32"
-            />
-            <span className="text-gray-400">to</span>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="bg-transparent text-white text-sm border-none outline-none w-32"
-            />
-          </FilterBadge>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        {/* Subtle Background Pattern */}
+        <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
+        
+        <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
+          {/* Hero Section */}
+          <HeroSection userRole={session?.user?.role} />
 
-          {/* Employee Filter (Admin & Manager only) */}
-          {(session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER') && employees.length > 0 && (
-            <FilterBadge icon={<Filter className="h-4 w-4" />}>
-              <Select
-                value={selectedEmployee}
-                onValueChange={(value) => {
-                  setSelectedEmployee(value);
-                  setLoading(true);
-                }}
-              >
-                <SelectTrigger className="w-[200px] h-8 bg-transparent border-none text-white text-sm focus:ring-0 focus:ring-offset-0">
-                  <SelectValue placeholder="All Employees" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700 text-white max-h-[300px]">
-                  <SelectItem value="all">All Employees</SelectItem>
-                  {employees.map((emp) => (
-                    <SelectItem key={emp.id} value={emp.id}>
-                      {emp.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FilterBadge>
+          {/* Filters Section */}
+          <Filters
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+            selectedEmployee={selectedEmployee}
+            onEmployeeChange={(value: string) => {
+              setSelectedEmployee(value);
+              setLoading(true);
+            }}
+            selectedDepartment={selectedDepartment}
+            onDepartmentChange={(value: string) => {
+              setSelectedDepartment(value);
+              setLoading(true);
+            }}
+            employees={employees}
+            departments={departments}
+            onExport={() => handleExport('json')}
+            userRole={session?.user?.role}
+          />
+
+          {/* No Data Message */}
+          {!analyticsData && !loading && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl p-8 border border-gray-700/50 shadow-lg text-center"
+            >
+              <BsBarChart className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+              <p className="text-gray-400 text-lg">No analytics data available</p>
+              <p className="text-gray-500 text-sm mt-2">Try adjusting your date range or filters</p>
+            </motion.div>
           )}
 
-          {/* Department Filter (Admin & Manager only) */}
-          {(session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER') && departments.length > 0 && (
-            <FilterBadge icon={<Filter className="h-4 w-4" />}>
-              <Select
-                value={selectedDepartment}
-                onValueChange={(value) => {
-                  setSelectedDepartment(value);
-                  setLoading(true);
-                }}
+          {/* Analytics Content */}
+          {analyticsData && (
+            <>
+
+              {/* Stats Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
               >
-                <SelectTrigger className="w-[180px] h-8 bg-transparent border-none text-white text-sm focus:ring-0 focus:ring-offset-0">
-                  <SelectValue placeholder="All Departments" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700 text-white">
-                  <SelectItem value="all">All Departments</SelectItem>
-                  {departments.map((dept) => (
-                    <SelectItem key={dept} value={dept}>
-                      {dept}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FilterBadge>
-          )}
-          
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={fetchAnalytics}
-            disabled={refreshing}
-            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg disabled:opacity-50 flex items-center gap-2 transition-all shadow-md"
-          >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            {refreshing ? 'Loading...' : 'Refresh'}
-          </motion.button>
-          
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => handleExport('json')}
-            className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg flex items-center gap-2 transition-all shadow-md"
-          >
-            <Download className="h-4 w-4" />
-            Export JSON
-          </motion.button>
-        </PageHeader>
+                <StatsSection 
+                  analyticsData={analyticsData.summary}
+                  userRole={session?.user?.role}
+                />
+              </motion.div>
 
-          {/* Summary Cards */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-          >
-            <SummaryCard
-              title="Total Goals"
-              value={analyticsData.summary.totalGoals}
-              icon={<Target className="h-5 w-5" />}
-              color="blue"
-            />
-            <SummaryCard
-              title="Completion Rate"
-              value={`${analyticsData.summary.completionRate.toFixed(1)}%`}
-              icon={<TrendingUp className="h-5 w-5" />}
-              color="green"
-            />
-            <SummaryCard
-              title="Average Rating"
-              value={analyticsData.summary.averageRating.toFixed(1)}
-              icon={<Award className="h-5 w-5" />}
-              color="yellow"
-            />
-            <SummaryCard
-              title={session?.user?.role === 'EMPLOYEE' ? 'My Goals' : session?.user?.role === 'MANAGER' ? 'Team Members' : 'Active Users'}
-              value={session?.user?.role === 'EMPLOYEE' ? analyticsData.summary.totalGoals : analyticsData.summary.totalUsers}
-              icon={<Users className="h-5 w-5" />}
-              color="purple"
-            />
-          </motion.div>
-
-
-          {/* Charts */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-4"
-          >
+              {/* Charts */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="grid grid-cols-1 lg:grid-cols-2 gap-4"
+              >
             {/* Goals by Status */}
             <ChartCard title="Goals by Status">
               {statusData.length > 0 ? (
@@ -735,16 +639,16 @@ export default function AnalyticsPage() {
                   </div>
                 )}
               </ChartCard>
-            )}
-          </motion.div>
+              )}
+              </motion.div>
 
-          {/* Employee Performance Table - Show for Admin, Manager, and Employee */}
-          {analyticsData.employeePerformance.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
+              {/* Employee Performance Table - Show for Admin, Manager, and Employee */}
+              {analyticsData.employeePerformance.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
               <ChartCard title={
                 session?.user?.role === 'EMPLOYEE' 
                   ? 'My Performance' 
@@ -783,44 +687,16 @@ export default function AnalyticsPage() {
                   </table>
                 </div>
               </ChartCard>
-            </motion.div>
+              </motion.div>
+              )}
+            </>
           )}
-      </PageContainer>
+        </div>
+      </div>
     </DashboardLayout>
   );
 }
 
-function SummaryCard({ title, value, icon, color }: {
-  title: string;
-  value: string | number;
-  icon: React.ReactNode;
-  color: 'blue' | 'green' | 'yellow' | 'purple';
-}) {
-  const colorClasses = {
-    blue: 'bg-gradient-to-br from-blue-600/20 to-blue-700/20 text-blue-400',
-    green: 'bg-gradient-to-br from-green-600/20 to-green-700/20 text-green-400',
-    yellow: 'bg-gradient-to-br from-yellow-600/20 to-yellow-700/20 text-yellow-400',
-    purple: 'bg-gradient-to-br from-purple-600/20 to-purple-700/20 text-purple-400'
-  };
-
-  return (
-    <motion.div
-      whileHover={{ scale: 1.02, y: -2 }}
-      className="relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl p-6 border border-gray-700/50 shadow-lg overflow-hidden"
-    >
-      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/5 to-transparent rounded-full -mr-16 -mt-16" />
-      <div className="relative z-10">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-gray-400 text-sm font-medium">{title}</h3>
-          <div className={colorClasses[color] + ' p-2 rounded-lg'}>
-            {icon}
-          </div>
-        </div>
-        <p className="text-2xl font-bold text-white">{value}</p>
-      </div>
-    </motion.div>
-  );
-}
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
