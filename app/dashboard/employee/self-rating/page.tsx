@@ -25,6 +25,7 @@ export default function SelfRatingPage() {
   const [submittingRatingId, setSubmittingRatingId] = useState<string | null>(null);
   const [ratingComments, setRatingComments] = useState<Record<string, string>>({});
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
+  const [goalsVersion, setGoalsVersion] = useState(0); // Version counter to force table refresh
   
   // Initialize with type-safe values
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
@@ -95,7 +96,7 @@ export default function SelfRatingPage() {
   };
 
   const handleSelfRating = async (goalId: string, value: number) => {
-    if (isNaN(value) || value === 0 || submittingRatingId === goalId) return;
+    if (isNaN(value) || submittingRatingId === goalId) return;
 
     // Find the current goal to preserve fields
     const currentGoal = goals.find(g => g.id === goalId);
@@ -104,8 +105,20 @@ export default function SelfRatingPage() {
       return;
     }
 
+    const isClearingRating = value === 0;
+
     // OPTIMISTIC UPDATE: Update UI immediately before API call
-    const optimisticRating = {
+    const optimisticRating = isClearingRating ? {
+      ...(currentGoal.rating || {}),
+      id: currentGoal.rating?.id || null,
+      selfScore: null,
+      score: currentGoal.rating?.managerScore || null, // Keep manager score if exists
+      selfComments: null,
+      comments: currentGoal.rating?.managerComments || currentGoal.rating?.comments || null,
+      selfRatedAt: null,
+      updatedAt: new Date().toISOString(),
+      goalId: goalId
+    } : {
       ...(currentGoal.rating || {}),
       id: currentGoal.rating?.id || 'temp',
       selfScore: value,
@@ -119,7 +132,7 @@ export default function SelfRatingPage() {
 
     const optimisticGoal: Goal = {
       ...currentGoal,
-      rating: optimisticRating as any
+      rating: isClearingRating && !currentGoal.rating?.managerScore ? null : optimisticRating as any
     };
 
     // Update local state IMMEDIATELY (optimistic update)
@@ -136,8 +149,8 @@ export default function SelfRatingPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          score: value,
-          comments: ratingComments[goalId] || ''
+          score: isClearingRating ? 0 : value,
+          comments: isClearingRating ? null : (ratingComments[goalId] || '')
         })
       });
 
@@ -149,25 +162,42 @@ export default function SelfRatingPage() {
       const updatedRating = await response.json();
 
       // Update with server response (sync with server)
+      // Force a complete refresh by creating new goal objects to ensure React detects changes
       setGoals(prevGoals =>
-        prevGoals.map(goal =>
-          goal.id === goalId
-            ? {
-                ...goal,
-                rating: {
-                  ...goal.rating,
-                  id: updatedRating.id,
-                  selfScore: updatedRating.selfScore || value,
-                  score: updatedRating.selfScore || updatedRating.score || value,
-                  selfComments: updatedRating.selfComments || updatedRating.comments || '',
-                  comments: updatedRating.selfComments || updatedRating.comments || '',
-                  selfRatedAt: updatedRating.selfRatedAt,
-                  updatedAt: updatedRating.updatedAt,
-                  goalId: goalId
-                }
-              }
-            : goal
-        )
+        prevGoals.map(goal => {
+          if (goal.id !== goalId) return goal;
+
+          // If rating was cleared and no manager rating exists, set rating to null
+          if (isClearingRating && !updatedRating.managerScore && !updatedRating.id) {
+            return {
+              ...goal,
+              rating: null,
+              updatedAt: new Date().toISOString() // Force update timestamp
+            };
+          }
+
+          // Otherwise, update with server response - create completely new object to force re-render
+          const updatedGoal: Goal = {
+            ...goal,
+            rating: updatedRating.id ? {
+              id: updatedRating.id,
+              goalId: goalId,
+              selfScore: updatedRating.selfScore || null,
+              score: updatedRating.score || updatedRating.selfScore || updatedRating.managerScore || null,
+              managerScore: updatedRating.managerScore || goal.rating?.managerScore || null,
+              selfComments: updatedRating.selfComments || updatedRating.comments || null,
+              comments: updatedRating.comments || updatedRating.selfComments || updatedRating.managerComments || null,
+              managerComments: updatedRating.managerComments || goal.rating?.managerComments || null,
+              selfRatedAt: updatedRating.selfRatedAt || null,
+              managerRatedAt: updatedRating.managerRatedAt || goal.rating?.managerRatedAt || null,
+              updatedAt: updatedRating.updatedAt || new Date().toISOString(),
+              createdAt: goal.rating?.createdAt || new Date().toISOString()
+            } as any : null,
+            updatedAt: new Date().toISOString() // Force update timestamp
+          };
+
+          return updatedGoal;
+        })
       );
 
       setRatingComments(prev => {
@@ -176,7 +206,14 @@ export default function SelfRatingPage() {
         return newComments;
       });
 
-      toast.success(`Self-rating updated to ${value} stars`);
+      // Increment version to force table refresh
+      setGoalsVersion(prev => prev + 1);
+
+      if (isClearingRating) {
+        toast.success('Self-rating cleared');
+      } else {
+        toast.success(`Self-rating updated to ${value} stars`);
+      }
     } catch (error) {
       // REVERT optimistic update on error
       setGoals(prevGoals =>
@@ -275,6 +312,7 @@ export default function SelfRatingPage() {
             transition={{ delay: 0.2 }}
           >
             <GoalsTable
+              key={`goals-table-v${goalsVersion}`}
               goals={filteredGoals}
               selectedStatus={filterStatus === 'all' ? '' : filterStatus}
               onStatusChange={(status) => setFilterStatus(status === '' ? 'all' : status as FilterStatus)}
@@ -282,7 +320,7 @@ export default function SelfRatingPage() {
               onStatusUpdate={(goalId, newStatus, updatedGoal) => {
                 setGoals(prevGoals =>
                   prevGoals.map(goal =>
-                    goal.id === goalId ? { ...goal, status: updatedGoal.status } : goal
+                    goal.id === goalId ? { ...goal, status: updatedGoal.status, updatedAt: new Date().toISOString() } : goal
                   )
                 );
               }}

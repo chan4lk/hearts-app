@@ -410,7 +410,6 @@ export default function GoalsTable({
 
   // Update local goals when props change
   useEffect(() => {
-    // Simple sync: always use props as source of truth, except for goals with optimistic updates
     setLocalGoals(prevLocalGoals => {
       // On initial mount or when goals prop is empty, use props directly
       if (prevLocalGoals.length === 0 || goals.length === 0) {
@@ -429,7 +428,49 @@ export default function GoalsTable({
         return goals;
       }
       
-      // For incremental updates, merge keeping optimistic updates
+      // For incremental updates, check if ratings have changed
+      const hasRatingChanges = goals.some(propGoal => {
+        const localGoal = prevLocalGoals.find(g => g.id === propGoal.id);
+        if (!localGoal) return false;
+        
+        // Compare rating values - check if they're different
+        const propSelfScore = propGoal.rating?.selfScore ?? null;
+        const localSelfScore = localGoal.rating?.selfScore ?? null;
+        const propManagerScore = propGoal.rating?.managerScore ?? null;
+        const localManagerScore = localGoal.rating?.managerScore ?? null;
+        
+        // If rating changed and we don't have an active optimistic update, use prop
+        if (propSelfScore !== localSelfScore || propManagerScore !== localManagerScore) {
+          // Clear optimistic rating for this goal since server has updated it
+          if (optimisticRatings[propGoal.id] !== undefined) {
+            setOptimisticRatings(prev => {
+              const updated = { ...prev };
+              delete updated[propGoal.id];
+              return updated;
+            });
+          }
+          return true; // Has rating changes
+        }
+        return false;
+      });
+      
+      // If ratings changed, use props directly (server is source of truth)
+      if (hasRatingChanges) {
+        return goals.map(propGoal => {
+          const localGoal = prevLocalGoals.find(g => g.id === propGoal.id);
+          if (!localGoal) return propGoal;
+          
+          // If we have an active optimistic rating, keep the local version temporarily
+          if (optimisticRatings[propGoal.id] !== undefined) {
+            return localGoal;
+          }
+          
+          // Otherwise use prop (server data is source of truth)
+          return propGoal;
+        });
+      }
+      
+      // For other incremental updates, merge keeping optimistic updates
       return goals.map(propGoal => {
         const localGoal = prevLocalGoals.find(g => g.id === propGoal.id);
         if (!localGoal) return propGoal;
@@ -458,7 +499,10 @@ export default function GoalsTable({
         const optimisticRating = updated[goalId];
         const goal = localGoals.find(g => g.id === goalId);
         if (goal) {
-          const serverRating = getRatingValue(goal, true);
+          // Detect if this is a self-rating context
+          const isSelfRating = goal.employeeId === session?.user?.id;
+          // Get server rating based on context
+          const serverRating = getRatingValue(goal, !isSelfRating);
           // Clear if server rating matches optimistic (works for both positive ratings and 0 for "Not Rated")
           if (optimisticRating === serverRating) {
             delete updated[goalId];
@@ -473,7 +517,7 @@ export default function GoalsTable({
       
       return changed ? updated : prev;
     });
-  }, [localGoals]);
+  }, [localGoals, session?.user?.id]);
 
   const handleQuickPriorityUpdate = async (goalId: string, newPriority: string, e?: any) => {
     e?.stopPropagation();
@@ -1025,10 +1069,14 @@ export default function GoalsTable({
                     {goal.category}
                   </td>
                   {showRating && (() => {
+                    // Detect if this is a self-rating context (employee rating their own goal)
+                    const isSelfRating = goal.employeeId === session?.user?.id;
+                    
                     // Calculate current rating value - prioritize optimistic, then goal's rating
+                    // For self-rating pages, prioritize selfScore; for manager pages, prioritize managerScore
                     const currentRatingValue = optimisticRatings[goal.id] !== undefined 
                       ? optimisticRatings[goal.id] 
-                      : getRatingValue(goal, true);
+                      : getRatingValue(goal, !isSelfRating); // false for self-rating (prioritize selfScore), true for manager (prioritize managerScore)
                     const displayValue = currentRatingValue ?? 0;
                     
                     return (
@@ -1040,55 +1088,11 @@ export default function GoalsTable({
                             onValueChange={(value) => {
                             const ratingValue = parseInt(value);
                             if (!isNaN(ratingValue)) {
-                              // Immediately update optimistic rating state for instant UI feedback
-                              // Set to 0 explicitly for "Not Rated" so UI updates immediately
+                              // For self-rating pages, let the parent handle all updates (it already does optimistic updates)
+                              // Just update optimistic rating for instant UI feedback
                               setOptimisticRatings(prev => ({ ...prev, [goal.id]: ratingValue }));
                               
-                              // Also update local goals state
-                              setLocalGoals(prevGoals => {
-                                const currentGoal = prevGoals.find(g => g.id === goal.id);
-                                if (!currentGoal) return prevGoals;
-                                
-                                // Create completely new rating object to ensure React detects change
-                                const updatedRating = ratingValue > 0 ? {
-                                  ...(currentGoal.rating || {}),
-                                  id: currentGoal.rating?.id || 'temp',
-                                  goalId: goal.id,
-                                  managerScore: ratingValue,
-                                  score: ratingValue,
-                                  selfScore: (currentGoal as any).rating?.selfScore,
-                                  managerComments: currentGoal.rating?.managerComments || '',
-                                  comments: currentGoal.rating?.managerComments || currentGoal.rating?.comments || '',
-                                  managerRatedAt: new Date().toISOString(),
-                                  managerRatedById: session?.user?.id || currentGoal.rating?.managerRatedById,
-                                  updatedAt: new Date().toISOString()
-                                } : {
-                                  ...(currentGoal.rating || {}),
-                                  id: currentGoal.rating?.id,
-                                  goalId: goal.id,
-                                  managerScore: undefined,
-                                  score: (currentGoal as any).rating?.selfScore || undefined,
-                                  selfScore: (currentGoal as any).rating?.selfScore,
-                                  managerComments: undefined,
-                                  comments: (currentGoal as any).rating?.selfComments || (currentGoal as any).rating?.comments || undefined,
-                                  managerRatedAt: undefined,
-                                  managerRatedById: undefined,
-                                  updatedAt: new Date().toISOString()
-                                };
-                                
-                                const updatedGoal: Goal | GoalWithRatingExtended = {
-                                  ...currentGoal,
-                                  rating: updatedRating as any,
-                                  updatedAt: new Date().toISOString()
-                                } as Goal | GoalWithRatingExtended;
-                                
-                                // Force re-render
-                                setRatingUpdateCounter(prev => prev + 1);
-                                
-                                return prevGoals.map(g => g.id === goal.id ? { ...updatedGoal } : g);
-                              });
-                              
-                              // Call parent handler for all values (including 0 for "Not Rated")
+                              // Call parent handler immediately - parent will handle optimistic updates and API calls
                               onRatingChange(goal.id, ratingValue);
                             }
                           }}

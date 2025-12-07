@@ -16,9 +16,10 @@ export async function POST(
 
     const { score, comments } = await request.json();
 
-    if (!score || score < 1 || score > 5) {
+    // Allow score to be 0 to clear the rating, or between 1-5 for valid ratings
+    if (score !== null && score !== undefined && score !== 0 && (score < 1 || score > 5)) {
       return NextResponse.json(
-        { error: 'Score must be between 1 and 5' },
+        { error: 'Score must be between 1 and 5, or 0 to clear rating' },
         { status: 400 }
       );
     }
@@ -43,6 +44,89 @@ export async function POST(
       return NextResponse.json({ error: 'Only the goal owner can submit self-rating' }, { status: 403 });
     }
 
+    // Check if rating exists
+    const existingRating = await prisma.rating.findUnique({
+      where: { goalId: params.goalId }
+    });
+
+    // If score is 0 or null, clear the self-rating
+    if (score === 0 || score === null || score === undefined) {
+      if (existingRating) {
+        // Check if there's a manager rating - if so, keep the rating record but clear self-rating fields
+        if (existingRating.managerScore !== null && existingRating.managerScore !== undefined) {
+          // Keep rating record, just clear self-rating
+          const rating = await prisma.rating.update({
+            where: { goalId: params.goalId },
+            data: {
+              selfScore: null,
+              selfComments: null,
+              selfRatedById: null,
+              selfRatedAt: null,
+            },
+            include: {
+              selfRatedBy: {
+                select: { id: true, name: true, email: true }
+              },
+              managerRatedBy: {
+                select: { id: true, name: true, email: true }
+              }
+            }
+          });
+
+          return NextResponse.json({
+            id: rating.id,
+            goalId: rating.goalId,
+            selfScore: rating.selfScore,
+            score: rating.managerScore || null,
+            comments: rating.selfComments,
+            selfRatedBy: rating.selfRatedBy,
+            selfRatedAt: rating.selfRatedAt,
+            managerScore: rating.managerScore,
+            managerComments: rating.managerComments,
+            managerRatedBy: rating.managerRatedBy,
+            managerRatedAt: rating.managerRatedAt,
+            updatedAt: rating.updatedAt,
+          });
+        } else {
+          // No manager rating, delete the entire rating record
+          await prisma.rating.delete({
+            where: { goalId: params.goalId }
+          });
+
+          return NextResponse.json({
+            id: null,
+            goalId: params.goalId,
+            selfScore: null,
+            score: null,
+            comments: null,
+            selfRatedBy: null,
+            selfRatedAt: null,
+            managerScore: null,
+            managerComments: null,
+            managerRatedBy: null,
+            managerRatedAt: null,
+            updatedAt: new Date().toISOString(),
+          });
+        }
+      } else {
+        // No rating exists, return null response
+        return NextResponse.json({
+          id: null,
+          goalId: params.goalId,
+          selfScore: null,
+          score: null,
+          comments: null,
+          selfRatedBy: null,
+          selfRatedAt: null,
+          managerScore: null,
+          managerComments: null,
+          managerRatedBy: null,
+          managerRatedAt: null,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    }
+
     // Upsert rating - one rating per goal
     const rating = await prisma.rating.upsert({
       where: {
@@ -50,14 +134,14 @@ export async function POST(
       },
       update: {
         selfScore: score,
-        selfComments: comments,
+        selfComments: comments || null,
         selfRatedById: session.user.id,
         selfRatedAt: new Date(),
       },
       create: {
         goalId: params.goalId,
         selfScore: score,
-        selfComments: comments,
+        selfComments: comments || null,
         selfRatedById: session.user.id,
         selfRatedAt: new Date(),
       },
@@ -71,8 +155,8 @@ export async function POST(
       }
     });
 
-    // Create notification for manager when employee submits self-rating
-    if (goal.employee?.managerId) {
+    // Create notification for manager when employee submits self-rating (only for valid ratings)
+    if (goal.employee?.managerId && score > 0) {
       await prisma.notification.create({
         data: {
           type: NotificationType.RATING_RECEIVED,
@@ -86,7 +170,8 @@ export async function POST(
     return NextResponse.json({
       id: rating.id,
       goalId: rating.goalId,
-      score: rating.selfScore,
+      selfScore: rating.selfScore,
+      score: rating.selfScore || rating.managerScore || null,
       comments: rating.selfComments,
       selfRatedBy: rating.selfRatedBy,
       selfRatedAt: rating.selfRatedAt,
