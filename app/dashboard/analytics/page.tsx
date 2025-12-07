@@ -85,22 +85,51 @@ export default function AnalyticsPage() {
   const initializedRef = useRef(false);
   const lastFiltersRef = useRef<string>('');
 
-  // Determine dashboard layout type based on user role
-  // Use useMemo to ensure it updates when session changes
+  // Determine dashboard layout type based on context preservation or user role
+  // This preserves the dashboard context when navigating from employee/manager pages
   const dashboardType = useMemo(() => {
     // Wait for session to be loaded
     if (sessionStatus === 'loading' || !session?.user) {
       return 'employee'; // Default fallback while loading
     }
+
+    // First, check URL search params for explicit context
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const contextParam = urlParams.get('context');
+      if (contextParam === 'admin' || contextParam === 'manager' || contextParam === 'employee') {
+        return contextParam;
+      }
+
+      // Check sessionStorage for the last dashboard context
+      const storedContext = sessionStorage.getItem('dashboardContext');
+      if (storedContext === 'admin' || storedContext === 'manager' || storedContext === 'employee') {
+        return storedContext;
+      }
+
+      // Check document.referrer to determine where user came from
+      const referrer = document.referrer;
+      if (referrer) {
+        if (referrer.includes('/dashboard/admin')) {
+          return 'admin';
+        } else if (referrer.includes('/dashboard/manager')) {
+          return 'manager';
+        } else if (referrer.includes('/dashboard/employee')) {
+          return 'employee';
+        }
+      }
+    }
     
+    // Fall back to role-based determination for non-admin users
     const userRole = session.user.role;
     
-    if (userRole === 'ADMIN') {
-      return 'admin';
-    } else if (userRole === 'MANAGER') {
+    if (userRole === 'MANAGER') {
       return 'manager';
-    } else {
+    } else if (userRole === 'EMPLOYEE') {
       return 'employee';
+    } else {
+      // For ADMIN, default to admin unless context suggests otherwise
+      return 'admin';
     }
   }, [session?.user?.role, sessionStatus]);
 
@@ -178,6 +207,9 @@ export default function AnalyticsPage() {
         startDate,
         endDate
       });
+
+      // Add dashboard context to API call - this determines data scope for admins
+      params.append('context', dashboardType);
 
       // Add role-based filters
       const userRole = session.user.role;

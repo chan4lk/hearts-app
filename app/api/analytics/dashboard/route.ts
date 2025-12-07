@@ -17,6 +17,7 @@ export async function GET(req: Request) {
     const endDate = searchParams.get('endDate');
     const employeeId = searchParams.get('employeeId');
     const department = searchParams.get('department');
+    const context = searchParams.get('context'); // 'admin', 'manager', or 'employee' - dashboard context
     const userRole = session.user.role;
     const userId = session.user.id;
     
@@ -24,6 +25,7 @@ export async function GET(req: Request) {
       userId,
       role: userRole,
       email: session.user.email,
+      context,
       employeeId,
       department
     });
@@ -41,7 +43,8 @@ export async function GET(req: Request) {
       dateFilter.lte = end;
     }
 
-    // Build where clause based on role
+    // Build where clause based on role and dashboard context
+    // For admins, context determines data scope: 'admin' = all users, 'employee' = own data, 'manager' = assigned employees
     let goalWhereClause: any = {
       status: { not: 'DELETED' },
       ...(Object.keys(dateFilter).length > 0 && { createdAt: dateFilter })
@@ -51,12 +54,21 @@ export async function GET(req: Request) {
       isActive: true
     };
 
-    if (userRole === 'EMPLOYEE') {
+    // Determine effective context: use context param for admins, otherwise use role
+    const effectiveContext = (userRole === 'ADMIN' && context) ? context : userRole.toLowerCase();
+
+    // Store managed employee IDs for reuse (used in both goal filtering and employee performance)
+    let managedEmployeeIds: string[] = [];
+
+    if (effectiveContext === 'employee' || userRole === 'EMPLOYEE') {
       // Employees can only see their own goals
+      // For admins viewing in employee context, also show only their own goals
       goalWhereClause.employeeId = userId;
-      // Employees can only see themselves in user stats
+      // Users stats should only include the current user
       userWhereClause.id = userId;
-    } else if (userRole === 'MANAGER') {
+    } else if (effectiveContext === 'manager' || userRole === 'MANAGER') {
+      // Manager context: show only assigned employees' data
+      // Get managed employees once (will be reused for employee performance section)
       const managedEmployees = await prisma.user.findMany({
         where: { managerId: userId },
         select: { id: true }
@@ -85,16 +97,19 @@ export async function GET(req: Request) {
       
       // User stats should only include managed employees, not the manager
       userWhereClause.managerId = userId;
+      
+      // Store for later use in employee performance section
+      managedEmployeeIds = employeeIds;
     }
-    // ADMIN can see all
+    // ADMIN context (or admin role with no context): can see all - no additional filters needed
 
-    // Filter by employee if specified (for admins only - managers handled above)
-    if (employeeId && employeeId !== 'all' && userRole === 'ADMIN') {
+    // Filter by employee if specified (for admins in admin context only - managers handled above)
+    if (employeeId && employeeId !== 'all' && userRole === 'ADMIN' && effectiveContext === 'admin') {
       goalWhereClause.employeeId = employeeId;
     }
 
     // Filter by department if specified (not for employees - they can't filter by department)
-    if (department && department !== 'all' && userRole !== 'EMPLOYEE') {
+    if (department && department !== 'all' && effectiveContext !== 'employee') {
       goalWhereClause.department = department;
       userWhereClause.department = department;
     }
@@ -209,6 +224,7 @@ export async function GET(req: Request) {
     });
 
     // Employee performance (top performers by average rating)
+    // Note: managedEmployeeIds is set above for manager context
     const employeePerformance: Array<{
       employeeId: string;
       employeeName: string;
@@ -231,15 +247,23 @@ export async function GET(req: Request) {
       const employee = employeeGoals[0]?.employee;
       if (!employee) return;
 
-      // For employees, only show their own performance data
-      if (userRole === 'EMPLOYEE' && empId !== userId) {
-        return;
+      // Filter employee performance based on effective context
+      if (effectiveContext === 'employee' || userRole === 'EMPLOYEE') {
+        // Employees and admins in employee context: only show their own performance
+        if (empId !== userId) {
+          return;
+        }
+      } else if (effectiveContext === 'manager' || userRole === 'MANAGER') {
+        // Managers and admins in manager context: exclude their own performance, only show assigned employees
+        if (empId === userId) {
+          return; // Don't include manager's own performance
+        }
+        // Verify this employee is actually managed by this user
+        if (!managedEmployeeIds.includes(empId)) {
+          return; // Not managed by this user, skip
+        }
       }
-      
-      // For managers, only show their assigned employees' performance data (exclude manager's own)
-      if (userRole === 'MANAGER' && empId === userId) {
-        return; // Don't include manager's own performance
-      }
+      // Admin context: show all employees (no filtering)
 
       const completed = employeeGoals.filter(g => g.status === 'COMPLETED').length;
       const ratings = employeeGoals

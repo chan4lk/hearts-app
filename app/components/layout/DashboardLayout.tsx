@@ -105,17 +105,24 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
     };
   }, []);
 
+  // Store dashboard context in sessionStorage for analytics page context preservation
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('dashboardContext', type);
+    }
+  }, [type]);
+
   const getNavItems = (): NavItem[] => {
     const userRole = session?.user?.role;
     const currentContext = type; // Use the current dashboard type
 
-    // Define navigation items for each role
+    // Define navigation items for each role with context-aware analytics links
     const adminItems: NavItem[] = [
       { href: '/dashboard/admin', label: 'Overview', icon: BsShield },
       { href: '/dashboard/admin/users', label: 'Manage Users', icon: BsPeople },
       { href: '/dashboard/admin/all-goals', label: 'All Goals', icon: BsBullseye },
       { href: '/dashboard/admin/review-cycles', label: 'Review Cycles', icon: BsCalendarCheck },
-      { href: '/dashboard/analytics', label: 'Analytics', icon: BsBarChart },
+      { href: '/dashboard/analytics?context=admin', label: 'Analytics', icon: BsBarChart },
     ];
 
     const managerItems: NavItem[] = [
@@ -123,14 +130,14 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       { href: '/dashboard/manager/goals/approve-goals', label: 'Goal Approvals', icon: BsClipboardData },
       { href: '/dashboard/manager/goals/setgoals', label: 'Set Team Goals', icon: BsBullseye },
       { href: '/dashboard/manager/rate-employees', label: 'Rate Team', icon: BsStar },
-      { href: '/dashboard/analytics', label: 'Analytics', icon: BsBarChart },
+      { href: '/dashboard/analytics?context=manager', label: 'Analytics', icon: BsBarChart },
     ];
 
     const employeeItems: NavItem[] = [
       { href: '/dashboard/employee', label: 'Overview', icon: BsPerson },
       { href: '/dashboard/employee/goals/create', label: 'My Goals', icon: BsBullseye },
       { href: '/dashboard/employee/self-rating', label: 'Self Rating', icon: BsStar },
-      { href: '/dashboard/analytics', label: 'Analytics', icon: BsBarChart },
+      { href: '/dashboard/analytics?context=employee', label: 'Analytics', icon: BsBarChart },
     ];
 
     // Return items based on current dashboard type
