@@ -308,7 +308,7 @@ export default function AnalyticsPage() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [sessionStatus, session?.user, startDate, endDate, selectedEmployee, selectedDepartment, analyticsData]);
+  }, [sessionStatus, session?.user, startDate, endDate, selectedEmployee, selectedDepartment, dashboardType, analyticsData]);
 
   // Fetch analytics when filters change (only after session is loaded)
   useEffect(() => {
@@ -322,7 +322,7 @@ export default function AnalyticsPage() {
     
     fetchAnalytics();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionStatus, startDate, endDate, selectedEmployee, selectedDepartment]); // Removed session from deps to prevent loops
+  }, [sessionStatus, startDate, endDate, selectedEmployee, selectedDepartment, dashboardType, fetchAnalytics]);
 
   const handleExport = async (format: 'pdf' | 'json') => {
     try {
@@ -404,11 +404,7 @@ export default function AnalyticsPage() {
 
   // Show loading only if we're actually loading data, not just waiting for session
   if (loading && !analyticsData) {
-    return (
-      <DashboardLayout type={dashboardType}>
-        <LoadingComponent />
-      </DashboardLayout>
-    );
+    return <LoadingComponent />;
   }
 
   if (!analyticsData) {
