@@ -9,6 +9,7 @@ import LoadingComponent from '@/app/components/LoadingScreen';
 import HeroSection from './components/HeroSection';
 import ReviewCycleTable from './components/ReviewCycleTable';
 import ReviewCycleForm from './components/ReviewCycleForm';
+import { Pagination } from '@/app/components/shared/Pagination';
 import { showToast } from '@/app/utils/toast';
 import { BsArrowLeft } from 'react-icons/bs';
 import Link from 'next/link';
@@ -58,6 +59,18 @@ export default function ReviewCyclesPage() {
   const [editingCycle, setEditingCycle] = useState<ReviewCycle | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [cycleToDelete, setCycleToDelete] = useState<ReviewCycle | null>(null);
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null>(null);
 
   useEffect(() => {
     if (!session?.user || session.user.role !== 'ADMIN') {
@@ -65,28 +78,79 @@ export default function ReviewCyclesPage() {
       return;
     }
     fetchReviewCycles();
-  }, [session, router]);
+  }, [session, router, page, limit]);
 
-  const fetchReviewCycles = async () => {
+  const fetchReviewCycles = async (showLoading = true) => {
     try {
-      const response = await fetch('/api/admin/review-cycles');
+      if (showLoading) {
+        setLoading(true);
+      }
+      
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        sortBy: 'updatedAt',
+        sortOrder: 'desc'
+      });
+      
+      const response = await fetch(`/api/admin/review-cycles?${params}`);
       if (!response.ok) {
         throw new Error('Failed to fetch review cycles');
       }
       const data = await response.json();
-      setReviewCycles(data);
+      
+      // Handle both old format (array) and new format (object with reviewCycles and pagination)
+      if (Array.isArray(data)) {
+        setReviewCycles(data);
+        setPagination(null);
+      } else {
+        setReviewCycles(data.reviewCycles || []);
+        setPagination(data.pagination || null);
+      }
     } catch (error) {
       console.error('Error fetching review cycles:', error);
       showToast.error('Failed to load review cycles', error);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
 
   const handleSave = async (formData: any) => {
+    const isEditing = !!editingCycle;
+    const previousEditingCycle = editingCycle;
+    
+    // Optimistically close form immediately for fast UI response
+    setIsFormOpen(false);
+    setEditingCycle(null);
+    
+    // Show success toast immediately
+    showToast.success(
+      isEditing ? 'Review Cycle Updated' : 'Review Cycle Created', 
+      'Review cycle information has been saved successfully'
+    );
+    
+    // Optimistically update UI immediately
+    if (isEditing && previousEditingCycle) {
+      // Optimistically update existing cycle in the list
+      setReviewCycles(prevCycles => 
+        prevCycles.map(cycle => 
+          cycle.id === previousEditingCycle.id 
+            ? { 
+                ...cycle, 
+                ...formData,
+                updatedAt: new Date().toISOString()
+              }
+            : cycle
+        )
+      );
+    }
+    // For new cycles, we'll add it after server response to ensure correct data
+    
     try {
       // Include the id if editing
-      const payload = editingCycle ? { ...formData, id: editingCycle.id } : formData;
+      const payload = isEditing ? { ...formData, id: previousEditingCycle?.id } : formData;
 
       const response = await fetch('/api/admin/review-cycles', {
         method: 'POST',
@@ -99,11 +163,17 @@ export default function ReviewCyclesPage() {
         throw new Error(error.error || 'Failed to save review cycle');
       }
 
-      showToast.success(editingCycle ? 'Review Cycle Updated' : 'Review Cycle Created', 'Review cycle information has been saved successfully');
-      setIsFormOpen(false);
-      setEditingCycle(null);
-      fetchReviewCycles();
+      // Refresh data in background silently (no loading indicator) to get server response
+      // This ensures we have the complete data from server (including user names, etc.)
+      await fetchReviewCycles(false); // false = don't show loading indicator
     } catch (error) {
+      // On error, revert optimistic update and reopen form
+      setIsFormOpen(true);
+      setEditingCycle(previousEditingCycle);
+      
+      // Revert optimistic update by refreshing from server
+      fetchReviewCycles(false); // false = don't show loading indicator
+      
       showToast.error('Error', error instanceof Error ? error.message : 'Failed to save review cycle');
     }
   };
@@ -166,6 +236,28 @@ export default function ReviewCyclesPage() {
               }}
               onRefresh={fetchReviewCycles}
             />
+            
+            {/* Pagination */}
+            {pagination && (
+              <div className="mt-6 pt-4 border-t border-gray-700/50">
+                <Pagination
+                  page={pagination.page}
+                  limit={pagination.limit}
+                  total={pagination.total}
+                  totalPages={pagination.totalPages}
+                  hasNext={pagination.hasNext}
+                  hasPrev={pagination.hasPrev}
+                  onPageChange={(newPage) => {
+                    setPage(newPage);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  onLimitChange={(newLimit) => {
+                    setLimit(newLimit);
+                    setPage(1);
+                  }}
+                />
+              </div>
+            )}
           </motion.div>
 
           {/* Review Cycle Form Modal */}

@@ -4,8 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma'; // Prisma client with ReviewCycle model
 import { NotificationType } from '@prisma/client';
 
-// GET all review cycles
-export async function GET() {
+// GET all review cycles with pagination support
+export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -13,7 +13,56 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { searchParams } = new URL(req.url);
+    
+    // Pagination parameters
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20')));
+    const skip = (page - 1) * limit;
+    
+    // Filtering parameters
+    const userId = searchParams.get('userId');
+    const reportingPersonId = searchParams.get('reportingPersonId');
+    const search = searchParams.get('search'); // Search in user name/email
+    
+    // Sort parameters
+    const sortBy = searchParams.get('sortBy') || 'updatedAt';
+    const sortOrder = searchParams.get('sortOrder') || 'desc';
+    
+    // Build where clause
+    let whereClause: any = {};
+    
+    if (userId) {
+      whereClause.userId = userId;
+    }
+    
+    if (reportingPersonId) {
+      whereClause.reportingPersonId = reportingPersonId;
+    }
+    
+    if (search && search.trim()) {
+      whereClause.OR = [
+        { user: { name: { contains: search.trim(), mode: 'insensitive' as const } } },
+        { user: { email: { contains: search.trim(), mode: 'insensitive' as const } } }
+      ];
+    }
+    
+    // Build orderBy clause
+    let orderBy: any = {};
+    if (sortBy === 'userName') {
+      orderBy = { user: { name: sortOrder } };
+    } else if (sortBy === 'createdAt' || sortBy === 'updatedAt' || sortBy === 'reviewMonth') {
+      orderBy[sortBy] = sortOrder;
+    } else {
+      orderBy.updatedAt = 'desc';
+    }
+    
+    // Get total count for pagination
+    const total = await prisma.reviewCycle.count({ where: whereClause });
+    
+    // Fetch paginated review cycles
     const reviewCycles = await prisma.reviewCycle.findMany({
+      where: whereClause,
       include: {
         user: {
           select: {
@@ -45,12 +94,22 @@ export async function GET() {
           }
         }
       },
-      orderBy: {
-        updatedAt: 'desc'
-      }
+      orderBy,
+      skip,
+      take: limit
     });
 
-    return NextResponse.json(reviewCycles);
+    return NextResponse.json({
+      reviewCycles,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: skip + limit < total,
+        hasPrev: page > 1
+      }
+    });
   } catch (error) {
     console.error('Error fetching review cycles:', error);
     return NextResponse.json(

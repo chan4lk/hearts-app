@@ -11,6 +11,7 @@ import StatsSection from './components/StatsSection';
 import Filters from './components/Filters';
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
+import { Pagination } from '@/app/components/shared/Pagination';
 import LoadingComponent from '@/app/components/LoadingScreen';
 
 
@@ -28,6 +29,18 @@ export default function ApproveGoalsPage() {
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [selectedPriority, setSelectedPriority] = useState<string>('');
   const [employeeStats, setEmployeeStats] = useState<EmployeeStats[]>([]);
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null>(null);
 
   useEffect(() => {
     if (!session) {
@@ -40,16 +53,23 @@ export default function ApproveGoalsPage() {
     }
 
     fetchGoals();
-  }, [session, router]);
+  }, [session, router, page, limit, selectedEmployee, selectedStatus, selectedPriority]);
 
   const fetchGoals = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Build query params for pending approval view
+      // Build query params for pending approval view with pagination
       const params = new URLSearchParams({
-        view: 'pending-approval'
+        view: 'pending-approval',
+        page: page.toString(),
+        limit: limit.toString(),
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+        ...(selectedStatus && selectedStatus !== '' && { status: selectedStatus }),
+        ...(selectedPriority && selectedPriority !== '' && { priority: selectedPriority }),
+        ...(selectedEmployee && selectedEmployee !== 'all' && { employeeId: selectedEmployee })
       });
 
       // Fetch pending goals using unified API
@@ -59,6 +79,11 @@ export default function ApproveGoalsPage() {
       }
       const responseData = await goalsResponse.json();
       const goalsData = responseData.goals || [];
+      
+      // Set pagination if available
+      if (responseData.pagination) {
+        setPagination(responseData.pagination);
+      }
 
       // Fetch ALL assigned employees (not just those with pending goals)
       const employeesResponse = await fetch(`/api/employees/assigned`);
@@ -321,18 +346,8 @@ export default function ApproveGoalsPage() {
     });
   };
 
-  // Filter goals: show DRAFT, APPROVED, and REJECTED goals (for approval/review), and filter by selected employee and status
-  // Use useMemo to ensure filtering happens correctly when goals change
-  const filteredGoals = useMemo(() => {
-    return goals.filter(goal => {
-      const matchesEmployee = selectedEmployee === 'all' || (goal.employee && goal.employee.id === selectedEmployee);
-      const validStatuses = ['DRAFT', 'APPROVED', 'REJECTED'];
-      const matchesStatus = validStatuses.includes(goal.status) && 
-        (!selectedStatus || goal.status === selectedStatus);
-      const matchesPriority = !selectedPriority || goal.priority === selectedPriority;
-      return matchesEmployee && matchesStatus && matchesPriority;
-    });
-  }, [goals, selectedEmployee, selectedStatus, selectedPriority]);
+  // Server-side filtering is done, but we keep client-side filtering for view switching if needed
+  const filteredGoals = goals;
 
   if (isLoading) {
     return <LoadingComponent />;
@@ -350,11 +365,20 @@ export default function ApproveGoalsPage() {
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Goal Approval Dashboard</h2>
               <Filters
                 selectedEmployee={selectedEmployee}
-                onEmployeeChange={setSelectedEmployee}
+                onEmployeeChange={(employee) => {
+                  setSelectedEmployee(employee);
+                  setPage(1); // Reset to first page on filter change
+                }}
                 selectedStatus={selectedStatus}
-                onStatusChange={setSelectedStatus}
+                onStatusChange={(status) => {
+                  setSelectedStatus(status);
+                  setPage(1); // Reset to first page on filter change
+                }}
                 selectedPriority={selectedPriority}
-                onPriorityChange={setSelectedPriority}
+                onPriorityChange={(priority) => {
+                  setSelectedPriority(priority);
+                  setPage(1); // Reset to first page on filter change
+                }}
                 employeeStats={employeeStats}
               />
             </div>
@@ -366,10 +390,12 @@ export default function ApproveGoalsPage() {
           </div>
 
           {/* Goals Table */}
-          <GoalsTable
-            goals={filteredGoals}
-            onGoalClick={(goal) => setSelectedGoalDetails(goal)}
-            onStatusUpdate={(goalId, newStatus, updatedGoal) => {
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl border border-white/20 dark:border-gray-700/50 overflow-hidden shadow-lg">
+            <div className="p-4">
+              <GoalsTable
+                goals={filteredGoals}
+                onGoalClick={(goal) => setSelectedGoalDetails(goal)}
+                onStatusUpdate={(goalId, newStatus, updatedGoal) => {
               // Handle status update - keep goal in list regardless of status (DRAFT, APPROVED, or REJECTED)
               console.log('Status updated:', goalId, newStatus);
               
@@ -414,9 +440,33 @@ export default function ApproveGoalsPage() {
                 );
               }
             }}
-            showEmployee={true}
-            showManager={false}
-          />
+                showEmployee={true}
+                showManager={false}
+              />
+              
+              {/* Pagination */}
+              {pagination && (
+                <div className="mt-6 pt-4 border-t border-gray-700/50">
+                  <Pagination
+                    page={pagination.page}
+                    limit={pagination.limit}
+                    total={pagination.total}
+                    totalPages={pagination.totalPages}
+                    hasNext={pagination.hasNext}
+                    hasPrev={pagination.hasPrev}
+                    onPageChange={(newPage) => {
+                      setPage(newPage);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    onLimitChange={(newLimit) => {
+                      setLimit(newLimit);
+                      setPage(1);
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Goal Details Modal */}
           {selectedGoalDetails && (

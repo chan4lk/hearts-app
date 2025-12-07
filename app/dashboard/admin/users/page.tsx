@@ -14,6 +14,7 @@ import UserFilters from './components/Filters';
 import StatsSection from './components/StatsSection';
 import HeroSection from './components/HeroSection';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
+import { Pagination } from '@/app/components/shared/Pagination';
 import { User, FormData, Filters } from '@/app/components/shared/types';
 import { Role } from '.prisma/client';
 import { showToast } from '@/app/utils/toast';
@@ -57,13 +58,35 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null>(null);
 
   // Add auto-refresh functionality
   const REFRESH_INTERVAL = 30000; // 30 seconds
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (currentPage = page) => {
     try {
-      const response = await fetch('/api/admin/users');
+      setIsLoading(true);
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: limit.toString(),
+        ...(filters.role && filters.role !== '' && { role: filters.role }),
+        ...(filters.status && filters.status !== '' && { isActive: filters.status === 'ACTIVE' ? 'true' : 'false' }),
+        ...(filters.manager && filters.manager !== '' && { managerId: filters.manager }),
+        ...(searchTerm && searchTerm !== '' && { search: searchTerm })
+      });
+
+      const response = await fetch(`/api/admin/users?${params}`);
       if (!response.ok) {
         if (response.status === 401) {
           showToast.user.error('Unauthorized access');
@@ -74,7 +97,10 @@ export default function UsersPage() {
       }
 
       const data = await response.json();
-      const transformedUsers = data.map((user: RawUser): User => ({
+      
+      // Handle both old format (array) and new format (object with users and pagination)
+      const usersData = Array.isArray(data) ? data : data.users || [];
+      const transformedUsers = usersData.map((user: RawUser): User => ({
         id: user.id,
         name: user.name,
         email: user.email,
@@ -95,6 +121,12 @@ export default function UsersPage() {
       setManagers(transformedUsers.filter((user: User) => 
         user.role === Role.MANAGER || user.role === Role.ADMIN
       ));
+      
+      // Set pagination if available
+      if (data.pagination) {
+        setPagination(data.pagination);
+      }
+      
       setLastRefresh(new Date());
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -111,37 +143,22 @@ export default function UsersPage() {
     }
 
     // Initial fetch
-    fetchUsers();
+    fetchUsers(page);
 
     // Set up auto-refresh
     const intervalId = setInterval(() => {
       // Only refresh if no modals are open
       if (!isFormOpen && !isDetailsOpen && !isDeleteConfirmOpen) {
-        fetchUsers();
+        fetchUsers(page);
       }
     }, REFRESH_INTERVAL);
 
     // Cleanup on unmount
     return () => clearInterval(intervalId);
-  }, [session, router, isFormOpen, isDetailsOpen, isDeleteConfirmOpen]);
+  }, [session, router, isFormOpen, isDetailsOpen, isDeleteConfirmOpen, page, limit, filters, searchTerm]);
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = searchTerm === '' || 
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesRole = filters.role === '' || user.role === filters.role;
-    const matchesStatus = filters.status === '' || user.status === filters.status;
-    const matchesManager = filters.manager === '' || 
-      (user.manager && user.manager.id === filters.manager);
-
-    // If current user is a manager, only show their employees and other managers
-    if (session?.user?.role === Role.MANAGER && session?.user?.id) {
-      return (user.manager?.id === session.user.id) || user.role === Role.MANAGER;
-    }
-
-    return matchesSearch && matchesRole && matchesStatus && matchesManager;
-  });
+  // Filtering is now done on the server, but we keep this for any client-side filtering needed
+  const filteredUsers = users;
 
   const handleCreateUser = async (formData: FormData) => {
     try {
@@ -385,6 +402,28 @@ export default function UsersPage() {
                   onStatusUpdate={handleQuickStatusUpdate}
                   onManagerUpdate={handleQuickManagerUpdate}
                 />
+                
+                {/* Pagination */}
+                {pagination && (
+                  <div className="mt-6 pt-4 border-t border-gray-700/50">
+                    <Pagination
+                      page={pagination.page}
+                      limit={pagination.limit}
+                      total={pagination.total}
+                      totalPages={pagination.totalPages}
+                      hasNext={pagination.hasNext}
+                      hasPrev={pagination.hasPrev}
+                      onPageChange={(newPage) => {
+                        setPage(newPage);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      onLimitChange={(newLimit) => {
+                        setLimit(newLimit);
+                        setPage(1);
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>

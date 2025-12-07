@@ -29,7 +29,7 @@ interface ReviewCycle {
 
 interface ReviewCycleFormProps {
   reviewCycle: ReviewCycle | null;
-  onSave: (data: any) => void;
+  onSave: (data: any) => Promise<void> | void;
   onClose: () => void;
 }
 
@@ -42,6 +42,8 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
   const [users, setUsers] = useState<any[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingUsers, setLoadingUsers] = useState(false); // Start as false for optimistic loading
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
   
   // Helper function to get month name from date
   const getMonthName = (date: Date): string => {
@@ -123,9 +125,24 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
   const [calculatedReviewMonth, setCalculatedReviewMonth] = useState<string>('');
 
   useEffect(() => {
+    // Fetch users once and use for both employees and reporting persons
+    // Start loading in background immediately
     fetchUsers();
-    fetchEmployees();
+    
+    // Cleanup function to cancel request if component unmounts
+    return () => {
+      // Request will complete but state updates will be ignored if unmounted
+    };
   }, []);
+  
+  // Sync employees with users since they're the same list
+  useEffect(() => {
+    setEmployees(users);
+    // Set loading to false when users are loaded (even if empty)
+    if (!loadingUsers) {
+      setLoadingEmployees(false);
+    }
+  }, [users, loadingUsers]);
 
   // Initialize form values when reviewCycle changes
   useEffect(() => {
@@ -190,42 +207,50 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/admin/users');
+      setLoadingUsers(true);
+      // Fetch all users with minimal fields for faster loading
+      // Use minimal=true to get only id, name, email, role (no relations)
+      const response = await fetch('/api/admin/users?minimal=true&limit=1000&page=1&sortBy=name&sortOrder=asc');
       if (response.ok) {
         const data = await response.json();
-        // Load ALL users - no filtering by manager assignment
-        // All employees, managers, and admins can be selected
-        setUsers(data);
+        // API now returns { users: [...], pagination: {...} }
+        // Handle both old format (array) and new format (object)
+        const usersList = Array.isArray(data) ? data : (data.users || []);
+        // Only keep essential fields for dropdown (id, name, email, role)
+        const minimalUsers = usersList.map((user: any) => ({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        }));
+        setUsers(minimalUsers);
+      } else {
+        console.error('Failed to fetch users:', response.statusText);
+        setUsers([]);
       }
     } catch (error) {
       console.error('Error fetching users:', error);
+      setUsers([]);
+    } finally {
+      setLoadingUsers(false);
     }
   };
 
-  const fetchEmployees = async () => {
-    try {
-      const response = await fetch('/api/admin/users');
-      if (response.ok) {
-        const data = await response.json();
-        // Load ALL users - all users can be reporting persons
-        setEmployees(data);
-      }
-    } catch (error) {
-      console.error('Error fetching employees:', error);
-    }
-  };
 
   // Filter users by search term only (name or email)
   // No filtering by manager assignment - all users are available
-  const filteredUsers = users.filter(user => 
-    user.name.toLowerCase().includes(employeeSearch.toLowerCase()) ||
-    user.email.toLowerCase().includes(employeeSearch.toLowerCase())
-  );
+  // Ensure users is an array before filtering
+  const filteredUsers = Array.isArray(users) ? users.filter(user => 
+    user && user.name && user.email &&
+    (user.name.toLowerCase().includes(employeeSearch.toLowerCase()) ||
+     user.email.toLowerCase().includes(employeeSearch.toLowerCase()))
+  ) : [];
 
-  const filteredEmployees = employees.filter(emp => 
-    emp.name.toLowerCase().includes(reportingPersonSearch.toLowerCase()) ||
-    emp.email.toLowerCase().includes(reportingPersonSearch.toLowerCase())
-  );
+  const filteredEmployees = Array.isArray(employees) ? employees.filter(emp => 
+    emp && emp.name && emp.email &&
+    (emp.name.toLowerCase().includes(reportingPersonSearch.toLowerCase()) ||
+     emp.email.toLowerCase().includes(reportingPersonSearch.toLowerCase()))
+  ) : [];
 
   const filteredDesignations = searchDesignations(designationSearch);
   const filteredJobCategories = searchJobCategories(jobCategorySearch);
@@ -263,7 +288,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
     setShowJobCategoryDropdown(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const newErrors: Record<string, string> = {};
@@ -277,8 +302,20 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
     }
 
     setLoading(true);
-    onSave(formData);
-    setTimeout(() => setLoading(false), 500);
+    try {
+      // Call onSave - it will handle closing the form and updating UI
+      const result = onSave(formData);
+      // If onSave returns a promise, wait for it
+      if (result instanceof Promise) {
+        await result;
+      }
+    } catch (error) {
+      // Error handling is done in parent component
+      console.error('Error saving review cycle:', error);
+    } finally {
+      // Keep loading state briefly for visual feedback, then clear
+      setTimeout(() => setLoading(false), 100);
+    }
   };
 
   const handleChange = (field: string, value: string) => {
@@ -336,11 +373,18 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                     setFormData(prev => ({ ...prev, userId: '' }));
                   }
                 }}
-                onFocus={() => setShowEmployeeDropdown(true)}
-                placeholder="Search employee by name or email..."
+                onFocus={() => {
+                  setShowEmployeeDropdown(true);
+                  // Trigger fetch if users haven't loaded yet
+                  if (users.length === 0 && !loadingUsers) {
+                    fetchUsers();
+                  }
+                }}
+                placeholder={loadingUsers ? "Loading employees..." : "Search employee by name or email..."}
+                disabled={loadingUsers && users.length === 0}
                 className={`w-full pl-10 pr-10 py-2 bg-gray-800 text-white rounded-lg border ${
                   errors.userId ? 'border-red-500' : 'border-gray-700'
-                } focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                } focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-wait`}
               />
               <button
                 type="button"
@@ -352,7 +396,12 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
             </div>
             {showEmployeeDropdown && (
               <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                {filteredUsers.length > 0 ? (
+                {loadingUsers ? (
+                  <div className="px-4 py-8 text-center text-gray-400 text-sm">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-500 mx-auto mb-2"></div>
+                    Loading employees...
+                  </div>
+                ) : filteredUsers.length > 0 ? (
                   filteredUsers.map((user) => (
                     <div
                       key={user.id}
@@ -404,9 +453,16 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                     setFormData(prev => ({ ...prev, reportingPersonId: '' }));
                   }
                 }}
-                onFocus={() => setShowReportingPersonDropdown(true)}
-                placeholder="Search person by name or email..."
-                className="w-full pl-10 pr-10 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                onFocus={() => {
+                  setShowReportingPersonDropdown(true);
+                  // Trigger fetch if employees haven't loaded yet
+                  if (employees.length === 0 && !loadingEmployees) {
+                    fetchUsers();
+                  }
+                }}
+                placeholder={loadingEmployees ? "Loading reporting persons..." : "Search person by name or email..."}
+                disabled={loadingEmployees && employees.length === 0}
+                className="w-full pl-10 pr-10 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-wait"
               />
               <button
                 type="button"
@@ -418,7 +474,12 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
             </div>
             {showReportingPersonDropdown && (
               <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                {filteredEmployees.length > 0 ? (
+                {loadingEmployees ? (
+                  <div className="px-4 py-8 text-center text-gray-400 text-sm">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-500 mx-auto mb-2"></div>
+                    Loading reporting persons...
+                  </div>
+                ) : filteredEmployees.length > 0 ? (
                   filteredEmployees.map((emp) => (
                     <div
                       key={emp.id}

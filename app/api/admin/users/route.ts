@@ -36,8 +36,8 @@ function canManage(managerRole: Role, userRole: Role): boolean {
   return true;
 }
 
-// GET all users
-export async function GET() {
+// GET all users with pagination and filtering
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -45,39 +45,123 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        department: true,
-        position: true,
-        createdAt: true,
-        updatedAt: true,
-        isActive: true,
-        manager: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true
-          }
-        },
-        employees: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
+    const { searchParams } = new URL(request.url);
+    
+    // Check if minimal mode is requested (for dropdowns - faster loading)
+    const minimal = searchParams.get('minimal') === 'true';
+    
+    // Pagination parameters
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+    const limit = minimal ? Math.min(1000, Math.max(1, parseInt(searchParams.get('limit') || '1000'))) : Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20')));
+    const skip = (page - 1) * limit;
+    
+    // Filter parameters
+    const role = searchParams.get('role');
+    const isActive = searchParams.get('isActive');
+    const search = searchParams.get('search'); // Search in name/email
+    const department = searchParams.get('department');
+    const managerId = searchParams.get('managerId');
+    
+    // Sort parameters
+    const sortBy = searchParams.get('sortBy') || 'createdAt';
+    const sortOrder = searchParams.get('sortOrder') || 'desc';
+
+    // Build where clause
+    const whereClause: any = {};
+    
+    if (role && role !== 'all') {
+      whereClause.role = role;
+    }
+    
+    if (isActive !== null && isActive !== undefined && isActive !== 'all') {
+      whereClause.isActive = isActive === 'true';
+    }
+    
+    if (department && department !== 'all') {
+      whereClause.department = department;
+    }
+    
+    if (managerId && managerId !== 'all') {
+      if (managerId === 'none') {
+        whereClause.managerId = null;
+      } else {
+        whereClause.managerId = managerId;
+      }
+    }
+    
+    if (search && search.trim()) {
+      whereClause.OR = [
+        { name: { contains: search.trim(), mode: 'insensitive' as const } },
+        { email: { contains: search.trim(), mode: 'insensitive' as const } }
+      ];
+    }
+
+    // Build orderBy clause
+    const orderBy: any = {};
+    if (sortBy === 'name' || sortBy === 'email' || sortBy === 'role') {
+      orderBy[sortBy] = sortOrder;
+    } else {
+      orderBy.createdAt = sortOrder;
+    }
+
+    // Get total count (skip for minimal mode to improve performance)
+    const total = minimal ? 0 : await prisma.user.count({ where: whereClause });
+
+    // Fetch users with pagination
+    // Use minimal select for faster loading when minimal=true
+    const selectFields = minimal ? {
+      id: true,
+      name: true,
+      email: true,
+      role: true
+    } : {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      department: true,
+      position: true,
+      createdAt: true,
+      updatedAt: true,
+      isActive: true,
+      manager: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true
         }
       },
-      orderBy: {
-        createdAt: 'desc'
+      employees: {
+        select: {
+          id: true,
+          name: true,
+          email: true
+        }
       }
+    };
+    
+    const users = await prisma.user.findMany({
+      where: whereClause,
+      select: selectFields,
+      orderBy,
+      skip,
+      take: limit
     });
 
-    return NextResponse.json(users);
+    return NextResponse.json({
+      users,
+      ...(minimal ? {} : {
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+          hasNext: skip + limit < total,
+          hasPrev: page > 1
+        }
+      })
+    });
   } catch (error) {
     console.error('Error fetching users:', error);
     return NextResponse.json(

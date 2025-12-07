@@ -20,6 +20,7 @@ import Filters from './components/sections/Filters';
 import { CreateGoalModal } from './components/modals/CreateGoalModal';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
+import { Pagination } from '@/app/components/shared/Pagination';
 import GoalTemplates from '@/app/components/shared/GoalTemplates';
 import { BulkGoalFormModal } from '@/app/components/shared/BulkGoalFormModal';
 import { CATEGORIES } from '@/app/components/shared/constants';
@@ -90,6 +91,18 @@ function ManagerGoalSettingPageContent() {
   const [showTemplates, setShowTemplates] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isBulkCreateModalOpen, setIsBulkCreateModalOpen] = useState(false);
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null>(null);
 
   useEffect(() => {
     if (!session) {
@@ -102,6 +115,13 @@ function ManagerGoalSettingPageContent() {
     }
     fetchAssignedEmployees();
   }, [session, router]);
+  
+  // Refetch goals when pagination or filters change
+  useEffect(() => {
+    if (assignedEmployees.length > 0) {
+      fetchGoals(assignedEmployees);
+    }
+  }, [page, limit, selectedEmployee, selectedStatus, selectedPriority]);
 
   const fetchAssignedEmployees = async () => {
     try {
@@ -119,7 +139,19 @@ function ManagerGoalSettingPageContent() {
 
   const fetchGoals = async (employees: User[]) => {
     try {
-      const response = await fetch('/api/goals?view=team-goals');
+      // Build query params with pagination and filters
+      const params = new URLSearchParams({
+        view: 'team-goals',
+        page: page.toString(),
+        limit: limit.toString(),
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+        ...(selectedStatus && selectedStatus !== '' && { status: selectedStatus }),
+        ...(selectedPriority && selectedPriority !== '' && { priority: selectedPriority }),
+        ...(selectedEmployee && selectedEmployee !== 'all' && { employeeId: selectedEmployee })
+      });
+      
+      const response = await fetch(`/api/goals?${params}`);
       if (!response.ok) throw new Error('Failed to fetch goals');
       const data = await response.json();
 
@@ -130,6 +162,11 @@ function ManagerGoalSettingPageContent() {
 
       setGoals(assignedGoals);
       updateStats(assignedGoals, employees);
+      
+      // Set pagination if available
+      if (data.pagination) {
+        setPagination(data.pagination);
+      }
     } catch (error) {
       console.error('Error fetching goals:', error);
       showToast.goal.error('Failed to load goals');
@@ -426,11 +463,20 @@ function ManagerGoalSettingPageContent() {
 
         <Filters
           selectedEmployee={selectedEmployee}
-          onEmployeeChange={setSelectedEmployee}
+          onEmployeeChange={(employee) => {
+            setSelectedEmployee(employee);
+            setPage(1); // Reset to first page on filter change
+          }}
           selectedStatus={selectedStatus}
-          onStatusChange={setSelectedStatus}
+          onStatusChange={(status) => {
+            setSelectedStatus(status);
+            setPage(1); // Reset to first page on filter change
+          }}
           selectedPriority={selectedPriority}
-          onPriorityChange={setSelectedPriority}
+          onPriorityChange={(priority) => {
+            setSelectedPriority(priority);
+            setPage(1); // Reset to first page on filter change
+          }}
           assignedEmployees={assignedEmployees}
         />
 
@@ -492,6 +538,15 @@ function ManagerGoalSettingPageContent() {
           }}
           onPriorityUpdate={handlePriorityUpdate}
           onDueDateUpdate={handleDueDateUpdate}
+          pagination={pagination}
+          onPageChange={(newPage) => {
+            setPage(newPage);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          onLimitChange={(newLimit) => {
+            setLimit(newLimit);
+            setPage(1);
+          }}
         />
 
         {/* Modals */}

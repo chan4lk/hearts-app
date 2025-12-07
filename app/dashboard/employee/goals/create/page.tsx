@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
+import { PageContainer } from '@/app/components/shared/PageContainer';
 import LoadingComponent from '@/app/components/LoadingScreen';
 import { BsPlus, BsArrowUpRight, BsStars } from 'react-icons/bs';
 import GoalTemplates from '@/app/components/shared/GoalTemplates';
@@ -17,6 +18,7 @@ import { Goal, NewGoal } from '@/app/components/shared/types';
 import { useSession, getSession } from 'next-auth/react';
 import { CATEGORIES } from '@/app/components/shared/constants';
 import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
+import { Pagination } from '@/app/components/shared/Pagination';
 
 // Helper function to get the auth token
 const getAuthToken = async () => {
@@ -59,6 +61,18 @@ function GoalsPageContent() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null>(null);
 
   // Helper to check if user is admin or manager
   const userIsAdminOrManager = session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER';
@@ -72,17 +86,30 @@ function GoalsPageContent() {
 
   useEffect(() => {
     fetchGoals();
-  }, []);
+  }, [page, limit, selectedStatus, selectedCategory, selectedPriority]);
 
   const fetchGoals = async () => {
     try {
-      const response = await fetch('/api/goals?view=my-goals');
+      const params = new URLSearchParams({
+        view: 'my-goals',
+        page: page.toString(),
+        limit: limit.toString(),
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+        ...(selectedStatus && selectedStatus !== 'all' && { status: selectedStatus }),
+        ...(selectedCategory && selectedCategory !== 'all' && { category: selectedCategory }),
+        ...(selectedPriority && { priority: selectedPriority })
+      });
+      
+      const response = await fetch(`/api/goals?${params}`);
       if (response.ok) {
         const data = await response.json();
-        const sortedGoals = (data.goals || []).sort((a: Goal, b: Goal) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        setGoals(sortedGoals);
+        setGoals(data.goals || []);
+        
+        // Set pagination if available
+        if (data.pagination) {
+          setPagination(data.pagination);
+        }
       }
     } catch (error) {
       console.error('Error fetching goals:', error);
@@ -409,11 +436,26 @@ function GoalsPageContent() {
               selectedStatus={selectedStatus}
               selectedCategory={selectedCategory}
               selectedPriority={selectedPriority}
-              setSelectedStatus={setSelectedStatus}
-              setSelectedCategory={setSelectedCategory}
+              setSelectedStatus={(status) => {
+                setSelectedStatus(status);
+                setPage(1); // Reset to first page on filter change
+              }}
+              setSelectedCategory={(category) => {
+                setSelectedCategory(category);
+                setPage(1); // Reset to first page on filter change
+              }}
               onViewGoal={setSelectedViewGoal}
               onRefresh={handleRefresh}
               refreshing={refreshing}
+              pagination={pagination}
+              onPageChange={(newPage) => {
+                setPage(newPage);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onLimitChange={(newLimit) => {
+                setLimit(newLimit);
+                setPage(1);
+              }}
               onPriorityUpdate={(goalId, newPriority, updatedGoal) => {
                 setGoals(prevGoals =>
                   prevGoals.map(goal => {

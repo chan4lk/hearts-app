@@ -186,7 +186,9 @@ const ROLE_ACCESS: Record<Role, {
       '/dashboard/employee',
       '/dashboard/employee/goals',
       '/dashboard/employee/goals/create',
-      '/dashboard/employee/self-rating'
+      '/dashboard/employee/self-rating',
+      // Analytics - accessible to all
+      '/dashboard/analytics'
     ],
     defaultPath: '/dashboard/admin'
   },
@@ -202,7 +204,9 @@ const ROLE_ACCESS: Record<Role, {
       '/dashboard/employee',
       '/dashboard/employee/goals',
       '/dashboard/employee/goals/create',
-      '/dashboard/employee/self-rating'
+      '/dashboard/employee/self-rating',
+      // Analytics - accessible to all
+      '/dashboard/analytics'
     ],
     defaultPath: '/dashboard/manager'
   },
@@ -212,7 +216,9 @@ const ROLE_ACCESS: Record<Role, {
       '/dashboard/employee',
       '/dashboard/employee/goals',
       '/dashboard/employee/goals/create',
-      '/dashboard/employee/self-rating'
+      '/dashboard/employee/self-rating',
+      // Analytics - accessible to all
+      '/dashboard/analytics'
     ],
     defaultPath: '/dashboard/employee'
   }

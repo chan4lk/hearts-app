@@ -8,6 +8,7 @@ import StatsDisplay from './components/StatsDisplay';
 import Filters from './components/Filters';
 import GoalsSection from './components/GoalsSection';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
+import { Pagination } from '@/app/components/shared/Pagination';
 import LoadingComponent from '@/app/components/LoadingScreen';
 import AIPerformanceInsights from '@/app/components/ai/AIPerformanceInsights';
 import { BsStars, BsLightbulb } from 'react-icons/bs';
@@ -25,6 +26,18 @@ export default function ManagerDashboard() {
   const [selectedGoalDetails, setSelectedGoalDetails] = useState<Goal | null>(null);
   const [showAIInsights, setShowAIInsights] = useState(false);
   const { data: session } = useSession();
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null>(null);
 
   // Helper function to check if a goal belongs to the current user
   const isCurrentUserGoal = (goal: Goal) => {
@@ -76,10 +89,22 @@ export default function ManagerDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Build query params with pagination and filters
+        const params = new URLSearchParams({
+          view: 'team-goals',
+          page: page.toString(),
+          limit: limit.toString(),
+          sortBy: 'createdAt',
+          sortOrder: 'desc',
+          ...(selectedStatus && selectedStatus !== '' && { status: selectedStatus }),
+          ...(selectedPriority && { priority: selectedPriority }),
+          ...(selectedEmployee && selectedEmployee !== 'all' && { employeeId: selectedEmployee })
+        });
+        
         // Fetch assigned employees and goals in parallel
         const [empResponse, goalResponse] = await Promise.all([
           fetch('/api/employees/assigned'),
-          fetch('/api/goals?view=team-goals')
+          fetch(`/api/goals?${params}`)
         ]);
 
         if (!empResponse.ok) {
@@ -102,6 +127,11 @@ export default function ManagerDashboard() {
 
         // Goals from unified API already include all related data
         setGoals(goalData.goals || []);
+        
+        // Set pagination if available
+        if (goalData.pagination) {
+          setPagination(goalData.pagination);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
         setGoals([]);
@@ -112,7 +142,7 @@ export default function ManagerDashboard() {
     };
 
     fetchData();
-  }, [session?.user?.email]);
+  }, [session?.user?.email, page, limit, selectedStatus, selectedPriority, selectedEmployee]);
 
   // Add session/role check
   useEffect(() => {
@@ -171,11 +201,20 @@ export default function ManagerDashboard() {
           {/* Filters Section */}
           <Filters
             selectedStatus={selectedStatus}
-            setSelectedStatus={setSelectedStatus}
+            setSelectedStatus={(status) => {
+              setSelectedStatus(status);
+              setPage(1); // Reset to first page on filter change
+            }}
             selectedEmployee={selectedEmployee}
-            setSelectedEmployee={setSelectedEmployee}
+            setSelectedEmployee={(employee) => {
+              setSelectedEmployee(employee);
+              setPage(1); // Reset to first page on filter change
+            }}
             selectedPriority={selectedPriority}
-            setSelectedPriority={setSelectedPriority}
+            setSelectedPriority={(priority) => {
+              setSelectedPriority(priority);
+              setPage(1); // Reset to first page on filter change
+            }}
             employees={employees}
           />
 
@@ -281,6 +320,15 @@ export default function ManagerDashboard() {
             }}
             isAssignedGoal={isAssignedGoal}
             isSelfCreatedGoal={isSelfCreatedGoal}
+            pagination={pagination}
+            onPageChange={(newPage) => {
+              setPage(newPage);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onLimitChange={(newLimit) => {
+              setLimit(newLimit);
+              setPage(1);
+            }}
           />
         </div>
 

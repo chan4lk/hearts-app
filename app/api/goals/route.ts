@@ -112,6 +112,21 @@ export async function GET(req: Request) {
     const view = searchParams.get('view');
     const status = searchParams.get('status');
     const employeeId = searchParams.get('employeeId');
+    const category = searchParams.get('category');
+    const priority = searchParams.get('priority');
+    const search = searchParams.get('search'); // Search in title/description
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+    
+    // Pagination parameters
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20')));
+    const skip = (page - 1) * limit;
+    
+    // Sort parameters
+    const sortBy = searchParams.get('sortBy') || 'createdAt';
+    const sortOrder = searchParams.get('sortOrder') || 'desc';
+    
     const userRole = session.user.role;
     const userId = session.user.id;
 
@@ -124,13 +139,37 @@ export async function GET(req: Request) {
     if (status && Object.values(GoalStatus).includes(status as GoalStatus)) {
       whereClause.status = status;
     }
-
+    
+    // Add category filter if specified
+    if (category && category !== 'all') {
+      whereClause.category = category;
+    }
+    
+    // Add priority filter if specified
+    if (priority && priority !== 'all') {
+      whereClause.priority = priority;
+    }
+    
     // Determine which goals to fetch based on view and role
     const effectiveView = view || (
       userRole === 'ADMIN' ? 'all' :
       userRole === 'MANAGER' ? 'team-goals' :
       'my-goals'
     );
+
+    // Add date range filter if specified
+    if (startDate || endDate) {
+      whereClause.dueDate = {};
+      if (startDate) {
+        whereClause.dueDate.gte = new Date(startDate);
+      }
+      if (endDate) {
+        whereClause.dueDate.lte = new Date(endDate);
+      }
+    }
+
+    // Build OR conditions array for complex queries (team-goals view)
+    const orConditions: any[] = [];
 
     switch (effectiveView) {
       case 'my-goals':
@@ -152,11 +191,11 @@ export async function GET(req: Request) {
         const employeeIds = managedEmployees.map(e => e.id);
 
         // Include manager's own goals + managed employees' goals
-        whereClause.OR = [
+        orConditions.push(
           { employeeId: { in: employeeIds } },
           { employeeId: userId },
           { managerId: userId }
-        ];
+        );
         break;
 
       case 'pending-approval':
@@ -197,19 +236,87 @@ export async function GET(req: Request) {
         }
     }
 
-    // Fetch goals with all related data
+    // Add OR conditions if we have team-goals view
+    if (orConditions.length > 0) {
+      whereClause.OR = orConditions;
+    }
+
+    // Add search filter (applied as AND with other conditions)
+    if (search && search.trim()) {
+      // If we already have an OR clause (from team-goals), we need to restructure
+      // Otherwise, just add the search as AND condition
+      if (whereClause.OR && orConditions.length > 0) {
+        // For team-goals with search, we need to combine conditions properly
+        whereClause.AND = [
+          { OR: orConditions },
+          {
+            OR: [
+              { title: { contains: search.trim(), mode: 'insensitive' as const } },
+              { description: { contains: search.trim(), mode: 'insensitive' as const } }
+            ]
+          }
+        ];
+        delete whereClause.OR;
+      } else {
+        // Simple search without team-goals
+        whereClause.AND = whereClause.AND || [];
+        whereClause.AND.push({
+          OR: [
+            { title: { contains: search.trim(), mode: 'insensitive' as const } },
+            { description: { contains: search.trim(), mode: 'insensitive' as const } }
+          ]
+        });
+      }
+    }
+
+    // Determine sort order
+    const orderBy: any = {};
+    if (sortBy === 'title' || sortBy === 'status' || sortBy === 'priority' || sortBy === 'category') {
+      orderBy[sortBy] = sortOrder;
+    } else if (sortBy === 'dueDate') {
+      orderBy.dueDate = sortOrder;
+    } else if (sortBy === 'createdAt') {
+      orderBy.createdAt = sortOrder;
+    } else {
+      orderBy.createdAt = 'desc';
+    }
+
+    // Fetch total count for pagination (before applying skip/take)
+    const total = await prisma.goal.count({
+      where: whereClause
+    });
+
+    // Fetch goals with all related data (paginated)
     const goals = await prisma.goal.findMany({
       where: whereClause,
       include: goalInclude,
-      orderBy: { createdAt: 'desc' }
+      orderBy,
+      skip,
+      take: limit
     });
 
-    // Calculate statistics
-    const stats = calculateStats(goals);
+    // Fetch all goals for stats calculation (without pagination)
+    const allGoalsForStats = await prisma.goal.findMany({
+      where: whereClause,
+      select: {
+        status: true,
+        category: true,
+        priority: true,
+        rating: {
+          select: {
+            selfScore: true,
+            managerScore: true
+          }
+        }
+      }
+    });
+
+    // Calculate statistics from all matching goals (not just paginated)
+    const stats = calculateStats(allGoalsForStats);
 
     // Add category breakdown
     const categoryStats: Record<string, number> = {};
-    goals.forEach((goal: any) => {
+    allGoalsForStats.forEach((goal: any) => {
       if (goal.category) {
         categoryStats[goal.category] = (categoryStats[goal.category] || 0) + 1;
       }
@@ -222,10 +329,19 @@ export async function GET(req: Request) {
         ...stats,
         categories: categoryStats
       },
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: skip + limit < total,
+        hasPrev: page > 1
+      },
       meta: {
         view: effectiveView,
         role: userRole,
-        count: goals.length
+        count: goals.length,
+        total
       }
     });
   } catch (error) {

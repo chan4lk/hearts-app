@@ -13,6 +13,7 @@ import { StatsSection } from "./components/StatsSection";
 import Filters from "./components/Filters";
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
+import { Pagination } from '@/app/components/shared/Pagination';
 import { Goal, FilterStatus, RatingStatus, FilterRating } from "@/app/components/shared/types";
 import { BsX, BsPersonCheck, BsStarFill, BsArrowRight, BsStar } from 'react-icons/bs';
 
@@ -33,6 +34,18 @@ export default function SelfRatingPage() {
   const [ratingStatus, setRatingStatus] = useState<RatingStatus>('all');
   const [selectedPriority, setSelectedPriority] = useState('');
   const [showSelfRatingsModal, setShowSelfRatingsModal] = useState(false);
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null>(null);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -51,9 +64,19 @@ export default function SelfRatingPage() {
   const fetchGoals = async () => {
     try {
       setLoading(true);
-      // Fetch all goals assigned to the employee (both assigned by manager and self-created)
-      // view=my-goals returns all goals where employeeId = userId (includes both assigned and self-created)
-      const goalsResponse = await fetch("/api/goals?view=my-goals");
+      
+      // Build query params with pagination and filters
+      const params = new URLSearchParams({
+        view: 'my-goals',
+        page: page.toString(),
+        limit: limit.toString(),
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+        ...(filterStatus && filterStatus !== 'all' && { status: filterStatus }),
+        ...(selectedPriority && { priority: selectedPriority })
+      });
+      
+      const goalsResponse = await fetch(`/api/goals?${params}`);
 
       if (!goalsResponse.ok) {
         throw new Error("Failed to fetch goals");
@@ -68,6 +91,11 @@ export default function SelfRatingPage() {
       // Use all goals from the API (already filtered by employeeId in the API)
       // This includes both assigned goals and self-created goals
       const allEmployeeGoals = goalsData.goals;
+      
+      // Set pagination if available
+      if (goalsData.pagination) {
+        setPagination(goalsData.pagination);
+      }
 
       let ratingsData = { ratings: [] };
       try {
@@ -178,9 +206,9 @@ export default function SelfRatingPage() {
 
           // Otherwise, update with server response - create completely new object to force re-render
           const updatedGoal: Goal = {
-            ...goal,
+                ...goal,
             rating: updatedRating.id ? {
-              id: updatedRating.id,
+                  id: updatedRating.id,
               goalId: goalId,
               selfScore: updatedRating.selfScore || null,
               score: updatedRating.score || updatedRating.selfScore || updatedRating.managerScore || null,
@@ -212,7 +240,7 @@ export default function SelfRatingPage() {
       if (isClearingRating) {
         toast.success('Self-rating cleared');
       } else {
-        toast.success(`Self-rating updated to ${value} stars`);
+      toast.success(`Self-rating updated to ${value} stars`);
       }
     } catch (error) {
       // REVERT optimistic update on error
@@ -311,24 +339,53 @@ export default function SelfRatingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <GoalsTable
-              key={`goals-table-v${goalsVersion}`}
-              goals={filteredGoals}
-              selectedStatus={filterStatus === 'all' ? '' : filterStatus}
-              onStatusChange={(status) => setFilterStatus(status === '' ? 'all' : status as FilterStatus)}
-              onGoalClick={(goal) => setSelectedGoal(goal as Goal)}
-              onStatusUpdate={(goalId, newStatus, updatedGoal) => {
-                setGoals(prevGoals =>
-                  prevGoals.map(goal =>
-                    goal.id === goalId ? { ...goal, status: updatedGoal.status, updatedAt: new Date().toISOString() } : goal
-                  )
-                );
-              }}
-              showRating={true}
-              onRatingChange={handleSelfRating}
-              submittingRating={submittingRatingId}
-              showActions={false}
-            />
+            <div className="relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl shadow-xl">
+              <div className="p-4">
+                <GoalsTable
+                  key={`goals-table-v${goalsVersion}`}
+                  goals={filteredGoals}
+                  selectedStatus={filterStatus === 'all' ? '' : filterStatus}
+                  onStatusChange={(status) => {
+                    setFilterStatus(status === '' ? 'all' : status as FilterStatus);
+                    setPage(1); // Reset to first page on filter change
+                  }}
+                  onGoalClick={(goal) => setSelectedGoal(goal as Goal)}
+                  onStatusUpdate={(goalId, newStatus, updatedGoal) => {
+                    setGoals(prevGoals =>
+                      prevGoals.map(goal =>
+                        goal.id === goalId ? { ...goal, status: updatedGoal.status, updatedAt: new Date().toISOString() } : goal
+                      )
+                    );
+                  }}
+                  showRating={true}
+                  onRatingChange={handleSelfRating}
+                  submittingRating={submittingRatingId}
+                  showActions={false}
+                />
+                
+                {/* Pagination */}
+                {pagination && (
+                  <div className="mt-6 pt-4 border-t border-gray-700/50">
+                    <Pagination
+                      page={pagination.page}
+                      limit={pagination.limit}
+                      total={pagination.total}
+                      totalPages={pagination.totalPages}
+                      hasNext={pagination.hasNext}
+                      hasPrev={pagination.hasPrev}
+                      onPageChange={(newPage) => {
+                        setPage(newPage);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      onLimitChange={(newLimit) => {
+                        setLimit(newLimit);
+                        setPage(1);
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
           </motion.div>
 
           {/* Goal Detail Modal with Rating */}

@@ -3,6 +3,7 @@ import { BsListTask, BsArrowRepeat } from 'react-icons/bs';
 import { Goal } from '@/app/components/shared/types';
 import { useSession } from 'next-auth/react';
 import GoalsTable from '@/app/components/shared/GoalsTable';
+import { Pagination } from '@/app/components/shared/Pagination';
 
 interface GoalsListProps {
   goals: Goal[];
@@ -15,6 +16,16 @@ interface GoalsListProps {
   onRefresh: () => void;
   refreshing?: boolean;
   onPriorityUpdate?: (goalId: string, newPriority: string, updatedGoal: Goal) => void;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null;
+  onPageChange?: (page: number) => void;
+  onLimitChange?: (limit: number) => void;
 }
 
 export const GoalsList = ({
@@ -28,6 +39,9 @@ export const GoalsList = ({
   onRefresh,
   refreshing = false,
   onPriorityUpdate,
+  pagination,
+  onPageChange,
+  onLimitChange,
 }: GoalsListProps) => {
   const { data: session } = useSession();
   const userId = session?.user?.id;
@@ -57,6 +71,22 @@ export const GoalsList = ({
             showActions={false}
             onPriorityUpdate={onPriorityUpdate}
           />
+          
+          {/* Pagination */}
+          {pagination && onPageChange && onLimitChange && (
+            <div className="mt-6 pt-4 border-t border-gray-700/50">
+              <Pagination
+                page={pagination.page}
+                limit={pagination.limit}
+                total={pagination.total}
+                totalPages={pagination.totalPages}
+                hasNext={pagination.hasNext}
+                hasPrev={pagination.hasPrev}
+                onPageChange={onPageChange}
+                onLimitChange={onLimitChange}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

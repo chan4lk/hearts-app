@@ -10,6 +10,7 @@ import GoalsSection from './components/GoalsSection';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
+import { Pagination } from '@/app/components/shared/Pagination';
 import { Goal, GoalStats } from '@/app/components/shared/types';
 import { BsStars, BsLightbulb, BsX, BsPlus, BsPersonCheck, BsStarFill, BsStar, BsArrowRight } from 'react-icons/bs';
 import { showToast } from '@/app/utils/toast';
@@ -48,6 +49,18 @@ export default function EmployeeDashboard() {
     priority: 'MEDIUM'
   });
   const [errors, setErrors] = useState<{ title?: string; category?: string; employeeId?: string; department?: string; priority?: string }>({});
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null>(null);
 
   // Update employeeId when session loads
   useEffect(() => {
@@ -130,13 +143,30 @@ export default function EmployeeDashboard() {
 
   // Fetch goals from the unified API
   const fetchGoals = async () => {
-    const response = await fetch('/api/goals?view=my-goals');
+    const params = new URLSearchParams({
+      view: 'my-goals',
+      page: page.toString(),
+      limit: limit.toString(),
+      sortBy: 'createdAt',
+      sortOrder: 'desc',
+      ...(selectedStatus && selectedStatus !== '' && { status: selectedStatus }),
+      ...(selectedPriority && { priority: selectedPriority }),
+      ...(searchQuery && { search: searchQuery })
+    });
+
+    const response = await fetch(`/api/goals?${params}`);
 
     if (!response.ok) {
       throw new Error('Failed to fetch goals');
     }
 
     const data = await response.json();
+    
+    // Set pagination if available
+    if (data.pagination) {
+      setPagination(data.pagination);
+    }
+    
     return data.goals || [];
   };
 
@@ -309,6 +339,7 @@ export default function EmployeeDashboard() {
   useEffect(() => {
     const loadGoals = async () => {
       try {
+        setLoading(true);
         const goals = await fetchGoals();
         setGoals(goals);
       } catch (error) {
@@ -321,14 +352,10 @@ export default function EmployeeDashboard() {
     if (session?.user?.id) {
       loadGoals();
     }
-  }, [session?.user?.id]);
+  }, [session?.user?.id, page, limit, selectedStatus, selectedPriority, searchQuery]);
 
-  const filteredGoals = goals.filter(goal => {
-    const matchesSearch = goal.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = !selectedStatus || goal.status === selectedStatus;
-    const matchesPriority = !selectedPriority || goal.priority === selectedPriority;
-    return matchesSearch && matchesStatus && matchesPriority;
-  });
+  // Server-side filtering is handled by API, but we keep client-side filtering for view switching
+  const filteredGoals = goals;
 
   const getGoalStats = (): GoalStats => {
     const totalGoals = goals.length;
@@ -405,6 +432,7 @@ export default function EmployeeDashboard() {
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
+    setPage(1); // Reset to first page on search change
     // Optional: Show toast for no results after a delay
     if (value && !filteredGoals.length) {
       setTimeout(() => {
@@ -417,6 +445,7 @@ export default function EmployeeDashboard() {
 
   const handleStatusChange = (value: string) => {
     setSelectedStatus(value);
+    setPage(1); // Reset to first page on status change
     // Optional: Show toast for no results after filter
     if (value && !filteredGoals.length) {
       showToast.error('Filter Results', 'No goals found with the selected status');
@@ -576,9 +605,15 @@ export default function EmployeeDashboard() {
           >
             <Filters
               selectedStatus={selectedStatus}
-              onStatusChange={setSelectedStatus}
+              onStatusChange={(status) => {
+                setSelectedStatus(status);
+                setPage(1); // Reset to first page on filter change
+              }}
               selectedPriority={selectedPriority}
-              onPriorityChange={setSelectedPriority}
+              onPriorityChange={(priority) => {
+                setSelectedPriority(priority);
+                setPage(1); // Reset to first page on filter change
+              }}
             />
           </motion.div>
 
@@ -607,6 +642,15 @@ export default function EmployeeDashboard() {
                 );
               }}
               userRole={session?.user?.role}
+              pagination={pagination}
+              onPageChange={(newPage) => {
+                setPage(newPage);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onLimitChange={(newLimit) => {
+                setLimit(newLimit);
+                setPage(1);
+              }}
             />
           </motion.div>
 

@@ -2,6 +2,7 @@ import { BsListUl, BsShield, BsStars, BsPlus } from 'react-icons/bs';
 import { useRouter } from 'next/navigation';
 import { Goal } from '@/app/components/shared/types';
 import GoalsTable from '@/app/components/shared/GoalsTable';
+import { Pagination } from '@/app/components/shared/Pagination';
 import { useState } from 'react';
 
 interface GoalsSectionProps {
@@ -15,6 +16,16 @@ interface GoalsSectionProps {
   onDeleteGoal?: (goal: Goal) => void;
   onStatusUpdate?: (goalId: string, newStatus: string, updatedGoal: Goal) => void;
   userRole?: string;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null;
+  onPageChange?: (page: number) => void;
+  onLimitChange?: (limit: number) => void;
 }
 
 type ViewType = 'assigned' | 'created';
@@ -31,6 +42,9 @@ export default function GoalsSection({
   onDeleteGoal,
   onStatusUpdate,
   userRole,
+  pagination,
+  onPageChange,
+  onLimitChange,
 }: GoalsSectionProps) {
   const router = useRouter();
   const [activeView, setActiveView] = useState<ViewType>(userRole === 'ADMIN' ? 'created' : 'assigned');
@@ -117,6 +131,22 @@ export default function GoalsSection({
             onStatusUpdate={onStatusUpdate}
             showActions={false}
           />
+          
+          {/* Pagination */}
+          {pagination && onPageChange && onLimitChange && (
+            <div className="mt-6 pt-4 border-t border-gray-700/50">
+              <Pagination
+                page={pagination.page}
+                limit={pagination.limit}
+                total={pagination.total}
+                totalPages={pagination.totalPages}
+                hasNext={pagination.hasNext}
+                hasPrev={pagination.hasPrev}
+                onPageChange={onPageChange}
+                onLimitChange={onLimitChange}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

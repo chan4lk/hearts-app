@@ -13,6 +13,7 @@ import StatsSection from "./components/StatsSection";
 import Filters from "./components/Filters";
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
+import { Pagination } from '@/app/components/shared/Pagination';
 
 export default function RateEmployeesPage() {
   const { data: session } = useSession();
@@ -27,6 +28,18 @@ export default function RateEmployeesPage() {
   const [selectedPriority, setSelectedPriority] = useState('');
   const [employeeStats, setEmployeeStats] = useState<EmployeeStats[]>([]);
   const [selectedGoal, setSelectedGoal] = useState<GoalWithRatingExtended | null>(null);
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null>(null);
 
   useEffect(() => {
     if (!session) {
@@ -38,7 +51,7 @@ export default function RateEmployeesPage() {
       return;
     }
     fetchEmployeeGoals();
-  }, [session, router]);
+  }, [session, router, page, limit, filterEmployee, filterRating, selectedStatus, selectedPriority]);
 
   useEffect(() => {
     const stats = calculateEmployeeStats(goals);
@@ -85,20 +98,39 @@ export default function RateEmployeesPage() {
   const fetchEmployeeGoals = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/goals/manager");
+      
+      // Build query params with pagination and filters - use unified API with COMPLETED status
+      const params = new URLSearchParams({
+        view: 'team-goals',
+        status: 'COMPLETED', // Only COMPLETED goals for rating
+        page: page.toString(),
+        limit: limit.toString(),
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+        ...(filterEmployee && filterEmployee !== 'all' && { employeeId: filterEmployee }),
+        ...(selectedStatus && selectedStatus !== '' && { status: selectedStatus }),
+        ...(selectedPriority && selectedPriority !== '' && { priority: selectedPriority })
+      });
+      
+      const response = await fetch(`/api/goals?${params}`);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "Failed to fetch goals");
+        throw new Error(errorData.message || errorData.error || "Failed to fetch goals");
       }
       
       const data = await response.json();
       
-      if (!Array.isArray(data)) {
-        throw new Error("Invalid response format: expected an array of goals");
+      // Unified API returns { goals: [], pagination: {}, ... }
+      const goalsData = Array.isArray(data) ? data : (data.goals || []);
+      
+      setGoals(goalsData);
+      
+      // Set pagination if available
+      if (data.pagination) {
+        setPagination(data.pagination);
       }
       
-      setGoals(data);
       toast.success("Goals loaded successfully");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to load goals";
@@ -367,16 +399,15 @@ export default function RateEmployeesPage() {
     }
   };
 
+  // Server-side filtering is done, but keep client-side filtering for rating filter
   const filteredGoals = useMemo(() => {
     return goals.filter(goal => {
       if (!goal.employee) return false;
-      if (filterEmployee !== 'all' && goal.employee.id !== filterEmployee) return false;
+      // Rating filter is client-side only (not supported by API)
       if (filterRating !== 'all' && (goal.rating?.managerScore || goal.rating?.score) !== parseInt(filterRating)) return false;
-      if (selectedStatus && goal.status !== selectedStatus) return false;
-      if (selectedPriority && goal.priority !== selectedPriority) return false;
       return true;
     });
-  }, [goals, filterEmployee, filterRating, selectedStatus, selectedPriority]);
+  }, [goals, filterRating]);
 
   if (loading) {
     return <LoadingComponent />;
@@ -401,13 +432,22 @@ export default function RateEmployeesPage() {
 
           <Filters
             selectedEmployee={filterEmployee}
-            onEmployeeChange={setFilterEmployee}
+            onEmployeeChange={(employee) => {
+              setFilterEmployee(employee);
+              setPage(1); // Reset to first page on filter change
+            }}
             selectedStatus={selectedStatus}
-            onStatusChange={setSelectedStatus}
+            onStatusChange={(status) => {
+              setSelectedStatus(status);
+              setPage(1); // Reset to first page on filter change
+            }}
             selectedRating={filterRating}
             onRatingChange={setFilterRating}
             selectedPriority={selectedPriority}
-            onPriorityChange={setSelectedPriority}
+            onPriorityChange={(priority) => {
+              setSelectedPriority(priority);
+              setPage(1); // Reset to first page on filter change
+            }}
             employeeStats={employeeStats}
           />
 
@@ -424,6 +464,28 @@ export default function RateEmployeesPage() {
                 submittingRating={submittingRatingId}
                 disableStatusUpdate={true}
               />
+              
+              {/* Pagination */}
+              {pagination && (
+                <div className="mt-6 pt-4 border-t border-gray-700/50">
+                  <Pagination
+                    page={pagination.page}
+                    limit={pagination.limit}
+                    total={pagination.total}
+                    totalPages={pagination.totalPages}
+                    hasNext={pagination.hasNext}
+                    hasPrev={pagination.hasPrev}
+                    onPageChange={(newPage) => {
+                      setPage(newPage);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    onLimitChange={(newLimit) => {
+                      setLimit(newLimit);
+                      setPage(1);
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
 

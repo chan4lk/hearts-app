@@ -1,6 +1,7 @@
 import { BsListUl, BsShield, BsStars } from 'react-icons/bs';
 import { Goal } from '@/app/components/shared/types';
 import GoalsTable from '@/app/components/shared/GoalsTable';
+import { Pagination } from '@/app/components/shared/Pagination';
 import { useState } from 'react';
 
 interface GoalsSectionProps {
@@ -17,6 +18,16 @@ interface GoalsSectionProps {
   allowedStatuses?: (goal: Goal) => string[];
   isAssignedGoal: (goal: Goal) => boolean;
   isSelfCreatedGoal: (goal: Goal) => boolean;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null;
+  onPageChange?: (page: number) => void;
+  onLimitChange?: (limit: number) => void;
 }
 
 type ViewType = 'assigned' | 'self-created';
@@ -35,6 +46,9 @@ export default function GoalsSection({
   allowedStatuses,
   isAssignedGoal,
   isSelfCreatedGoal,
+  pagination,
+  onPageChange,
+  onLimitChange,
 }: GoalsSectionProps) {
   const [activeView, setActiveView] = useState<ViewType>('assigned');
 
@@ -121,6 +135,22 @@ export default function GoalsSection({
             canEditDueDate={canEditDueDate}
             allowedStatuses={allowedStatuses}
           />
+          
+          {/* Pagination */}
+          {pagination && onPageChange && onLimitChange && (
+            <div className="mt-6 pt-4 border-t border-gray-700/50">
+              <Pagination
+                page={pagination.page}
+                limit={pagination.limit}
+                total={pagination.total}
+                totalPages={pagination.totalPages}
+                hasNext={pagination.hasNext}
+                hasPrev={pagination.hasPrev}
+                onPageChange={onPageChange}
+                onLimitChange={onLimitChange}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -7,6 +7,7 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import AdminGoalsTable from '../components/AdminGoalsTable';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
+import { Pagination } from '@/app/components/shared/Pagination';
 import LoadingComponent from '@/app/components/LoadingScreen';
 import { Goal, User as UserType } from '@/app/components/shared/types';
 import { motion } from 'framer-motion';
@@ -14,6 +15,7 @@ import { showToast } from '@/app/utils/toast';
 import HeroSection from './components/HeroSection';
 import StatsSection from './components/StatsSection';
 import Filters from './components/Filters';
+import { PageContainer } from '@/app/components/shared/PageContainer';
 
 export default function AllGoalsPage() {
   const { data: session } = useSession();
@@ -30,6 +32,18 @@ export default function AllGoalsPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [goalsToBulkDelete, setGoalsToBulkDelete] = useState<string[]>([]);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null>(null);
 
   useEffect(() => {
     if (!session) {
@@ -43,13 +57,25 @@ export default function AllGoalsPage() {
     }
 
     fetchData();
-  }, [session, router]);
+  }, [session, router, page, limit, selectedUser, selectedStatus, selectedPriority, selectedCategory]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
+      
+      // Build query params with pagination and filters
+      const params = new URLSearchParams({
+        view: 'all',
+        page: page.toString(),
+        limit: limit.toString(),
+        ...(selectedStatus && selectedStatus !== 'all' && { status: selectedStatus }),
+        ...(selectedPriority && { priority: selectedPriority }),
+        ...(selectedCategory && selectedCategory !== 'all' && { category: selectedCategory }),
+        ...(selectedUser && selectedUser !== 'all' && { employeeId: selectedUser })
+      });
+
       const [goalsRes, usersRes] = await Promise.all([
-        fetch('/api/goals'),
+        fetch(`/api/goals?${params}`),
         fetch('/api/users'),
       ]);
 
@@ -64,6 +90,11 @@ export default function AllGoalsPage() {
 
       setGoals(goalsData.goals || []);
       setUsers(usersData.users || []);
+      
+      // Set pagination if available
+      if (goalsData.pagination) {
+        setPagination(goalsData.pagination);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -71,14 +102,8 @@ export default function AllGoalsPage() {
     }
   };
 
-  const filteredGoals = goals.filter(goal => {
-    const matchesUser = selectedUser === 'all' || goal.employee?.id === selectedUser;
-    const matchesStatus = selectedStatus === 'all' || goal.status === selectedStatus;
-    const matchesPriority = !selectedPriority || goal.priority === selectedPriority;
-    const matchesCategory = selectedCategory === 'all' || goal.category === selectedCategory;
-    
-    return matchesUser && matchesStatus && matchesPriority && matchesCategory;
-  });
+  // No client-side filtering needed - server handles it
+  const filteredGoals = goals;
 
   // Handle delete goal
   const handleDeleteGoal = (goal: Goal) => {
@@ -213,13 +238,38 @@ export default function AllGoalsPage() {
                 <AdminGoalsTable
                   goals={filteredGoals}
                   selectedStatus={selectedStatus === 'all' ? '' : selectedStatus}
-                  onStatusChange={(status) => setSelectedStatus(status === '' ? 'all' : status)}
+                  onStatusChange={(status) => {
+                    setSelectedStatus(status === '' ? 'all' : status);
+                    setPage(1); // Reset to first page on filter change
+                  }}
                   onGoalClick={(goal) => setSelectedGoal(goal)}
                   onDelete={handleDeleteGoal}
                   onBulkDelete={handleBulkDelete}
                   showEmployee={true}
                   showManager={true}
                 />
+                
+                {/* Pagination */}
+                {pagination && (
+                  <div className="mt-6 pt-4 border-t border-gray-700/50">
+                    <Pagination
+                      page={pagination.page}
+                      limit={pagination.limit}
+                      total={pagination.total}
+                      totalPages={pagination.totalPages}
+                      hasNext={pagination.hasNext}
+                      hasPrev={pagination.hasPrev}
+                      onPageChange={(newPage) => {
+                        setPage(newPage);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      onLimitChange={(newLimit) => {
+                        setLimit(newLimit);
+                        setPage(1);
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
