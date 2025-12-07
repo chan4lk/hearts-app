@@ -301,6 +301,14 @@ export default function UsersPage() {
     ));
   };
 
+  // Handle quick manager update from table
+  const handleQuickManagerUpdate = (userId: string, newManagerId: string | null, updatedUser: User) => {
+    // Optimistically update the user list
+    setUsers(prev => prev.map(user => 
+      user.id === userId ? updatedUser : user
+    ));
+  };
+
   if (isLoading) {
     return <LoadingComponent />;
   }
@@ -363,6 +371,7 @@ export default function UsersPage() {
               <div className="p-4">
                 <UserTable
                   users={filteredUsers}
+                  managers={managers}
                   onViewDetailsAction={(user: User) => {
                     setSelectedUser(user);
                     setIsDetailsOpen(true);
@@ -374,6 +383,7 @@ export default function UsersPage() {
                   onDeleteAction={handleDeleteUser}
                   onRoleUpdate={handleQuickRoleUpdate}
                   onStatusUpdate={handleQuickStatusUpdate}
+                  onManagerUpdate={handleQuickManagerUpdate}
                 />
               </div>
             </div>

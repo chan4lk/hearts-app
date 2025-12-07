@@ -9,11 +9,13 @@ import { showToast } from '@/app/utils/toast';
 
 interface UserTableProps {
   users: User[];
+  managers: User[];
   onViewDetailsAction: (user: User) => void;
   onEditAction: (user: User) => void;
   onDeleteAction: (userId: string) => void;
   onRoleUpdate?: (userId: string, newRole: string, updatedUser: User) => void;
   onStatusUpdate?: (userId: string, newStatus: string, updatedUser: User) => void;
+  onManagerUpdate?: (userId: string, newManagerId: string | null, updatedUser: User) => void;
 }
 
 type SortColumn = 'name' | 'email' | 'role' | 'status' | 'manager';
@@ -21,14 +23,17 @@ type SortDirection = 'asc' | 'desc' | null;
 
 export default function UserTable({ 
   users, 
+  managers,
   onViewDetailsAction, 
   onEditAction, 
   onDeleteAction,
   onRoleUpdate,
-  onStatusUpdate 
+  onStatusUpdate,
+  onManagerUpdate
 }: UserTableProps) {
   const [updatingRole, setUpdatingRole] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [updatingManager, setUpdatingManager] = useState<string | null>(null);
   const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
@@ -154,6 +159,68 @@ export default function UserTable({
       showToast.error('Error', error instanceof Error ? error.message : 'Failed to update status');
     } finally {
       setUpdatingStatus(null);
+    }
+  };
+
+  // Handle quick manager update
+  const handleQuickManagerUpdate = async (userId: string, newManagerId: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+
+    // If selecting "Unassigned", set to null
+    const managerId = newManagerId === 'unassigned' ? null : newManagerId;
+    
+    // Don't update if it's the same manager
+    if ((!user.manager && !managerId) || (user.manager?.id === managerId)) {
+      return;
+    }
+
+    setUpdatingManager(userId);
+    
+    try {
+      const response = await fetch('/api/admin/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: userId,
+          name: user.name,
+          email: user.email,
+          role: user.role as Role,
+          managerId: managerId,
+          isActive: user.status === 'ACTIVE'
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update manager');
+      }
+
+      const updatedUser = await response.json();
+      
+      // Transform to match User type
+      const transformedUser: User = {
+        ...updatedUser,
+        status: updatedUser.isActive ? 'ACTIVE' : 'INACTIVE',
+        manager: updatedUser.manager || null
+      };
+
+      // Notify parent component
+      if (onManagerUpdate) {
+        onManagerUpdate(userId, managerId, transformedUser);
+      }
+      
+      const managerName = managerId ? managers.find(m => m.id === managerId)?.name : 'Unassigned';
+      showToast.success('Manager Updated!', `User manager has been updated to ${managerName}`);
+    } catch (error) {
+      console.error('Error updating manager:', error);
+      showToast.error('Error', error instanceof Error ? error.message : 'Failed to update manager');
+    } finally {
+      setUpdatingManager(null);
     }
   };
 
@@ -372,8 +439,47 @@ export default function UserTable({
                       </SelectContent>
                     </Select>
                   </td>
-                  <td className="py-3 px-4 text-sm text-gray-300">
-                    {user.manager?.name || 'Unassigned'}
+                  <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+                    <Select
+                      value={user.manager?.id || 'unassigned'}
+                      onValueChange={(newManagerId) => handleQuickManagerUpdate(user.id, newManagerId)}
+                      disabled={updatingManager === user.id}
+                    >
+                      <SelectTrigger className="bg-blue-500/10 text-blue-400 border border-white/20 text-xs px-3 py-1.5 h-auto hover:opacity-90 hover:border-white/30 transition-all cursor-pointer min-w-[150px] font-medium">
+                        <SelectValue>
+                          {user.manager?.name || 'Unassigned'}
+                        </SelectValue>
+                        <BsGear className="w-3 h-3 ml-auto opacity-50 rotate-90" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-800 border-gray-700 z-50 max-h-[300px] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                        <SelectItem value="unassigned" className="hover:bg-gray-700 cursor-pointer">
+                          <span className="text-gray-400">Unassigned</span>
+                        </SelectItem>
+                        {managers
+                          .filter(manager => manager.id !== user.id) // Don't allow user to be their own manager
+                          .map((manager) => {
+                            const isAdmin = manager.role === Role.ADMIN;
+                            return (
+                              <SelectItem 
+                                key={manager.id} 
+                                value={manager.id} 
+                                className="hover:bg-gray-700 cursor-pointer"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span className="text-blue-400">{manager.name}</span>
+                                  <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                    isAdmin 
+                                      ? 'bg-purple-500/20 text-purple-400' 
+                                      : 'bg-blue-500/20 text-blue-400'
+                                  }`}>
+                                    {isAdmin ? 'ADMIN' : 'MANAGER'}
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
+                      </SelectContent>
+                    </Select>
                   </td>
                   <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center gap-2">
