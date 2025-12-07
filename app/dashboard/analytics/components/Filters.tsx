@@ -1,8 +1,9 @@
 'use client';
 
-import { BsCalendar, BsPerson, BsBuilding } from 'react-icons/bs';
-import { Download } from 'lucide-react';
+import { BsCalendar, BsPerson, BsBuilding, BsFiletypeJson, BsArrowClockwise } from 'react-icons/bs';
+import { Download, FileDown } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 
 interface FiltersProps {
   startDate: string;
@@ -15,8 +16,10 @@ interface FiltersProps {
   onDepartmentChange: (department: string) => void;
   employees: Array<{ id: string; name: string; email: string; department: string | null }>;
   departments: string[];
-  onExport: () => void;
+  onExport: (format: 'json') => void;
   userRole?: string;
+  onRefresh?: () => void;
+  refreshing?: boolean;
 }
 
 export default function Filters(props: FiltersProps) {
@@ -32,11 +35,23 @@ export default function Filters(props: FiltersProps) {
     onEmployeeChange,
     onDepartmentChange,
     onExport,
-    userRole
+    userRole,
+    onRefresh,
+    refreshing = false
   } = props;
 
+  const [exportLoading, setExportLoading] = useState<boolean>(false);
   const isAdmin = userRole === 'ADMIN' || userRole === 'MANAGER';
   const hasDateRange = startDate && endDate;
+
+  const handleExport = async () => {
+    setExportLoading(true);
+    try {
+      await onExport('json');
+    } finally {
+      setTimeout(() => setExportLoading(false), 1000);
+    }
+  };
 
   /** --------------------------------
    * Helper function for dynamic styles
@@ -56,8 +71,47 @@ export default function Filters(props: FiltersProps) {
    * JSX Rendering
    -----------------------------------*/
   return (
-    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-5 border-2 border-gray-700/50">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+    <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50 shadow-xl">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 pb-4 border-b border-gray-700/50">
+        <div>
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+            <BsCalendar className="w-5 h-5 text-blue-400" />
+            Filters & Export
+          </h3>
+          <p className="text-xs text-gray-400 mt-1">Customize your analytics view and export data</p>
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-2">
+          {onRefresh && (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onRefresh}
+              disabled={refreshing}
+              className="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/30 backdrop-blur-sm text-blue-300 rounded-lg border border-blue-500/30 hover:border-blue-500/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <BsArrowClockwise className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </motion.button>
+          )}
+          
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleExport}
+            disabled={exportLoading}
+            className="px-4 py-2 bg-gray-700/60 hover:bg-gray-700/80 backdrop-blur-sm text-gray-300 rounded-lg border border-gray-600/50 hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500/50 text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            <BsFiletypeJson className={`w-4 h-4 ${exportLoading ? 'animate-pulse' : ''}`} />
+            <span>Download JSON</span>
+          </motion.button>
+        </div>
+      </div>
+
+      {/* Filters Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
 
         {/* EMPLOYEE FILTER */}
         {isAdmin && employees.length > 0 && (
@@ -118,7 +172,6 @@ export default function Filters(props: FiltersProps) {
           />
         )}
 
-       
       </div>
     </div>
   );

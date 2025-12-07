@@ -20,7 +20,7 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts';
-import { BsBarChart } from 'react-icons/bs';
+import { BsBarChart, BsStarFill } from 'react-icons/bs';
 import HeroSection from './components/HeroSection';
 import StatsSection from './components/StatsSection';
 import Filters from './components/Filters';
@@ -320,7 +320,18 @@ export default function AnalyticsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionStatus, startDate, endDate, selectedEmployee, selectedDepartment, dashboardType, fetchAnalytics]);
 
-  const handleExport = async (format: 'pdf' | 'json') => {
+  // Handle refresh action
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchAnalytics().finally(() => setRefreshing(false));
+  }, [fetchAnalytics]);
+
+  const handleExport = async (format: 'json') => {
+    if (!analyticsData) {
+      alert('No data available to export');
+      return;
+    }
+
     try {
       const exportFilters: any = {
         startDate,
@@ -341,6 +352,7 @@ export default function AnalyticsPage() {
         }
       }
       
+      // JSON export
       const response = await fetch('/api/reports/generate', {
         method: 'POST',
         headers: {
@@ -357,34 +369,28 @@ export default function AnalyticsPage() {
       });
 
       const data = await response.json();
-      
-      if (format === 'json') {
-        const reportData = {
-          ...data.report,
-          metadata: {
-            exportedAt: new Date().toISOString(),
-            exportedBy: session?.user?.name || session?.user?.email,
-            role: session?.user?.role,
-            filters: exportFilters
-          }
-        };
-        const blob = new Blob([JSON.stringify(reportData, null, 2)], {
-          type: 'application/json'
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        const rolePrefix = session?.user?.role === 'ADMIN' ? 'admin' : session?.user?.role === 'MANAGER' ? 'manager' : 'employee';
-        a.href = url;
-        a.download = `${rolePrefix}-analytics-report-${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-      } else {
-        // PDF export would require client-side PDF generation
-        alert('PDF export requires jspdf library. JSON export is available.');
-      }
+      const reportData = {
+        ...data.report,
+        metadata: {
+          exportedAt: new Date().toISOString(),
+          exportedBy: session?.user?.name || session?.user?.email,
+          role: session?.user?.role,
+          filters: exportFilters
+        }
+      };
+      const blob = new Blob([JSON.stringify(reportData, null, 2)], {
+        type: 'application/json'
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const rolePrefix = session?.user?.role === 'ADMIN' ? 'admin' : session?.user?.role === 'MANAGER' ? 'manager' : 'employee';
+      a.href = url;
+      a.download = `${rolePrefix}-analytics-report-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error exporting report:', error);
-      alert('Failed to export report');
+      alert('Failed to export report. Please try again.');
     }
   };
 
@@ -467,7 +473,7 @@ export default function AnalyticsPage() {
         {/* Subtle Background Pattern */}
         <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
         
-        <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           {/* Hero Section */}
           <HeroSection userRole={session?.user?.role} />
 
@@ -489,8 +495,10 @@ export default function AnalyticsPage() {
             }}
             employees={employees}
             departments={departments}
-            onExport={() => handleExport('json')}
+            onExport={handleExport}
             userRole={session?.user?.role}
+            onRefresh={handleRefresh}
+            refreshing={refreshing}
           />
 
           {/* No Data Message */}
@@ -498,11 +506,17 @@ export default function AnalyticsPage() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl p-8 border border-gray-700/50 shadow-lg text-center"
+              className="bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl p-12 border border-gray-700/50 shadow-xl text-center"
             >
-              <BsBarChart className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-400 text-lg">No analytics data available</p>
-              <p className="text-gray-500 text-sm mt-2">Try adjusting your date range or filters</p>
+              <div className="flex flex-col items-center justify-center">
+                <div className="p-4 bg-gray-800/50 rounded-full mb-4">
+                  <BsBarChart className="w-16 h-16 text-gray-500" />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">No Analytics Data Available</h3>
+                <p className="text-gray-400 text-sm max-w-md">
+                  There's no data to display for the selected filters. Try adjusting your date range or filters to see analytics.
+                </p>
+              </div>
             </motion.div>
           )}
 
@@ -515,7 +529,12 @@ export default function AnalyticsPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
+                className="mb-2"
               >
+                <div className="mb-4">
+                  <h2 className="text-xl font-bold text-white mb-1">Key Metrics</h2>
+                  <p className="text-sm text-gray-400">Overview of performance indicators</p>
+                </div>
                 <StatsSection 
                   analyticsData={analyticsData.summary}
                   userRole={session?.user?.role}
@@ -527,10 +546,15 @@ export default function AnalyticsPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="grid grid-cols-1 lg:grid-cols-2 gap-4"
+                className="mb-2"
               >
+                <div className="mb-4">
+                  <h2 className="text-xl font-bold text-white mb-1">Visual Analytics</h2>
+                  <p className="text-sm text-gray-400">Charts and visualizations of your data</p>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Goals by Status */}
-            <ChartCard title="Goals by Status">
+            <ChartCard title="Goals by Status" description="Distribution of goals across different statuses">
               {statusData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
@@ -564,7 +588,7 @@ export default function AnalyticsPage() {
             </ChartCard>
 
             {/* Goals by Category */}
-            <ChartCard title="Goals by Category">
+            <ChartCard title="Goals by Category" description="Breakdown of goals by category">
               {categoryData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={categoryData}>
@@ -583,7 +607,7 @@ export default function AnalyticsPage() {
             </ChartCard>
 
             {/* Monthly Trend */}
-            <ChartCard title="Goals Created Over Time">
+            <ChartCard title="Goals Created Over Time" description="Monthly trend of goal creation">
               {monthlyData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={monthlyData}>
@@ -602,7 +626,7 @@ export default function AnalyticsPage() {
             </ChartCard>
 
             {/* Goals by Priority */}
-            <ChartCard title="Goals by Priority">
+            <ChartCard title="Goals by Priority" description="Distribution by priority levels">
               {priorityData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={priorityData}>
@@ -622,7 +646,7 @@ export default function AnalyticsPage() {
 
             {/* Goals by Department - Show for Admin and Manager only */}
             {(session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER') && (
-              <ChartCard title="Goals by Department">
+              <ChartCard title="Goals by Department" description="Department-wise goal distribution">
                 {departmentData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={departmentData}>
@@ -640,6 +664,7 @@ export default function AnalyticsPage() {
                 )}
               </ChartCard>
               )}
+                </div>
               </motion.div>
 
               {/* Employee Performance Table - Show for Admin, Manager, and Employee */}
@@ -648,41 +673,72 @@ export default function AnalyticsPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
+                  className="mt-2"
                 >
-              <ChartCard title={
-                session?.user?.role === 'EMPLOYEE' 
-                  ? 'My Performance' 
-                  : session?.user?.role === 'MANAGER' 
-                    ? 'Team Performance' 
-                    : 'Top Performers'
-              }>
-                <div className="overflow-x-auto">
+              <ChartCard 
+                title={
+                  session?.user?.role === 'EMPLOYEE' 
+                    ? 'My Performance' 
+                    : session?.user?.role === 'MANAGER' 
+                      ? 'Team Performance' 
+                      : 'Top Performers'
+                }
+                description={
+                  session?.user?.role === 'EMPLOYEE' 
+                    ? 'Your performance metrics breakdown' 
+                    : session?.user?.role === 'MANAGER' 
+                      ? 'Performance overview of your team' 
+                      : 'Top performing employees'
+                }
+              >
+                <div className="overflow-x-auto -mx-2 px-2">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-gray-700">
-                        <th className="text-left p-3 text-gray-400 font-medium">Employee</th>
-                        <th className="text-left p-3 text-gray-400 font-medium">Total Goals</th>
-                        <th className="text-left p-3 text-gray-400 font-medium">Completed</th>
-                        <th className="text-left p-3 text-gray-400 font-medium">Completion Rate</th>
-                        <th className="text-left p-3 text-gray-400 font-medium">Avg Rating</th>
+                      <tr className="border-b-2 border-gray-700/50">
+                        <th className="text-left py-3 px-3 text-sm font-semibold text-gray-300 uppercase tracking-wider">Employee</th>
+                        <th className="text-center py-3 px-3 text-sm font-semibold text-gray-300 uppercase tracking-wider">Total</th>
+                        <th className="text-center py-3 px-3 text-sm font-semibold text-gray-300 uppercase tracking-wider">Completed</th>
+                        <th className="text-center py-3 px-3 text-sm font-semibold text-gray-300 uppercase tracking-wider">Rate</th>
+                        <th className="text-center py-3 px-3 text-sm font-semibold text-gray-300 uppercase tracking-wider">Rating</th>
                       </tr>
                     </thead>
-                    <tbody>
-                      {analyticsData.employeePerformance.map((emp, index) => (
-                        <motion.tr
-                          key={emp.employeeId}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.4 + index * 0.05 }}
-                          className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors"
-                        >
-                          <td className="p-3 text-white font-medium">{emp.employeeName}</td>
-                          <td className="p-3 text-gray-300">{emp.totalGoals}</td>
-                          <td className="p-3 text-gray-300">{emp.completedGoals}</td>
-                          <td className="p-3 text-gray-300">{emp.completionRate.toFixed(1)}%</td>
-                          <td className="p-3 text-gray-300">{emp.averageRating.toFixed(1)}</td>
-                        </motion.tr>
-                      ))}
+                    <tbody className="divide-y divide-gray-800/50">
+                      {analyticsData.employeePerformance.map((emp, index) => {
+                        const isHighPerformer = emp.completionRate >= 80 && emp.averageRating >= 4.0;
+                        return (
+                          <motion.tr
+                            key={emp.employeeId}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.4 + index * 0.05 }}
+                            className={`border-b border-gray-800/30 hover:bg-gray-800/40 transition-all duration-200 ${isHighPerformer ? 'bg-green-500/5' : ''}`}
+                          >
+                            <td className="py-3 px-3">
+                              <div className="flex items-center gap-2">
+                                <div className={`w-2 h-2 rounded-full ${isHighPerformer ? 'bg-green-500' : 'bg-gray-600'}`}></div>
+                                <span className="text-white font-medium">{emp.employeeName}</span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-3 text-center">
+                              <span className="text-gray-200 font-medium">{emp.totalGoals}</span>
+                            </td>
+                            <td className="py-3 px-3 text-center">
+                              <span className="text-green-400 font-medium">{emp.completedGoals}</span>
+                            </td>
+                            <td className="py-3 px-3 text-center">
+                              <span className={`font-semibold ${emp.completionRate >= 80 ? 'text-green-400' : emp.completionRate >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                {emp.completionRate.toFixed(1)}%
+                              </span>
+                            </td>
+                            <td className="py-3 px-3 text-center">
+                              <div className="flex items-center justify-center gap-1">
+                                <span className="text-yellow-400 font-medium">{emp.averageRating.toFixed(1)}</span>
+                                <BsStarFill className="w-3 h-3 text-yellow-400" />
+                              </div>
+                            </td>
+                          </motion.tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -698,12 +754,25 @@ export default function AnalyticsPage() {
 }
 
 
-function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
+function ChartCard({ title, children, description }: { title: string; children: React.ReactNode; description?: string }) {
   return (
-    <div className="relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl p-6 border border-gray-700/50 shadow-lg">
-      <h3 className="text-lg font-semibold text-white mb-4">{title}</h3>
-      {children}
-    </div>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl p-6 border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-gray-600/50"
+    >
+      <div className="mb-5">
+        <h3 className="text-xl font-bold text-white mb-1 flex items-center gap-2">
+          {title}
+        </h3>
+        {description && (
+          <p className="text-xs text-gray-400">{description}</p>
+        )}
+      </div>
+      <div className="relative">
+        {children}
+      </div>
+    </motion.div>
   );
 }
 
