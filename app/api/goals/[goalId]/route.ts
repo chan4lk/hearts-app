@@ -197,6 +197,46 @@ export async function PUT(req: Request, { params }: { params: { goalId: string }
       include: goalInclude
     });
 
+    // Create notification for goal update
+    const updaterName = session.user.name || session.user.email || 'User';
+    const isEmployeeUpdate = existingGoal.employeeId === session.user.id;
+    
+    if (isEmployeeUpdate) {
+      // Notify manager when employee updates goal details
+      if (existingGoal.managerId) {
+        await prisma.notification.create({
+          data: {
+            type: NotificationType.GOAL_UPDATED,
+            message: `${existingGoal.employee?.name || 'Employee'} updated details of goal "${goal.title}"`,
+            userId: existingGoal.managerId,
+            goalId: goal.id,
+          },
+        });
+      }
+    } else {
+      // Notify employee when manager/admin updates goal details
+      await prisma.notification.create({
+        data: {
+          type: NotificationType.GOAL_UPDATED,
+          message: `Goal "${goal.title}" has been updated by ${updaterName}`,
+          userId: goal.employeeId,
+          goalId: goal.id,
+        },
+      });
+      
+      // If employee assignment changed, notify new employee
+      if (employeeId && employeeId !== existingGoal.employeeId) {
+        await prisma.notification.create({
+          data: {
+            type: NotificationType.GOAL_CREATED,
+            message: `Goal "${goal.title}" has been reassigned to you by ${updaterName}`,
+            userId: employeeId,
+            goalId: goal.id,
+          },
+        });
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Goal updated successfully',

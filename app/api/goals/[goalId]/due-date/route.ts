@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { NotificationType } from '@prisma/client';
 
 // Due date update endpoint for goals
 export async function PATCH(
@@ -89,6 +90,34 @@ export async function PATCH(
         }
       }
     });
+
+    // Create notification based on who updated
+    const updaterName = session.user.name || session.user.email || 'User';
+    const formattedDate = new Date(dueDate).toLocaleDateString();
+    
+    if (isEmployee) {
+      // Notify manager when employee updates due date
+      if (goal.managerId) {
+        await prisma.notification.create({
+          data: {
+            type: NotificationType.GOAL_UPDATED,
+            message: `${goal.employee?.name || 'Employee'} updated due date of goal "${goal.title}" to ${formattedDate}`,
+            userId: goal.managerId,
+            goalId: goal.id,
+          },
+        });
+      }
+    } else {
+      // Notify employee when manager/admin updates due date
+      await prisma.notification.create({
+        data: {
+          type: NotificationType.GOAL_UPDATED,
+          message: `Due date of goal "${goal.title}" has been updated to ${formattedDate} by ${updaterName}`,
+          userId: goal.employeeId,
+          goalId: goal.id,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { GoalStatus, GoalCategory } from '@prisma/client';
+import { GoalStatus, GoalCategory, NotificationType } from '@prisma/client';
 
 interface BulkGoalData {
   title: string;
@@ -229,6 +229,16 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
             });
             
             createdGoals.push(goal);
+            
+            // Create notification for employee when goal is bulk assigned
+            await tx.notification.create({
+              data: {
+                type: NotificationType.GOAL_CREATED,
+                message: `A new goal "${goal.title}" has been assigned to you by ${session.user.name || 'your manager'}`,
+                userId: goal.employeeId,
+                goalId: goal.id,
+              },
+            });
           } catch (error) {
             console.error(`Error creating goal ${i}:`, error);
             throw new Error(`Failed to create goal ${i + 1}: ${goalData.title}`);

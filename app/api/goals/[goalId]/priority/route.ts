@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { NotificationType } from '@prisma/client';
 
 // Priority update endpoint for goals
 export async function PATCH(
@@ -92,6 +93,33 @@ export async function PATCH(
         }
       }
     });
+
+    // Create notification based on who updated
+    const updaterName = session.user.name || session.user.email || 'User';
+    
+    if (isEmployee) {
+      // Notify manager when employee updates priority
+      if (goal.managerId) {
+        await prisma.notification.create({
+          data: {
+            type: NotificationType.GOAL_UPDATED,
+            message: `${goal.employee?.name || 'Employee'} updated priority of goal "${goal.title}" to ${priority}`,
+            userId: goal.managerId,
+            goalId: goal.id,
+          },
+        });
+      }
+    } else {
+      // Notify employee when manager/admin updates priority
+      await prisma.notification.create({
+        data: {
+          type: NotificationType.GOAL_UPDATED,
+          message: `Priority of goal "${goal.title}" has been updated to ${priority} by ${updaterName}`,
+          userId: goal.employeeId,
+          goalId: goal.id,
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,

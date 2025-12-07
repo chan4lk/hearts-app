@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
+import { NotificationType } from '@prisma/client';
 
 export async function POST(
   request: Request,
@@ -26,6 +27,11 @@ export async function POST(
       where: {
         id: params.goalId,
       },
+      include: {
+        employee: {
+          select: { id: true, name: true, email: true, managerId: true }
+        }
+      }
     });
 
     if (!goal) {
@@ -64,6 +70,18 @@ export async function POST(
         }
       }
     });
+
+    // Create notification for manager when employee submits self-rating
+    if (goal.employee?.managerId) {
+      await prisma.notification.create({
+        data: {
+          type: NotificationType.RATING_RECEIVED,
+          message: `${goal.employee.name || 'Employee'} submitted a self-rating (${score} stars) for goal "${goal.title}"`,
+          userId: goal.employee.managerId,
+          goalId: goal.id,
+        },
+      });
+    }
 
     return NextResponse.json({
       id: rating.id,
