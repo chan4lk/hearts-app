@@ -1,92 +1,139 @@
-import { motion } from "framer-motion";
-import { BsClipboardData, BsCheckCircle, BsBarChart } from "react-icons/bs";
-import { Stats } from "@/app/components/shared/types";
+import { BsClipboardData, BsCheckCircle, BsPencil, BsXCircle, BsStarFill } from 'react-icons/bs';
+import { Goal } from '@/app/components/shared/types';
+import { motion } from 'framer-motion';
+import { useSession } from 'next-auth/react';
+import SelfRatingBadge from './SelfRatingBadge';
 
 interface StatsSectionProps {
-  stats: Stats;
+  goals: Goal[];
+  onViewSelfRatings?: () => void;
 }
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15
-    }
-  }
-};
+export function StatsSection({ goals, onViewSelfRatings }: StatsSectionProps) {
+  // Show all goals (both assigned and self-created)
+  // Calculate status counts for all goals
+  const draftCount = goals.filter(g => g.status === 'DRAFT').length;
+  const approvedCount = goals.filter(g => g.status === 'APPROVED').length;
+  const rejectedCount = goals.filter(g => g.status === 'REJECTED').length;
+  const completedCount = goals.filter(g => g.status === 'COMPLETED').length;
+  const totalCount = goals.length;
+  
+  // Calculate self-rating stats for all goals
+  const ratedGoals = goals.filter(g => g.rating?.selfScore || g.rating?.score);
+  const ratedCount = ratedGoals.length;
+  const totalRating = ratedGoals.reduce((acc, goal) => acc + (goal.rating?.selfScore || goal.rating?.score || 0), 0);
+  const averageRating = ratedCount > 0 ? (totalRating / ratedCount).toFixed(1) : '0.0';
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 10, scale: 0.95 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    scale: 1,
-    transition: {
-      type: "spring",
-      stiffness: 100
+  const statsList = [
+    {
+      title: 'My Goals',
+      value: totalCount,
+      icon: <BsClipboardData className="w-4 h-4" />,
+      gradient: 'from-indigo-500 to-purple-500',
+      bgColor: 'bg-indigo-500/10',
+      borderColor: 'border-indigo-500/30'
+    },
+    {
+      title: 'Draft',
+      value: draftCount,
+      icon: <BsPencil className="w-4 h-4" />,
+      gradient: 'from-gray-500 to-slate-500',
+      bgColor: 'bg-gray-500/10',
+      borderColor: 'border-gray-500/30'
+    },
+    {
+      title: 'Approved',
+      value: approvedCount,
+      icon: <BsCheckCircle className="w-4 h-4" />,
+      gradient: 'from-emerald-500 to-teal-500',
+      bgColor: 'bg-emerald-500/10',
+      borderColor: 'border-emerald-500/30'
+    },
+    {
+      title: 'Rejected',
+      value: rejectedCount,
+      icon: <BsXCircle className="w-4 h-4" />,
+      gradient: 'from-rose-500 to-red-500',
+      bgColor: 'bg-rose-500/10',
+      borderColor: 'border-rose-500/30'
+    },
+    {
+      title: 'Completed',
+      value: completedCount,
+      icon: <BsCheckCircle className="w-4 h-4" />,
+      gradient: 'from-green-500 to-emerald-500',
+      bgColor: 'bg-green-500/10',
+      borderColor: 'border-green-500/30'
+    },
+    {
+      title: 'Rated',
+      value: ratedCount,
+      icon: <BsStarFill className="w-4 h-4" />,
+      gradient: 'from-yellow-500 to-orange-500',
+      bgColor: 'bg-yellow-500/10',
+      borderColor: 'border-yellow-500/30'
     }
-  }
-};
+  ];
 
-export function StatsSection({ stats }: StatsSectionProps) {
   return (
-    <motion.div 
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="grid grid-cols-1 sm:grid-cols-3 gap-3"
-    >
-      <motion.div 
-        variants={itemVariants}
-        whileHover={{ scale: 1.02 }}
-        className="group relative"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-300 opacity-75" />
-        <div className="relative bg-white/90 dark:bg-gray-800/90 rounded-lg p-4 flex items-center gap-4 border border-blue-100/50 dark:border-blue-900/50">
-          <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg text-white">
-            <BsClipboardData className="w-4 h-4" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Goals</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
-          </div>
-        </div>
-      </motion.div>
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+      {statsList.map((stat, index) => (
+        <motion.div
+          key={stat.title}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: index * 0.05 }}
+          className={`
+            relative overflow-hidden
+            ${stat.bgColor}
+            backdrop-blur-sm
+            rounded-xl
+            p-3
+            border-2
+            ${stat.borderColor}
+            hover:border-opacity-60
+            transition-all
+            duration-300
+            group
+            cursor-pointer
+            hover:shadow-xl
+            hover:scale-105
+            flex items-center gap-3
+          `}
+          tabIndex={0}
+          aria-label={`${stat.title}: ${stat.value}`}
+          title={`${stat.title}: ${stat.value}`}
+        >
+          {/* Animated background gradient on hover */}
+          <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
 
-      <motion.div 
-        variants={itemVariants}
-        whileHover={{ scale: 1.02 }}
-        className="group relative"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-300 opacity-75" />
-        <div className="relative bg-white/90 dark:bg-gray-800/90 rounded-lg p-4 flex items-center gap-4 border border-green-100/50 dark:border-green-900/50">
-          <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg text-white">
-            <BsCheckCircle className="w-4 h-4" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Rated Goals</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.rated}</p>
-          </div>
-        </div>
-      </motion.div>
+          {/* Content */}
+          <div className="relative flex items-center gap-3 w-full">
+            {/* Icon */}
+            <div className={`p-2 rounded-lg bg-gradient-to-r ${stat.gradient} text-white shadow-lg flex-shrink-0`}>
+              {stat.icon}
+            </div>
 
-      <motion.div 
-        variants={itemVariants}
-        whileHover={{ scale: 1.02 }}
-        className="group relative"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-300 opacity-75" />
-        <div className="relative bg-white/90 dark:bg-gray-800/90 rounded-lg p-4 flex items-center gap-4 border border-yellow-100/50 dark:border-yellow-900/50">
-          <div className="p-2 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg text-white">
-            <BsBarChart className="w-4 h-4" />
+            {/* Value and Title */}
+            <div className="flex flex-col">
+              <div className="text-xl font-bold text-white group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:text-transparent group-hover:from-white group-hover:to-gray-200 transition-all duration-300">
+                {stat.value}
+              </div>
+              <div className="text-xs font-medium text-gray-400">
+                {stat.title}
+              </div>
+              {stat.title === 'Rated' && ratedCount > 0 && (
+                <div className="text-[10px] text-yellow-400 font-semibold">
+                  Avg: {averageRating}
+                </div>
+              )}
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Average Rating</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.average}</p>
-          </div>
-        </div>
-      </motion.div>
-    </motion.div>
+        </motion.div>
+      ))}
+      
+      {/* Self Rating Badge */}
+      <SelfRatingBadge goals={goals} onViewRatings={onViewSelfRatings} />
+    </div>
   );
-} 
+}

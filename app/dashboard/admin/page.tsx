@@ -2,41 +2,33 @@
 
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { 
-  BsPeople, 
-  BsLightning, 
   BsClock, 
-  BsShieldExclamation, 
-  BsGraphUp, 
-  BsPersonPlus, 
-  BsThreeDotsVertical, 
-  BsArrowUpRight, 
-  BsActivity, 
-  BsGear, 
-  BsBell, 
-  BsBullseye,
-  BsEye,
-  BsPlus,
   BsCheckCircle,
   BsExclamationTriangle,
   BsXCircle,
-  BsCalendar,
-  BsSpeedometer2,
-  BsDatabase,
-  BsServer,
-  BsGlobe,
-  BsCpu,
-  BsWifi,
-  BsHddNetwork,
+  BsActivity,
   BsChevronRight,
-  BsDot
+  BsPeople,
+  BsBullseye,
+  BsEye,
+  BsEyeSlash
 } from 'react-icons/bs';
+import HeroSection from './components/HeroSection';
+import StatsSection from './components/StatsSection';
+import Filters from './components/Filters';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import LoadingComponent from '@/app/components/LoadingScreen';
 import { Role } from '@prisma/client';
+import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
+import AdminGoalsTable from './components/AdminGoalsTable';
+import { Pagination } from '@/app/components/shared/Pagination';
+import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
+import { Goal, User as UserType } from '@/app/components/shared/types';
+import { showToast } from '@/app/utils/toast';
+import Link from 'next/link';
 
 interface DashboardStats {
   totalUsers: number;
@@ -87,6 +79,31 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState('overview');
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [users, setUsers] = useState<UserType[]>([]);
+  const [selectedUser, setSelectedUser] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedPriority, setSelectedPriority] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
+  const [goalsLoading, setGoalsLoading] = useState(false);
+  const [showGoals, setShowGoals] = useState(false);
+  const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [goalsToBulkDelete, setGoalsToBulkDelete] = useState<string[]>([]);
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  
+  // Pagination state for goals section
+  const [goalsPage, setGoalsPage] = useState(1);
+  const [goalsLimit, setGoalsLimit] = useState(20);
+  const [goalsPagination, setGoalsPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -94,6 +111,35 @@ export default function AdminDashboard() {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Fetch dashboard data function
+  const fetchDashboardData = async () => {
+    try {
+      const [statsRes, activitiesRes, usersRes] = await Promise.all([
+        fetch('/api/admin/stats'),
+        fetch('/api/admin/activities'),
+        fetch('/api/users'),
+      ]);
+
+      if (!statsRes.ok || !activitiesRes.ok ) {
+        throw new Error('Failed to fetch dashboard data');
+      }
+
+      const [statsData, activitiesData, usersData] = await Promise.all([
+        statsRes.json(),
+        activitiesRes.json(),
+        usersRes.ok ? usersRes.json() : { users: [] },
+      ]);
+
+      setStats(statsData);
+      setActivities(activitiesData);
+      setUsers(usersData.users || []);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!session) {
@@ -106,34 +152,138 @@ export default function AdminDashboard() {
       return;
     }
 
-    const fetchDashboardData = async () => {
-      try {
-        const [statsRes, activitiesRes] = await Promise.all([
-          fetch('/api/admin/stats'),
-          fetch('/api/admin/activities'),
-        ]);
-
-        if (!statsRes.ok || !activitiesRes.ok ) {
-          throw new Error('Failed to fetch dashboard data');
-        }
-
-        const [statsData, activitiesData] = await Promise.all([
-          statsRes.json(),
-          activitiesRes.json(),
-      
-        ]);
-
-        setStats(statsData);
-        setActivities(activitiesData);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchDashboardData();
-  }, [session, router]);
+    if (showGoals) {
+      fetchAllGoals();
+    }
+  }, [session, router, showGoals, goalsPage, goalsLimit, selectedUser, selectedStatus, selectedPriority, selectedCategory]);
+
+  const fetchAllGoals = async () => {
+    try {
+      setGoalsLoading(true);
+      
+      // Build query params with pagination and filters
+      const params = new URLSearchParams({
+        view: 'all',
+        page: goalsPage.toString(),
+        limit: goalsLimit.toString(),
+        ...(selectedStatus && selectedStatus !== 'all' && { status: selectedStatus }),
+        ...(selectedPriority && { priority: selectedPriority }),
+        ...(selectedCategory && { category: selectedCategory }),
+        ...(selectedUser && selectedUser !== 'all' && { employeeId: selectedUser })
+      });
+      
+      const response = await fetch(`/api/goals?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch goals');
+      const data = await response.json();
+      setGoals(data.goals || []);
+      
+      // Set pagination if available
+      if (data.pagination) {
+        setGoalsPagination(data.pagination);
+      }
+    } catch (error) {
+      console.error('Error fetching goals:', error);
+    } finally {
+      setGoalsLoading(false);
+    }
+  };
+
+  // No client-side filtering - server handles it
+  const filteredGoals = goals;
+
+  // Handle delete goal
+  const handleDeleteGoal = (goal: Goal) => {
+    setGoalToDelete(goal);
+    setShowDeleteModal(true);
+  };
+
+  // Confirm delete goal
+  const confirmDeleteGoal = async () => {
+    if (!goalToDelete) return;
+    
+    try {
+      // Optimistically update goals and stats immediately
+      setGoals(prev => prev.filter(g => g.id !== goalToDelete.id));
+      setStats(prev => ({
+        ...prev,
+        totalGoals: Math.max(0, prev.totalGoals - 1)
+      }));
+
+      const response = await fetch(`/api/goals/${goalToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete goal');
+      }
+
+      setShowDeleteModal(false);
+      setGoalToDelete(null);
+      showToast.success('Goal Deleted!', 'The goal has been deleted successfully');
+      
+      // Refresh goals and stats from server to ensure sync
+      fetchAllGoals();
+      fetchDashboardData();
+    } catch (error) {
+      console.error('Error deleting goal:', error);
+      // Revert optimistic update on error
+      fetchAllGoals();
+      fetchDashboardData();
+      showToast.error('Error', error instanceof Error ? error.message : 'Failed to delete goal');
+    }
+  };
+
+  // Handle bulk delete
+  const handleBulkDelete = (goalIds: string[]) => {
+    setGoalsToBulkDelete(goalIds);
+    setShowBulkDeleteModal(true);
+  };
+
+  // Confirm bulk delete
+  const confirmBulkDelete = async () => {
+    if (goalsToBulkDelete.length === 0) return;
+
+    try {
+      // Delete goals in parallel
+      const deletePromises = goalsToBulkDelete.map(goalId =>
+        fetch(`/api/goals/${goalId}`, { method: 'DELETE' })
+      );
+
+      const results = await Promise.allSettled(deletePromises);
+      const successful = results.filter(r => r.status === 'fulfilled' && r.value.ok).length;
+      const failed = results.length - successful;
+
+      if (successful > 0) {
+        // Optimistically update goals and stats immediately
+        setGoals(prev => prev.filter(g => !goalsToBulkDelete.includes(g.id)));
+        setStats(prev => ({
+          ...prev,
+          totalGoals: Math.max(0, prev.totalGoals - successful)
+        }));
+        
+        showToast.success(
+          'Goals Deleted!', 
+          `Successfully deleted ${successful} goal${successful !== 1 ? 's' : ''}${failed > 0 ? ` (${failed} failed)` : ''}`
+        );
+      }
+
+      if (failed > 0 && successful === 0) {
+        showToast.error('Error', `Failed to delete ${failed} goal${failed !== 1 ? 's' : ''}`);
+      }
+
+      setShowBulkDeleteModal(false);
+      setGoalsToBulkDelete([]);
+      
+      // Refresh goals and stats from server to ensure sync
+      fetchAllGoals();
+      fetchDashboardData();
+    } catch (error) {
+      console.error('Error bulk deleting goals:', error);
+      showToast.error('Error', 'Failed to delete goals');
+    }
+  };
+
 
   if (isLoading) {
     return <LoadingComponent />;
@@ -165,136 +315,24 @@ export default function AdminDashboard() {
     }
   };
 
-  const statsCards = [
-    { 
-      title: 'Total Users', 
-      value: stats.totalUsers, 
-      icon: BsPeople, 
-      gradient: 'from-blue-500 via-blue-600 to-cyan-500',
-      
-    },
-    { 
-      title: 'Employees', 
-      value: stats.employeeCount, 
-      icon: BsPeople, 
-      gradient: 'from-emerald-500 via-emerald-600 to-teal-500',
-      
-    },
-    { 
-      title: 'Managers', 
-      value: stats.managerCount, 
-      icon: BsGraphUp, 
-      gradient: 'from-purple-500 via-purple-600 to-pink-500',
-      
-    },
-    { 
-      title: 'Admins', 
-      value: stats.adminCount, 
-      icon: BsShieldExclamation, 
-      gradient: 'from-orange-500 via-orange-600 to-red-500',
-      
-    },
-    { 
-      title: 'Goals', 
-      value: stats.totalGoals, 
-      icon: BsBullseye, 
-      gradient: 'from-indigo-500 via-indigo-600 to-purple-500',
-      
-    }
-  ];
 
   return (
     <DashboardLayout type="admin">
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
-        {/* Animated Background Elements */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-emerald-600/20 to-blue-600/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-purple-600/10 to-pink-600/10 rounded-full blur-3xl animate-pulse delay-500"></div>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        {/* Subtle Background Pattern */}
+        <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
+        
+        <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
+          {/* Hero Section */}
+          <HeroSection />
 
-        <div className="relative z-10 p-3 sm:p-4 lg:p-6 space-y-4">
-          {/* Glassmorphism Header */}
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
+          {/* Stats Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-                         className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-4 shadow-2xl"
           >
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="space-y-2">
-                                 <div className="flex items-center gap-3">
-                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
-                     <BsActivity className="w-6 h-6 text-white" />
-                   </div>
-                   <div>
-                     <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white via-blue-100 to-indigo-200 bg-clip-text text-transparent">
-                       Welcome back, {session?.user?.name}
-                     </h1>
-                     <p className="text-gray-300 text-xs sm:text-sm mt-1">Here's an overview of your organization's performance metrics and recent activities.</p>
-                   </div>
-                 </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full backdrop-blur-sm">
-                  <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-emerald-400">System Operational</span>
-                </div>
-                <div className="hidden sm:flex items-center gap-2 text-gray-300">
-                  <BsClock className="w-4 h-4" />
-                  <span className="text-sm font-mono">
-                    {currentTime.toLocaleTimeString()}
-                  </span>
-                </div>
-              </div>
-            </div>
+            <StatsSection stats={stats} />
           </motion.div>
-
-                     {/* Compact Stats Grid */}
-           <div className="grid grid-cols-5 gap-1.5">
-             {statsCards.map((card, index) => (
-               <motion.div 
-                 key={card.title}
-                 initial={{ opacity: 0, y: 20 }}
-                 animate={{ opacity: 1, y: 0 }}
-                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                                 className="group relative overflow-hidden backdrop-blur-xl bg-white/5 border border-white/10 rounded-lg p-2 hover:shadow-xl hover:shadow-blue-500/20 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
-                                 whileHover={{ scale: 1.05 }}
-                                 whileTap={{ scale: 0.95 }}
-               >
-                 {/* Unique Gradient Overlay */}
-                 <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                 
-                 {/* Animated Background Pattern */}
-                 <div className="absolute inset-0 opacity-10">
-                   <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)] group-hover:scale-150 transition-transform duration-700"></div>
-                 </div>
-
-                 <div className="relative z-10 flex flex-col items-center justify-center h-16">
-                   {/* Unique Icon Container */}
-                   <div className="relative mb-1">
-                     <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full blur-sm opacity-0 group-hover:opacity-50 transition-opacity duration-300"></div>
-                     <div className="relative bg-gradient-to-r from-blue-500 to-purple-600 rounded-full p-1.5 group-hover:scale-110 transition-transform duration-300">
-                       <card.icon className="w-3 h-3 text-white" />
-                     </div>
-                   </div>
-                   
-                   {/* Compact Value Display */}
-                   <div className="text-center">
-                     <div className="text-lg font-bold text-white group-hover:text-blue-300 transition-colors duration-300">
-                       {card.value}
-                     </div>
-                     <div className="text-xs text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-1 group-hover:translate-y-0">
-                       {card.title}
-                     </div>
-                   </div>
-                   
-                   {/* Unique Hover Indicator */}
-                   <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-blue-400 to-purple-500 group-hover:w-3/4 transition-all duration-300"></div>
-                 </div>
-               </motion.div>
-             ))}
-           </div>
 
                      {/* Main Content Grid */}
            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -404,48 +442,163 @@ export default function AdminDashboard() {
 
           
 
-          {/* Recent Activity */}
+          {/* All Users Goals Section */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl shadow-2xl"
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
           >
             <div className="p-6 border-b border-white/10">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-white">Recent Activity</h2>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-gray-400">Live</span>
-                </div>
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {activities.slice(0, 8).map((activity, index) => (
-                  <div key={index} className="group flex items-start gap-4 p-4 rounded-xl bg-gray-700/20 hover:bg-gray-700/30 transition-all duration-300">
-                    <div className="mt-1 group-hover:scale-110 transition-transform duration-300">
-                      {getStatusIcon(activity.status)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-medium text-white">{activity.type}</h3>
-                        <div className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(activity.status)}`}>
-                          {activity.status}
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-400">{activity.description}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-gray-400">{activity.timestamp}</p>
-                    </div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <BsBullseye className="w-5 h-5 text-white" />
                   </div>
-                ))}
+                  <div>
+                    <h2 className="text-xl font-semibold text-white">All Users Goals</h2>
+                    <p className="text-sm text-gray-400">View and manage goals across all users</p>
+                  </div>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowGoals(!showGoals)}
+                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600/80 hover:bg-indigo-600 text-white rounded-lg shadow-sm hover:shadow transition-all duration-200 border border-indigo-500/30 hover:border-indigo-400/50"
+                >
+                  {showGoals ? (
+                    <>
+                      <BsEyeSlash className="w-4 h-4" />
+                      <span className="text-sm font-medium">Hide Goals</span>
+                    </>
+                  ) : (
+                    <>
+                      <BsEye className="w-4 h-4" />
+                      <span className="text-sm font-medium">Show Goals</span>
+                    </>
+                  )}
+                </motion.button>
               </div>
+              
+              {/* Filters */}
+              <AnimatePresence mode="wait">
+                {showGoals && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2, ease: 'easeInOut' }}
+                  >
+                    <Filters
+                      selectedUser={selectedUser}
+                      onUserChange={setSelectedUser}
+                      selectedStatus={selectedStatus}
+                      onStatusChange={setSelectedStatus}
+                      selectedPriority={selectedPriority}
+                      onPriorityChange={setSelectedPriority}
+                      selectedCategory={selectedCategory}
+                      onCategoryChange={setSelectedCategory}
+                      users={users}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
+            <AnimatePresence mode="wait">
+              {showGoals && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2, ease: 'easeInOut' }}
+                  className="p-6"
+                >
+                  {goalsLoading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="text-gray-400">Loading goals...</div>
+                    </div>
+                  ) : (
+                    <>
+                      <AdminGoalsTable
+                        goals={filteredGoals}
+                        selectedStatus={selectedStatus === 'all' ? '' : selectedStatus}
+                        onStatusChange={(status) => {
+                          setSelectedStatus(status === '' ? 'all' : status);
+                          setGoalsPage(1); // Reset to first page on filter change
+                        }}
+                        onGoalClick={(goal) => setSelectedGoal(goal)}
+                        onDelete={handleDeleteGoal}
+                        onBulkDelete={handleBulkDelete}
+                        showEmployee={true}
+                        showManager={true}
+                      />
+                      
+                      {/* Pagination */}
+                      {goalsPagination && (
+                        <div className="mt-6 pt-4 border-t border-gray-700/50">
+                          <Pagination
+                            page={goalsPagination.page}
+                            limit={goalsPagination.limit}
+                            total={goalsPagination.total}
+                            totalPages={goalsPagination.totalPages}
+                            hasNext={goalsPagination.hasNext}
+                            hasPrev={goalsPagination.hasPrev}
+                            onPageChange={(newPage) => {
+                              setGoalsPage(newPage);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            onLimitChange={(newLimit) => {
+                              setGoalsLimit(newLimit);
+                              setGoalsPage(1);
+                            }}
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         </div>
       </div>
+
+      {/* Goal Detail Modal */}
+      {selectedGoal && (
+        <GoalDetailModal
+          goal={selectedGoal}
+          onClose={() => setSelectedGoal(null)}
+        />
+      )}
+
+      {/* Single Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setGoalToDelete(null);
+        }}
+        onConfirm={confirmDeleteGoal}
+        title="Delete Goal"
+        message={goalToDelete ? `Are you sure you want to delete "${goalToDelete.title}"? This action cannot be undone.` : 'Are you sure you want to delete this goal? This action cannot be undone.'}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
+
+      {/* Bulk Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showBulkDeleteModal}
+        onClose={() => {
+          setShowBulkDeleteModal(false);
+          setGoalsToBulkDelete([]);
+        }}
+        onConfirm={confirmBulkDelete}
+        title="Delete Selected Goals"
+        message={`Are you sure you want to delete ${goalsToBulkDelete.length} selected goal${goalsToBulkDelete.length !== 1 ? 's' : ''}? This action cannot be undone.`}
+        confirmText="Delete All"
+        cancelText="Cancel"
+      />
+
     </DashboardLayout>
   );
 }

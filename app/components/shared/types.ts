@@ -31,12 +31,14 @@ export interface User {
   lastLogin?: string;
 }
 
+export type ProgressStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'ON_HOLD' | 'BLOCKED' | 'COMPLETED';
+
 export interface Goal {
   id: string;
-  
+
   title: string;
   description: string;
-  status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'DRAFT'| 'DELETED';
+  status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'DRAFT' | 'DELETED' | 'IN_PROGRESS' | 'NOT_STARTED' | 'ON_HOLD' | 'BLOCKED';
   dueDate: string;
   category: string;
   department: string;
@@ -44,6 +46,9 @@ export interface Goal {
   createdAt: string;
   updatedAt: string;
   progress?: number;
+  progressStatus?: ProgressStatus;
+  progressNotes?: string | null;
+  lastProgressUpdate?: string | null;
   employeeId: string;
   managerId: string;
   isApprovalProcess: boolean;
@@ -53,8 +58,8 @@ export interface Goal {
 
 
 
-  managerComments?: string;
-  employeeComment?: string;
+  managerComments?: string | null;
+  employeeComment?: string | null;
 
   employee: {
     id: string;
@@ -76,6 +81,7 @@ export interface Goal {
     name: string;
     email: string;
   };
+  rating?: Rating | null;
 }
 export interface EmployeeStats {
   id: string;
@@ -118,10 +124,22 @@ export interface DashboardStats {
 
 export interface Rating {
   id: string;
-  score: number;
-  comments: string;
-  updatedAt?: Date;
   goalId: string;
+  // Self rating
+  selfScore?: number | null;
+  selfComments?: string | null;
+  selfRatedById?: string | null;
+  selfRatedAt?: Date | string | null;
+  // Manager rating
+  managerScore?: number | null;
+  managerComments?: string | null;
+  managerRatedById?: string | null;
+  managerRatedAt?: Date | string | null;
+  // Legacy compatibility (mapped from selfScore)
+  score?: number;
+  comments?: string;
+  updatedAt?: Date | string;
+  createdAt?: Date | string;
 }
 export interface GoalWithRating {
   id: string;
@@ -131,11 +149,7 @@ export interface GoalWithRating {
   dueDate: string;
   createdAt: string;
   category: string;
-  rating?: {
-    id: string;
-    score: number;
-    comments?: string;
-  };
+  rating?: Rating | null;
 }
 
 
@@ -214,14 +228,14 @@ export interface Filters {
   manager: string;
   status: string;
 }
-export interface GoalWithRating {
+export interface GoalWithRatingExtended {
   id: string;
   title: string;
   description: string;
   createdAt: string;
   updatedAt: string;
   dueDate: string;
-  managerId?: string | null;
+  managerId: string;
   employeeId: string;
   approvedAt?: Date | null;
   approvedBy?: string | null;
@@ -229,21 +243,25 @@ export interface GoalWithRating {
   rejectedBy?: string | null;
   managerComments?: string | null;
   category: string;
+  department: string;
+  priority: string;
+  isApprovalProcess: boolean;
   createdById?: string | null;
   deletedAt?: Date | null;
   deletedById?: string | null;
   updatedById?: string | null;
-  status: string;
-  rating?: {
-    id: string;
-    score: number;
-    comments?: string;
-  };
+  status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'DRAFT' | 'DELETED' | 'IN_PROGRESS' | 'NOT_STARTED' | 'ON_HOLD' | 'BLOCKED';
+  rating?: Rating | null;
   employee: {
     id: string;
     name: string;
     email: string;
-  };
+  } | null;
+  manager?: {
+    id: string;
+    name: string;
+    email: string;
+  } | null;
 }
 
 export type ViewMode = 'grid' | 'list';

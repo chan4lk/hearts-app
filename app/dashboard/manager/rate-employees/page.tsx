@@ -1,30 +1,45 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { BsPersonLinesFill } from "react-icons/bs";
 import { toast } from "sonner";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import LoadingComponent from '@/app/components/LoadingScreen';
 
-import { GoalWithRating, EmployeeStats } from "@/app/components/shared/types";
+import { GoalWithRatingExtended, EmployeeStats } from "@/app/components/shared/types";
 import HeroSection from "./components/HeroSection";
 import StatsSection from "./components/StatsSection";
-import EmployeeFilter from "./components/EmployeeFilter";
-import GoalCard from "./components/GoalCard";
+import Filters from "./components/Filters";
+import GoalsTable from '@/app/components/shared/GoalsTable';
+import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
+import { Pagination } from '@/app/components/shared/Pagination';
 
 export default function RateEmployeesPage() {
   const { data: session } = useSession();
   const router = useRouter();
-  const [goals, setGoals] = useState<GoalWithRating[]>([]);
+  const [goals, setGoals] = useState<GoalWithRatingExtended[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [submittingRatingId, setSubmittingRatingId] = useState<string | null>(null);
   const [filterEmployee, setFilterEmployee] = useState<string>('all');
   const [filterRating, setFilterRating] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedPriority, setSelectedPriority] = useState('');
   const [employeeStats, setEmployeeStats] = useState<EmployeeStats[]>([]);
+  const [selectedGoal, setSelectedGoal] = useState<GoalWithRatingExtended | null>(null);
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null>(null);
 
   useEffect(() => {
     if (!session) {
@@ -36,18 +51,20 @@ export default function RateEmployeesPage() {
       return;
     }
     fetchEmployeeGoals();
-  }, [session, router]);
+  }, [session, router, page, limit, filterEmployee, filterRating, selectedStatus, selectedPriority]);
 
   useEffect(() => {
     const stats = calculateEmployeeStats(goals);
     setEmployeeStats(stats);
   }, [goals]);
 
-  const calculateEmployeeStats = (goals: GoalWithRating[]): EmployeeStats[] => {
+  const calculateEmployeeStats = (goals: GoalWithRatingExtended[]): EmployeeStats[] => {
     const statsMap = new Map<string, EmployeeStats>();
-    
+
     goals.forEach(goal => {
       const { employee } = goal;
+      if (!employee) return; // Skip if employee is null
+      
       const currentStats = statsMap.get(employee.id) || {
         id: employee.id,
         name: employee.name,
@@ -57,11 +74,13 @@ export default function RateEmployeesPage() {
         approvedGoals: 0,
         rejectedGoals: 0,
         ratedGoals: 0,
-        isActive: true // Default to true since GoalWithRating doesn't include this info
+        isActive: true // Default to true since GoalWithRatingExtended doesn't include this info
       };
-      
+
       currentStats.totalGoals++;
-      if (goal.rating?.score) {
+      // Only count goals with managerScore (not fallback to score)
+      const managerScore = goal.rating?.managerScore;
+      if (managerScore !== null && managerScore !== undefined && managerScore > 0) {
         currentStats.ratedGoals++;
       }
       
@@ -79,20 +98,39 @@ export default function RateEmployeesPage() {
   const fetchEmployeeGoals = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/goals/manager");
+      
+      // Build query params with pagination and filters - use unified API with COMPLETED status
+      const params = new URLSearchParams({
+        view: 'team-goals',
+        status: 'COMPLETED', // Only COMPLETED goals for rating
+        page: page.toString(),
+        limit: limit.toString(),
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+        ...(filterEmployee && filterEmployee !== 'all' && { employeeId: filterEmployee }),
+        ...(selectedStatus && selectedStatus !== '' && { status: selectedStatus }),
+        ...(selectedPriority && selectedPriority !== '' && { priority: selectedPriority })
+      });
+      
+      const response = await fetch(`/api/goals?${params}`);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "Failed to fetch goals");
+        throw new Error(errorData.message || errorData.error || "Failed to fetch goals");
       }
       
       const data = await response.json();
       
-      if (!Array.isArray(data)) {
-        throw new Error("Invalid response format: expected an array of goals");
+      // Unified API returns { goals: [], pagination: {}, ... }
+      const goalsData = Array.isArray(data) ? data : (data.goals || []);
+      
+      setGoals(goalsData);
+      
+      // Set pagination if available
+      if (data.pagination) {
+        setPagination(data.pagination);
       }
       
-      setGoals(data);
       toast.success("Goals loaded successfully");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to load goals";
@@ -105,19 +143,178 @@ export default function RateEmployeesPage() {
   };
 
   const handleRatingChange = async (goalId: string, value: number) => {
-    if (isNaN(value) || !goalId) {
-      toast.error('Invalid rating value or goal ID');
+    if (isNaN(value) || !goalId) return;
+    
+    // Handle "Not Rated" (0) - remove the rating
+    if (value === 0) {
+      const currentGoal = goals.find(g => g.id === goalId);
+      if (!currentGoal) {
+        toast.error('Goal not found');
+        return;
+      }
+
+      // Optimistically update UI to remove rating
+      const goalWithoutRating: GoalWithRatingExtended = {
+        ...currentGoal,
+        rating: currentGoal.rating ? {
+          ...currentGoal.rating,
+          managerScore: undefined,
+          score: currentGoal.rating.selfScore || undefined,
+          managerRatedAt: undefined,
+          managerRatedById: undefined,
+          updatedAt: new Date().toISOString()
+        } : currentGoal.rating
+      };
+
+      // Update local state IMMEDIATELY (optimistic update)
+      setGoals(prevGoals => {
+        const updatedGoals = prevGoals.map(goal =>
+          goal.id === goalId ? goalWithoutRating : goal
+        );
+        
+        // Update employee stats immediately
+        const stats = calculateEmployeeStats(updatedGoals);
+        setEmployeeStats(stats);
+        
+        return updatedGoals;
+      });
+
+      setSubmittingRatingId(goalId);
+      setSubmitting(true);
+
+      try {
+        // Call API to remove rating
+        const response = await fetch(`/api/goals/${goalId}/manager-rating`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            score: 0, // 0 means remove rating
+            comments: ''
+          })
+        });
+
+        if (!response.ok) {
+          let errorData;
+          try {
+            errorData = await response.json();
+          } catch (e) {
+            errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+          }
+          const errorMessage = errorData.message || errorData.error || `Failed to remove rating (${response.status})`;
+          throw new Error(errorMessage);
+        }
+
+        const data = await response.json();
+
+        // Update with server response
+        setGoals(prevGoals => {
+          const updatedGoals = prevGoals.map(goal =>
+            goal.id === goalId
+              ? {
+                  ...goal,
+                  rating: data.id ? {
+                    ...goal.rating,
+                    id: data.id,
+                    goalId: goalId,
+                    managerScore: data.score !== null && data.score !== undefined ? data.score : undefined,
+                    score: data.score !== null && data.score !== undefined ? data.score : (data.selfScore || undefined),
+                    selfScore: data.selfScore || goal.rating?.selfScore,
+                    managerComments: data.comments || undefined,
+                    comments: data.comments || goal.rating?.selfComments || undefined,
+                    managerRatedAt: data.managerRatedAt || undefined,
+                    managerRatedById: data.managerRatedBy?.id || undefined,
+                    updatedAt: data.updatedAt || new Date().toISOString()
+                  } : (goal.rating ? {
+                    ...goal.rating,
+                    managerScore: undefined,
+                    score: goal.rating.selfScore || undefined,
+                    managerRatedAt: undefined,
+                    managerRatedById: undefined,
+                    updatedAt: new Date().toISOString()
+                  } : null)
+                }
+              : goal
+          );
+          
+          // Update employee stats with server response
+          const stats = calculateEmployeeStats(updatedGoals);
+          setEmployeeStats(stats);
+          
+          return updatedGoals;
+        });
+
+        toast.success('Rating removed successfully');
+      } catch (error) {
+        // REVERT optimistic update on error
+        setGoals(prevGoals => {
+          const revertedGoals = prevGoals.map(goal =>
+            goal.id === goalId ? currentGoal : goal
+          );
+          
+          // Revert employee stats
+          const stats = calculateEmployeeStats(revertedGoals);
+          setEmployeeStats(stats);
+          
+          return revertedGoals;
+        });
+        
+        const errorMessage = error instanceof Error ? error.message : 'Failed to remove rating';
+        toast.error(errorMessage);
+      } finally {
+        setSubmitting(false);
+        setSubmittingRatingId(null);
+      }
+
+      return;
+    }
+    
+    // Find the current goal to preserve fields
+    const currentGoal = goals.find(g => g.id === goalId);
+    if (!currentGoal) {
+      toast.error('Goal not found');
       return;
     }
 
-    try {
-      setSubmitting(true);
+    // OPTIMISTIC UPDATE: Update UI immediately before API call
+    const optimisticRating = {
+      ...(currentGoal.rating || {}),
+      id: currentGoal.rating?.id || 'temp',
+      goalId: goalId,
+      managerScore: value,
+      score: value, // Keep for backward compatibility
+      managerComments: currentGoal.rating?.managerComments || '',
+      comments: currentGoal.rating?.managerComments || currentGoal.rating?.comments || '',
+      managerRatedAt: new Date().toISOString(),
+      managerRatedById: session?.user?.id || currentGoal.rating?.managerRatedById,
+      updatedAt: new Date().toISOString()
+    };
+
+    const optimisticGoal: GoalWithRatingExtended = {
+      ...currentGoal,
+      rating: optimisticRating as any
+    };
+
+    // Update local state IMMEDIATELY (optimistic update)
+    setGoals(prevGoals => {
+      const updatedGoals = prevGoals.map(goal =>
+        goal.id === goalId ? optimisticGoal : goal
+      );
       
-      // First verify the goal exists and can be rated
-      const goal = goals.find(g => g.id === goalId);
-      if (!goal) {
-        throw new Error('Goal not found');
-      }
+      // Update employee stats immediately with optimistic data
+      const stats = calculateEmployeeStats(updatedGoals);
+      setEmployeeStats(stats);
+      
+      return updatedGoals;
+    });
+
+    setSubmittingRatingId(goalId);
+    setSubmitting(true);
+
+    try {
+
 
       const response = await fetch(`/api/goals/${goalId}/manager-rating`, {
         method: 'POST',
@@ -127,62 +324,86 @@ export default function RateEmployeesPage() {
         },
         body: JSON.stringify({
           score: value,
-          comments: ''
+          comments: '' // Allow empty comments
         })
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || errorData.message || 'Failed to update rating');
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+        }
+        const errorMessage = errorData.message || errorData.error || `Failed to update rating (${response.status})`;
+        console.error('Rating error:', errorMessage, errorData);
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
 
-      // Update the goals state with the new rating
-      setGoals(prevGoals => 
-        prevGoals.map(goal => 
-          goal.id === goalId 
-            ? { 
-                ...goal, 
-                rating: { 
-                  id: data.id, 
-                  score: value,
-                  comments: data.comments || ''
-                } 
-              } 
+      // Update with server response to ensure data consistency
+      setGoals(prevGoals => {
+        const updatedGoals = prevGoals.map(goal =>
+          goal.id === goalId
+            ? {
+                ...goal,
+                rating: {
+                  ...goal.rating, // Preserve existing rating properties (like selfScore)
+                  id: data.id || goal.rating?.id || '',
+                  goalId: goalId,
+                  managerScore: value,
+                  score: value, // Keep for backward compatibility
+                  managerComments: data.managerComments || goal.rating?.managerComments || '',
+                  comments: data.managerComments || goal.rating?.comments || '',
+                  managerRatedAt: data.managerRatedAt || new Date().toISOString(),
+                  managerRatedById: session?.user?.id || goal.rating?.managerRatedById,
+                  updatedAt: data.updatedAt || new Date().toISOString()
+                }
+              }
             : goal
-        )
-      );
+        );
+        
+        // Update employee stats with the updated goals
+        const stats = calculateEmployeeStats(updatedGoals);
+        setEmployeeStats(stats);
+        
+        return updatedGoals;
+      });
 
-      // Update employee stats
-      const stats = calculateEmployeeStats(goals.map(goal => 
-        goal.id === goalId 
-          ? { 
-              ...goal, 
-              rating: { 
-                id: data.id, 
-                score: value,
-                comments: data.comments || ''
-              } 
-            } 
-          : goal
-      ));
-      setEmployeeStats(stats);
-
-      toast.success('Rating updated successfully');
+      toast.success(`Rating updated to ${value} stars`);
     } catch (error) {
       console.error('Error updating rating:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to update rating');
+      // REVERT optimistic update on error
+      setGoals(prevGoals => {
+        const revertedGoals = prevGoals.map(goal =>
+          goal.id === goalId ? currentGoal : goal
+        );
+        
+        // Revert employee stats
+        const stats = calculateEmployeeStats(revertedGoals);
+        setEmployeeStats(stats);
+        
+        return revertedGoals;
+      });
+      
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update rating';
+      toast.error(errorMessage);
     } finally {
       setSubmitting(false);
+      setSubmittingRatingId(null);
     }
   };
 
-  const filteredGoals = goals.filter(goal => {
-    if (filterEmployee !== 'all' && goal.employee.id !== filterEmployee) return false;
-    if (filterRating !== 'all' && goal.rating?.score !== parseInt(filterRating)) return false;
-    return true;
-  });
+  // Server-side filtering is done, but keep client-side filtering for rating filter
+  const filteredGoals = useMemo(() => {
+    return goals.filter(goal => {
+      if (!goal.employee) return false;
+      // Rating filter is client-side only (not supported by API)
+      if (filterRating !== 'all' && (goal.rating?.managerScore || goal.rating?.score) !== parseInt(filterRating)) return false;
+      return true;
+    });
+  }, [goals, filterRating]);
 
   if (loading) {
     return <LoadingComponent />;
@@ -191,56 +412,86 @@ export default function RateEmployeesPage() {
   return (
     <DashboardLayout type="manager">
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        
         {/* Floating Background Elements */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-violet-400/20 to-indigo-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-violet-400/10 to-indigo-400/10 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
         </div>
 
-        <div className="relative z-10 p-6 space-y-8">
+        <div className="relative z-10 p-4 space-y-4">
           <HeroSection />
-          <StatsSection goals={goals} viewMode={viewMode} setViewMode={setViewMode} />
-          <EmployeeFilter 
-            filterEmployee={filterEmployee} 
-            setFilterEmployee={setFilterEmployee} 
-            employeeStats={employeeStats} 
+
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-4 border border-white/20 dark:border-gray-700/50 space-y-4">
+            <StatsSection goals={goals} employeesCount={employeeStats.length} />
+          </div>
+
+          <Filters
+            selectedEmployee={filterEmployee}
+            onEmployeeChange={(employee) => {
+              setFilterEmployee(employee);
+              setPage(1); // Reset to first page on filter change
+            }}
+            selectedStatus={selectedStatus}
+            onStatusChange={(status) => {
+              setSelectedStatus(status);
+              setPage(1); // Reset to first page on filter change
+            }}
+            selectedRating={filterRating}
+            onRatingChange={setFilterRating}
+            selectedPriority={selectedPriority}
+            onPriorityChange={(priority) => {
+              setSelectedPriority(priority);
+              setPage(1); // Reset to first page on filter change
+            }}
+            employeeStats={employeeStats}
           />
 
-          {/* Goals Grid */}
-          <motion.div 
-            layout
-            className={`grid gap-6 ${
-              viewMode === 'grid' 
-                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
-                : 'grid-cols-1'
-            }`}
-          >
-            {filteredGoals.length === 0 ? (
-              <div className="col-span-full bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-8 text-center border border-white/20 dark:border-gray-700/30">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-violet-500/10 mb-4">
-                  <BsPersonLinesFill className="w-6 h-6 text-violet-500" />
+          {/* Goals Table */}
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl border border-white/20 dark:border-gray-700/50 overflow-hidden shadow-lg">
+            <div className="p-4">
+              <GoalsTable
+                goals={filteredGoals}
+                onGoalClick={(goal) => setSelectedGoal(goal as GoalWithRatingExtended)}
+                onRatingChange={handleRatingChange}
+                showEmployee={true}
+                showManager={false}
+                showRating={true}
+                submittingRating={submittingRatingId}
+                disableStatusUpdate={true}
+              />
+              
+              {/* Pagination */}
+              {pagination && (
+                <div className="mt-6 pt-4 border-t border-gray-700/50">
+                  <Pagination
+                    page={pagination.page}
+                    limit={pagination.limit}
+                    total={pagination.total}
+                    totalPages={pagination.totalPages}
+                    hasNext={pagination.hasNext}
+                    hasPrev={pagination.hasPrev}
+                    onPageChange={(newPage) => {
+                      setPage(newPage);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    onLimitChange={(newLimit) => {
+                      setLimit(newLimit);
+                      setPage(1);
+                    }}
+                  />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Goals Found</h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  {filterEmployee !== 'all' 
-                    ? "This employee has no goals to rate at the moment."
-                    : "There are no goals to rate at the moment."}
-                </p>
-              </div>
-            ) : (
-              filteredGoals.map((goal) => (
-                <GoalCard
-                  key={goal.id}
-                  goal={goal}
-                  submitting={submitting}
-                  onRatingChange={handleRatingChange}
-                  viewMode={viewMode}
-                />
-              ))
-            )}
-          </motion.div>
+              )}
+            </div>
+          </div>
+
+          {/* Goal Detail Modal */}
+          {selectedGoal && (
+            <GoalDetailModal
+              goal={selectedGoal}
+              onClose={() => setSelectedGoal(null)}
+            />
+          )}
         </div>
       </div>
     </DashboardLayout>

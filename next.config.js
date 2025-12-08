@@ -3,11 +3,66 @@ const nextConfig = {
   images: {
     domains: ['avatars.githubusercontent.com'],
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, webpack }) => {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': __dirname,
     };
+    
+    // Handle node: protocol imports - must be first
+    config.plugins = config.plugins || [];
+    config.plugins.unshift(
+      new webpack.NormalModuleReplacementPlugin(
+        /^node:/,
+        (resource) => {
+          resource.request = resource.request.replace(/^node:/, '');
+        }
+      )
+    );
+    
+    // Custom plugin to handle node: protocol at resolve stage (before webpack processes it)
+    config.plugins.unshift({
+      apply: (compiler) => {
+        compiler.hooks.normalModuleFactory.tap('NodeProtocolPlugin', (nmf) => {
+          nmf.hooks.beforeResolve.tap('NodeProtocolPlugin', (data) => {
+            if (data && data.request && typeof data.request === 'string' && data.request.startsWith('node:')) {
+              data.request = data.request.replace(/^node:/, '');
+            }
+          });
+        });
+      },
+    });
+    
+    // For non-server builds (client + middleware), ignore applicationinsights completely
+    if (!isServer) {
+      // Ignore applicationinsights and Azure packages
+      config.plugins.push(
+        new webpack.IgnorePlugin({
+          resourceRegExp: /^(applicationinsights|@azure\/monitor-opentelemetry|@azure\/monitor-opentelemetry-exporter|@azure\/functions-core)$/,
+        })
+      );
+      
+      // Externalize Node.js built-in modules
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        child_process: false,
+        crypto: false,
+        stream: false,
+        url: false,
+        zlib: false,
+        http: false,
+        https: false,
+        assert: false,
+        os: false,
+        path: false,
+        util: false,
+        buffer: false,
+        events: false,
+      };
+    }
     
     // Improve chunk loading
     config.optimization = {

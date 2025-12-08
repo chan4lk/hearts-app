@@ -49,28 +49,15 @@ export function GoalFormModal({
   onReset,
   onTemplateClick
 }: GoalFormModalProps) {
-  // Add useEffect to log form data changes for debugging
-  React.useEffect(() => {
-    if (isOpen && isEditMode) {
-      console.log('GoalFormModal - Current formData:', formData);
-    }
-  }, [formData, isOpen, isEditMode]);
-
   // Force re-render when modal opens in edit mode
   React.useEffect(() => {
-    if (isOpen && isEditMode) {
-      // Force a small delay to ensure the form is properly rendered
-      const timer = setTimeout(() => {
-        console.log('GoalFormModal - Modal opened in edit mode, formData:', formData);
-      }, 50);
-      return () => clearTimeout(timer);
-    }
+    // Form data changes handled by state updates
   }, [isOpen, isEditMode, formData]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-1 sm:p-3">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-1 sm:p-3">
       <div className="bg-gradient-to-br from-[#1a1b1e] to-[#2a2b2e] rounded-lg sm:rounded-xl w-full max-w-full sm:max-w-sm shadow-2xl border border-gray-800/50 p-1 sm:p-0 max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center justify-between px-1 py-1 sm:px-3 sm:py-2 border-b border-gray-800/50 bg-black/20">

@@ -1,31 +1,30 @@
 import { motion } from 'framer-motion';
 import React from 'react';
-import { BsBriefcase } from 'react-icons/bs';
-import { Goal, User } from '@/app/components/shared/types';
-import { EmployeeFilter } from './EmployeeFilter';
-import GoalCard from '@/app/components/shared/GoalCard';
+import { Goal } from '@/app/components/shared/types';
+import GoalsTable from '@/app/components/shared/GoalsTable';
+import { Pagination } from '@/app/components/shared/Pagination';
 
 interface GoalListProps {
   goals: Goal[];
-  assignedEmployees: User[];
   selectedEmployee: string;
-  onEmployeeChange: (value: string) => void;
+  selectedStatus?: string;
+  selectedPriority?: string;
   onViewGoal: (goal: Goal) => void;
   onEditGoal: (goal: Goal) => void;
   onDeleteGoal: (goalId: string) => void;
-  onRefresh?: () => void;
-  refreshing?: boolean;
+  onPriorityUpdate?: (goalId: string, newPriority: string, updatedGoal: Goal) => void;
+  onDueDateUpdate?: (goalId: string, newDueDate: string, updatedGoal: Goal) => void;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null;
+  onPageChange?: (page: number) => void;
+  onLimitChange?: (limit: number) => void;
 }
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05
-    }
-  }
-};
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -35,90 +34,51 @@ const itemVariants = {
 
 export function GoalList({ 
   goals, 
-  assignedEmployees, 
-  selectedEmployee, 
-  onEmployeeChange,
+  selectedEmployee,
+  selectedStatus = '',
+  selectedPriority = '',
   onViewGoal,
   onEditGoal,
   onDeleteGoal,
-  onRefresh, // <-- add this
-  refreshing = false, // <-- add this
+  onPriorityUpdate,
+  onDueDateUpdate,
+  pagination,
+  onPageChange,
+  onLimitChange,
 }: GoalListProps) {
-  const filteredGoals = selectedEmployee === 'all' 
-    ? goals 
-    : goals.filter(goal => goal.employee?.id === selectedEmployee);
+  // Server-side filtering is done, but we keep client-side filtering for view switching if needed
+  const filteredGoals = goals;
 
   return (
     <motion.div variants={itemVariants}>
-      <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
-        <div className="px-6 py-4 flex items-center justify-between gap-3 border-b border-white/10">
-          <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-indigo-500/20 to-purple-500/20 p-2.5 rounded-xl shadow-inner">
-              <BsBriefcase className="w-5 h-5 text-indigo-300" />
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl border border-white/20 dark:border-gray-700/50 overflow-hidden shadow-lg">
+        <div className="p-4">
+          <GoalsTable
+            goals={filteredGoals}
+            onGoalClick={onViewGoal}
+            showEmployee={true}
+            showManager={false}
+            disableStatusUpdate={true}
+            onPriorityUpdate={onPriorityUpdate}
+            onDueDateUpdate={onDueDateUpdate}
+          />
+          
+          {/* Pagination */}
+          {pagination && onPageChange && onLimitChange && (
+            <div className="mt-6 pt-4 border-t border-gray-700/50">
+              <Pagination
+                page={pagination.page}
+                limit={pagination.limit}
+                total={pagination.total}
+                totalPages={pagination.totalPages}
+                hasNext={pagination.hasNext}
+                hasPrev={pagination.hasPrev}
+                onPageChange={onPageChange}
+                onLimitChange={onLimitChange}
+              />
             </div>
-            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-              Goals
-              <span className="bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-300 px-2.5 py-0.5 rounded-full text-sm">
-                {filteredGoals.length}
-              </span>
-            </h3>
-          </div>
-          <div className="flex items-center gap-2">
-            <EmployeeFilter
-              selectedEmployee={selectedEmployee}
-              onEmployeeChange={onEmployeeChange}
-              assignedEmployees={assignedEmployees}
-            />
-            {onRefresh && (
-              <button
-                type="button"
-                onClick={onRefresh}
-                className="ml-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30 hover:text-white transition-all text-xs font-medium"
-                title="Refresh"
-                disabled={refreshing}
-              >
-                <motion.span
-                  animate={refreshing ? { rotate: 360 } : { rotate: 0 }}
-                  transition={refreshing ? { repeat: Infinity, duration: 0.8, ease: 'linear' } : { duration: 0.2 }}
-                  style={{ display: 'inline-block' }}
-                >
-                  &#x21bb;
-                </motion.span>
-                {refreshing ? ' Refreshing...' : ' Refresh'}
-              </button>
-            )}
-          </div>
+          )}
         </div>
-
-        {filteredGoals.length === 0 ? (
-          <div className="p-12 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 mb-4 shadow-inner">
-              <BsBriefcase className="w-8 h-8 text-indigo-300" />
-            </div>
-            <h3 className="text-lg font-semibold text-white mb-2">No goals found</h3>
-            <p className="text-base text-white/70">
-              {selectedEmployee !== 'all'
-                ? "This employee has no assigned goals"
-                : "Create your first goal to get started"}
-            </p>
-          </div>
-        ) : (
-          <motion.div
-            variants={containerVariants}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4"
-          >
-            {filteredGoals.map((goal) => (
-              <div key={goal.id}>
-                <GoalCard
-                  goal={goal}
-                  onClick={() => onViewGoal(goal)}
-                  showActions={false}
-                  showEmployee={true}
-                />
-              </div>
-            ))}
-          </motion.div>
-        )}
       </div>
     </motion.div>
   );

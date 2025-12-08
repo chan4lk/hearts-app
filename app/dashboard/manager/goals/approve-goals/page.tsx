@@ -1,17 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import { Goal, EmployeeStats } from '@/app/components/shared/types';
+import { Goal, GoalWithRatingExtended, EmployeeStats } from '@/app/components/shared/types';
 import HeroSection from './components/HeroSection';
 import StatsSection from './components/StatsSection';
-import EmployeeFilter from './components/EmployeeFilter';
-import GoalCard from '@/app/components/shared/GoalCard';
+import Filters from './components/Filters';
+import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
+import { Pagination } from '@/app/components/shared/Pagination';
 import LoadingComponent from '@/app/components/LoadingScreen';
 
 
@@ -26,33 +26,21 @@ export default function ApproveGoalsPage() {
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [selectedPriority, setSelectedPriority] = useState<string>('');
   const [employeeStats, setEmployeeStats] = useState<EmployeeStats[]>([]);
-
-  // Admin-only: Manager selection
-  const [selectedManager, setSelectedManager] = useState<string>('');
-  const [managers, setManagers] = useState<Array<{ id: string; name: string; email: string }>>([]);
-
-  // Fetch managers list (for admin only)
-  useEffect(() => {
-    if (session?.user?.role === 'ADMIN') {
-      const fetchManagers = async () => {
-        try {
-          const response = await fetch('/api/admin/users?role=MANAGER');
-          if (response.ok) {
-            const data = await response.json();
-            setManagers(data.users || []);
-            // Auto-select first manager if available
-            if (data.users && data.users.length > 0 && !selectedManager) {
-              setSelectedManager(data.users[0].id);
-            }
-          }
-        } catch (error) {
-          console.error('Failed to fetch managers:', error);
-        }
-      };
-      fetchManagers();
-    }
-  }, [session]);
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null>(null);
 
   useEffect(() => {
     if (!session) {
@@ -64,58 +52,45 @@ export default function ApproveGoalsPage() {
       return;
     }
 
-    // For Admin: wait for manager selection
-    // For Manager: fetch immediately
-    if (session.user.role === 'ADMIN') {
-      if (!selectedManager) {
-        setIsLoading(false);
-        return;
-      }
-    }
-
     fetchGoals();
-  }, [session, router, selectedManager]);
+  }, [session, router, page, limit, selectedEmployee, selectedStatus, selectedPriority]);
 
   const fetchGoals = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Build query params for admin viewing specific manager
-      const managerParam = (session?.user?.role === 'ADMIN' && selectedManager)
-        ? `?managerId=${selectedManager}`
-        : '';
-
-      console.log('🔍 Fetching goals with params:', {
-        role: session?.user?.role,
-        selectedManager,
-        managerParam,
-        url: `/api/goals/pending${managerParam}`
+      // Build query params for pending approval view with pagination
+      const params = new URLSearchParams({
+        view: 'pending-approval',
+        page: page.toString(),
+        limit: limit.toString(),
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+        ...(selectedStatus && selectedStatus !== '' && { status: selectedStatus }),
+        ...(selectedPriority && selectedPriority !== '' && { priority: selectedPriority }),
+        ...(selectedEmployee && selectedEmployee !== 'all' && { employeeId: selectedEmployee })
       });
 
-      // Fetch pending goals
-      const goalsResponse = await fetch(`/api/goals/pending${managerParam}`);
+      // Fetch pending goals using unified API
+      const goalsResponse = await fetch(`/api/goals?${params.toString()}`);
       if (!goalsResponse.ok) {
         throw new Error('Failed to fetch goals');
       }
-      const goalsData = await goalsResponse.json();
-
-      console.log('✅ Received goals data:', {
-        count: goalsData.length,
-        goals: goalsData
-      });
+      const responseData = await goalsResponse.json();
+      const goalsData = responseData.goals || [];
+      
+      // Set pagination if available
+      if (responseData.pagination) {
+        setPagination(responseData.pagination);
+      }
 
       // Fetch ALL assigned employees (not just those with pending goals)
-      const employeesResponse = await fetch(`/api/employees/assigned${managerParam}`);
+      const employeesResponse = await fetch(`/api/employees/assigned`);
       if (!employeesResponse.ok) {
         throw new Error('Failed to fetch employees');
       }
       const employeesData = await employeesResponse.json();
-
-      console.log('✅ Received employees data:', {
-        count: employeesData.employees?.length || 0,
-        employees: employeesData.employees
-      });
 
       // Transform the goals data to include required properties
       const transformedGoals = goalsData.map((goal: any) => ({
@@ -185,6 +160,18 @@ export default function ApproveGoalsPage() {
     setSelectedGoal(goal);
     setSelectedGoalDetails(null); // Close the details modal
     
+    // Optimistically update the UI immediately
+    const newStatus = action === 'approve' ? 'APPROVED' : 'REJECTED';
+    const updatedGoal: Goal = {
+      ...goal,
+      status: newStatus,
+      managerComments: comment || null
+    };
+    
+    // Update local state immediately
+    setGoals(prevGoals => prevGoals.filter(g => g.id !== goal.id));
+    setSelectedGoal(null);
+    
     try {
       setIsSubmitting(true);
       const response = await fetch(`/api/goals/${goal.id}/${action}`, {
@@ -200,19 +187,158 @@ export default function ApproveGoalsPage() {
       }
 
       toast.success(`Goal ${action === 'approve' ? 'approved' : 'rejected'} successfully!`);
+      
+      // Optionally refresh to get the latest data, but UI is already updated
+      // Only refresh if needed for stats or other data
       await fetchGoals();
-      setSelectedGoal(null);
     } catch (err) {
       console.error(`Error ${action}ing goal:`, err);
+      // Revert optimistic update on error
+      setGoals(prevGoals => [...prevGoals, goal]);
       toast.error(`Failed to ${action} goal`);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const filteredGoals = goals.filter(goal => 
-    selectedEmployee === 'all' || (goal.employee && goal.employee.id === selectedEmployee)
-  );
+  const handleApprove = (goalId: string, updatedGoal: Goal | GoalWithRatingExtended) => {
+    // Store original goal for potential revert
+    const originalGoal = goals.find(g => g.id === goalId);
+    
+    // Optimistically update the goals list IMMEDIATELY - update the goal status (don't remove it)
+    // Use functional update to ensure we're working with latest state
+    setGoals(prevGoals => {
+      const updated = prevGoals.map(g => g.id === goalId ? updatedGoal as Goal : g);
+      return updated;
+    });
+    
+    // Close modal immediately
+    setSelectedGoalDetails(null);
+    
+    // Update employee stats optimistically using the updatedGoal
+    if (updatedGoal.employee) {
+      setEmployeeStats(prevStats => 
+        prevStats.map(stat => {
+          if (updatedGoal.employee && updatedGoal.employee.id === stat.id) {
+            return {
+              ...stat,
+              pendingGoals: Math.max(0, stat.pendingGoals - 1),
+              approvedGoals: stat.approvedGoals + 1
+            };
+          }
+          return stat;
+        })
+      );
+    }
+    
+    // Make API call in background and revert on error
+    fetch(`/api/goals/${goalId}/approve`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ managerComments: (updatedGoal as Goal).managerComments || '' }),
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to approve goal');
+      }
+      // Success - no need to revert, UI is already updated
+    })
+    .catch(err => {
+      console.error('❌ Error approving goal:', err);
+      // Revert optimistic update on error - restore original goal state
+      if (originalGoal) {
+        setGoals(prevGoals => 
+          prevGoals.map(g => g.id === goalId ? originalGoal : g)
+        );
+        if (originalGoal.employee) {
+          setEmployeeStats(prevStats => 
+            prevStats.map(stat => {
+              if (originalGoal.employee && originalGoal.employee.id === stat.id) {
+                return {
+                  ...stat,
+                  pendingGoals: stat.pendingGoals + 1,
+                  approvedGoals: Math.max(0, stat.approvedGoals - 1)
+                };
+              }
+              return stat;
+            })
+          );
+        }
+      }
+      toast.error('Failed to approve goal. Please try again.');
+    });
+  };
+
+  const handleReject = (goalId: string, updatedGoal: Goal | GoalWithRatingExtended) => {
+    // Store original goal for potential revert
+    const originalGoal = goals.find(g => g.id === goalId);
+    
+    // Optimistically update the goals list IMMEDIATELY - update the goal status (don't remove it)
+    // Use functional update to ensure we're working with latest state
+    setGoals(prevGoals => {
+      const updated = prevGoals.map(g => g.id === goalId ? updatedGoal as Goal : g);
+      return updated;
+    });
+    
+    // Close modal immediately
+    setSelectedGoalDetails(null);
+    
+    // Update employee stats optimistically using the updatedGoal
+    if (updatedGoal.employee) {
+      setEmployeeStats(prevStats => 
+        prevStats.map(stat => {
+          if (updatedGoal.employee && updatedGoal.employee.id === stat.id) {
+            return {
+              ...stat,
+              pendingGoals: Math.max(0, stat.pendingGoals - 1),
+              rejectedGoals: stat.rejectedGoals + 1
+            };
+          }
+          return stat;
+        })
+      );
+    }
+    
+    // Make API call in background and revert on error
+    fetch(`/api/goals/${goalId}/reject`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ managerComments: (updatedGoal as Goal).managerComments || '' }),
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to reject goal');
+      }
+      // Success - no need to revert, UI is already updated
+    })
+    .catch(err => {
+      console.error('❌ Error rejecting goal:', err);
+      // Revert optimistic update on error - restore original goal state
+      if (originalGoal) {
+        setGoals(prevGoals => 
+          prevGoals.map(g => g.id === goalId ? originalGoal : g)
+        );
+        if (originalGoal.employee) {
+          setEmployeeStats(prevStats => 
+            prevStats.map(stat => {
+              if (originalGoal.employee && originalGoal.employee.id === stat.id) {
+                return {
+                  ...stat,
+                  pendingGoals: stat.pendingGoals + 1,
+                  rejectedGoals: Math.max(0, stat.rejectedGoals - 1)
+                };
+              }
+              return stat;
+            })
+          );
+        }
+      }
+      toast.error('Failed to reject goal. Please try again.');
+    });
+  };
+
+  // Server-side filtering is done, but we keep client-side filtering for view switching if needed
+  const filteredGoals = goals;
 
   if (isLoading) {
     return <LoadingComponent />;
@@ -225,111 +351,111 @@ export default function ApproveGoalsPage() {
         <div className="relative z-10 p-4 space-y-4">
           <HeroSection />
 
-          {/* Manager Selector (Admin Only) */}
-          {session?.user?.role === 'ADMIN' && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl p-4 shadow-lg"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-white/20 rounded-lg">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-white">Viewing Manager's Approvals</h3>
-                    <p className="text-xs text-purple-100">Select a manager to view their pending goal approvals</p>
-                  </div>
-                </div>
-                <select
-                  value={selectedManager}
-                  onChange={(e) => setSelectedManager(e.target.value)}
-                  className="px-4 py-2 bg-white/90 text-gray-900 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-white/50 min-w-[200px]"
-                >
-                  <option value="">Select Manager</option>
-                  {managers.map((manager) => (
-                    <option key={manager.id} value={manager.id}>
-                      {manager.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Show message if Admin hasn't selected a manager */}
-          {session?.user?.role === 'ADMIN' && !selectedManager ? (
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-8 border border-white/20 dark:border-gray-700/50 text-center">
-              <div className="flex flex-col items-center gap-4">
-                <div className="p-4 bg-purple-100 dark:bg-purple-900/30 rounded-full">
-                  <svg className="w-12 h-12 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Select a Manager</h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Please select a manager from the dropdown above to view their pending goal approvals.
-                  </p>
-                </div>
-              </div>
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-4 border border-white/20 dark:border-gray-700/50 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Goal Approval Dashboard</h2>
+              <Filters
+                selectedEmployee={selectedEmployee}
+                onEmployeeChange={(employee) => {
+                  setSelectedEmployee(employee);
+                  setPage(1); // Reset to first page on filter change
+                }}
+                selectedStatus={selectedStatus}
+                onStatusChange={(status) => {
+                  setSelectedStatus(status);
+                  setPage(1); // Reset to first page on filter change
+                }}
+                selectedPriority={selectedPriority}
+                onPriorityChange={(priority) => {
+                  setSelectedPriority(priority);
+                  setPage(1); // Reset to first page on filter change
+                }}
+                employeeStats={employeeStats}
+              />
             </div>
-          ) : (
-            <>
-              <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-4 border border-white/20 dark:border-gray-700/50 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Goal Approval Dashboard</h2>
-                  <EmployeeFilter
-                    selectedEmployee={selectedEmployee}
-                    onEmployeeChange={setSelectedEmployee}
-                    employeeStats={employeeStats}
+
+            <StatsSection
+              goals={goals}
+              employeesCount={employeeStats.length}
+            />
+          </div>
+
+          {/* Goals Table */}
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl border border-white/20 dark:border-gray-700/50 overflow-hidden shadow-lg">
+            <div className="p-4">
+              <GoalsTable
+                goals={filteredGoals}
+                onGoalClick={(goal) => setSelectedGoalDetails(goal)}
+                onStatusUpdate={(goalId, newStatus, updatedGoal) => {
+              // Handle status update - keep goal in list regardless of status (DRAFT, APPROVED, or REJECTED)
+              // Always update the goal in the list (don't remove it)
+              setGoals(prevGoals => 
+                prevGoals.map(g => g.id === goalId ? updatedGoal as Goal : g)
+              );
+              
+              // Update employee stats
+              if (updatedGoal.employee) {
+                setEmployeeStats(prevStats => 
+                  prevStats.map(stat => {
+                    if (updatedGoal.employee && updatedGoal.employee.id === stat.id) {
+                      const oldGoal = goals.find(g => g.id === goalId);
+                      const oldStatus = oldGoal?.status;
+                      const newStatusValue = newStatus;
+                      
+                      let stats = { ...stat };
+                      
+                      // Decrement old status
+                      if (oldStatus === 'PENDING' || oldStatus === 'DRAFT') {
+                        stats.pendingGoals = Math.max(0, stats.pendingGoals - 1);
+                      } else if (oldStatus === 'APPROVED') {
+                        stats.approvedGoals = Math.max(0, stats.approvedGoals - 1);
+                      } else if (oldStatus === 'REJECTED') {
+                        stats.rejectedGoals = Math.max(0, stats.rejectedGoals - 1);
+                      }
+                      
+                      // Increment new status
+                      if (newStatusValue === 'APPROVED') {
+                        stats.approvedGoals = stats.approvedGoals + 1;
+                      } else if (newStatusValue === 'REJECTED') {
+                        stats.rejectedGoals = stats.rejectedGoals + 1;
+                      } else if (newStatusValue === 'PENDING' || newStatusValue === 'DRAFT') {
+                        stats.pendingGoals = stats.pendingGoals + 1;
+                      }
+                      
+                      return stats;
+                    }
+                    return stat;
+                  })
+                );
+              }
+            }}
+                showEmployee={true}
+                showManager={false}
+              />
+              
+              {/* Pagination */}
+              {pagination && (
+                <div className="mt-6 pt-4 border-t border-gray-700/50">
+                  <Pagination
+                    page={pagination.page}
+                    limit={pagination.limit}
+                    total={pagination.total}
+                    totalPages={pagination.totalPages}
+                    hasNext={pagination.hasNext}
+                    hasPrev={pagination.hasPrev}
+                    onPageChange={(newPage) => {
+                      setPage(newPage);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    onLimitChange={(newLimit) => {
+                      setLimit(newLimit);
+                      setPage(1);
+                    }}
                   />
                 </div>
-
-                <StatsSection
-                  goalsCount={goals.length}
-                  employeesCount={employeeStats.length}
-                  avgGoalsPerEmployee={employeeStats.length > 0 ? goals.length / employeeStats.length : 0}
-                />
-              </div>
-
-              {/* Goals Grid or Empty State */}
-              {filteredGoals.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredGoals.map(goal => (
-                    <GoalCard
-                      key={goal.id}
-                      goal={goal}
-                      onClick={() => setSelectedGoalDetails(goal)}
-                      showActions={false}
-                      showEmployee={true}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-8 border border-white/20 dark:border-gray-700/50 text-center">
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="p-4 bg-green-100 dark:bg-green-900/30 rounded-full">
-                      <svg className="w-12 h-12 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No Pending Goals</h3>
-                      <p className="text-gray-600 dark:text-gray-400">
-                        {session?.user?.role === 'ADMIN'
-                          ? "This manager's employees don't have any pending goals to approve."
-                          : "Your employees don't have any pending goals to approve at the moment."}
-                      </p>
-                    </div>
-                  </div>
-                </div>
               )}
-            </>
-          )}
+            </div>
+          </div>
 
           {/* Goal Details Modal */}
           {selectedGoalDetails && (

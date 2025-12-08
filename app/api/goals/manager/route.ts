@@ -5,11 +5,11 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { GoalStatus } from '@prisma/client';
+import { logger } from '@/lib/logger';
 
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    console.log('Session:', session); // Debug log
 
     if (!session?.user) {
       return new NextResponse('Unauthorized', { status: 401 });
@@ -24,19 +24,31 @@ export async function GET(req: Request) {
       where: {
         managerId: session.user.id,
       },
+      select: {
+        id: true,
+      },
     });
-    console.log('Found employees:', employees); // Debug log
-
     const employeeIds = employees.map(emp => emp.id);
-    console.log('Employee IDs:', employeeIds); // Debug log
 
-    // Fetch goals for all managed employees
+    // Fetch only COMPLETED goals for rating:
+    // 1. Manager-assigned goals (managerId = session.user.id)
+    // 2. Employee self-created goals (createdById = employeeId AND managerId is null) for assigned employees
+    // Only include COMPLETED status
     const goals = await prisma.goal.findMany({
       where: {
-        employeeId: {
-          in: employeeIds,
-        },
-        status: GoalStatus.APPROVED,
+        OR: [
+          // Manager-assigned goals
+          {
+            managerId: session.user.id,
+          },
+          // Employee self-created goals (for assigned employees only)
+          {
+            employeeId: { in: employeeIds },
+            createdById: { in: employeeIds }, // Created by the employee themselves
+            managerId: null, // Not assigned by a manager
+          },
+        ],
+        status: 'COMPLETED', // Only COMPLETED goals
       },
       include: {
         employee: {
@@ -46,15 +58,22 @@ export async function GET(req: Request) {
             email: true,
           },
         },
-        ratings: {
+        manager: {
           select: {
             id: true,
-            score: true,
-            comments: true,
-            managerRatedById: true,
+            name: true,
+            email: true,
           },
-          where: {
-            managerRatedById: session.user.id,
+        },
+        rating: {
+          select: {
+            id: true,
+            selfScore: true,
+            selfComments: true,
+            selfRatedById: true,
+            managerScore: true,
+            managerComments: true,
+            managerRatedById: true,
           },
         },
       },
@@ -62,25 +81,29 @@ export async function GET(req: Request) {
         createdAt: 'desc',
       },
     });
-    console.log('Found goals:', goals); // Debug log
 
-    // Transform the data to include ratings
+    // Transform the data to include ratings and all goal fields
     const goalsWithRatings = goals.map(goal => ({
       id: goal.id,
       title: goal.title,
       description: goal.description,
       status: goal.status,
       dueDate: goal.dueDate.toISOString(),
+      category: goal.category,
+      department: goal.department,
+      priority: goal.priority,
+      managerId: goal.managerId || '',
+      isApprovalProcess: false, // Default value since this field doesn't exist in the database
       employee: goal.employee,
-      rating: goal.ratings[0] || null,
+      manager: goal.manager,
+      rating: goal.rating || null,
       createdAt: goal.createdAt.toISOString(),
       updatedAt: goal.updatedAt.toISOString(),
     }));
 
-    console.log('Transformed goals:', goalsWithRatings); // Debug log
     return NextResponse.json(goalsWithRatings);
   } catch (error) {
-    console.error('Error fetching goals:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { 
         error: 'Failed to fetch goals',
@@ -117,7 +140,7 @@ export async function POST(request: Request) {
         title,
         description,
         dueDate: new Date(dueDate),
-        status: GoalStatus.PENDING, // Set to PENDING instead of auto-approving
+        status: GoalStatus.APPROVED, // Manager-assigned goals start as APPROVED (manager can approve their own goals immediately)
         employeeId: session.user.id, // Manager is both employee and manager
         managerId: session.user.id,
       },
@@ -147,7 +170,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(goalWithCategory);
   } catch (error) {
-    console.error('Error creating manager goal:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Failed to create goal' },
       { status: 500 }

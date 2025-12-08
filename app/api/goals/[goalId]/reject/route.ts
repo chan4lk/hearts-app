@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { GoalStatus } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export async function PUT(
   request: Request,
@@ -21,6 +23,19 @@ export async function PUT(
 
     const body = await request.json();
     const { managerComments } = body;
+
+    // Check if goal exists and is in PENDING or DRAFT status
+    const existingGoal = await prisma.goal.findUnique({
+      where: { id: params.goalId }
+    });
+
+    if (!existingGoal) {
+      return new NextResponse('Goal not found', { status: 404 });
+    }
+
+    if (existingGoal.status !== 'PENDING' && existingGoal.status !== 'DRAFT') {
+      return new NextResponse('Goal must be in PENDING or DRAFT status to reject', { status: 400 });
+    }
 
     const goal = await prisma.goal.update({
       where: {
@@ -54,13 +69,7 @@ export async function PUT(
       feedback: goal.managerComments
     });
   } catch (error) {
-    console.error('Error rejecting goal:', error);
-    return NextResponse.json(
-      { 
-        error: 'Failed to reject goal',
-        message: error instanceof Error ? error.message : 'Unknown error occurred'
-      },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 } 

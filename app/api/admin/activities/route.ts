@@ -4,6 +4,9 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { PAGINATION_LIMITS } from '@/lib/pagination';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export async function GET() {
   try {
@@ -13,9 +16,10 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get recent user activities
+    // Get recent user activities (limited for performance)
+    const MAX_ACTIVITY_USERS = 10;
     const recentUsers = await prisma.user.findMany({
-      take: 5,
+      take: MAX_ACTIVITY_USERS,
       orderBy: {
         updatedAt: 'desc'
       },
@@ -27,9 +31,10 @@ export async function GET() {
       }
     });
 
-    // Get recent goal activities, including deleted goals
+    // Get recent goal activities, including deleted goals (limited for performance)
+    const MAX_ACTIVITY_GOALS = 20;
     const recentGoals = await prisma.goal.findMany({
-      take: 10, // Increased take to get more goal activities
+      take: MAX_ACTIVITY_GOALS,
       orderBy: {
         updatedAt: 'desc'
       },
@@ -76,10 +81,7 @@ export async function GET() {
 
     return NextResponse.json(activities);
   } catch (error) {
-    console.error('Error Fetching Admin Activities:', error);
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 } 

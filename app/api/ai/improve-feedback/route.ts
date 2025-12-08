@@ -2,9 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { improveFeedback } from '@/lib/openai';
+import { rateLimiters } from '@/lib/rateLimit';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply strict rate limiting for AI operations (expensive)
+    const rateLimitResponse = await rateLimiters.moderate(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const session = await getServerSession(authOptions);
     
     if (!session?.user) {
@@ -46,11 +55,8 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error improving feedback:', error);
-    return NextResponse.json(
-      { error: 'Failed to improve feedback' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }
 

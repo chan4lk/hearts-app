@@ -180,11 +180,6 @@ export function BulkGoalFormModal({
       return;
     }
 
-    console.log('Template apply - Debug info:', {
-      selectedEmployees,
-      assignedEmployees: assignedEmployees.map(e => ({ id: e.id, name: e.name }))
-    });
-
     // Validate that selected employees are in the assigned employees list
     const validEmployeeIds = selectedEmployees.filter(empId =>
       assignedEmployees.some(assignedEmp => assignedEmp.id === empId)

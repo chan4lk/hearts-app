@@ -1,9 +1,13 @@
 export const dynamic = "force-dynamic";
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { NotificationType } from '@prisma/client';
+import { logger } from '@/lib/logger';
+import { rateLimiters } from '@/lib/rateLimit';
+import { getPaginationFromSearchParams, getPaginationMeta, PAGINATION_LIMITS } from '@/lib/pagination';
 
 // Define GoalStatus enum locally
 enum GoalStatus {
@@ -14,40 +18,10 @@ enum GoalStatus {
   REJECTED = 'REJECTED',
   COMPLETED = 'COMPLETED',
   DELETED = 'DELETED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  ON_HOLD = 'ON_HOLD',
+  BLOCKED = 'BLOCKED',
 }
-
-// Define Goal type locally (minimal, extend as needed)
-type Goal = {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  department: string;
-  priority: string;
-  dueDate: Date;
-  status: GoalStatus;
-  employeeId: string;
-  managerId: string | null;
-  createdById: string;
-  updatedById: string;
-  createdAt: Date;
-  updatedAt: Date;
-  managerComments?: string;
-};
-
-type GoalWithRelations = Goal & {
-  category: string;
-  employee: {
-    id: string;
-    name: string;
-    email: string;
-  } | null;
-  manager: {
-    id: string;
-    name: string;
-    email: string;
-  } | null;
-};
 
 // Define valid status transitions
 type StatusTransitions = {
@@ -55,15 +29,81 @@ type StatusTransitions = {
 };
 
 const validTransitions: StatusTransitions = {
-  [GoalStatus.DRAFT]: [GoalStatus.PENDING],
-  [GoalStatus.PENDING]: [GoalStatus.APPROVED, GoalStatus.REJECTED, GoalStatus.MODIFIED],
-  [GoalStatus.MODIFIED]: [GoalStatus.PENDING],
-  [GoalStatus.APPROVED]: [GoalStatus.COMPLETED],
-  [GoalStatus.REJECTED]: [GoalStatus.DRAFT],
+  [GoalStatus.DRAFT]: [GoalStatus.PENDING, GoalStatus.APPROVED, GoalStatus.REJECTED, GoalStatus.MODIFIED], // Employee can submit DRAFT to PENDING, or Manager can review DRAFT directly
+  [GoalStatus.PENDING]: [GoalStatus.APPROVED, GoalStatus.REJECTED, GoalStatus.MODIFIED], // Manager reviews submitted DRAFT
+  [GoalStatus.MODIFIED]: [GoalStatus.PENDING, GoalStatus.DRAFT], // Employee resubmits after modifications (can go back to DRAFT or submit to PENDING)
+  [GoalStatus.APPROVED]: [GoalStatus.IN_PROGRESS, GoalStatus.COMPLETED, GoalStatus.ON_HOLD, GoalStatus.BLOCKED], // Employee can start working
+  [GoalStatus.IN_PROGRESS]: [GoalStatus.COMPLETED, GoalStatus.ON_HOLD, GoalStatus.BLOCKED],
+  [GoalStatus.REJECTED]: [GoalStatus.DRAFT], // Employee can revise and resubmit
   [GoalStatus.COMPLETED]: [],
+  [GoalStatus.ON_HOLD]: [GoalStatus.IN_PROGRESS, GoalStatus.COMPLETED],
+  [GoalStatus.BLOCKED]: [GoalStatus.IN_PROGRESS, GoalStatus.COMPLETED],
   [GoalStatus.DELETED]: []
 };
 
+// Standard include for goal queries
+const goalInclude = {
+  employee: {
+    select: { id: true, name: true, email: true }
+  },
+  manager: {
+    select: { id: true, name: true, email: true }
+  },
+  createdBy: {
+    select: { id: true, name: true, email: true }
+  },
+  updatedBy: {
+    select: { id: true, name: true, email: true }
+  },
+  rating: {
+    select: {
+      id: true,
+      selfScore: true,
+      selfComments: true,
+      selfRatedById: true,
+      selfRatedAt: true,
+      managerScore: true,
+      managerComments: true,
+      managerRatedById: true,
+      managerRatedAt: true,
+      createdAt: true,
+      updatedAt: true
+    }
+  }
+};
+
+// Helper to calculate stats from goals array
+function calculateStats(goals: any[]) {
+  return {
+    total: goals.length,
+    completed: goals.filter(g => g.status === 'COMPLETED').length,
+    pending: goals.filter(g => g.status === 'PENDING').length,
+    approved: goals.filter(g => g.status === 'APPROVED').length,
+    draft: goals.filter(g => g.status === 'DRAFT').length,
+    rejected: goals.filter(g => g.status === 'REJECTED').length,
+    modified: goals.filter(g => g.status === 'MODIFIED').length,
+    // A goal is rated if it has a rating record with either selfScore or managerScore
+    selfRated: goals.filter(g => g.rating?.selfScore != null).length,
+    managerRated: goals.filter(g => g.rating?.managerScore != null).length,
+    rated: goals.filter(g => g.rating?.selfScore != null || g.rating?.managerScore != null).length,
+    unrated: goals.filter(g => !g.rating || (g.rating.selfScore == null && g.rating.managerScore == null)).length
+  };
+}
+
+/**
+ * UNIFIED GOALS API
+ *
+ * Query Parameters:
+ * - view: 'my-goals' | 'team-goals' | 'pending-approval' | 'all' (admin only)
+ * - status: 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED' | 'MODIFIED'
+ * - employeeId: specific employee's goals (for managers/admins)
+ * - includeRatings: 'true' to include ratings data
+ *
+ * Default behavior by role:
+ * - EMPLOYEE: Returns their own goals (view=my-goals)
+ * - MANAGER: Returns team goals (view=team-goals)
+ * - ADMIN: Returns all goals (view=all)
+ */
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -71,100 +111,250 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // For admin users, fetch all goals
-    if (session.user.role === 'ADMIN') {
-      const goals = await prisma.goal.findMany({
-        where: {
-          status: { not: 'DELETED' }
-        },
-        include: {
-          employee: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          },
-          manager: {
-            select: {
-              id: true,
-              name: true,
-              email: true
-            }
-          }
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      });
+    const { searchParams } = new URL(req.url);
+    const view = searchParams.get('view');
+    const status = searchParams.get('status');
+    const employeeId = searchParams.get('employeeId');
+    const category = searchParams.get('category');
+    const priority = searchParams.get('priority');
+    const search = searchParams.get('search'); // Search in title/description
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+    
+    // Pagination parameters with limits
+    const { page, limit, skip } = getPaginationFromSearchParams(
+      searchParams,
+      PAGINATION_LIMITS.GOALS
+    );
+    
+    // Sort parameters
+    const sortBy = searchParams.get('sortBy') || 'createdAt';
+    const sortOrder = searchParams.get('sortOrder') || 'desc';
+    
+    const userRole = session.user.role;
+    const userId = session.user.id;
 
-      // Calculate statistics
-      const stats = {
-        total: goals.length,
-        completed: goals.filter((g: any) => g.status === 'COMPLETED').length,
-        pending: goals.filter((g: any) => g.status === 'PENDING').length,
-        inProgress: goals.filter((g: any) => g.status === 'APPROVED').length,
-        draft: goals.filter((g: any) => g.status === 'DRAFT').length,
-        rejected: goals.filter((g: any) => g.status === 'REJECTED').length,
-        modified: goals.filter((g: any) => g.status === 'MODIFIED').length
-      };
+    // Build the where clause based on parameters
+    let whereClause: any = {
+      status: { not: 'DELETED' }
+    };
 
-      return NextResponse.json({ 
-        goals,
-        stats
-      });
+    // Add status filter if specified
+    if (status && Object.values(GoalStatus).includes(status as GoalStatus)) {
+      whereClause.status = status;
+    }
+    
+    // Add category filter if specified
+    if (category && category !== 'all') {
+      whereClause.category = category;
+    }
+    
+    // Add priority filter if specified
+    if (priority && priority !== 'all') {
+      whereClause.priority = priority;
+    }
+    
+    // Determine which goals to fetch based on view and role
+    const effectiveView = view || (
+      userRole === 'ADMIN' ? 'all' :
+      userRole === 'MANAGER' ? 'team-goals' :
+      'my-goals'
+    );
+
+    // Add date range filter if specified
+    if (startDate || endDate) {
+      whereClause.dueDate = {};
+      if (startDate) {
+        whereClause.dueDate.gte = new Date(startDate);
+      }
+      if (endDate) {
+        whereClause.dueDate.lte = new Date(endDate);
+      }
     }
 
-    // For employees, fetch goals assigned to them by managers
-    const goals = await prisma.goal.findMany({
-      where: {
-        employeeId: session.user.id,
-        status: { not: 'DELETED' }
-      },
-      include: {
-        employee: {
-          select: {
-            id: true,
-            name: true,
-            email: true
+    // Build OR conditions array for complex queries (team-goals view)
+    const orConditions: any[] = [];
+
+    switch (effectiveView) {
+      case 'my-goals':
+        // Current user's goals (works for all roles)
+        whereClause.employeeId = userId;
+        break;
+
+      case 'team-goals':
+        // Goals of employees managed by this user (MANAGER/ADMIN only)
+        if (userRole !== 'MANAGER' && userRole !== 'ADMIN') {
+          return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
+        // Get employees managed by this manager
+        const managedEmployees = await prisma.user.findMany({
+          where: { managerId: userId },
+          select: { id: true }
+        });
+        const employeeIds = managedEmployees.map(e => e.id);
+
+        // Include manager's own goals + managed employees' goals
+        orConditions.push(
+          { employeeId: { in: employeeIds } },
+          { employeeId: userId },
+          { managerId: userId }
+        );
+        break;
+
+      case 'pending-approval':
+        // DRAFT, APPROVED, and REJECTED goals for manager to review (MANAGER/ADMIN only)
+        // Managers can review and change status multiple times
+        if (userRole !== 'MANAGER' && userRole !== 'ADMIN') {
+          return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
+        const pendingEmployees = await prisma.user.findMany({
+          where: { managerId: userId },
+          select: { id: true }
+        });
+
+        // Include DRAFT, APPROVED, and REJECTED goals so managers can review and change status
+        whereClause.status = { in: ['DRAFT', 'APPROVED', 'REJECTED'] };
+        whereClause.employeeId = { in: pendingEmployees.map(e => e.id) };
+        break;
+
+      case 'all':
+        // All goals (ADMIN only)
+        if (userRole !== 'ADMIN') {
+          return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+        // No additional filter - get all non-deleted goals
+        break;
+
+      default:
+        // If specific employeeId provided (MANAGER/ADMIN can view specific employee)
+        if (employeeId) {
+          if (userRole !== 'MANAGER' && userRole !== 'ADMIN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
           }
-        },
-        manager: {
+          whereClause.employeeId = employeeId;
+        } else {
+          // Default to user's own goals
+          whereClause.employeeId = userId;
+        }
+    }
+
+    // Add OR conditions if we have team-goals view
+    if (orConditions.length > 0) {
+      whereClause.OR = orConditions;
+    }
+
+    // Add search filter (applied as AND with other conditions)
+    if (search && search.trim()) {
+      // If we already have an OR clause (from team-goals), we need to restructure
+      // Otherwise, just add the search as AND condition
+      if (whereClause.OR && orConditions.length > 0) {
+        // For team-goals with search, we need to combine conditions properly
+        whereClause.AND = [
+          { OR: orConditions },
+          {
+            OR: [
+              { title: { contains: search.trim(), mode: 'insensitive' as const } },
+              { description: { contains: search.trim(), mode: 'insensitive' as const } }
+            ]
+          }
+        ];
+        delete whereClause.OR;
+      } else {
+        // Simple search without team-goals
+        whereClause.AND = whereClause.AND || [];
+        whereClause.AND.push({
+          OR: [
+            { title: { contains: search.trim(), mode: 'insensitive' as const } },
+            { description: { contains: search.trim(), mode: 'insensitive' as const } }
+          ]
+        });
+      }
+    }
+
+    // Determine sort order
+    const orderBy: any = {};
+    if (sortBy === 'title' || sortBy === 'status' || sortBy === 'priority' || sortBy === 'category') {
+      orderBy[sortBy] = sortOrder;
+    } else if (sortBy === 'dueDate') {
+      orderBy.dueDate = sortOrder;
+    } else if (sortBy === 'createdAt') {
+      orderBy.createdAt = sortOrder;
+    } else {
+      orderBy.createdAt = 'desc';
+    }
+
+    // Fetch total count for pagination (before applying skip/take)
+    const total = await prisma.goal.count({
+      where: whereClause
+    });
+
+    // Fetch goals with all related data (paginated)
+    const goals = await prisma.goal.findMany({
+      where: whereClause,
+      include: goalInclude,
+      orderBy,
+      skip,
+      take: limit
+    });
+
+    // Fetch all goals for stats calculation (without pagination)
+    const allGoalsForStats = await prisma.goal.findMany({
+      where: whereClause,
+      select: {
+        status: true,
+        category: true,
+        priority: true,
+        rating: {
           select: {
-            id: true,
-            name: true,
-            email: true
+            selfScore: true,
+            managerScore: true
           }
         }
-      },
-      orderBy: {
-        createdAt: 'desc'
       }
     });
 
-    // Calculate statistics
-    const stats = {
-      total: goals.length,
-      completed: goals.filter((g: any) => g.status === 'COMPLETED').length,
-      pending: goals.filter((g: any) => g.status === 'PENDING').length,
-      inProgress: goals.filter((g: any) => g.status === 'APPROVED').length,
-      draft: goals.filter((g: any) => g.status === 'DRAFT').length,
-      rejected: goals.filter((g: any) => g.status === 'REJECTED').length,
-      modified: goals.filter((g: any) => g.status === 'MODIFIED').length
-    };
+    // Calculate statistics from all matching goals (not just paginated)
+    const stats = calculateStats(allGoalsForStats);
 
-    return NextResponse.json({ 
+    // Add category breakdown
+    const categoryStats: Record<string, number> = {};
+    allGoalsForStats.forEach((goal: any) => {
+      if (goal.category) {
+        categoryStats[goal.category] = (categoryStats[goal.category] || 0) + 1;
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
       goals,
-      stats
+      stats: {
+        ...stats,
+        categories: categoryStats
+      },
+      pagination: getPaginationMeta(page, limit, total),
+      meta: {
+        view: effectiveView,
+        role: userRole,
+        count: goals.length,
+        total
+      }
     });
   } catch (error) {
-    console.error('Error fetching goals:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Failed to fetch goals' }, { status: 500 });
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    // Apply rate limiting
+    const rateLimitResponse = await rateLimiters.moderate(req);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -172,59 +362,127 @@ export async function POST(req: Request) {
 
     const { title, description, category, dueDate, employeeId, department, priority } = await req.json();
 
-    // Check if user is admin or manager
-    const isAdminOrManager = session.user.role === 'ADMIN' || session.user.role === 'MANAGER';
-    // For admin/manager, employeeId is required unless they are creating a self-goal
-    const isSelfGoal = (!isAdminOrManager && (!employeeId || employeeId === session.user.id)) ||
-      (isAdminOrManager && (!employeeId || employeeId === session.user.id));
-    if (isAdminOrManager && !isSelfGoal && !employeeId) {
+    // Validate required fields
+    if (!title || !description || !dueDate) {
       return NextResponse.json(
-        { error: 'Employee ID is required for admin/manager goal creation' },
+        { error: 'Title, description, and due date are required' },
         { status: 400 }
       );
     }
 
+    const userRole = session.user.role;
+    const userId = session.user.id;
+    const isAdminOrManager = userRole === 'ADMIN' || userRole === 'MANAGER';
+
+    // Determine the target employee
+    const targetEmployeeId = employeeId || userId;
+    const isSelfGoal = targetEmployeeId === userId;
+
+    // Non-managers can only create goals for themselves
+    if (!isAdminOrManager && !isSelfGoal) {
+      return NextResponse.json(
+        { error: 'You can only create goals for yourself' },
+        { status: 403 }
+      );
+    }
+
+    // Determine initial status:
+    // - Manager/Admin assigns goal to employee → APPROVED (employee can start immediately)
+    // - Employee creates goal for themselves → DRAFT (needs manager review)
+    let initialStatus: GoalStatus;
+    if (isAdminOrManager && !isSelfGoal) {
+      // Manager assigning goal to employee
+      initialStatus = GoalStatus.APPROVED;
+    } else {
+      // Employee creating goal for themselves
+      initialStatus = GoalStatus.DRAFT;
+    }
+
+    // Create the goal
     const goal = await prisma.goal.create({
       data: {
         title,
         description,
-        category,
+        category: category || 'PROFESSIONAL',
         department: department || 'ENGINEERING',
         priority: priority || 'MEDIUM',
         dueDate: new Date(dueDate),
-        status: isAdminOrManager ? 'DRAFT' : 'PENDING',
-        employeeId: isSelfGoal ? session.user.id : employeeId,
-        managerId: isAdminOrManager ? session.user.id : null,
-        createdById: session.user.id,
-        updatedById: session.user.id
+        status: initialStatus,
+        employeeId: targetEmployeeId,
+        managerId: isAdminOrManager && !isSelfGoal ? userId : null,
+        createdById: userId,
+        updatedById: userId
       },
-      include: {
-        employee: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        },
-        manager: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
+      include: goalInclude
     });
 
-    return NextResponse.json({ goal }, { status: 201 });
+    // Create notifications
+    const { NotificationType } = await import('@prisma/client');
+    
+    // Notify employee when goal is created
+    await prisma.notification.create({
+      data: {
+        type: NotificationType.GOAL_CREATED,
+        message: isAdminOrManager && !isSelfGoal
+          ? `A new goal "${goal.title}" has been assigned to you by ${session.user.name || 'your manager'}`
+          : `You created a new goal "${goal.title}" (status: ${goal.status})`,
+        userId: targetEmployeeId,
+        goalId: goal.id,
+      },
+    });
+
+    // If manager assigns goal, notify manager about the assignment
+    if (isAdminOrManager && !isSelfGoal) {
+      await prisma.notification.create({
+        data: {
+          type: NotificationType.GOAL_CREATED,
+          message: `You assigned goal "${goal.title}" to ${goal.employee?.name || 'employee'}`,
+          userId: userId,
+          goalId: goal.id,
+        },
+      });
+    }
+
+    // If employee creates DRAFT goal, notify their manager
+    if (isSelfGoal && initialStatus === GoalStatus.DRAFT) {
+      // Fetch employee with manager info
+      const employeeWithManager = await prisma.user.findUnique({
+        where: { id: targetEmployeeId },
+        select: { id: true, name: true, email: true, managerId: true }
+      });
+      
+      if (employeeWithManager?.managerId) {
+        await prisma.notification.create({
+          data: {
+            type: NotificationType.GOAL_CREATED,
+            message: `${employeeWithManager.name || 'Employee'} created a new goal "${goal.title}" that needs your review`,
+            userId: employeeWithManager.managerId,
+            goalId: goal.id,
+          },
+        });
+      }
+    }
+
+    // Don't log sensitive goal data - security risk
+
+    return NextResponse.json({
+      success: true,
+      goal
+    }, { status: 201 });
   } catch (error) {
-    console.error('Error creating goal:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Failed to create goal' }, { status: 500 });
   }
 }
 
-export async function DELETE(request: Request) {
+export async function DELETE(request: NextRequest) {
   try {
+    // Apply rate limiting
+    const rateLimitResponse = await rateLimiters.moderate(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -259,11 +517,13 @@ export async function DELETE(request: Request) {
     const isGoalManager = goal.managerId === session.user.id;
     const isGoalEmployee = goal.employeeId === session.user.id;
 
-    // Only allow deletion if:
-    // 1. User is admin/manager and goal is in DRAFT or PENDING state
-    // 2. User is the employee and goal is in DRAFT state
+    // Allow deletion if:
+    // 1. User is ADMIN (can delete any goal)
+    // 2. User is the manager who assigned the goal (can delete goals they assigned)
+    // 3. User is the employee and goal is in DRAFT state
     if (
-      !isAdminOrManager && 
+      !(session.user.role === 'ADMIN') && 
+      !isGoalManager && 
       !(isGoalEmployee && goal.status === 'DRAFT')
     ) {
       return NextResponse.json(
@@ -304,7 +564,7 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json(deletedGoal);
   } catch (error) {
-    console.error('Error deleting goal:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Failed to delete goal' },
       { status: 500 }
@@ -312,8 +572,14 @@ export async function DELETE(request: Request) {
   }
 }
 
-export async function PATCH(request: Request) {
+export async function PATCH(request: NextRequest) {
   try {
+    // Apply rate limiting
+    const rateLimitResponse = await rateLimiters.moderate(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -378,7 +644,7 @@ export async function PATCH(request: Request) {
       if (
         (newStatus === 'PENDING' && !isGoalEmployee) ||
         (['APPROVED', 'REJECTED', 'MODIFIED'].includes(newStatus) && !isAdminOrManager) ||
-        (newStatus === 'COMPLETED' && !isGoalEmployee) ||
+        (['COMPLETED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED'].includes(newStatus) && !isGoalEmployee && !isAdminOrManager) ||
         (newStatus === 'DRAFT' && !isGoalEmployee)
       ) {
         return NextResponse.json({ error: 'Unauthorized status change' }, { status: 403 });
@@ -439,7 +705,7 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json(updatedGoal);
   } catch (error) {
-    console.error('Error updating goal:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Failed to update goal' },
       { status: 500 }

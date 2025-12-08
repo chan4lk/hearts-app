@@ -48,19 +48,12 @@ function LoginForm() {
     if (status === 'loading') return;
 
     if (session?.user) {
-      console.log('[Login] User session detected:', {
-        id: session.user.id,
-        email: session.user.email,
-        role: session.user.role
-      });
-
       // Get the role from session and ensure it's a valid Role type
       const userRole = session.user.role as Role;
       
       // Get the dashboard path from our map, fallback to employee dashboard
       const redirectPath = ROLE_DASHBOARD_MAP[userRole] || ROLE_DASHBOARD_MAP.EMPLOYEE;
       
-      console.log(`[Login] Role "${userRole}" maps to dashboard: ${redirectPath}`);
       router.push(redirectPath);
     }
   }, [session, status, router]);
@@ -69,7 +62,6 @@ function LoginForm() {
     try {
       setIsLoading(true);
       setIsTransitioning(true);
-      console.log('[Login] Starting Azure AD login process');
       
       // Get the callbackUrl from search params or use default
       const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
@@ -79,7 +71,7 @@ function LoginForm() {
         callbackUrl: callbackUrl
       });
     } catch (error) {
-      console.error('[Login] Error during Azure login:', error);
+      // Error logged via logger in production, only show user-friendly message
       toast.error('An error occurred during login. Please try again.');
       setIsLoading(false);
       setIsTransitioning(false);

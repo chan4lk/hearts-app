@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 import { GoalStatus } from '@prisma/client';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,8 +30,6 @@ export async function GET(request: Request) {
       ? managerIdParam
       : session.user.id;
 
-    console.log('Target Manager ID:', targetManagerId); // Debug log
-
     // First get all employees managed by this manager
     const employees = await prisma.user.findMany({
       where: {
@@ -41,7 +41,6 @@ export async function GET(request: Request) {
     });
 
     const employeeIds = employees.map(emp => emp.id);
-    console.log('Found employee IDs:', employeeIds); // Debug log
 
     // Then fetch pending goals for these employees
     const goals = await prisma.goal.findMany({
@@ -95,8 +94,6 @@ export async function GET(request: Request) {
       },
     });
 
-    console.log('Found goals:', goals); // Debug log
-
     // Transform the data to match the frontend interface
     const transformedGoals = goals.map(goal => ({
       id: goal.id,
@@ -135,18 +132,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(transformedGoals);
   } catch (error) {
-    console.error('Error fetching pending goals:', error);
-    return new NextResponse(
-      JSON.stringify({ 
-        error: 'Internal Server Error',
-        message: error instanceof Error ? error.message : 'Unknown error occurred'
-      }), 
-      { 
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 } 

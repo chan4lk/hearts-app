@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BsStars, BsLightbulb, BsCheckCircle, BsXCircle } from 'react-icons/bs';
 
@@ -16,13 +16,15 @@ interface AIGoalSuggestionsProps {
   onSelectGoal?: (goal: GoalSuggestion) => void;
   className?: string;
   onUseGoal?: (goal: GoalSuggestion) => void;
+  autoGenerate?: boolean;
+  showTriggerButton?: boolean;
 }
 
-export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseGoal }: AIGoalSuggestionsProps) {
+export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseGoal, autoGenerate = false, showTriggerButton = true }: AIGoalSuggestionsProps) {
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<GoalSuggestion[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(autoGenerate);
 
   const generateSuggestions = async () => {
     setLoading(true);
@@ -54,26 +56,34 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
     if (onUseGoal) {
       onUseGoal(goal);
     }
-
-    if (onSelectGoal) {
-      onSelectGoal(goal);
-    }
-    setShowSuggestions(false);
+    // Don't call onSelectGoal here - that's only for manual closing
+    // Don't close suggestions modal - allow user to select multiple goals
+    // setShowSuggestions(false);
   };
+
+  // Auto-generate suggestions when component mounts if autoGenerate is true
+  useEffect(() => {
+    if (autoGenerate) {
+      generateSuggestions();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoGenerate]);
 
   return (
     <div className={className}>
-      {/* Trigger Button */}
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={generateSuggestions}
-        disabled={loading}
-        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <BsStars className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-        <span>{loading ? 'Generating...' : 'AI Goal Suggestions'}</span>
-      </motion.button>
+      {/* Trigger Button - Only show if showTriggerButton is true */}
+      {showTriggerButton && (
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={generateSuggestions}
+          disabled={loading}
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <BsStars className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+          <span>{loading ? 'Generating...' : 'AI Goal Suggestions'}</span>
+        </motion.button>
+      )}
 
       {/* Error Message */}
       {error && (
@@ -92,13 +102,20 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
 
       {/* Suggestions Modal */}
       <AnimatePresence>
-        {showSuggestions && suggestions.length > 0 && (
+        {(showSuggestions || autoGenerate) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowSuggestions(false)}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowSuggestions(false);
+                if (!showTriggerButton && onSelectGoal) {
+                  onSelectGoal({} as GoalSuggestion);
+                }
+              }
+            }}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -115,7 +132,13 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
                     <h2 className="text-2xl font-bold text-white">AI-Powered Goal Suggestions</h2>
                   </div>
                   <button
-                    onClick={() => setShowSuggestions(false)}
+                    onClick={() => {
+                      setShowSuggestions(false);
+                      // Close the parent modal state when manually closed
+                      if (!showTriggerButton && onSelectGoal) {
+                        onSelectGoal({} as GoalSuggestion);
+                      }
+                    }}
                     className="text-white/80 hover:text-white transition-colors"
                   >
                     <BsXCircle className="w-6 h-6" />
@@ -128,8 +151,21 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
 
               {/* Suggestions List */}
               <div className="p-6 overflow-y-auto max-h-[calc(80vh-180px)] bg-gray-800/30">
-                <div className="space-y-4">
-                  {suggestions.map((suggestion, index) => (
+                {loading ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <BsStars className="w-12 h-12 text-purple-400 animate-spin mb-4" />
+                    <p className="text-purple-200 text-lg font-medium">Generating AI suggestions...</p>
+                    <p className="text-purple-300 text-sm mt-2">This may take a few moments</p>
+                  </div>
+                ) : error ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <BsXCircle className="w-12 h-12 text-red-400 mb-4" />
+                    <p className="text-red-200 text-lg font-medium">Error generating suggestions</p>
+                    <p className="text-red-300 text-sm mt-2">{error}</p>
+                  </div>
+                ) : suggestions.length > 0 ? (
+                  <div className="space-y-4">
+                    {suggestions.map((suggestion, index) => (
                     <motion.div
                       key={index}
                       initial={{ opacity: 0, x: -20 }}
@@ -188,7 +224,13 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
                       </div>
                     </motion.div>
                   ))}
-                </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <BsStars className="w-12 h-12 text-purple-400 mb-4" />
+                    <p className="text-purple-200 text-lg font-medium">No suggestions available</p>
+                  </div>
+                )}
               </div>
 
               {/* Footer */}

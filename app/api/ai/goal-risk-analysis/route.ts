@@ -3,9 +3,18 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { analyzeGoalRisk } from '@/lib/openai';
 import { prisma } from '@/lib/prisma';
+import { rateLimiters } from '@/lib/rateLimit';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply strict rate limiting for AI operations (expensive)
+    const rateLimitResponse = await rateLimiters.moderate(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const session = await getServerSession(authOptions);
     
     if (!session?.user) {
@@ -63,11 +72,8 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error analyzing goal risk:', error);
-    return NextResponse.json(
-      { error: 'Failed to analyze goal risk' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }
 

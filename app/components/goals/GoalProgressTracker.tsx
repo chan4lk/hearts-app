@@ -16,8 +16,8 @@ import { showToast } from '@/app/utils/toast';
 interface GoalProgressTrackerProps {
   goalId: string;
   currentProgress: number;
-  currentStatus: string;
-  onProgressUpdate: (progress: number, status: string, notes?: string) => void;
+  currentStatus: string; // This is now progressStatus (NOT_STARTED, IN_PROGRESS, etc.)
+  onProgressUpdate: (progress: number, progressStatus: string, notes?: string) => void;
   isEmployee: boolean;
 }
 
@@ -79,12 +79,8 @@ export default function GoalProgressTracker({
       const finalProgress = progressValue !== undefined ? progressValue : progress;
       const finalStatus = statusValue || status;
 
-      console.log('🔄 Saving progress:', { finalProgress, finalStatus, notes });
-
       // Call the parent's onProgressUpdate function
       await onProgressUpdate(finalProgress, finalStatus, notes);
-
-      console.log('✅ Progress saved successfully');
 
       showToast.success('Progress Updated', `Goal is now ${finalProgress}% complete`);
       setShowNotes(false);

@@ -4,6 +4,9 @@ import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 import { Role, User as PrismaUser } from '.prisma/client';
 import bcrypt from 'bcryptjs';
+import { validatePassword } from '@/lib/validation';
+import { handleApiError } from '@/app/api/utils/error-handler';
+import { logger } from '@/lib/logger';
 
 // Define the type for user with relations
 type UserWithRelations = PrismaUser & {
@@ -76,11 +79,8 @@ export async function GET() {
 
     return NextResponse.json({ users: transformedUsers });
   } catch (error) {
-    console.error('Error fetching users:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch users' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }
 
@@ -96,6 +96,15 @@ export async function POST(request: Request) {
     if (!name || !email || !password || !role) {
       return NextResponse.json(
         { error: 'All fields are required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return NextResponse.json(
+        { error: passwordValidation.error },
         { status: 400 }
       );
     }
@@ -137,10 +146,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(user);
   } catch (error) {
-    console.error('Error creating user:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 } 

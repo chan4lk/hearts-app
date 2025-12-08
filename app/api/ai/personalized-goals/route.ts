@@ -3,9 +3,18 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { generatePersonalizedGoals } from '@/lib/openai';
 import { prisma } from '@/lib/prisma';
+import { rateLimiters } from '@/lib/rateLimit';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply strict rate limiting for AI operations (expensive)
+    const rateLimitResponse = await rateLimiters.moderate(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const session = await getServerSession(authOptions);
     
     if (!session?.user) {
@@ -23,7 +32,7 @@ export async function POST(request: NextRequest) {
             status: { not: 'DELETED' }
           },
           include: {
-            ratings: true
+            rating: true
           }
         }
       }
@@ -36,13 +45,15 @@ export async function POST(request: NextRequest) {
     // Calculate performance metrics
     const totalGoals = user.goals.length;
     const completedGoals = user.goals.filter(g => g.status === 'COMPLETED').length;
-    const currentGoals = user.goals.filter(g => 
+    const currentGoals = user.goals.filter(g =>
       ['PENDING', 'APPROVED', 'MODIFIED'].includes(g.status)
     ).length;
 
-    const ratings = user.goals.flatMap(g => g.ratings);
-    const averageRating = ratings.length > 0
-      ? ratings.reduce((sum, r) => sum + r.score, 0) / ratings.length
+    // Get ratings (prefer manager score, fallback to self score)
+    const goalsWithRatings = user.goals.filter(g => g.rating?.managerScore != null || g.rating?.selfScore != null);
+    const ratingScores = goalsWithRatings.map(g => g.rating?.managerScore ?? g.rating?.selfScore ?? 0);
+    const averageRating = ratingScores.length > 0
+      ? ratingScores.reduce((sum, r) => sum + r, 0) / ratingScores.length
       : 0;
 
     // Generate personalized goals
@@ -67,11 +78,8 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error generating personalized goals:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate personalized goals' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }
 

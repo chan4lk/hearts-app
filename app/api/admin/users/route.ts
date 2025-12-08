@@ -1,9 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { Role, Prisma, PrismaClient } from '.prisma/client';
+import { logger } from '@/lib/logger';
+import { rateLimiters } from '@/lib/rateLimit';
+import { getPaginationFromSearchParams, getPaginationMeta, PAGINATION_LIMITS } from '@/lib/pagination';
+import { validatePassword } from '@/lib/validation';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 interface CreateUserBody {
   name: string;
@@ -25,21 +30,19 @@ function isManagerialRole(role: Role): boolean {
 }
 
 // Helper function to check if a manager can manage a given role
+// Allow any MANAGER or ADMIN to manage any user (including other managers/admins)
+// Only restriction is that employees cannot be managers (filtered in frontend)
 function canManage(managerRole: Role, userRole: Role): boolean {
-  if (userRole === Role.ADMIN) {
-    return managerRole === Role.ADMIN; // Only ADMIN can manage ADMIN
+  // Only MANAGER or ADMIN can be assigned as managers (employees are filtered out in frontend)
+  if (managerRole !== Role.MANAGER && managerRole !== Role.ADMIN) {
+    return false;
   }
-  if (userRole === Role.MANAGER) {
-    return managerRole === Role.ADMIN || managerRole === Role.MANAGER; // ADMIN or MANAGER can manage MANAGER
-  }
-  if (userRole === Role.EMPLOYEE) {
-    return managerRole === Role.ADMIN || managerRole === Role.MANAGER; // ADMIN or MANAGER can manage EMPLOYEE
-  }
-  return false;
+  // Any MANAGER or ADMIN can manage any user role (ADMIN, MANAGER, or EMPLOYEE)
+  return true;
 }
 
-// GET all users
-export async function GET() {
+// GET all users with pagination and filtering
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -47,51 +50,133 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        department: true,
-        position: true,
-        createdAt: true,
-        updatedAt: true,
-        isActive: true,
-        manager: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true
-          }
-        },
-        employees: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
+    const { searchParams } = new URL(request.url);
+    
+    // Check if minimal mode is requested (for dropdowns - faster loading)
+    const minimal = searchParams.get('minimal') === 'true';
+    
+    // Pagination parameters with limits
+    const maxLimit = minimal ? PAGINATION_LIMITS.USERS_MINIMAL : PAGINATION_LIMITS.USERS;
+    const { page, limit, skip } = getPaginationFromSearchParams(
+      searchParams,
+      maxLimit
+    );
+    
+    // Filter parameters
+    const role = searchParams.get('role');
+    const isActive = searchParams.get('isActive');
+    const search = searchParams.get('search'); // Search in name/email
+    const department = searchParams.get('department');
+    const managerId = searchParams.get('managerId');
+    
+    // Sort parameters
+    const sortBy = searchParams.get('sortBy') || 'createdAt';
+    const sortOrder = searchParams.get('sortOrder') || 'desc';
+
+    // Build where clause
+    const whereClause: any = {};
+    
+    if (role && role !== 'all') {
+      whereClause.role = role;
+    }
+    
+    if (isActive !== null && isActive !== undefined && isActive !== 'all') {
+      whereClause.isActive = isActive === 'true';
+    }
+    
+    if (department && department !== 'all') {
+      whereClause.department = department;
+    }
+    
+    if (managerId && managerId !== 'all') {
+      if (managerId === 'none') {
+        whereClause.managerId = null;
+      } else {
+        whereClause.managerId = managerId;
+      }
+    }
+    
+    if (search && search.trim()) {
+      whereClause.OR = [
+        { name: { contains: search.trim(), mode: 'insensitive' as const } },
+        { email: { contains: search.trim(), mode: 'insensitive' as const } }
+      ];
+    }
+
+    // Build orderBy clause
+    const orderBy: any = {};
+    if (sortBy === 'name' || sortBy === 'email' || sortBy === 'role') {
+      orderBy[sortBy] = sortOrder;
+    } else {
+      orderBy.createdAt = sortOrder;
+    }
+
+    // Get total count (skip for minimal mode to improve performance)
+    const total = minimal ? 0 : await prisma.user.count({ where: whereClause });
+
+    // Fetch users with pagination
+    // Use minimal select for faster loading when minimal=true
+    const selectFields = minimal ? {
+      id: true,
+      name: true,
+      email: true,
+      role: true
+    } : {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      department: true,
+      position: true,
+      createdAt: true,
+      updatedAt: true,
+      isActive: true,
+      manager: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true
         }
       },
-      orderBy: {
-        createdAt: 'desc'
+      employees: {
+        select: {
+          id: true,
+          name: true,
+          email: true
+        }
       }
+    };
+    
+    const users = await prisma.user.findMany({
+      where: whereClause,
+      select: selectFields,
+      orderBy,
+      skip,
+      take: limit
     });
 
-    return NextResponse.json(users);
+    return NextResponse.json({
+      users,
+      ...(minimal ? {} : {
+        pagination: getPaginationMeta(page, limit, total)
+      })
+    });
   } catch (error) {
-    console.error('Error fetching users:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }
 
 // Create new user
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    // Apply rate limiting
+    const rateLimitResponse = await rateLimiters.moderate(req);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const session = await getServerSession(authOptions);
     if (!session?.user || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -111,6 +196,15 @@ export async function POST(req: Request) {
     if (!name || !email || !password || !role) {
       return NextResponse.json(
         { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return NextResponse.json(
+        { error: passwordValidation.error },
         { status: 400 }
       );
     }
@@ -149,9 +243,10 @@ export async function POST(req: Request) {
         );
       }
 
+      // Only MANAGER or ADMIN can be assigned as managers
       if (!canManage(manager.role, role)) {
         return NextResponse.json(
-          { error: `A user with role ${role} can only be managed by: ${role === Role.ADMIN ? 'ADMIN' : 'ADMIN or MANAGER'}` },
+          { error: 'Only users with MANAGER or ADMIN role can be assigned as managers' },
           { status: 400 }
         );
       }
@@ -187,7 +282,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    console.error('Error creating user:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -196,22 +291,25 @@ export async function POST(req: Request) {
 }
 
 // Update user
-export async function PUT(req: Request) {
+export async function PUT(req: NextRequest) {
   try {
+    // Apply rate limiting
+    const rateLimitResponse = await rateLimiters.moderate(req);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const session = await getServerSession(authOptions);
     if (!session?.user || session.user.role !== 'ADMIN') {
-      console.log('Update failed: Unauthorized user', session?.user);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await req.json();
-    console.log('Received update request with body:', body);
 
     const { id, name, email, password, role, managerId, isActive } = body as UpdateUserBody;
 
     // Validate role is a valid Role enum value
     if (!Object.values(Role).includes(role)) {
-      console.log('Update failed: Invalid role', role);
       return NextResponse.json(
         { error: 'Invalid role specified' },
         { status: 400 }
@@ -219,7 +317,6 @@ export async function PUT(req: Request) {
     }
 
     if (!id || !name || !email || !role) {
-      console.log('Update failed: Missing required fields', { id, name, email, role });
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -257,17 +354,16 @@ export async function PUT(req: Request) {
       });
       
       if (!manager) {
-        console.log('Update failed: Manager not found', managerId);
         return NextResponse.json(
           { error: 'Selected manager does not exist' },
           { status: 400 }
         );
       }
 
+      // Only MANAGER or ADMIN can be assigned as managers
       if (!canManage(manager.role, role)) {
-        console.log('Update failed: Manager role mismatch', { userRole: role, managerRole: manager.role });
         return NextResponse.json(
-          { error: `A user with role ${role} can only be managed by: ${role === Role.ADMIN ? 'ADMIN' : 'ADMIN or MANAGER'}` },
+          { error: 'Only users with MANAGER or ADMIN role can be assigned as managers' },
           { status: 400 }
         );
       }
@@ -281,30 +377,58 @@ export async function PUT(req: Request) {
       );
     }
 
-    // Check for circular manager relationships
+    // Check for circular manager relationships (only prevent chains, not immediate bidirectional assignments)
     if (managerId) {
       const potentialManager = await prisma.user.findUnique({
         where: { id: managerId },
-        include: {
-          manager: true
+        select: {
+          id: true,
+          managerId: true
         }
       });
 
-      // Check if the user being updated is in the manager chain of the potential manager
-      let currentManager = potentialManager?.manager;
-      while (currentManager) {
-        if (currentManager.id === id) {
-          return NextResponse.json(
-            { error: 'Circular manager relationship detected' },
-            { status: 400 }
-          );
-        }
-        currentManager = await prisma.user.findUnique({
-          where: { id: currentManager.id },
-          include: {
-            manager: true
+      // Only check for circular chains if the potential manager already has a manager
+      // Allow immediate bidirectional assignments (A manages B, B manages A)
+      if (potentialManager?.managerId && potentialManager.managerId !== id) {
+        // Check if the user being updated is in the manager chain of the potential manager
+        // This prevents chains like A -> B -> C -> A
+        const visitedIds = new Set<string>();
+        visitedIds.add(managerId);
+        
+        let currentManagerId: string | null = potentialManager.managerId;
+        let chainLength = 0;
+        const maxChainLength = 50; // Safety limit to prevent infinite loops
+        
+        while (currentManagerId && chainLength < maxChainLength) {
+          if (currentManagerId === id) {
+            return NextResponse.json(
+              { error: 'Circular manager relationship detected' },
+              { status: 400 }
+            );
           }
-        }).then((user: { manager: any } | null) => user?.manager || null);
+          
+          if (visitedIds.has(currentManagerId)) {
+            // Already visited this manager, break to prevent infinite loop
+            break;
+          }
+          
+          visitedIds.add(currentManagerId);
+          
+          // Get the next manager in the chain
+          const nextUser: { managerId: string | null } | null = await prisma.user.findUnique({
+            where: { id: currentManagerId },
+            select: {
+              managerId: true
+            }
+          });
+          
+          if (!nextUser || !nextUser.managerId) {
+            break;
+          }
+          
+          currentManagerId = nextUser.managerId;
+          chainLength++;
+        }
       }
     }
 
@@ -315,12 +439,22 @@ export async function PUT(req: Request) {
       isActive,
     };
 
+    // Validate and update password if provided
+    if (password) {
+      const passwordValidation = validatePassword(password);
+      if (!passwordValidation.valid) {
+        return NextResponse.json(
+          { error: passwordValidation.error },
+          { status: 400 }
+        );
+      }
+      updateData.password = await bcrypt.hash(password, 12); // Use 12 rounds for consistency
+    }
+
     // Only include managerId in updateData if it's explicitly provided or needs to be nulled
     if (managerId !== undefined) {
       updateData.managerId = managerId || null;
     }
-
-    console.log('Attempting to update user with data:', updateData);
 
     const user = await prisma.user.update({
       where: { id },
@@ -337,19 +471,16 @@ export async function PUT(req: Request) {
       }
     });
 
-    console.log('Successfully updated user:', user);
     return NextResponse.json(user);
   } catch (error: any) {
-    console.error('Error updating user:', {
-      error,
-      code: error.code,
-      message: error.message,
-      stack: error.stack
-    });
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    );
+    if (error.code === 'P2002') {
+      return NextResponse.json(
+        { error: 'Email already exists' },
+        { status: 400 }
+      );
+    }
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }
 
@@ -431,21 +562,11 @@ export async function DELETE(request: Request) {
 
       return NextResponse.json({ success: true, message: 'User deleted successfully' });
     } catch (txError: any) {
-      console.error('Transaction error:', {
-        error: txError,
-        code: txError.code,
-        message: txError.message,
-        meta: txError.meta
-      });
+      logger.error(txError instanceof Error ? txError : new Error(String(txError)));
       throw txError; // Re-throw to be caught by outer catch
     }
   } catch (error: any) {
-    console.error('Error deleting user:', {
-      error,
-      code: error.code,
-      message: error.message,
-      meta: error.meta
-    });
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: `Failed to delete user: ${error.message}` },
       { status: 500 }

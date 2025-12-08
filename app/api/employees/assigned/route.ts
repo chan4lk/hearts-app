@@ -1,13 +1,16 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { Role } from '@prisma/client';
+import { getPaginationFromSearchParams, getPaginationMeta, PAGINATION_LIMITS } from '@/lib/pagination';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -23,23 +26,25 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const managerIdParam = searchParams.get('managerId');
 
+    // Get pagination parameters
+    const { page, limit, skip } = getPaginationFromSearchParams(
+      searchParams,
+      PAGINATION_LIMITS.MAX_STANDARD
+    );
+
     // Determine which manager's employees to fetch
     const targetManagerId = (session.user.role === Role.ADMIN && managerIdParam)
       ? managerIdParam
       : session.user.id;
 
-    console.log('Fetching employees for manager:', targetManagerId);
+    // Get all assigned users (managers, admins, employees) - any user can be assigned as a manager
+    // Previously we only allowed employees, but now any MANAGER or ADMIN can be assigned
+    const whereClause = {
+      managerId: targetManagerId
+    };
 
-    // For admin, get all assigned users (managers, admins, employees)
-    // For manager, get only assigned employees
-    const whereClause = session.user.role === Role.ADMIN
-      ? {
-          managerId: targetManagerId
-        }
-      : {
-          managerId: targetManagerId,
-          role: Role.EMPLOYEE
-        };
+    // Get total count
+    const total = await prisma.user.count({ where: whereClause });
 
     const employees = await prisma.user.findMany({
       where: whereClause,
@@ -70,7 +75,9 @@ export async function GET(request: Request) {
       },
       orderBy: {
         name: 'asc'
-      }
+      },
+      skip,
+      take: limit
     });
 
     return NextResponse.json({ 
@@ -84,13 +91,11 @@ export async function GET(request: Request) {
         isActive: emp.isActive,
         manager: emp.manager,
         goalsCount: emp._count.goals
-      }))
+      })),
+      pagination: getPaginationMeta(page, limit, total)
     });
   } catch (error) {
-    console.error('Error fetching assigned employees:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch assigned employees' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }

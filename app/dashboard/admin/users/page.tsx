@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { BsPeople, BsCheckCircle, BsPersonBadge, BsBuilding } from 'react-icons/bs';
 import { Toaster } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
@@ -11,11 +10,11 @@ import LoadingComponent from '@/app/components/LoadingScreen';
 import UserTable from './components/UserTable';
 import UserForm from './components/UserForm';
 import UserDetails from './components/UserDetails';
-import UserFilters from './components/UserFilters';
-import StatsCard from './components/StatsCard';
+import UserFilters from './components/Filters';
+import StatsSection from './components/StatsSection';
 import HeroSection from './components/HeroSection';
-import BackgroundElements from './components/BackgroundElements';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
+import { Pagination } from '@/app/components/shared/Pagination';
 import { User, FormData, Filters } from '@/app/components/shared/types';
 import { Role } from '.prisma/client';
 import { showToast } from '@/app/utils/toast';
@@ -59,13 +58,35 @@ export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null>(null);
 
   // Add auto-refresh functionality
   const REFRESH_INTERVAL = 30000; // 30 seconds
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (currentPage = page) => {
     try {
-      const response = await fetch('/api/admin/users');
+      setIsLoading(true);
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: limit.toString(),
+        ...(filters.role && filters.role !== '' && { role: filters.role }),
+        ...(filters.status && filters.status !== '' && { isActive: filters.status === 'ACTIVE' ? 'true' : 'false' }),
+        ...(filters.manager && filters.manager !== '' && { managerId: filters.manager }),
+        ...(searchTerm && searchTerm !== '' && { search: searchTerm })
+      });
+
+      const response = await fetch(`/api/admin/users?${params}`);
       if (!response.ok) {
         if (response.status === 401) {
           showToast.user.error('Unauthorized access');
@@ -76,7 +97,10 @@ export default function UsersPage() {
       }
 
       const data = await response.json();
-      const transformedUsers = data.map((user: RawUser): User => ({
+      
+      // Handle both old format (array) and new format (object with users and pagination)
+      const usersData = Array.isArray(data) ? data : data.users || [];
+      const transformedUsers = usersData.map((user: RawUser): User => ({
         id: user.id,
         name: user.name,
         email: user.email,
@@ -97,6 +121,12 @@ export default function UsersPage() {
       setManagers(transformedUsers.filter((user: User) => 
         user.role === Role.MANAGER || user.role === Role.ADMIN
       ));
+      
+      // Set pagination if available
+      if (data.pagination) {
+        setPagination(data.pagination);
+      }
+      
       setLastRefresh(new Date());
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -113,45 +143,25 @@ export default function UsersPage() {
     }
 
     // Initial fetch
-    fetchUsers();
+    fetchUsers(page);
 
     // Set up auto-refresh
     const intervalId = setInterval(() => {
       // Only refresh if no modals are open
       if (!isFormOpen && !isDetailsOpen && !isDeleteConfirmOpen) {
-        fetchUsers();
+        fetchUsers(page);
       }
     }, REFRESH_INTERVAL);
 
     // Cleanup on unmount
     return () => clearInterval(intervalId);
-  }, [session, router, isFormOpen, isDetailsOpen, isDeleteConfirmOpen]);
+  }, [session, router, isFormOpen, isDetailsOpen, isDeleteConfirmOpen, page, limit, filters, searchTerm]);
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = searchTerm === '' || 
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesRole = filters.role === '' || user.role === filters.role;
-    const matchesStatus = filters.status === '' || user.status === filters.status;
-    const matchesManager = filters.manager === '' || 
-      (user.manager && user.manager.id === filters.manager);
-
-    // If current user is a manager, only show their employees and other managers
-    if (session?.user?.role === Role.MANAGER && session?.user?.id) {
-      return (user.manager?.id === session.user.id) || user.role === Role.MANAGER;
-    }
-
-    return matchesSearch && matchesRole && matchesStatus && matchesManager;
-  });
+  // Filtering is now done on the server, but we keep this for any client-side filtering needed
+  const filteredUsers = users;
 
   const handleCreateUser = async (formData: FormData) => {
     try {
-      console.log('Creating user with data:', {
-        ...formData,
-        password: '[REDACTED]'
-      });
-
       const response = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -168,18 +178,8 @@ export default function UsersPage() {
       const data = await response.json();
       
       if (!response.ok) {
-        console.error('Failed to create user:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: data.error
-        });
         throw new Error(data.error || 'Failed to create user');
       }
-
-      console.log('User created successfully:', {
-        ...data,
-        password: undefined
-      });
 
       setUsers(prev => [data, ...prev]);
       // Update managers list if the new user is a manager or admin
@@ -202,15 +202,6 @@ export default function UsersPage() {
       // Determine managerId based on role and current selection
       const managerId = formData.managerId || null;
 
-      console.log('Updating user with data:', {
-        id: selectedUser.id,
-        name: formData.name,
-        email: formData.email,
-        role: formData.role,
-        managerId,
-        isActive: formData.status === 'ACTIVE'
-      });
-
       const response = await fetch('/api/admin/users', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -226,12 +217,10 @@ export default function UsersPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Update failed with error:', errorData);
         throw new Error(errorData.error || 'Failed to update user');
       }
 
       const updatedUser = await response.json();
-      console.log('Successfully updated user:', updatedUser);
       
       setUsers(prev => prev.map(user => 
         user.id === updatedUser.id ? updatedUser : user
@@ -274,108 +263,143 @@ export default function UsersPage() {
     }
   };
 
+  // Handle quick role update from table
+  const handleQuickRoleUpdate = (userId: string, newRole: string, updatedUser: User) => {
+    // Optimistically update the user list
+    setUsers(prev => prev.map(user => 
+      user.id === userId ? updatedUser : user
+    ));
+    
+    // Update managers list if role changed
+    if (newRole === 'MANAGER' || newRole === 'ADMIN') {
+      setManagers(prev => {
+        const exists = prev.find(m => m.id === userId);
+        if (!exists) {
+          return [...prev, updatedUser];
+        }
+        return prev.map(m => m.id === userId ? updatedUser : m);
+      });
+    } else {
+      setManagers(prev => prev.filter(m => m.id !== userId));
+    }
+  };
+
+  // Handle quick status update from table
+  const handleQuickStatusUpdate = (userId: string, newStatus: string, updatedUser: User) => {
+    // Optimistically update the user list
+    setUsers(prev => prev.map(user => 
+      user.id === userId ? updatedUser : user
+    ));
+  };
+
+  // Handle quick manager update from table
+  const handleQuickManagerUpdate = (userId: string, newManagerId: string | null, updatedUser: User) => {
+    // Optimistically update the user list
+    setUsers(prev => prev.map(user => 
+      user.id === userId ? updatedUser : user
+    ));
+  };
+
   if (isLoading) {
     return <LoadingComponent />;
   }
 
-  const statsCards = [
-    {
-      icon: BsPeople,
-      title: 'Total Users',
-      value: users.length,
-      total: users.length,
-      color: 'from-blue-500 to-blue-600',
-      delay: 0.5
-    },
-    {
-      icon: BsCheckCircle,
-      title: 'Active Users',
-      value: users.filter(u => u.status === 'ACTIVE').length,
-      total: users.length,
-      color: 'from-green-500 to-green-600',
-      delay: 0.6
-    },
-    {
-      icon: BsPersonBadge,
-      title: 'Managers',
-      value: users.filter(u => u.role === 'MANAGER').length,
-      total: users.length,
-      color: 'from-purple-500 to-purple-600',
-      delay: 0.7
-    },
-    {
-      icon: BsBuilding,
-      title: 'Employees',
-      value: users.filter(u => u.role === 'EMPLOYEE').length,
-      total: users.length,
-      color: 'from-orange-500 to-orange-600',
-      delay: 0.8
-    }
-  ];
+
+  // Calculate stats for StatsSection
+  const userStats = {
+    total: users.length,
+    active: users.filter(u => u.status === 'ACTIVE').length,
+    managers: users.filter(u => u.role === 'MANAGER').length,
+    employees: users.filter(u => u.role === 'EMPLOYEE').length
+  };
 
   return (
     <DashboardLayout type="admin">
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-        <BackgroundElements />
-
-        <div className="relative z-10 p-3 space-y-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        {/* Subtle Background Pattern */}
+        <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
+        
+        <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
+          {/* Hero Section */}
           <HeroSection onAddUser={() => {
             setSelectedUser(null);
             setIsFormOpen(true);
           }} />
 
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+          {/* Stats Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
           >
-            {statsCards.map((card, index) => (
-              <StatsCard key={index} {...card} />
-            ))}
+            <StatsSection users={userStats} />
           </motion.div>
 
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="space-y-4"
+          {/* Filters */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
           >
-            <motion.div variants={itemVariants}>
-              <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/30">
-                <div className="p-4">
-                  <UserFilters
-                    onFilterChangeAction={setFilters}
-                    onSearchAction={setSearchTerm}
-                    managers={managers.map((user: User) => ({
-                      id: user.id,
-                      name: user.name,
-                      role: user.role
-                    }))}
-                    currentUserRole={session?.user?.role as Role}
-                  />
-                </div>
-              </div>
-            </motion.div>
+            <UserFilters
+              onFilterChangeAction={setFilters}
+              onSearchAction={setSearchTerm}
+              managers={managers.map((user: User) => ({
+                id: user.id,
+                name: user.name,
+                role: user.role
+              }))}
+              currentUserRole={session?.user?.role as Role}
+            />
+          </motion.div>
 
-            <motion.div variants={itemVariants}>
-              <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/30 overflow-hidden">
-                <div className="p-4">
-                  <UserTable
-                    users={filteredUsers}
-                    onViewDetailsAction={(user: User) => {
-                      setSelectedUser(user);
-                      setIsDetailsOpen(true);
-                    }}
-                    onEditAction={(user: User) => {
-                      setSelectedUser(user);
-                      setIsFormOpen(true);
-                    }}
-                    onDeleteAction={handleDeleteUser}
-                  />
-                </div>
+          {/* User Table */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <div className="relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl shadow-xl">
+              <div className="p-4">
+                <UserTable
+                  users={filteredUsers}
+                  managers={managers}
+                  onViewDetailsAction={(user: User) => {
+                    setSelectedUser(user);
+                    setIsDetailsOpen(true);
+                  }}
+                  onEditAction={(user: User) => {
+                    setSelectedUser(user);
+                    setIsFormOpen(true);
+                  }}
+                  onDeleteAction={handleDeleteUser}
+                  onRoleUpdate={handleQuickRoleUpdate}
+                  onStatusUpdate={handleQuickStatusUpdate}
+                  onManagerUpdate={handleQuickManagerUpdate}
+                />
+                
+                {/* Pagination */}
+                {pagination && (
+                  <div className="mt-6 pt-4 border-t border-gray-700/50">
+                    <Pagination
+                      page={pagination.page}
+                      limit={pagination.limit}
+                      total={pagination.total}
+                      totalPages={pagination.totalPages}
+                      hasNext={pagination.hasNext}
+                      hasPrev={pagination.hasPrev}
+                      onPageChange={(newPage) => {
+                        setPage(newPage);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      onLimitChange={(newLimit) => {
+                        setLimit(newLimit);
+                        setPage(1);
+                      }}
+                    />
+                  </div>
+                )}
               </div>
-            </motion.div>
+            </div>
           </motion.div>
         </div>
 
@@ -482,18 +506,3 @@ export default function UsersPage() {
     </DashboardLayout>
   );
 }
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};

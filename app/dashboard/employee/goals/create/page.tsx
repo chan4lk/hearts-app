@@ -4,17 +4,21 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
+import { PageContainer } from '@/app/components/shared/PageContainer';
 import LoadingComponent from '@/app/components/LoadingScreen';
-import { BsPlus, BsArrowUpRight } from 'react-icons/bs';
+import { BsPlus, BsArrowUpRight, BsStars } from 'react-icons/bs';
 import GoalTemplates from '@/app/components/shared/GoalTemplates';
 import { HeroSection } from './components/HeroSection';
 import { GoalsList } from './components/GoalsList';
+import StatsSection from './components/StatsSection';
+import Filters from './components/Filters';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import { Goal, NewGoal } from '@/app/components/shared/types';
 import { useSession, getSession } from 'next-auth/react';
 import { CATEGORIES } from '@/app/components/shared/constants';
 import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
+import { Pagination } from '@/app/components/shared/Pagination';
 
 // Helper function to get the auth token
 const getAuthToken = async () => {
@@ -30,6 +34,7 @@ function GoalsPageContent() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedPriority, setSelectedPriority] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
@@ -56,6 +61,18 @@ function GoalsPageContent() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null>(null);
 
   // Helper to check if user is admin or manager
   const userIsAdminOrManager = session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER';
@@ -69,17 +86,30 @@ function GoalsPageContent() {
 
   useEffect(() => {
     fetchGoals();
-  }, []);
+  }, [page, limit, selectedStatus, selectedCategory, selectedPriority]);
 
   const fetchGoals = async () => {
     try {
-      const response = await fetch('/api/goals/self');
+      const params = new URLSearchParams({
+        view: 'my-goals',
+        page: page.toString(),
+        limit: limit.toString(),
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+        ...(selectedStatus && selectedStatus !== 'all' && { status: selectedStatus }),
+        ...(selectedCategory && selectedCategory !== 'all' && { category: selectedCategory }),
+        ...(selectedPriority && { priority: selectedPriority })
+      });
+      
+      const response = await fetch(`/api/goals?${params}`);
       if (response.ok) {
         const data = await response.json();
-        const sortedGoals = data.goals.sort((a: Goal, b: Goal) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        setGoals(sortedGoals);
+        setGoals(data.goals || []);
+        
+        // Set pagination if available
+        if (data.pagination) {
+          setPagination(data.pagination);
+        }
       }
     } catch (error) {
       console.error('Error fetching goals:', error);
@@ -115,7 +145,6 @@ function GoalsPageContent() {
       }
 
       setIsCreateModalOpen(false);
-      showNotificationWithTimeout('Goal created successfully!', 'success');
       fetchGoals();
       setFormData({
         title: '',
@@ -184,16 +213,32 @@ function GoalsPageContent() {
 
       const { goal } = await response.json();
       
-      // Update the goals list optimistically
-      const updatedGoals = goals.map(g => 
-        g.id === editGoal.id ? goal : g
-      );
-      setGoals(updatedGoals);
+      // Update the goals list optimistically - no need to refetch
+      // Merge with existing goal to preserve any computed properties
+      setGoals(prevGoals => {
+        const goalExists = prevGoals.some(g => g.id === editGoal.id);
+        if (!goalExists) {
+          // If goal doesn't exist in list, add it (shouldn't happen, but safety check)
+          return [...prevGoals, goal];
+        }
+        return prevGoals.map(g => {
+          if (g.id === editGoal.id) {
+            // Merge updated goal with existing goal to preserve all properties
+            return {
+              ...g,
+              ...goal,
+              // Ensure dates are properly formatted
+              dueDate: goal.dueDate || g.dueDate,
+              createdAt: goal.createdAt || g.createdAt,
+              updatedAt: goal.updatedAt || g.updatedAt
+            };
+          }
+          return g;
+        });
+      });
       
       setIsEditModalOpen(false);
       setEditGoal(null);
-      showNotificationWithTimeout('Goal updated successfully!', 'success');
-      fetchGoals(); // Refresh to get the latest data
     } catch (error) {
       console.error('Error updating goal:', error);
       showNotificationWithTimeout(
@@ -230,7 +275,6 @@ function GoalsPageContent() {
       
       setIsDeleteModalOpen(false);
       setDeleteGoal(null);
-      showNotificationWithTimeout('Goal deleted successfully!', 'success');
       fetchGoals(); // Refresh to get the latest data
     } catch (error) {
       console.error('Error deleting goal:', error);
@@ -258,26 +302,25 @@ function GoalsPageContent() {
 
   return (
     <DashboardLayout type="employee">
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        {/* Subtle Background Pattern */}
+        <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
         
-
-       
-    
-
-        {/* Background Elements */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
-        </div>
-
-        <div className="relative z-10 p-6 space-y-8">
+        <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
           {/* Hero Section */}
           <HeroSection
             onCreateClick={() => setIsCreateModalOpen(true)}
             totalGoals={goals.length}
             completedGoals={completedGoals}
           />
+
+          {/* Stats Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <StatsSection goals={goals} />
+          </motion.div>
 
           {/* Notification Toast */}
           {showNotification && (
@@ -293,68 +336,143 @@ function GoalsPageContent() {
             </motion.div>
           )}
 
-          {/* Main Content */}
-          <motion.div 
-            variants={{
-              hidden: { opacity: 0 },
-              visible: {
-                opacity: 1,
-                transition: { staggerChildren: 0.1 }
-              }
-            }}
-            initial="hidden"
-            animate="visible"
-            className="w-full space-y-4"
+          {/* Quick Actions */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
           >
             {/* View Templates Button */}
             <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setShowTemplates(!showTemplates)}
-              className="w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-4 
-                shadow-md border border-white/10 dark:border-gray-700/30 
-                hover:bg-white/90 dark:hover:bg-gray-700/80 transition-all duration-300
-                text-gray-900 dark:text-white font-medium flex items-center justify-center gap-2"
+              className="bg-gradient-to-br from-purple-900/30 via-indigo-900/30 to-blue-900/30 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30 hover:border-purple-500/50 transition-all text-left group"
             >
-              {showTemplates ? 'Hide Templates' : 'View Templates'}
-              <BsArrowUpRight className={`transform transition-transform duration-300 ${showTemplates ? 'rotate-180' : ''}`} />
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-colors">
+                  <BsStars className="w-6 h-6 text-purple-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-white mb-1">
+                    {showTemplates ? 'Hide Templates' : 'View Templates'}
+                  </h3>
+                  <p className="text-sm text-gray-400">Browse goal templates to get started quickly</p>
+                </div>
+                <BsArrowUpRight className={`w-5 h-5 text-purple-400 transform transition-transform duration-300 ${showTemplates ? 'rotate-180' : ''}`} />
+              </div>
             </motion.button>
 
-            {/* Goal Templates */}
-            <AnimatePresence>
-              {showTemplates && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <GoalTemplates onSelect={(template) => {
-                    setFormData({
-                      title: template.title,
-                      description: template.description,
-                      dueDate: new Date().toISOString().split('T')[0],
-                      employeeId: '',
-                      category: template.category,
-                      department: 'ENGINEERING',
-                      priority: 'MEDIUM'
-                    });
-                    setIsCreateModalOpen(true);
-                  }} />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Create Goal Button */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setIsCreateModalOpen(true)}
+              className="bg-gradient-to-br from-green-900/30 via-emerald-900/30 to-teal-900/30 backdrop-blur-sm rounded-xl p-6 border border-green-500/30 hover:border-green-500/50 transition-all text-left group"
+            >
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-green-500/20 rounded-lg group-hover:bg-green-500/30 transition-colors">
+                  <BsPlus className="w-6 h-6 text-green-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-white mb-1">Create New Goal</h3>
+                  <p className="text-sm text-gray-400">Set a new personal or professional goal</p>
+                </div>
+              </div>
+            </motion.button>
+          </motion.div>
+
+          {/* Goal Templates */}
+          <AnimatePresence>
+            {showTemplates && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="overflow-hidden"
+              >
+                <GoalTemplates onSelect={(template) => {
+                  setFormData({
+                    title: template.title,
+                    description: template.description,
+                    dueDate: new Date().toISOString().split('T')[0],
+                    employeeId: '',
+                    category: template.category,
+                    department: 'ENGINEERING',
+                    priority: 'MEDIUM'
+                  });
+                  setIsCreateModalOpen(true);
+                }} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Filters Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <Filters
+              selectedStatus={selectedStatus}
+              onStatusChange={setSelectedStatus}
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              selectedPriority={selectedPriority}
+              onPriorityChange={setSelectedPriority}
+            />
           </motion.div>
 
           {/* Goals List */}
-          <GoalsList
-            goals={goals}
-            selectedStatus={selectedStatus}
-            selectedCategory={selectedCategory}
-            setSelectedStatus={setSelectedStatus}
-            setSelectedCategory={setSelectedCategory}
-            onViewGoal={setSelectedViewGoal}
-            onRefresh={handleRefresh}
-            refreshing={refreshing}
-          />
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <GoalsList
+              goals={goals}
+              selectedStatus={selectedStatus}
+              selectedCategory={selectedCategory}
+              selectedPriority={selectedPriority}
+              setSelectedStatus={(status) => {
+                setSelectedStatus(status);
+                setPage(1); // Reset to first page on filter change
+              }}
+              setSelectedCategory={(category) => {
+                setSelectedCategory(category);
+                setPage(1); // Reset to first page on filter change
+              }}
+              onViewGoal={setSelectedViewGoal}
+              onRefresh={handleRefresh}
+              refreshing={refreshing}
+              pagination={pagination}
+              onPageChange={(newPage) => {
+                setPage(newPage);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onLimitChange={(newLimit) => {
+                setLimit(newLimit);
+                setPage(1);
+              }}
+              onPriorityUpdate={(goalId, newPriority, updatedGoal) => {
+                setGoals(prevGoals =>
+                  prevGoals.map(goal => {
+                    if (goal.id === goalId) {
+                      // Only update priority, preserve all other fields including status
+                      return { 
+                        ...goal, 
+                        priority: updatedGoal.priority || goal.priority,
+                        updatedAt: updatedGoal.updatedAt || goal.updatedAt
+                      };
+                    }
+                    return goal;
+                  })
+                );
+              }}
+            />
+          </motion.div>
         </div>
       </div>
 
@@ -484,4 +602,4 @@ export default function GoalsPage() {
       <GoalsPageContent />
     </Suspense>
   );
-} 
+}

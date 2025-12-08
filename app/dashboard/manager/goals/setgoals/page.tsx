@@ -16,9 +16,11 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { HeroSection } from './components/sections/HeroSection';
 import { StatsSection } from './components/sections/StatsSection';
 import { GoalList } from './components/sections/GoalList';
+import Filters from './components/sections/Filters';
 import { CreateGoalModal } from './components/modals/CreateGoalModal';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
+import { Pagination } from '@/app/components/shared/Pagination';
 import GoalTemplates from '@/app/components/shared/GoalTemplates';
 import { BulkGoalFormModal } from '@/app/components/shared/BulkGoalFormModal';
 import { CATEGORIES } from '@/app/components/shared/constants';
@@ -54,6 +56,8 @@ function ManagerGoalSettingPageContent() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [selectedEmployee, setSelectedEmployee] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedPriority, setSelectedPriority] = useState('');
   const [formData, setFormData] = useState<GoalFormData>({
     title: '',
     description: '',
@@ -87,6 +91,18 @@ function ManagerGoalSettingPageContent() {
   const [showTemplates, setShowTemplates] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isBulkCreateModalOpen, setIsBulkCreateModalOpen] = useState(false);
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null>(null);
 
   useEffect(() => {
     if (!session) {
@@ -99,6 +115,13 @@ function ManagerGoalSettingPageContent() {
     }
     fetchAssignedEmployees();
   }, [session, router]);
+  
+  // Refetch goals when pagination or filters change
+  useEffect(() => {
+    if (assignedEmployees.length > 0) {
+      fetchGoals(assignedEmployees);
+    }
+  }, [page, limit, selectedEmployee, selectedStatus, selectedPriority]);
 
   const fetchAssignedEmployees = async () => {
     try {
@@ -116,17 +139,34 @@ function ManagerGoalSettingPageContent() {
 
   const fetchGoals = async (employees: User[]) => {
     try {
-      const response = await fetch('/api/goals/managed');
+      // Build query params with pagination and filters
+      const params = new URLSearchParams({
+        view: 'team-goals',
+        page: page.toString(),
+        limit: limit.toString(),
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+        ...(selectedStatus && selectedStatus !== '' && { status: selectedStatus }),
+        ...(selectedPriority && selectedPriority !== '' && { priority: selectedPriority }),
+        ...(selectedEmployee && selectedEmployee !== 'all' && { employeeId: selectedEmployee })
+      });
+      
+      const response = await fetch(`/api/goals?${params}`);
       if (!response.ok) throw new Error('Failed to fetch goals');
       const data = await response.json();
-      
-      const assignedGoals = data.goals.filter((goal: Goal) => 
-        goal.manager?.id === session?.user?.id && 
+
+      const assignedGoals = (data.goals || []).filter((goal: Goal) =>
+        goal.manager?.id === session?.user?.id &&
         goal.employee?.id !== session?.user?.id
       );
-      
+
       setGoals(assignedGoals);
       updateStats(assignedGoals, employees);
+      
+      // Set pagination if available
+      if (data.pagination) {
+        setPagination(data.pagination);
+      }
     } catch (error) {
       console.error('Error fetching goals:', error);
       showToast.goal.error('Failed to load goals');
@@ -174,10 +214,7 @@ function ManagerGoalSettingPageContent() {
       const response = await fetch('/api/goals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          status: 'DRAFT'
-        }),
+        body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
@@ -201,10 +238,6 @@ function ManagerGoalSettingPageContent() {
   const handleBulkSubmit = async (bulkGoals: any[]) => {
     setLoading(true);
     try {
-      console.log('Submitting bulk goals:', {
-        goals: bulkGoals,
-        assignedEmployees: assignedEmployees.map(e => ({ id: e.id, name: e.name }))
-      });
 
       const response = await fetch('/api/goals/bulk', {
         method: 'POST',
@@ -240,29 +273,46 @@ function ManagerGoalSettingPageContent() {
 
   const handleUpdateGoal = async (updatedData: GoalFormData) => {
     if (!selectedGoal) return;
+    
+    // Optimistic update - update UI immediately
+    const optimisticGoal: Goal = {
+      ...selectedGoal,
+      ...updatedData,
+      updatedAt: new Date().toISOString()
+    };
+    
+    setGoals(prev => prev.map(goal => 
+      goal.id === selectedGoal.id ? optimisticGoal : goal
+    ));
+    
     // Close the modal immediately for a more responsive UX
     setIsEditModalOpen(false);
+    const goalToView = selectedGoal;
     setSelectedGoal(null);
-    setLoading(true);
+    
     try {
       // Make API call
-      const response = await fetch(`/api/goals/${selectedGoal.id}`, {
+      const response = await fetch(`/api/goals/${goalToView.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedData),
       });
 
-      if (!response.ok) throw new Error('Failed to update goal');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update goal');
+      }
 
-      const updatedGoal = await response.json();
+      const result = await response.json();
+      const updatedGoal = result.goal || result;
 
       // Ensure date fields are valid Date objects or valid ISO strings
       updatedGoal.dueDate = new Date(updatedGoal.dueDate).toISOString();
       updatedGoal.updatedAt = new Date(updatedGoal.updatedAt).toISOString();
 
-      // Update with server data
+      // Update with server data (replace optimistic update)
       setGoals(prev => prev.map(goal => 
-        goal.id === selectedGoal.id ? updatedGoal : goal
+        goal.id === goalToView.id ? updatedGoal : goal
       ));
       setViewedGoal(updatedGoal);
 
@@ -272,29 +322,50 @@ function ManagerGoalSettingPageContent() {
       
     } catch (error) {
       console.error('Error updating goal:', error);
-      showToast.goal.error('Failed to update goal');
-    } finally {
-      setLoading(false);
+      // Revert optimistic update on error
+      setGoals(prev => prev.map(goal => 
+        goal.id === goalToView.id ? goalToView : goal
+      ));
+      showToast.goal.error(error instanceof Error ? error.message : 'Failed to update goal');
+      // Reopen edit modal on error
+      setSelectedGoal(goalToView);
+      setIsEditModalOpen(true);
     }
   };
 
   const handleDelete = async () => {
     if (!goalToDelete) return;
 
+    // Store the goal to restore if deletion fails
+    const goalToRestore = goals.find(g => g.id === goalToDelete);
+    
+    // Optimistic update - remove from UI immediately
+    setGoals(prev => prev.filter(goal => goal.id !== goalToDelete));
+    setIsDeleteModalOpen(false);
+    const deletedGoalId = goalToDelete;
+    setGoalToDelete(null);
+    showToast.goal.deleted();
+
     try {
-      const response = await fetch(`/api/goals/${goalToDelete}`, {
+      const response = await fetch(`/api/goals/${deletedGoalId}`, {
         method: 'DELETE',
       });
 
-      if (!response.ok) throw new Error('Failed to delete goal');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete goal');
+      }
 
-      setGoals(prev => prev.filter(goal => goal.id !== goalToDelete));
-      setIsDeleteModalOpen(false);
-      setGoalToDelete(null);
-      showToast.goal.deleted();
+      // Success - goal is already removed from UI
     } catch (error) {
       console.error('Error deleting goal:', error);
-      showToast.goal.error('Failed to delete goal');
+      // Revert optimistic update on error
+      if (goalToRestore) {
+        setGoals(prev => [...prev, goalToRestore].sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        ));
+      }
+      showToast.goal.error(error instanceof Error ? error.message : 'Failed to delete goal');
     }
   };
 
@@ -330,6 +401,34 @@ function ManagerGoalSettingPageContent() {
     setRefreshing(false);
   };
 
+  const handlePriorityUpdate = (goalId: string, newPriority: string, updatedGoal: Goal) => {
+    // Update the goals state immediately
+    setGoals(prevGoals =>
+      prevGoals.map(goal =>
+        goal.id === goalId ? updatedGoal : goal
+      )
+    );
+    // Update stats
+    updateStats(
+      goals.map(goal => goal.id === goalId ? updatedGoal : goal),
+      assignedEmployees
+    );
+  };
+
+  const handleDueDateUpdate = (goalId: string, newDueDate: string, updatedGoal: Goal) => {
+    // Update the goals state immediately
+    setGoals(prevGoals =>
+      prevGoals.map(goal =>
+        goal.id === goalId ? updatedGoal : goal
+      )
+    );
+    // Update stats (though due date doesn't affect stats, we refresh for consistency)
+    updateStats(
+      goals.map(goal => goal.id === goalId ? updatedGoal : goal),
+      assignedEmployees
+    );
+  };
+
   if (error) {
     return <ErrorFallback error={error} resetErrorBoundary={() => setError(null)} />;
   }
@@ -348,25 +447,47 @@ function ManagerGoalSettingPageContent() {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="relative z-10 p-6 space-y-8">
-       
+      <div className="relative z-10 p-4 space-y-4">
         <HeroSection
           onCreateClick={() => setIsCreateModalOpen(true)}
           onBulkCreateClick={() => setIsBulkCreateModalOpen(true)}
         />
-        <StatsSection stats={stats} />
-        
+
+        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-4 border border-white/20 dark:border-gray-700/50 space-y-4">
+          <StatsSection stats={stats} />
+        </div>
+
+        <Filters
+          selectedEmployee={selectedEmployee}
+          onEmployeeChange={(employee) => {
+            setSelectedEmployee(employee);
+            setPage(1); // Reset to first page on filter change
+          }}
+          selectedStatus={selectedStatus}
+          onStatusChange={(status) => {
+            setSelectedStatus(status);
+            setPage(1); // Reset to first page on filter change
+          }}
+          selectedPriority={selectedPriority}
+          onPriorityChange={(priority) => {
+            setSelectedPriority(priority);
+            setPage(1); // Reset to first page on filter change
+          }}
+          assignedEmployees={assignedEmployees}
+        />
+
         {/* Goal Templates Section */}
+
         <div className="space-y-4">
           {/* View Templates Button */}
           <motion.button
             onClick={() => setShowTemplates(!showTemplates)}
-            className="w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-4 
+            className="w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 
               shadow-md border border-white/10 dark:border-gray-700/30 
               hover:bg-white/90 dark:hover:bg-gray-700/80 transition-all duration-300
               text-gray-900 dark:text-white font-medium flex items-center justify-center gap-2"
           >
-            {showTemplates ? 'Hide Templates' : 'View Templates'}
+            {showTemplates ? 'Hide Templates' : 'Create Goals Using Templates'}
             <BsArrowUpRight className={`transform transition-transform duration-300 ${showTemplates ? 'rotate-180' : ''}`} />
           </motion.button>
 
@@ -399,9 +520,9 @@ function ManagerGoalSettingPageContent() {
 
         <GoalList
           goals={goals}
-          assignedEmployees={assignedEmployees}
           selectedEmployee={selectedEmployee}
-          onEmployeeChange={setSelectedEmployee}
+          selectedStatus={selectedStatus}
+          selectedPriority={selectedPriority}
           onViewGoal={(goal) => {
             setViewedGoal(goal);
             setIsViewModalOpen(true);
@@ -411,8 +532,17 @@ function ManagerGoalSettingPageContent() {
             setGoalToDelete(goalId);
             setIsDeleteModalOpen(true);
           }}
-          onRefresh={handleRefresh}
-          refreshing={refreshing}
+          onPriorityUpdate={handlePriorityUpdate}
+          onDueDateUpdate={handleDueDateUpdate}
+          pagination={pagination}
+          onPageChange={(newPage) => {
+            setPage(newPage);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          onLimitChange={(newLimit) => {
+            setLimit(newLimit);
+            setPage(1);
+          }}
         />
 
         {/* Modals */}

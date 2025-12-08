@@ -29,10 +29,12 @@ import {
   BsMoon,
   BsSearch,
   BsList,
-  BsX
+  BsX,
+  BsCalendarCheck
 } from 'react-icons/bs';
 import dynamic from 'next/dynamic';
 import { useSettings } from '@/app/providers';
+import NotificationsDropdown from '@/app/components/shared/NotificationsDropdown';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -103,14 +105,24 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
     };
   }, []);
 
+  // Store dashboard context in sessionStorage for analytics page context preservation
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('dashboardContext', type);
+    }
+  }, [type]);
+
   const getNavItems = (): NavItem[] => {
     const userRole = session?.user?.role;
     const currentContext = type; // Use the current dashboard type
 
-    // Define navigation items for each role
+    // Define navigation items for each role with context-aware analytics links
     const adminItems: NavItem[] = [
       { href: '/dashboard/admin', label: 'Overview', icon: BsShield },
       { href: '/dashboard/admin/users', label: 'Manage Users', icon: BsPeople },
+      { href: '/dashboard/admin/all-goals', label: 'All Goals', icon: BsBullseye },
+      { href: '/dashboard/admin/review-cycles', label: 'Review Cycles', icon: BsCalendarCheck },
+      { href: '/dashboard/analytics?context=admin', label: 'Analytics', icon: BsBarChart },
     ];
 
     const managerItems: NavItem[] = [
@@ -118,12 +130,14 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       { href: '/dashboard/manager/goals/approve-goals', label: 'Goal Approvals', icon: BsClipboardData },
       { href: '/dashboard/manager/goals/setgoals', label: 'Set Team Goals', icon: BsBullseye },
       { href: '/dashboard/manager/rate-employees', label: 'Rate Team', icon: BsStar },
+      { href: '/dashboard/analytics?context=manager', label: 'Analytics', icon: BsBarChart },
     ];
 
     const employeeItems: NavItem[] = [
       { href: '/dashboard/employee', label: 'Overview', icon: BsPerson },
       { href: '/dashboard/employee/goals/create', label: 'My Goals', icon: BsBullseye },
       { href: '/dashboard/employee/self-rating', label: 'Self Rating', icon: BsStar },
+      { href: '/dashboard/analytics?context=employee', label: 'Analytics', icon: BsBarChart },
     ];
 
     // Return items based on current dashboard type
@@ -175,9 +189,11 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
 
   // Function to check if current path matches exactly
   const isPathActive = (href: string) => {
+    // Extract pathname from href (remove query params and hash)
+    const hrefPath = href.split('?')[0].split('#')[0];
     // Remove trailing slashes for consistent comparison
     const cleanPath = pathname.replace(/\/$/, '');
-    const cleanHref = href.replace(/\/$/, '');
+    const cleanHref = hrefPath.replace(/\/$/, '');
     // Only return true if paths match exactly
     return cleanPath === cleanHref;
   };
@@ -367,18 +383,19 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                 >
                   <Link
                     href={item.href}
-                                          onClick={() => {
-                        setIsPageTransitioning(true);
-                        // Add a small delay for visual feedback
-                        setTimeout(() => {
-                          setIsPageTransitioning(false);
-                        }, 300);
-                      }}
-                    className={`group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
+                    onClick={(e) => {
+                      setIsPageTransitioning(true);
+                      // Add a small delay for visual feedback
+                      setTimeout(() => {
+                        setIsPageTransitioning(false);
+                      }, 300);
+                    }}
+                    className={`group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden cursor-pointer ${
                       isActive
                         ? 'bg-gradient-to-r from-purple-800 to-purple-900 text-white shadow-lg shadow-purple-900/30'
                         : 'text-gray-400 hover:text-white'
                     }`}
+                    style={{ pointerEvents: 'auto' }}
                   >
                     <span className="flex items-center space-x-3 relative z-10 w-full">
                       {/* Animated background hover effect */}
@@ -472,6 +489,10 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
           </div>
           {/* Right side: User Menu - Visible on both mobile and desktop */}
           <div className="flex items-center space-x-4">
+            {/* Notifications Bell */}
+            {session?.user?.id && (
+              <NotificationsDropdown userId={session.user.id} />
+            )}
             {/* User Menu */}
             <div className="relative" ref={userMenuRef}>
               <button 

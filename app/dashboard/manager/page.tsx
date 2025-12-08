@@ -6,8 +6,9 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { useSession } from 'next-auth/react';
 import StatsDisplay from './components/StatsDisplay';
 import Filters from './components/Filters';
-import GoalsGrid from './components/GoalsGrid';
+import GoalsSection from './components/GoalsSection';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
+import { Pagination } from '@/app/components/shared/Pagination';
 import LoadingComponent from '@/app/components/LoadingScreen';
 import AIPerformanceInsights from '@/app/components/ai/AIPerformanceInsights';
 import { BsStars, BsLightbulb } from 'react-icons/bs';
@@ -15,9 +16,9 @@ import { BsStars, BsLightbulb } from 'react-icons/bs';
 import { Goal, EmployeeStats, DashboardStats } from '@/app/components/shared/types';
 
 export default function ManagerDashboard() {
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState('all');
+  const [selectedPriority, setSelectedPriority] = useState('');
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState<EmployeeStats[]>([]);
@@ -25,10 +26,40 @@ export default function ManagerDashboard() {
   const [selectedGoalDetails, setSelectedGoalDetails] = useState<Goal | null>(null);
   const [showAIInsights, setShowAIInsights] = useState(false);
   const { data: session } = useSession();
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null>(null);
 
   // Helper function to check if a goal belongs to the current user
   const isCurrentUserGoal = (goal: Goal) => {
     return goal.employee?.email === session?.user?.email;
+  };
+
+  // Helper function to check if goal is manager-assigned (by current manager)
+  const isAssignedGoal = (goal: Goal): boolean => {
+    // Goal is assigned if it has a managerId set and matches current manager
+    return !!(goal.managerId && goal.managerId === session?.user?.id);
+  };
+
+  // Helper function to check if goal is employee self-created
+  const isSelfCreatedGoal = (goal: Goal): boolean => {
+    // Goal is self-created if:
+    // 1. createdBy exists and matches the employee
+    // 2. AND either no managerId or managerId is null/empty
+    return !!(
+      goal.createdBy 
+      && goal.createdBy.id === goal.employeeId 
+      && (!goal.managerId || goal.managerId === null || goal.managerId === '')
+    );
   };
 
   // Calculate statistics for employee goals
@@ -58,63 +89,49 @@ export default function ManagerDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch assigned employees first (this will filter based on role)
-        const empResponse = await fetch('/api/employees/assigned');
+        // Build query params with pagination and filters
+        const params = new URLSearchParams({
+          view: 'team-goals',
+          page: page.toString(),
+          limit: limit.toString(),
+          sortBy: 'createdAt',
+          sortOrder: 'desc',
+          ...(selectedStatus && selectedStatus !== '' && { status: selectedStatus }),
+          ...(selectedPriority && { priority: selectedPriority }),
+          ...(selectedEmployee && selectedEmployee !== 'all' && { employeeId: selectedEmployee })
+        });
+        
+        // Fetch assigned employees and goals in parallel
+        const [empResponse, goalResponse] = await Promise.all([
+          fetch('/api/employees/assigned'),
+          fetch(`/api/goals?${params}`)
+        ]);
+
         if (!empResponse.ok) {
           throw new Error('Failed to fetch assigned employees');
         }
-        const empData = await empResponse.json();
+        if (!goalResponse.ok) {
+          throw new Error('Failed to fetch goals');
+        }
+
+        const [empData, goalData] = await Promise.all([
+          empResponse.json(),
+          goalResponse.json()
+        ]);
+
         setEmployees(empData.employees || []);
         setEmployeeCounts({
           total: empData.employees?.length || 0,
           active: empData.employees?.filter((emp: any) => emp.isActive !== false).length || 0
         });
 
-        // Then fetch goals
-        const goalResponse = await fetch('/api/goals/managed');
-        if (!goalResponse.ok) {
-          throw new Error('Failed to fetch goals');
+        // Goals from unified API already include all related data
+        setGoals(goalData.goals || []);
+        
+        // Set pagination if available
+        if (goalData.pagination) {
+          setPagination(goalData.pagination);
         }
-        const goalData = await goalResponse.json();
-        
-        // Filter goals to only include those from assigned employees
-        const assignedEmployeeEmails = empData.employees?.map((emp: any) => emp.email) || [];
-        const filteredGoals = goalData.goals.filter((goal: Goal) => {
-          // Include goals that belong to assigned employees
-          return goal.employee && assignedEmployeeEmails.includes(goal.employee.email);
-        });
-        
-        // Map employee names to goals if they're missing
-        const goalsWithEmployeeNames = filteredGoals.map((goal: Goal) => {
-          // Skip if goal has no employee data
-          if (!goal.employee) {
-            return goal;
-          }
-          
-          // If the goal already has an employee name, keep it
-          if (goal.employee.name) {
-            return goal;
-          }
-          
-          // Otherwise, try to find the employee by email and add the name
-          const employee = empData.employees.find((emp: any) => 
-            emp.email === goal.employee?.email
-          );
-          
-          if (employee) {
-            return {
-              ...goal,
-              employee: {
-                ...goal.employee,
-                name: employee.name
-              }
-            };
-          }
-          
-          return goal;
-        });
-        
-        setGoals(goalsWithEmployeeNames || []);
       } catch (error) {
         console.error('Error fetching data:', error);
         setGoals([]);
@@ -125,7 +142,7 @@ export default function ManagerDashboard() {
     };
 
     fetchData();
-  }, [session?.user?.email]);
+  }, [session?.user?.email, page, limit, selectedStatus, selectedPriority, selectedEmployee]);
 
   // Add session/role check
   useEffect(() => {
@@ -139,19 +156,33 @@ export default function ManagerDashboard() {
     setSelectedGoalDetails(goal);
   };
 
-  const filteredGoals = goals.filter(goal => {
-    if (!goal.employee) return false;
+  // Handler for priority update - only for assigned goals
+  const handlePriorityUpdate = (goalId: string, newPriority: string, updatedGoal: Goal) => {
+    setGoals(prevGoals =>
+      prevGoals.map(goal =>
+        goal.id === goalId ? updatedGoal : goal
+      )
+    );
+  };
 
-    const query = searchQuery.toLowerCase().trim();
-    const titleMatch = goal.title.toLowerCase().includes(query);
-    const employeeNameMatch = goal.employee.name?.toLowerCase().includes(query) || false;
-    const employeeEmailMatch = goal.employee.email?.toLowerCase().includes(query) || false;
-    const matchesSearch = titleMatch || employeeNameMatch || employeeEmailMatch;
-    const matchesStatus = !selectedStatus || goal.status === selectedStatus;
-    const matchesEmployee = selectedEmployee === 'all' || goal.employee.email === selectedEmployee;
-    
-    return matchesSearch && matchesStatus && matchesEmployee && !isCurrentUserGoal(goal);
-  });
+  // Handler for due date update - only for assigned goals
+  const handleDueDateUpdate = (goalId: string, newDueDate: string, updatedGoal: Goal) => {
+    setGoals(prevGoals =>
+      prevGoals.map(goal =>
+        goal.id === goalId ? updatedGoal : goal
+      )
+    );
+  };
+
+  // Handler for status update - for all goals (but restricted to approved/rejected for non-assigned)
+  const handleStatusUpdate = (goalId: string, newStatus: string, updatedGoal: Goal) => {
+    setGoals(prevGoals =>
+      prevGoals.map(goal =>
+        goal.id === goalId ? updatedGoal : goal
+      )
+    );
+  };
+
 
   if (loading) {
     return <LoadingComponent />;
@@ -159,20 +190,31 @@ export default function ManagerDashboard() {
 
   return (
     <DashboardLayout type="manager">
-      <div className="min-h-screen bg-gray-900 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        {/* Subtle Background Pattern */}
+        <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
         
-        <div className="max-w-7xl mx-auto space-y-4">
+        <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
           {/* Stats Section */}
           <StatsDisplay stats={stats} roleStats={roleStats} />
 
           {/* Filters Section */}
           <Filters
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
             selectedStatus={selectedStatus}
-            setSelectedStatus={setSelectedStatus}
+            setSelectedStatus={(status) => {
+              setSelectedStatus(status);
+              setPage(1); // Reset to first page on filter change
+            }}
             selectedEmployee={selectedEmployee}
-            setSelectedEmployee={setSelectedEmployee}
+            setSelectedEmployee={(employee) => {
+              setSelectedEmployee(employee);
+              setPage(1); // Reset to first page on filter change
+            }}
+            selectedPriority={selectedPriority}
+            setSelectedPriority={(priority) => {
+              setSelectedPriority(priority);
+              setPage(1); // Reset to first page on filter change
+            }}
             employees={employees}
           />
 
@@ -231,8 +273,63 @@ export default function ManagerDashboard() {
             </motion.div>
           )}
 
-          {/* Goals Grid */}
-          <GoalsGrid goals={filteredGoals} onGoalClick={handleGoalClick} employees={employees} />
+          {/* Goals Section with Tabs */}
+          <GoalsSection
+            goals={goals.filter(goal => goal.employee && !isCurrentUserGoal(goal))}
+            selectedStatus={selectedStatus}
+            selectedEmployee={selectedEmployee}
+            selectedPriority={selectedPriority}
+            onGoalClick={handleGoalClick}
+            onStatusUpdate={handleStatusUpdate}
+            onPriorityUpdate={handlePriorityUpdate}
+            onDueDateUpdate={handleDueDateUpdate}
+            canEditPriority={(goal) => {
+              // For assigned goals, always allow editing
+              if (isAssignedGoal(goal)) return true;
+              // For self-created goals, allow editing if status is DRAFT or APPROVED
+              // Once rejected, priority becomes read-only until approved again
+              if (isSelfCreatedGoal(goal)) {
+                return goal.status === 'DRAFT' || goal.status === 'APPROVED';
+              }
+              return false;
+            }}
+            canEditDueDate={(goal) => {
+              // For assigned goals, always allow editing
+              if (isAssignedGoal(goal)) return true;
+              // For self-created goals, allow editing if status is DRAFT or APPROVED
+              // Once rejected, due date becomes read-only until approved again
+              if (isSelfCreatedGoal(goal)) {
+                return goal.status === 'DRAFT' || goal.status === 'APPROVED';
+              }
+              return false;
+            }}
+            allowedStatuses={(goal) => {
+              // Only allow status updates for employee self-created goals
+              if (isSelfCreatedGoal(goal)) {
+                // For DRAFT self-created goals, allow manager to approve/reject
+                if (goal.status === 'DRAFT') {
+                  return ['DRAFT', 'APPROVED', 'REJECTED'];
+                }
+                // For APPROVED/REJECTED self-created goals, allow switching between them
+                if (goal.status === 'APPROVED' || goal.status === 'REJECTED') {
+                  return ['APPROVED', 'REJECTED'];
+                }
+              }
+              // For all other goals (assigned goals, etc.), return empty array to make status read-only
+              return [];
+            }}
+            isAssignedGoal={isAssignedGoal}
+            isSelfCreatedGoal={isSelfCreatedGoal}
+            pagination={pagination}
+            onPageChange={(newPage) => {
+              setPage(newPage);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onLimitChange={(newLimit) => {
+              setLimit(newLimit);
+              setPage(1);
+            }}
+          />
         </div>
 
         {/* Goal Details Modal */}

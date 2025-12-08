@@ -112,35 +112,38 @@ export function GoalCard({ goal, submitting, handleSelfRating, viewMode = 'list'
               <Label className={`text-sm ${
                 isGridView ? 'text-white/90' : 'text-gray-700 dark:text-gray-300'
               }`}>
-                {goal.rating?.score ? 'Your Rating' : 'Rate Your Progress'}
+                {(goal.rating?.selfScore || goal.rating?.score) ? 'Your Rating' : 'Rate Your Progress'}
               </Label>
               <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((rating) => (
-                  <button
-                    key={rating}
-                    onClick={() => handleSelfRating(goal.id, rating)}
-                    disabled={submitting[goal.id]}
-                    className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors ${
-                      isGridView
-                        ? goal.rating?.score === rating
-                          ? 'bg-white/20 text-yellow-300'
-                          : 'bg-white/5 text-white/40 hover:bg-white/10'
-                        : goal.rating?.score === rating
-                          ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-300'
-                          : 'bg-gray-50 text-gray-400 hover:bg-gray-100 dark:bg-gray-700/50 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <BsStarFill className="w-4 h-4" />
-                  </button>
-                ))}
+                {[1, 2, 3, 4, 5].map((rating) => {
+                  const currentScore = goal.rating?.selfScore ?? goal.rating?.score;
+                  return (
+                    <button
+                      key={rating}
+                      onClick={() => handleSelfRating(goal.id, rating)}
+                      disabled={submitting[goal.id]}
+                      className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors ${
+                        isGridView
+                          ? currentScore === rating
+                            ? 'bg-white/20 text-yellow-300'
+                            : 'bg-white/5 text-white/40 hover:bg-white/10'
+                          : currentScore === rating
+                            ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-300'
+                            : 'bg-gray-50 text-gray-400 hover:bg-gray-100 dark:bg-gray-700/50 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      <BsStarFill className="w-4 h-4" />
+                    </button>
+                  );
+                })}
               </div>
             </div>
-            
-            {goal.rating?.score && (
+
+            {(goal.rating?.selfScore || goal.rating?.score) && (
               <div className={`text-sm ${
                 isGridView ? 'text-white/70' : 'text-gray-600 dark:text-gray-300'
               }`}>
-                {RATING_DESCRIPTIONS[goal.rating.score as keyof typeof RATING_DESCRIPTIONS]}
+                {RATING_DESCRIPTIONS[(goal.rating.selfScore ?? goal.rating.score) as keyof typeof RATING_DESCRIPTIONS]}
               </div>
             )}
           </div>

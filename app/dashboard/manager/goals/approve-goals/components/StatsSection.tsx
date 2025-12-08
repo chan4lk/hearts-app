@@ -1,57 +1,113 @@
 import { motion } from 'framer-motion';
-import { BsClock, BsPeople, BsBarChart } from 'react-icons/bs';
+import { BsPencil, BsCheckCircle, BsXCircle, BsPeople } from 'react-icons/bs';
+import { Goal } from '@/app/components/shared/types';
 
 interface StatsSectionProps {
-  goalsCount: number;
-  employeesCount: number;
-  avgGoalsPerEmployee: number;
+  goals: Goal[];
+  employeesCount?: number;
 }
 
-export default function StatsSection({ goalsCount, employeesCount, avgGoalsPerEmployee }: StatsSectionProps) {
+export default function StatsSection({ goals, employeesCount }: StatsSectionProps) {
+  // Calculate status counts from goals
+  const draftCount = goals.filter(g => g.status === 'DRAFT').length;
+  const approvedCount = goals.filter(g => g.status === 'APPROVED').length;
+  const rejectedCount = goals.filter(g => g.status === 'REJECTED').length;
+  const totalCount = goals.length;
+
   const stats = [
     {
-      title: 'Pending Goals',
-      value: goalsCount,
-      icon: <BsClock className="w-4 h-4" />,
-      color: 'from-amber-500/10 to-amber-600/10',
-      iconColor: 'text-amber-600 dark:text-amber-400',
-      borderColor: 'border-amber-200/20 dark:border-amber-600/20'
-    },
-    {
-      title: 'Employees',
-      value: employeesCount,
+      title: 'Total Goals',
+      value: totalCount,
       icon: <BsPeople className="w-4 h-4" />,
-      color: 'from-indigo-500/10 to-indigo-600/10',
-      iconColor: 'text-indigo-600 dark:text-indigo-400',
-      borderColor: 'border-indigo-200/20 dark:border-indigo-600/20'
+      gradient: 'from-indigo-500 to-purple-500',
+      bgColor: 'bg-indigo-500/10',
+      borderColor: 'border-indigo-500/30'
     },
     {
-      title: 'Avg. Goals/Employee',
-      value: avgGoalsPerEmployee.toFixed(1),
-      icon: <BsBarChart className="w-4 h-4" />,
-      color: 'from-emerald-500/10 to-emerald-600/10',
-      iconColor: 'text-emerald-600 dark:text-emerald-400',
-      borderColor: 'border-emerald-200/20 dark:border-emerald-600/20'
-    }
+      title: 'Draft',
+      value: draftCount,
+      icon: <BsPencil className="w-4 h-4" />,
+      gradient: 'from-gray-500 to-slate-500',
+      bgColor: 'bg-gray-500/10',
+      borderColor: 'border-gray-500/30'
+    },
+    {
+      title: 'Approved',
+      value: approvedCount,
+      icon: <BsCheckCircle className="w-4 h-4" />,
+      gradient: 'from-emerald-500 to-teal-500',
+      bgColor: 'bg-emerald-500/10',
+      borderColor: 'border-emerald-500/30'
+    },
+    {
+      title: 'Rejected',
+      value: rejectedCount,
+      icon: <BsXCircle className="w-4 h-4" />,
+      gradient: 'from-rose-500 to-red-500',
+      bgColor: 'bg-rose-500/10',
+      borderColor: 'border-rose-500/30'
+    },
+    ...(employeesCount !== undefined ? [
+      {
+        title: 'Employees',
+        value: employeesCount,
+        icon: <BsPeople className="w-4 h-4" />,
+        gradient: 'from-cyan-500 to-blue-500',
+        bgColor: 'bg-cyan-500/10',
+        borderColor: 'border-cyan-500/30'
+      }
+    ] : [])
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
       {stats.map((stat, index) => (
         <motion.div
           key={stat.title}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.1 }}
-          className={`bg-gradient-to-r ${stat.color} backdrop-blur-sm border ${stat.borderColor} p-3 rounded-xl`}
+          transition={{ duration: 0.3, delay: index * 0.05 }}
+          className={`
+            relative overflow-hidden
+            ${stat.bgColor}
+            backdrop-blur-sm 
+            rounded-xl 
+            p-3 
+            border-2 
+            ${stat.borderColor}
+            hover:border-opacity-60 
+            transition-all 
+            duration-300 
+            group 
+            cursor-pointer
+            hover:shadow-xl
+            hover:scale-105
+            flex items-center gap-3
+          `}
+          tabIndex={0}
+          aria-label={`${stat.title}: ${stat.value}`}
+          title={`${stat.title}: ${stat.value}`}
         >
-          <div className="flex items-center gap-2 mb-2">
-            <div className={`p-1.5 rounded-lg ${stat.color}`}>
-              <div className={stat.iconColor}>{stat.icon}</div>
+          {/* Animated background gradient on hover */}
+          <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
+          
+          {/* Content */}
+          <div className="relative flex items-center gap-3 w-full">
+            {/* Icon */}
+            <div className={`p-2 rounded-lg bg-gradient-to-r ${stat.gradient} text-white shadow-lg flex-shrink-0`}>
+              {stat.icon}
             </div>
-            <div className="text-sm font-medium text-gray-600 dark:text-gray-300">{stat.title}</div>
+            
+            {/* Value and Title */}
+            <div className="flex flex-col">
+              <div className="text-xl font-bold text-white group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:text-transparent group-hover:from-white group-hover:to-gray-200 transition-all duration-300">
+                {stat.value}
+              </div>
+              <div className="text-xs font-medium text-gray-400">
+                {stat.title}
+              </div>
+            </div>
           </div>
-          <div className="text-xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
         </motion.div>
       ))}
     </div>

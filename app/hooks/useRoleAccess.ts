@@ -22,7 +22,6 @@ export function useRoleAccess() {
     updateSession();
 
     if (!session?.user) {
-      console.log('[useRoleAccess] No session, redirecting to login');
       router.push('/login');
       return;
     }
@@ -30,9 +29,7 @@ export function useRoleAccess() {
     const userRole = session.user.role as Role;
 
     if (!hasAccess(userRole, pathname)) {
-      console.log(`[useRoleAccess] User role ${userRole} does not have access to ${pathname}`);
       const defaultPath = getDefaultRedirectPath(userRole);
-      console.log(`[useRoleAccess] Redirecting to: ${defaultPath}`);
       router.push(defaultPath);
     }
   }, [session, status, router, update, pathname]);

@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { BsChevronDown, BsCalendar, BsTag, BsStarFill } from "react-icons/bs";
 import { Label } from "@/app/components/ui/label";
-import { GoalWithRating } from "@/app/components/shared/types";
+import { GoalWithRatingExtended } from "@/app/components/shared/types";
 import { useState, useEffect } from "react";
 import { CATEGORIES } from '@/app/components/shared/constants';
 import { RATING_COLORS, RATING_LABELS, RATING_DESCRIPTIONS } from "@/app/components/shared/constants";
@@ -10,7 +10,7 @@ type CategoryType = typeof CATEGORIES[0];
 type ViewMode = 'grid' | 'list';
 
 interface GoalCardProps {
-  goal: GoalWithRating;
+  goal: GoalWithRatingExtended;
   submitting: boolean;
   onRatingChange: (goalId: string, value: number) => void;
   viewMode?: ViewMode;
@@ -68,7 +68,7 @@ export default function GoalCard({ goal, submitting, onRatingChange, viewMode = 
                     ? 'text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-white/70' 
                     : 'text-gray-900 dark:text-white'
                 }`}>
-                  {goal.employee.name} - {goal.title}
+                  {goal.employee?.name || 'Unknown'} - {goal.title}
                 </h3>
                 <span className={`px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap
                   ${isGridView ? 'bg-white/20 text-white' : categoryConfig.iconColor + ' bg-opacity-20'}`}>
@@ -84,7 +84,7 @@ export default function GoalCard({ goal, submitting, onRatingChange, viewMode = 
                   {goal.status}
                 </span>
                 <span className={`text-xs ${isGridView ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'}`}>
-                  {goal.employee.email}
+                  {goal.employee?.email || 'N/A'}
                 </span>
                 <span className={`text-xs ${isGridView ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'}`}>
                   Due {new Date(goal.dueDate).toLocaleDateString()}
@@ -125,35 +125,38 @@ export default function GoalCard({ goal, submitting, onRatingChange, viewMode = 
               <Label className={`text-sm ${
                 isGridView ? 'text-white/90' : 'text-gray-700 dark:text-gray-300'
               }`}>
-                {goal.rating?.score ? 'Your Rating' : 'Rate Progress'}
+                {(goal.rating?.managerScore ?? goal.rating?.score) ? 'Your Rating' : 'Rate Progress'}
               </Label>
               <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((rating) => (
-                  <button
-                    key={rating}
-                    onClick={() => !submitting && onRatingChange(goal.id, rating)}
-                    disabled={submitting}
-                    className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors ${
-                      isGridView
-                        ? goal.rating?.score === rating
-                          ? 'bg-white/20 text-yellow-300'
-                          : 'bg-white/5 text-white/40 hover:bg-white/10'
-                        : goal.rating?.score === rating
-                          ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-300'
-                          : 'bg-gray-50 text-gray-400 hover:bg-gray-100 dark:bg-gray-700/50 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <BsStarFill className="w-4 h-4" />
-                  </button>
-                ))}
+                {[1, 2, 3, 4, 5].map((rating) => {
+                  const currentScore = goal.rating?.managerScore ?? goal.rating?.score;
+                  return (
+                    <button
+                      key={rating}
+                      onClick={() => !submitting && onRatingChange(goal.id, rating)}
+                      disabled={submitting}
+                      className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors ${
+                        isGridView
+                          ? currentScore === rating
+                            ? 'bg-white/20 text-yellow-300'
+                            : 'bg-white/5 text-white/40 hover:bg-white/10'
+                          : currentScore === rating
+                            ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-300'
+                            : 'bg-gray-50 text-gray-400 hover:bg-gray-100 dark:bg-gray-700/50 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      <BsStarFill className="w-4 h-4" />
+                    </button>
+                  );
+                })}
               </div>
             </div>
-            
-            {goal.rating?.score && (
+
+            {(goal.rating?.managerScore ?? goal.rating?.score) && (
               <div className={`text-sm ${
                 isGridView ? 'text-white/70' : 'text-gray-600 dark:text-gray-300'
               }`}>
-                {RATING_DESCRIPTIONS[goal.rating.score as keyof typeof RATING_DESCRIPTIONS]}
+                {RATING_DESCRIPTIONS[(goal.rating?.managerScore ?? goal.rating?.score) as keyof typeof RATING_DESCRIPTIONS]}
               </div>
             )}
           </div>
@@ -204,11 +207,11 @@ export default function GoalCard({ goal, submitting, onRatingChange, viewMode = 
                     </div>
                   </div>
 
-                  {goal.rating?.comments && (
+                  {(goal.rating?.managerComments ?? goal.rating?.comments) && (
                     <div>
                       <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">Comments</h4>
                       <p className="text-sm text-gray-600 dark:text-gray-300">
-                        {goal.rating.comments}
+                        {goal.rating?.managerComments ?? goal.rating?.comments}
                       </p>
                     </div>
                   )}

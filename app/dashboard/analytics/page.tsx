@@ -1,0 +1,778 @@
+'use client';
+
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import DashboardLayout from '@/app/components/layout/DashboardLayout';
+import LoadingComponent from '@/app/components/LoadingScreen';
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
+} from 'recharts';
+import { BsBarChart, BsStarFill } from 'react-icons/bs';
+import HeroSection from './components/HeroSection';
+import StatsSection from './components/StatsSection';
+import Filters from './components/Filters';
+
+interface AnalyticsData {
+  summary: {
+    totalGoals: number;
+    completedGoals: number;
+    completionRate: number;
+    averageRating: number;
+    ratedGoals: number;
+    ratingCompletionRate: number;
+    overdueGoals: number;
+    totalUsers: number;
+  };
+  breakdowns: {
+    byStatus: Record<string, number>;
+    byCategory: Record<string, number>;
+    byPriority: Record<string, number>;
+    byDepartment: Record<string, number>;
+  };
+  trends: {
+    monthly: Record<string, number>;
+  };
+  employeePerformance: Array<{
+    employeeId: string;
+    employeeName: string;
+    totalGoals: number;
+    completedGoals: number;
+    averageRating: number;
+    completionRate: number;
+  }>;
+}
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+
+export default function AnalyticsPage() {
+  const { data: session, status: sessionStatus } = useSession();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [startDate, setStartDate] = useState(() => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - 3);
+    return date.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => {
+    return new Date().toISOString().split('T')[0];
+  });
+  const [refreshing, setRefreshing] = useState(false);
+  
+  // Role-based filters (for admin and manager)
+  const [selectedEmployee, setSelectedEmployee] = useState<string>('all');
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+  const [employees, setEmployees] = useState<Array<{ id: string; name: string; email: string; department: string | null }>>([]);
+  const [departments, setDepartments] = useState<string[]>([]);
+  
+  // Use ref to track if filters have changed to prevent duplicate calls
+  const lastFiltersRef = useRef<string>('');
+
+  // Determine dashboard layout type based on context preservation or user role
+  // This preserves the dashboard context when navigating from employee/manager pages
+  const dashboardType = useMemo(() => {
+    // Wait for session to be loaded
+    if (sessionStatus === 'loading' || !session?.user) {
+      return 'employee'; // Default fallback while loading
+    }
+
+    // First, check URL search params for explicit context
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const contextParam = urlParams.get('context');
+      if (contextParam === 'admin' || contextParam === 'manager' || contextParam === 'employee') {
+        return contextParam;
+      }
+
+      // Check sessionStorage for the last dashboard context
+      const storedContext = sessionStorage.getItem('dashboardContext');
+      if (storedContext === 'admin' || storedContext === 'manager' || storedContext === 'employee') {
+        return storedContext;
+      }
+
+      // Check document.referrer to determine where user came from
+      const referrer = document.referrer;
+      if (referrer) {
+        if (referrer.includes('/dashboard/admin')) {
+          return 'admin';
+        } else if (referrer.includes('/dashboard/manager')) {
+          return 'manager';
+        } else if (referrer.includes('/dashboard/employee')) {
+          return 'employee';
+        }
+      }
+    }
+    
+    // Fall back to role-based determination for non-admin users
+    const userRole = session.user.role;
+    
+    if (userRole === 'MANAGER') {
+      return 'manager';
+    } else if (userRole === 'EMPLOYEE') {
+      return 'employee';
+    } else {
+      // For ADMIN, default to admin unless context suggests otherwise
+      return 'admin';
+    }
+  }, [session?.user?.role, sessionStatus]);
+
+  const fetchEmployees = async () => {
+    try {
+      let response;
+      if (session?.user?.role === 'ADMIN') {
+        // Admin can see all users
+        response = await fetch('/api/admin/users?minimal=true&limit=1000&page=1&sortBy=name&sortOrder=asc');
+      } else if (session?.user?.role === 'MANAGER') {
+        // Manager can see assigned employees
+        response = await fetch('/api/employees/assigned');
+      } else {
+        return;
+      }
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+      const employeesList = Array.isArray(data) ? data : (data.employees || data.users || []);
+      
+      setEmployees(employeesList.map((emp: any) => ({
+        id: emp.id,
+        name: emp.name,
+        email: emp.email,
+        department: emp.department || null
+      })));
+
+      // Extract unique departments
+      const uniqueDepartments = Array.from(
+        new Set(employeesList.map((emp: any) => emp.department).filter(Boolean))
+      ) as string[];
+      setDepartments(uniqueDepartments.sort());
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+    }
+  };
+
+  // Initialize page - only run once when session is loaded
+  useEffect(() => {
+    if (sessionStatus === 'loading') {
+      return; // Wait for session to load
+    }
+    
+    if (sessionStatus === 'unauthenticated' || !session?.user) {
+      router.push('/login');
+      return;
+    }
+    
+    // Fetch employees and departments based on role (only once when session is ready)
+    const userRole = session.user.role;
+    if (userRole === 'ADMIN' || userRole === 'MANAGER') {
+      fetchEmployees();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionStatus]); // Only depend on sessionStatus to prevent loops
+
+  // Memoize fetchAnalytics to prevent re-creating on every render
+  const fetchAnalytics = useCallback(async () => {
+    // Only fetch if we have a valid session
+    if (sessionStatus !== 'authenticated' || !session?.user) {
+      return;
+    }
+    
+    // Create a filter key to check if filters actually changed
+    const filterKey = `${startDate}-${endDate}-${selectedEmployee}-${selectedDepartment}`;
+    if (lastFiltersRef.current === filterKey && analyticsData) {
+      return; // Don't refetch if filters haven't changed and we already have data
+    }
+    lastFiltersRef.current = filterKey;
+    
+    try {
+      setRefreshing(true);
+      const params = new URLSearchParams({
+        startDate,
+        endDate
+      });
+
+      // Add dashboard context to API call - this determines data scope for admins
+      params.append('context', dashboardType);
+
+      // Add role-based filters
+      const userRole = session.user.role;
+      if (userRole === 'ADMIN' || userRole === 'MANAGER') {
+        if (selectedEmployee && selectedEmployee !== 'all') {
+          params.append('employeeId', selectedEmployee);
+        }
+        if (selectedDepartment && selectedDepartment !== 'all') {
+          params.append('department', selectedDepartment);
+        }
+      }
+
+      const response = await fetch(`/api/analytics/dashboard?${params}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch analytics');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        // Ensure all required fields are present with defaults
+        const sanitizedData: AnalyticsData = {
+          summary: {
+            totalGoals: data.summary?.totalGoals || 0,
+            completedGoals: data.summary?.completedGoals || 0,
+            completionRate: data.summary?.completionRate || 0,
+            averageRating: data.summary?.averageRating || 0,
+            ratedGoals: data.summary?.ratedGoals || 0,
+            ratingCompletionRate: data.summary?.ratingCompletionRate || 0,
+            overdueGoals: data.summary?.overdueGoals || 0,
+            totalUsers: data.summary?.totalUsers || 0,
+          },
+          breakdowns: {
+            byStatus: data.breakdowns?.byStatus || {},
+            byCategory: data.breakdowns?.byCategory || {},
+            byPriority: data.breakdowns?.byPriority || {},
+            byDepartment: data.breakdowns?.byDepartment || {},
+          },
+          trends: {
+            monthly: data.trends?.monthly || {},
+          },
+          employeePerformance: data.employeePerformance || [],
+        };
+        setAnalyticsData(sanitizedData);
+      } else {
+        console.error('API returned error:', data.error);
+        // Set empty data structure to prevent crashes
+        setAnalyticsData({
+          summary: {
+            totalGoals: 0,
+            completedGoals: 0,
+            completionRate: 0,
+            averageRating: 0,
+            ratedGoals: 0,
+            ratingCompletionRate: 0,
+            overdueGoals: 0,
+            totalUsers: 0,
+          },
+          breakdowns: {
+            byStatus: {},
+            byCategory: {},
+            byPriority: {},
+            byDepartment: {},
+          },
+          trends: {
+            monthly: {},
+          },
+          employeePerformance: [],
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+      // Set empty data structure on error to prevent crashes
+      setAnalyticsData({
+        summary: {
+          totalGoals: 0,
+          completedGoals: 0,
+          completionRate: 0,
+          averageRating: 0,
+          ratedGoals: 0,
+          ratingCompletionRate: 0,
+          overdueGoals: 0,
+          totalUsers: 0,
+        },
+        breakdowns: {
+          byStatus: {},
+          byCategory: {},
+          byPriority: {},
+          byDepartment: {},
+        },
+        trends: {
+          monthly: {},
+        },
+        employeePerformance: [],
+      });
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [sessionStatus, session?.user, startDate, endDate, selectedEmployee, selectedDepartment, dashboardType, analyticsData]);
+
+  // Fetch analytics when filters change (only after session is loaded)
+  useEffect(() => {
+    if (sessionStatus === 'loading') {
+      return; // Don't fetch until session is loaded
+    }
+    
+    if (sessionStatus === 'unauthenticated' || !session?.user) {
+      return; // Don't fetch if no session
+    }
+    
+    fetchAnalytics();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionStatus, startDate, endDate, selectedEmployee, selectedDepartment, dashboardType, fetchAnalytics]);
+
+  // Handle refresh action
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchAnalytics().finally(() => setRefreshing(false));
+  }, [fetchAnalytics]);
+
+  const handleExport = async (format: 'json') => {
+    if (!analyticsData) {
+      alert('No data available to export');
+      return;
+    }
+
+    try {
+      const exportFilters: any = {
+        startDate,
+        endDate
+      };
+      
+      // Include role-based filters in export
+      if (session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER') {
+        if (selectedEmployee && selectedEmployee !== 'all') {
+          exportFilters.employeeId = selectedEmployee;
+          const selectedEmp = employees.find(e => e.id === selectedEmployee);
+          if (selectedEmp) {
+            exportFilters.employeeName = selectedEmp.name;
+          }
+        }
+        if (selectedDepartment && selectedDepartment !== 'all') {
+          exportFilters.department = selectedDepartment;
+        }
+      }
+      
+      // JSON export
+      const response = await fetch('/api/reports/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          reportType: 'dashboard',
+          analyticsData,
+          options: {
+            filters: exportFilters,
+            role: session?.user?.role
+          }
+        })
+      });
+
+      const data = await response.json();
+      const reportData = {
+        ...data.report,
+        metadata: {
+          exportedAt: new Date().toISOString(),
+          exportedBy: session?.user?.name || session?.user?.email,
+          role: session?.user?.role,
+          filters: exportFilters
+        }
+      };
+      const blob = new Blob([JSON.stringify(reportData, null, 2)], {
+        type: 'application/json'
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const rolePrefix = session?.user?.role === 'ADMIN' ? 'admin' : session?.user?.role === 'MANAGER' ? 'manager' : 'employee';
+      a.href = url;
+      a.download = `${rolePrefix}-analytics-report-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting report:', error);
+      alert('Failed to export report. Please try again.');
+    }
+  };
+
+  // Wait for session to load before rendering
+  if (sessionStatus === 'loading') {
+    return <LoadingComponent />;
+  }
+
+  if (!session || !session.user) {
+    // Don't render anything if no session - will redirect
+    return null;
+  }
+
+  // Show loading only if we're actually loading data, not just waiting for session
+  if (loading && !analyticsData) {
+    return <LoadingComponent />;
+  }
+
+  // Prepare chart data with safety checks (even if analyticsData is null)
+  const statusData = analyticsData?.breakdowns?.byStatus 
+    ? Object.entries(analyticsData.breakdowns.byStatus)
+        .filter(([_, value]) => value && value > 0)
+        .map(([name, value]) => ({
+          name,
+          value
+        }))
+    : [];
+
+  const categoryData = analyticsData?.breakdowns?.byCategory
+    ? Object.entries(analyticsData.breakdowns.byCategory)
+        .filter(([_, value]) => value && value > 0)
+        .map(([name, value]) => ({
+          name,
+          value
+        }))
+    : [];
+
+  const priorityData = analyticsData?.breakdowns?.byPriority
+    ? Object.entries(analyticsData.breakdowns?.byPriority || {})
+        .filter(([_, value]) => value && value > 0)
+        .map(([name, value]) => ({
+          name,
+          value
+        }))
+    : [];
+
+  const departmentData = analyticsData?.breakdowns?.byDepartment
+    ? Object.entries(analyticsData.breakdowns.byDepartment)
+        .filter(([_, value]) => value && value > 0)
+        .map(([name, value]) => ({
+          name,
+          value
+        }))
+    : [];
+
+  const monthlyData = analyticsData?.trends?.monthly
+    ? Object.entries(analyticsData.trends.monthly)
+        .map(([month, count]) => {
+          try {
+            return {
+              month: new Date(month + '-01').toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+              count: count || 0
+            };
+          } catch (e) {
+            return { month: month, count: count || 0 };
+          }
+        })
+        .sort((a, b) => {
+          try {
+            return new Date(a.month).getTime() - new Date(b.month).getTime();
+          } catch (e) {
+            return 0;
+          }
+        })
+    : [];
+
+  return (
+    <DashboardLayout type={dashboardType}>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        {/* Subtle Background Pattern */}
+        <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+          {/* Hero Section */}
+          <HeroSection userRole={session?.user?.role} />
+
+          {/* Filters Section */}
+          <Filters
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+            selectedEmployee={selectedEmployee}
+            onEmployeeChange={(value: string) => {
+              setSelectedEmployee(value);
+              setLoading(true);
+            }}
+            selectedDepartment={selectedDepartment}
+            onDepartmentChange={(value: string) => {
+              setSelectedDepartment(value);
+              setLoading(true);
+            }}
+            employees={employees}
+            departments={departments}
+            onExport={handleExport}
+            userRole={session?.user?.role}
+            onRefresh={handleRefresh}
+            refreshing={refreshing}
+          />
+
+          {/* No Data Message */}
+          {!analyticsData && !loading && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl p-12 border border-gray-700/50 shadow-xl text-center"
+            >
+              <div className="flex flex-col items-center justify-center">
+                <div className="p-4 bg-gray-800/50 rounded-full mb-4">
+                  <BsBarChart className="w-16 h-16 text-gray-500" />
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">No Analytics Data Available</h3>
+                <p className="text-gray-400 text-sm max-w-md">
+                  There's no data to display for the selected filters. Try adjusting your date range or filters to see analytics.
+                </p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Analytics Content */}
+          {analyticsData && (
+            <>
+
+              {/* Stats Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="mb-2"
+              >
+                <div className="mb-4">
+                  <h2 className="text-xl font-bold text-white mb-1">Key Metrics</h2>
+                  <p className="text-sm text-gray-400">Overview of performance indicators</p>
+                </div>
+                <StatsSection 
+                  analyticsData={analyticsData.summary}
+                  userRole={session?.user?.role}
+                />
+              </motion.div>
+
+              {/* Charts */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="mb-2"
+              >
+                <div className="mb-4">
+                  <h2 className="text-xl font-bold text-white mb-1">Visual Analytics</h2>
+                  <p className="text-sm text-gray-400">Charts and visualizations of your data</p>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Goals by Status */}
+            <ChartCard title="Goals by Status" description="Distribution of goals across different statuses">
+              {statusData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={statusData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={(entry: any) => {
+                        if (!entry) return '';
+                        const name = entry.name || '';
+                        const percent = entry.percent ?? 0;
+                        return name ? `${name}: ${(percent * 100).toFixed(0)}%` : '';
+                      }}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {statusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[300px] text-gray-400">
+                  No status data available
+                </div>
+              )}
+            </ChartCard>
+
+            {/* Goals by Category */}
+            <ChartCard title="Goals by Category" description="Breakdown of goals by category">
+              {categoryData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={categoryData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="name" stroke="#9ca3af" />
+                    <YAxis stroke="#9ca3af" />
+                    <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }} />
+                    <Bar dataKey="value" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[300px] text-gray-400">
+                  No category data available
+                </div>
+              )}
+            </ChartCard>
+
+            {/* Monthly Trend */}
+            <ChartCard title="Goals Created Over Time" description="Monthly trend of goal creation">
+              {monthlyData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={monthlyData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="month" stroke="#9ca3af" />
+                    <YAxis stroke="#9ca3af" />
+                    <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }} />
+                    <Line type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6', r: 4 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[300px] text-gray-400">
+                  No trend data available
+                </div>
+              )}
+            </ChartCard>
+
+            {/* Goals by Priority */}
+            <ChartCard title="Goals by Priority" description="Distribution by priority levels">
+              {priorityData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={priorityData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="name" stroke="#9ca3af" />
+                    <YAxis stroke="#9ca3af" />
+                    <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }} />
+                    <Bar dataKey="value" fill="#10b981" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[300px] text-gray-400">
+                  No priority data available
+                </div>
+              )}
+            </ChartCard>
+
+            {/* Goals by Department - Show for Admin and Manager only */}
+            {(session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER') && (
+              <ChartCard title="Goals by Department" description="Department-wise goal distribution">
+                {departmentData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={departmentData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="name" stroke="#9ca3af" />
+                      <YAxis stroke="#9ca3af" />
+                      <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px' }} />
+                      <Bar dataKey="value" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-gray-400">
+                    No department data available
+                  </div>
+                )}
+              </ChartCard>
+              )}
+                </div>
+              </motion.div>
+
+              {/* Employee Performance Table - Show for Admin, Manager, and Employee */}
+              {analyticsData.employeePerformance.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="mt-2"
+                >
+              <ChartCard 
+                title={
+                  session?.user?.role === 'EMPLOYEE' 
+                    ? 'My Performance' 
+                    : session?.user?.role === 'MANAGER' 
+                      ? 'Team Performance' 
+                      : 'Top Performers'
+                }
+                description={
+                  session?.user?.role === 'EMPLOYEE' 
+                    ? 'Your performance metrics breakdown' 
+                    : session?.user?.role === 'MANAGER' 
+                      ? 'Performance overview of your team' 
+                      : 'Top performing employees'
+                }
+              >
+                <div className="overflow-x-auto -mx-2 px-2">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b-2 border-gray-700/50">
+                        <th className="text-left py-3 px-3 text-sm font-semibold text-gray-300 uppercase tracking-wider">Employee</th>
+                        <th className="text-center py-3 px-3 text-sm font-semibold text-gray-300 uppercase tracking-wider">Total</th>
+                        <th className="text-center py-3 px-3 text-sm font-semibold text-gray-300 uppercase tracking-wider">Completed</th>
+                        <th className="text-center py-3 px-3 text-sm font-semibold text-gray-300 uppercase tracking-wider">Rate</th>
+                        <th className="text-center py-3 px-3 text-sm font-semibold text-gray-300 uppercase tracking-wider">Rating</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-800/50">
+                      {analyticsData.employeePerformance.map((emp, index) => {
+                        const isHighPerformer = emp.completionRate >= 80 && emp.averageRating >= 4.0;
+                        return (
+                          <motion.tr
+                            key={emp.employeeId}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.4 + index * 0.05 }}
+                            className={`border-b border-gray-800/30 hover:bg-gray-800/40 transition-all duration-200 ${isHighPerformer ? 'bg-green-500/5' : ''}`}
+                          >
+                            <td className="py-3 px-3">
+                              <div className="flex items-center gap-2">
+                                <div className={`w-2 h-2 rounded-full ${isHighPerformer ? 'bg-green-500' : 'bg-gray-600'}`}></div>
+                                <span className="text-white font-medium">{emp.employeeName}</span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-3 text-center">
+                              <span className="text-gray-200 font-medium">{emp.totalGoals}</span>
+                            </td>
+                            <td className="py-3 px-3 text-center">
+                              <span className="text-green-400 font-medium">{emp.completedGoals}</span>
+                            </td>
+                            <td className="py-3 px-3 text-center">
+                              <span className={`font-semibold ${emp.completionRate >= 80 ? 'text-green-400' : emp.completionRate >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                {emp.completionRate.toFixed(1)}%
+                              </span>
+                            </td>
+                            <td className="py-3 px-3 text-center">
+                              <div className="flex items-center justify-center gap-1">
+                                <span className="text-yellow-400 font-medium">{emp.averageRating.toFixed(1)}</span>
+                                <BsStarFill className="w-3 h-3 text-yellow-400" />
+                              </div>
+                            </td>
+                          </motion.tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </ChartCard>
+              </motion.div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}
+
+
+function ChartCard({ title, children, description }: { title: string; children: React.ReactNode; description?: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl p-6 border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-gray-600/50"
+    >
+      <div className="mb-5">
+        <h3 className="text-xl font-bold text-white mb-1 flex items-center gap-2">
+          {title}
+        </h3>
+        {description && (
+          <p className="text-xs text-gray-400">{description}</p>
+        )}
+      </div>
+      <div className="relative">
+        {children}
+      </div>
+    </motion.div>
+  );
+}
+

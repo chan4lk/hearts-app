@@ -1,23 +1,24 @@
 import { useState, useRef, useEffect } from 'react';
-import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, BsArrowRight, BsChevronDown, BsChevronUp, BsPencil, BsTrash, BsPerson, BsGear, BsFlag, BsBuilding, BsPlayCircle } from 'react-icons/bs';
-import { Goal } from '@/app/components/shared/types';
+import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, BsArrowRight, BsChevronDown, BsChevronUp, BsPencil, BsTrash, BsPerson, BsGear, BsFlag, BsBuilding, BsPlayCircle, BsPauseCircle, BsCircle, BsArrowRepeat } from 'react-icons/bs';
+import { Goal, GoalWithRatingExtended } from '@/app/components/shared/types';
 import { IconType } from 'react-icons';
 import { showToast } from '@/app/utils/toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
-import { Progress } from '@/app/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import AIGoalRiskAnalysis from '@/app/components/ai/AIGoalRiskAnalysis';
-import GoalProgressTracker from '@/app/components/goals/GoalProgressTracker';
 import GoalActivityTimeline from '@/app/components/goals/GoalActivityTimeline';
 import { useSession } from 'next-auth/react';
 
 interface GoalDetailModalProps {
-  goal: Goal;
+  goal: Goal | GoalWithRatingExtended;
   onClose: () => void;
   onSubmitGoal?: (goalId: string) => Promise<void>;
-  onEdit?: (goal: Goal) => void;
-  onDelete?: (goal: Goal) => void;
+  onEdit?: (goal: Goal | GoalWithRatingExtended) => void;
+  onDelete?: (goal: Goal | GoalWithRatingExtended) => void;
+  onApprove?: (goalId: string, updatedGoal: Goal | GoalWithRatingExtended) => void;
+  onReject?: (goalId: string, updatedGoal: Goal | GoalWithRatingExtended) => void;
 }
 
 type StatusConfig = {
@@ -26,6 +27,7 @@ type StatusConfig = {
   icon: IconType;
   label: string;
 };
+
 
 const getPriorityConfig = (priority: string) => {
   const configs: Record<string, { color: string; bg: string; icon: IconType; label: string }> = {
@@ -47,7 +49,7 @@ const getDepartmentConfig = (department: string) => {
   return configs[department] || configs.ENGINEERING;
 };
 
-export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, onDelete }: GoalDetailModalProps) {
+export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, onDelete, onApprove, onReject }: GoalDetailModalProps) {
   const { data: session } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -57,14 +59,16 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
   const [shouldShowExpandButton, setShouldShowExpandButton] = useState(false);
   const [expandedHeight, setExpandedHeight] = useState<number>(0);
   const [activities, setActivities] = useState<any[]>([]);
-  const [currentProgress, setCurrentProgress] = useState(goal.progress || 0);
-  const [showApprovalForm, setShowApprovalForm] = useState(false);
-  const [approvalComments, setApprovalComments] = useState('');
-  const [isApproving, setIsApproving] = useState(false);
-  const [isRejecting, setIsRejecting] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [currentGoal, setCurrentGoal] = useState<Goal>(goal);
 
   // Check if user is manager or admin
   const isManagerOrAdmin = session?.user?.role === 'MANAGER' || session?.user?.role === 'ADMIN';
+  
+  // Update currentGoal when goal prop changes
+  useEffect(() => {
+    setCurrentGoal(goal);
+  }, [goal]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -126,49 +130,16 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
     }
   }, [goal.id]);
 
-  // Handle progress update
-  const handleProgressUpdate = async (progress: number, status: string, notes?: string) => {
-    try {
-      console.log('📡 Sending progress update to API:', { goalId: goal.id, progress, notes });
-
-      const response = await fetch(`/api/goals/${goal.id}/progress`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ progress, notes }),
-      });
-
-      console.log('📡 API Response status:', response.status);
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ API Error:', errorData);
-        throw new Error(errorData.message || 'Failed to update progress');
-      }
-
-      const updatedGoal = await response.json();
-      console.log('✅ Progress updated successfully:', updatedGoal);
-
-      setCurrentProgress(updatedGoal.progress);
-
-      // Refresh activities
-      const activityResponse = await fetch(`/api/goals/${goal.id}/activity`);
-      const activityData = await activityResponse.json();
-      if (activityData.success) {
-        setActivities(activityData.activities);
-      }
-
-      // Don't show toast here - let the GoalProgressTracker component handle it
-    } catch (error) {
-      console.error('❌ Failed to update progress:', error);
-      throw error;
-    }
-  };
 
   const getStatusConfig = (status: string): StatusConfig => {
     const configs: Record<string, StatusConfig> = {
       APPROVED: { bgColor: 'bg-emerald-500/20', textColor: 'text-emerald-400', icon: BsCheckCircle, label: 'Approved' },
       REJECTED: { bgColor: 'bg-rose-500/20', textColor: 'text-rose-400', icon: BsXCircle, label: 'Rejected' },
-      COMPLETED: { bgColor: 'bg-blue-500/20', textColor: 'text-blue-400', icon: BsCheckCircle, label: 'Completed' },
+      COMPLETED: { bgColor: 'bg-green-500/20', textColor: 'text-green-400', icon: BsCheckCircle, label: 'Completed' },
+      IN_PROGRESS: { bgColor: 'bg-blue-500/20', textColor: 'text-blue-400', icon: BsPlayCircle, label: 'In Progress' },
+      NOT_STARTED: { bgColor: 'bg-gray-500/20', textColor: 'text-gray-400', icon: BsCircle, label: 'Not Started' },
+      ON_HOLD: { bgColor: 'bg-amber-500/20', textColor: 'text-amber-400', icon: BsPauseCircle, label: 'On Hold' },
+      BLOCKED: { bgColor: 'bg-red-500/20', textColor: 'text-red-400', icon: BsFlag, label: 'Blocked' },
       MODIFIED: { bgColor: 'bg-amber-500/20', textColor: 'text-amber-400', icon: BsClock, label: 'Modified' },
       PENDING: { bgColor: 'bg-amber-500/20', textColor: 'text-amber-400', icon: BsClock, label: 'Pending' },
       DRAFT: { bgColor: 'bg-gray-500/20', textColor: 'text-gray-400', icon: BsGear, label: 'Draft' }
@@ -176,9 +147,51 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
     return configs[status] || configs.PENDING;
   };
 
-  const statusConfig = getStatusConfig(goal.status);
-  const priorityConfig = getPriorityConfig(goal.priority || 'MEDIUM');
-  const departmentConfig = getDepartmentConfig(goal.department || 'ENGINEERING');
+  const handleQuickStatusUpdate = async (newStatus: string) => {
+    if (isUpdatingStatus) return;
+    
+    setIsUpdatingStatus(true);
+    try {
+      const response = await fetch(`/api/goals/${goal.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update status');
+      }
+
+      const data = await response.json();
+      const updatedGoal = data.goal || data;
+      
+      // Update local goal state
+      setCurrentGoal({ ...currentGoal, status: updatedGoal.status });
+      
+      showToast.success('Status Updated', `Goal status updated to ${newStatus.replace('_', ' ')}`);
+      
+      // Refresh activities
+      const activityResponse = await fetch(`/api/goals/${currentGoal.id}/activity`);
+      const activityData = await activityResponse.json();
+      if (activityData.success) {
+        setActivities(activityData.activities);
+      }
+      
+      // If approved/rejected, reload to show updated status
+      if (newStatus === 'APPROVED' || newStatus === 'REJECTED') {
+        setTimeout(() => window.location.reload(), 500);
+      }
+    } catch (error) {
+      showToast.error('Update Failed', error instanceof Error ? error.message : 'Failed to update status');
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const statusConfig = getStatusConfig(currentGoal.status);
+  const priorityConfig = getPriorityConfig(currentGoal.priority || 'MEDIUM');
+  const departmentConfig = getDepartmentConfig(currentGoal.department || 'ENGINEERING');
 
   const handleSubmit = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -202,64 +215,6 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
     }
   };
 
-  const handleApprove = async () => {
-    if (isApproving) return;
-
-    try {
-      setIsApproving(true);
-      const response = await fetch(`/api/goals/${goal.id}/approve`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ managerComments: approvalComments }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to approve goal');
-      }
-
-      showToast.success('Goal Approved', 'The goal has been approved successfully');
-      window.location.reload(); // Refresh to show updated status
-    } catch (error) {
-      showToast.goal.error(
-        error instanceof Error
-          ? error.message
-          : 'Failed to approve goal. Please try again.'
-      );
-    } finally {
-      setIsApproving(false);
-    }
-  };
-
-  const handleReject = async () => {
-    if (isRejecting || !approvalComments.trim()) {
-      showToast.info('Please provide feedback', 'Rejection reason is required');
-      return;
-    }
-
-    try {
-      setIsRejecting(true);
-      const response = await fetch(`/api/goals/${goal.id}/reject`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ managerComments: approvalComments }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to reject goal');
-      }
-
-      showToast.success('Goal Rejected', 'The goal has been rejected with feedback');
-      window.location.reload(); // Refresh to show updated status
-    } catch (error) {
-      showToast.goal.error(
-        error instanceof Error
-          ? error.message
-          : 'Failed to reject goal. Please try again.'
-      );
-    } finally {
-      setIsRejecting(false);
-    }
-  };
 
   const handleClose = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -316,10 +271,56 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
         <div className="relative px-3 sm:px-4 py-2.5 sm:py-3 flex items-start justify-between flex-shrink-0">
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
-              <Badge className={`text-[10px] sm:text-xs px-1.5 py-0.5 ${statusConfig.bgColor} ${statusConfig.textColor} border-0`}>
-                <statusConfig.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
-                {statusConfig.label}
-              </Badge>
+              {/* Status Dropdown - Show for employees on PENDING/APPROVED goals, or managers/admins on any goal */}
+              {((currentGoal.status === 'PENDING' || currentGoal.status === 'APPROVED') && session?.user?.id === currentGoal.employeeId) || 
+               (isManagerOrAdmin && (currentGoal.status === 'PENDING' || currentGoal.status === 'DRAFT' || currentGoal.status === 'APPROVED')) ? (
+                <Select
+                  value={currentGoal.status}
+                  onValueChange={handleQuickStatusUpdate}
+                  disabled={isUpdatingStatus}
+                >
+                  <SelectTrigger className={`text-[10px] sm:text-xs px-2 py-1 h-auto ${statusConfig.bgColor} ${statusConfig.textColor} border-0 hover:opacity-80 transition-opacity`}>
+                    <div className="flex items-center gap-1">
+                      <statusConfig.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                      <SelectValue>{statusConfig.label}</SelectValue>
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-700">
+                    {session?.user?.id === currentGoal.employeeId ? (
+                      // Employee can update to these statuses
+                      <>
+                        <SelectItem value="NOT_STARTED">Not Started</SelectItem>
+                        <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                        <SelectItem value="ON_HOLD">On Hold</SelectItem>
+                        <SelectItem value="BLOCKED">Blocked</SelectItem>
+                        <SelectItem value="COMPLETED">Completed</SelectItem>
+                      </>
+                    ) : (
+                      // Manager/Admin can approve/reject
+                      <>
+                        {currentGoal.status === 'PENDING' || currentGoal.status === 'DRAFT' ? (
+                          <>
+                            <SelectItem value="APPROVED">Approved</SelectItem>
+                            <SelectItem value="REJECTED">Rejected</SelectItem>
+                          </>
+                        ) : (
+                          <>
+                            <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                            <SelectItem value="COMPLETED">Completed</SelectItem>
+                            <SelectItem value="ON_HOLD">On Hold</SelectItem>
+                            <SelectItem value="BLOCKED">Blocked</SelectItem>
+                          </>
+                        )}
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Badge className={`text-[10px] sm:text-xs px-1.5 py-0.5 ${statusConfig.bgColor} ${statusConfig.textColor} border-0`}>
+                  <statusConfig.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
+                  {statusConfig.label}
+                </Badge>
+              )}
               <Badge className={`text-[10px] sm:text-xs px-1.5 py-0.5 ${priorityConfig.bg} ${priorityConfig.color} border-0`}>
                 <priorityConfig.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
                 {priorityConfig.label}
@@ -329,7 +330,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                 {departmentConfig.label}
               </Badge>
             </div>
-            <h2 className="text-sm sm:text-base font-medium text-white truncate pr-10 sm:pr-12 leading-tight">{goal.title}</h2>
+            <h2 className="text-sm sm:text-base font-medium text-white truncate pr-10 sm:pr-12 leading-tight">{currentGoal.title}</h2>
           </div>
           
           {/* Action Buttons */}
@@ -366,7 +367,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                   ref={descriptionRef}
                   className="text-xs sm:text-sm text-white/90 leading-relaxed"
                 >
-                  {goal.description}
+                  {currentGoal.description}
                 </p>
               </div>
               
@@ -453,7 +454,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
 
           {/* Manager Feedback */}
           <AnimatePresence>
-            {(goal.status === 'APPROVED' || goal.status === 'REJECTED') && goal.managerComments && (
+            {(currentGoal.status === 'APPROVED' || currentGoal.status === 'REJECTED') && currentGoal.managerComments && (
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -466,11 +467,11 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                     <span className="text-xs font-medium">Manager's Decision</span>
                   </div>
                   <Badge className={`text-[10px] sm:text-xs px-1.5 py-0.5 ${
-                    goal.status === 'APPROVED' 
+                    currentGoal.status === 'APPROVED' 
                       ? 'bg-emerald-500/20 text-emerald-400' 
                       : 'bg-rose-500/20 text-rose-400'
                   } border-0`}>
-                    {goal.status}
+                    {currentGoal.status}
                   </Badge>
                 </div>
                 <div className="text-[10px] sm:text-xs text-gray-400">
@@ -487,9 +488,9 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
             )}
           </AnimatePresence>
 
-          {/* Pending Status */}
+          {/* Draft Status (Employee self-created) */}
           <AnimatePresence>
-            {goal.status === 'PENDING' && (
+            {currentGoal.status === 'DRAFT' && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -498,10 +499,92 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                           text-xs sm:text-sm p-2.5 sm:p-3 rounded-lg sm:rounded-xl md:rounded-2xl min-h-[40px] sm:min-h-[44px]"
               >
                 <BsClock className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5 sm:mr-2 animate-pulse flex-shrink-0" />
-                <span>Awaiting manager approval</span>
+                <span>Draft - Submit for manager review</span>
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Quick Status Update for Pending/Approved Goals (Employee Only) */}
+          {(currentGoal.status === 'APPROVED' || currentGoal.status === 'PENDING') && session?.user?.id === currentGoal.employeeId && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-gradient-to-br from-blue-900/20 via-indigo-900/20 to-purple-900/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-blue-500/20"
+            >
+              <h4 className="text-xs sm:text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                <BsPlayCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400" />
+                Update Status
+              </h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <Button
+                  onClick={() => handleQuickStatusUpdate('NOT_STARTED')}
+                  disabled={isUpdatingStatus}
+                  variant="outline"
+                  className="flex items-center gap-2 bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white text-xs"
+                >
+                  {isUpdatingStatus ? (
+                    <BsArrowRepeat className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <BsCircle className="w-3 h-3" />
+                  )}
+                  Not Started
+                </Button>
+                <Button
+                  onClick={() => handleQuickStatusUpdate('IN_PROGRESS')}
+                  disabled={isUpdatingStatus}
+                  variant="outline"
+                  className="flex items-center gap-2 bg-blue-800/50 border-blue-700 text-blue-300 hover:bg-blue-700 hover:text-white text-xs"
+                >
+                  {isUpdatingStatus ? (
+                    <BsArrowRepeat className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <BsPlayCircle className="w-3 h-3" />
+                  )}
+                  In Progress
+                </Button>
+                <Button
+                  onClick={() => handleQuickStatusUpdate('ON_HOLD')}
+                  disabled={isUpdatingStatus}
+                  variant="outline"
+                  className="flex items-center gap-2 bg-amber-800/50 border-amber-700 text-amber-300 hover:bg-amber-700 hover:text-white text-xs"
+                >
+                  {isUpdatingStatus ? (
+                    <BsArrowRepeat className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <BsPauseCircle className="w-3 h-3" />
+                  )}
+                  On Hold
+                </Button>
+                <Button
+                  onClick={() => handleQuickStatusUpdate('BLOCKED')}
+                  disabled={isUpdatingStatus}
+                  variant="outline"
+                  className="flex items-center gap-2 bg-red-800/50 border-red-700 text-red-300 hover:bg-red-700 hover:text-white text-xs"
+                >
+                  {isUpdatingStatus ? (
+                    <BsArrowRepeat className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <BsFlag className="w-3 h-3" />
+                  )}
+                  Blocked
+                </Button>
+                <Button
+                  onClick={() => handleQuickStatusUpdate('COMPLETED')}
+                  disabled={isUpdatingStatus}
+                  variant="outline"
+                  className="flex items-center gap-2 bg-green-800/50 border-green-700 text-green-300 hover:bg-green-700 hover:text-white text-xs"
+                >
+                  {isUpdatingStatus ? (
+                    <BsArrowRepeat className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <BsCheckCircle className="w-3 h-3" />
+                  )}
+                  Completed
+                </Button>
+              </div>
+            </motion.div>
+          )}
 
           {/* AI Risk Analysis Section */}
           <motion.div
@@ -517,27 +600,6 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
             <AIGoalRiskAnalysis goalId={goal.id} />
           </motion.div>
 
-          {/* Progress Tracking Section - Only for APPROVED goals */}
-          {goal.status === 'APPROVED' && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-gradient-to-br from-blue-900/20 via-indigo-900/20 to-purple-900/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-blue-500/20"
-            >
-              <h4 className="text-xs sm:text-sm font-semibold text-white mb-3 flex items-center gap-2">
-                <BsPlayCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400" />
-                Progress Tracking
-              </h4>
-              <GoalProgressTracker
-                goalId={goal.id}
-                currentProgress={currentProgress}
-                currentStatus={goal.status}
-                onProgressUpdate={handleProgressUpdate}
-                isEmployee={session?.user?.id === goal.employeeId}
-              />
-            </motion.div>
-          )}
 
           {/* Activity Timeline Section */}
           <motion.div
@@ -552,90 +614,12 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
 
         {/* Footer */}
         <div className="relative px-3 sm:px-4 pb-3 sm:pb-4 pt-2 flex-shrink-0">
-          {/* Approval Form for Managers/Admins viewing PENDING goals */}
-          {isManagerOrAdmin && goal.status === 'PENDING' && !showApprovalForm && (
-            <div className="mb-3">
-              <Button
-                onClick={() => setShowApprovalForm(true)}
-                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 h-9 sm:h-10"
-              >
-                Review Goal
-              </Button>
-            </div>
-          )}
-
-          {/* Approval Form */}
-          {isManagerOrAdmin && goal.status === 'PENDING' && showApprovalForm && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-3 p-3 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg border border-gray-700"
-            >
-              <h4 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
-                <BsChat className="w-4 h-4 text-blue-400" />
-                Review & Feedback
-              </h4>
-              <textarea
-                value={approvalComments}
-                onChange={(e) => setApprovalComments(e.target.value)}
-                placeholder="Add your feedback (optional for approval, required for rejection)..."
-                className="w-full bg-black/20 border border-gray-600 rounded-lg p-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px] resize-none"
-              />
-              <div className="flex gap-2 mt-3">
-                <Button
-                  onClick={handleApprove}
-                  disabled={isApproving || isRejecting}
-                  className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-xs sm:text-sm px-3 py-2 h-9"
-                >
-                  {isApproving ? (
-                    <>
-                      <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin mr-1.5" />
-                      <span>Approving...</span>
-                    </>
-                  ) : (
-                    <>
-                      <BsCheckCircle className="w-3.5 h-3.5 mr-1.5" />
-                      <span>Approve</span>
-                    </>
-                  )}
-                </Button>
-                <Button
-                  onClick={handleReject}
-                  disabled={isApproving || isRejecting}
-                  className="flex-1 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs sm:text-sm px-3 py-2 h-9"
-                >
-                  {isRejecting ? (
-                    <>
-                      <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin mr-1.5" />
-                      <span>Rejecting...</span>
-                    </>
-                  ) : (
-                    <>
-                      <BsXCircle className="w-3.5 h-3.5 mr-1.5" />
-                      <span>Reject</span>
-                    </>
-                  )}
-                </Button>
-                <Button
-                  onClick={() => {
-                    setShowApprovalForm(false);
-                    setApprovalComments('');
-                  }}
-                  variant="ghost"
-                  className="text-gray-400 hover:text-white hover:bg-white/10 text-xs px-3 py-2 h-9"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </motion.div>
-          )}
-
           <div className="flex justify-end gap-2">
             {/* Edit Button - Show if onEdit is provided and:
                 - For employees: goal is DRAFT/PENDING
                 - For managers/admins: always show (they can edit team goals) */}
             {onEdit && (
-              (goal.status === 'DRAFT' || goal.status === 'PENDING') ||
+              (currentGoal.status === 'DRAFT' || currentGoal.status === 'PENDING') ||
               (session?.user?.role === 'MANAGER' || session?.user?.role === 'ADMIN')
             ) && (
               <Button
@@ -651,7 +635,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                 - For employees: goal is DRAFT/PENDING
                 - For managers/admins: always show (they can delete team goals) */}
             {onDelete && (
-              (goal.status === 'DRAFT' || goal.status === 'PENDING') ||
+              (currentGoal.status === 'DRAFT' || currentGoal.status === 'PENDING') ||
               (session?.user?.role === 'MANAGER' || session?.user?.role === 'ADMIN')
             ) && (
               <Button
@@ -663,12 +647,12 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
               </Button>
             )}
 
-            {/* Employee Submit Button - Only show if onSubmitGoal is provided */}
+            {/* Employee Submit Button - Only for self-created DRAFT goals (not manager-assigned) */}
             {onSubmitGoal &&
-              (goal.status === 'DRAFT' || goal.status === 'MODIFIED') &&
-              goal.manager &&
-              goal.employee &&
-              goal.manager.id !== goal.employee.id && (
+              currentGoal.status === 'DRAFT' &&
+              currentGoal.manager &&
+              currentGoal.employee &&
+              currentGoal.manager.id === currentGoal.employee.id && (
                 <Button
                   onClick={handleSubmit}
                   disabled={isSubmitting}
@@ -681,7 +665,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                     </>
                   ) : (
                     <>
-                      <span>Submit</span>
+                      <span>Submit for Review</span>
                       <BsArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
                     </>
                   )}

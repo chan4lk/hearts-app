@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { logger } from './logger';
 
 // Lazy initialization of OpenAI client
 let openai: OpenAI | null = null;
@@ -81,7 +82,7 @@ export async function generateGoalSuggestions(
 
     return response.goals;
   } catch (error) {
-    console.error('Error generating goal suggestions:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     throw new Error('Failed to generate goal suggestions');
   }
 }
@@ -119,7 +120,7 @@ export async function enhanceGoalDescription(
 
     return completion.choices[0].message.content;
   } catch (error) {
-    console.error('Error enhancing goal description:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     throw new Error('Failed to enhance goal description');
   }
 }
@@ -181,7 +182,7 @@ export async function generatePersonalizedGoals(
     const response = JSON.parse(completion.choices[0].message.content) as OpenAIResponse;
     return response.goals || [];
   } catch (error) {
-    console.error('Error generating personalized goals:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     throw new Error('Failed to generate personalized goals');
   }
 }
@@ -239,7 +240,7 @@ export async function analyzeGoalRisk(goal: {
 
     return JSON.parse(completion.choices[0].message.content) as GoalRiskAnalysis;
   } catch (error) {
-    console.error('Error analyzing goal risk:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     throw new Error('Failed to analyze goal risk');
   }
 }
@@ -303,7 +304,7 @@ export async function generatePerformanceInsights(performanceData: {
     const response = JSON.parse(completion.choices[0].message.content);
     return response.insights || [];
   } catch (error) {
-    console.error('Error generating performance insights:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     throw new Error('Failed to generate performance insights');
   }
 }
@@ -359,7 +360,7 @@ Return only the improved text, no explanations.`;
 
     return completion.choices[0].message.content.trim();
   } catch (error) {
-    console.error('Error improving feedback:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     throw new Error('Failed to improve feedback');
   }
 }
@@ -431,7 +432,7 @@ export async function generatePerformanceReview(employeeData: {
 
     return completion.choices[0].message.content;
   } catch (error) {
-    console.error('Error generating performance review:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     throw new Error('Failed to generate performance review');
   }
 }

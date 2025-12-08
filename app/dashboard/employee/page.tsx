@@ -3,14 +3,18 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
+import HeroSection from './components/HeroSection';
 import StatsSection from './components/StatsSection';
+import Filters from './components/Filters';
 import GoalsSection from './components/GoalsSection';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
+import { Pagination } from '@/app/components/shared/Pagination';
 import { Goal, GoalStats } from '@/app/components/shared/types';
-import { BsStars, BsLightbulb, BsX, BsPlus } from 'react-icons/bs';
+import { BsStars, BsLightbulb, BsX, BsPlus, BsPersonCheck, BsStarFill, BsStar, BsArrowRight } from 'react-icons/bs';
 import { showToast } from '@/app/utils/toast';
+import { RATING_LABELS } from '@/app/components/shared/constants';
 import LoadingComponent from '@/app/components/LoadingScreen';
 import { useSession } from 'next-auth/react';
 import AIGoalSuggestions from '@/app/components/ai/AIGoalSuggestions';
@@ -21,6 +25,7 @@ export default function EmployeeDashboard() {
   const { data: session, status } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedPriority, setSelectedPriority] = useState('');
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
@@ -32,6 +37,7 @@ export default function EmployeeDashboard() {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
+  const [showManagerRatingsModal, setShowManagerRatingsModal] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -43,6 +49,18 @@ export default function EmployeeDashboard() {
     priority: 'MEDIUM'
   });
   const [errors, setErrors] = useState<{ title?: string; category?: string; employeeId?: string; department?: string; priority?: string }>({});
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  } | null>(null);
 
   // Update employeeId when session loads
   useEffect(() => {
@@ -105,7 +123,8 @@ export default function EmployeeDashboard() {
       priority: goal.priority?.toUpperCase() || 'MEDIUM'
     });
     setShowCreateGoalModal(true);
-    setShowAIGoalSuggestions(false);
+    // Keep AI suggestions modal open so user can select multiple goals
+    // setShowAIGoalSuggestions(false);
   };
 
   // Reset form
@@ -122,44 +141,33 @@ export default function EmployeeDashboard() {
     setErrors({});
   };
 
-  // Reusable function to fetch and deduplicate goals
-  const fetchAndDeduplicateGoals = async () => {
-    const [assignedResponse, selfResponse] = await Promise.all([
-      fetch('/api/goals'),
-      fetch('/api/goals/self')
-    ]);
+  // Fetch goals from the unified API
+  const fetchGoals = async () => {
+    const params = new URLSearchParams({
+      view: 'my-goals',
+      page: page.toString(),
+      limit: limit.toString(),
+      sortBy: 'createdAt',
+      sortOrder: 'desc',
+      ...(selectedStatus && selectedStatus !== '' && { status: selectedStatus }),
+      ...(selectedPriority && { priority: selectedPriority }),
+      ...(searchQuery && { search: searchQuery })
+    });
 
-    if (!assignedResponse.ok || !selfResponse.ok) {
+    const response = await fetch(`/api/goals?${params}`);
+
+    if (!response.ok) {
       throw new Error('Failed to fetch goals');
     }
 
-    const [assignedData, selfData] = await Promise.all([
-      assignedResponse.json(),
-      selfResponse.json()
-    ]);
-
-    // Deduplicate goals based on their IDs
-    const uniqueGoals = new Map();
-    [...(assignedData.goals || []), ...(selfData.goals || [])].forEach(goal => {
-      if (!uniqueGoals.has(goal.id)) {
-        uniqueGoals.set(goal.id, goal);
-      }
-    });
-
-    // Only include goals where the employee is the current user
-    const userId = session?.user?.id;
-    const filteredGoals = Array.from(uniqueGoals.values()).filter(goal => {
-      // Some APIs return employee as object, some as employeeId
-      if (goal.employee && goal.employee.id) {
-        return goal.employee.id === userId;
-      }
-      if (goal.employeeId) {
-        return goal.employeeId === userId;
-      }
-      return false;
-    });
-
-    return filteredGoals;
+    const data = await response.json();
+    
+    // Set pagination if available
+    if (data.pagination) {
+      setPagination(data.pagination);
+    }
+    
+    return data.goals || [];
   };
 
   // Handle form submit
@@ -198,8 +206,8 @@ export default function EmployeeDashboard() {
       setShowCreateGoalModal(false);
       resetForm();
 
-      // Refresh goals using the reusable function
-      const refreshedGoals = await fetchAndDeduplicateGoals();
+      // Refresh goals
+      const refreshedGoals = await fetchGoals();
       setGoals(refreshedGoals);
     } catch (error) {
       showToast.error('Error', error instanceof Error ? error.message : 'Failed to create goal');
@@ -258,14 +266,36 @@ export default function EmployeeDashboard() {
         throw new Error('Failed to update goal');
       }
 
+      const { goal: updatedGoal } = await response.json();
+
+      // Update local state immediately (optimistic update)
+      // Merge with existing goal to preserve any computed properties
+      setGoals(prevGoals => {
+        const goalExists = prevGoals.some(g => g.id === editingGoal.id);
+        if (!goalExists) {
+          // If goal doesn't exist in list, add it (shouldn't happen, but safety check)
+          return [...prevGoals, updatedGoal];
+        }
+        return prevGoals.map(g => {
+          if (g.id === editingGoal.id) {
+            // Merge updated goal with existing goal to preserve all properties
+            return {
+              ...g,
+              ...updatedGoal,
+              // Ensure dates are properly formatted
+              dueDate: updatedGoal.dueDate || g.dueDate,
+              createdAt: updatedGoal.createdAt || g.createdAt,
+              updatedAt: updatedGoal.updatedAt || g.updatedAt
+            };
+          }
+          return g;
+        });
+      });
+
       showToast.success('Goal Updated!', 'Your goal has been updated successfully');
       setShowEditGoalModal(false);
       setEditingGoal(null);
       resetForm();
-
-      // Refresh goals
-      const refreshedGoals = await fetchAndDeduplicateGoals();
-      setGoals(refreshedGoals);
     } catch (error) {
       showToast.error('Error', error instanceof Error ? error.message : 'Failed to update goal');
     } finally {
@@ -298,7 +328,7 @@ export default function EmployeeDashboard() {
       setGoalToDelete(null);
 
       // Refresh goals
-      const refreshedGoals = await fetchAndDeduplicateGoals();
+      const refreshedGoals = await fetchGoals();
       setGoals(refreshedGoals);
     } catch (error) {
       showToast.error('Error', error instanceof Error ? error.message : 'Failed to delete goal');
@@ -307,9 +337,10 @@ export default function EmployeeDashboard() {
 
   // Load goals from the database
   useEffect(() => {
-    const fetchGoals = async () => {
+    const loadGoals = async () => {
       try {
-        const goals = await fetchAndDeduplicateGoals();
+        setLoading(true);
+        const goals = await fetchGoals();
         setGoals(goals);
       } catch (error) {
         showToast.error('Goals Loading Error', error);
@@ -319,15 +350,12 @@ export default function EmployeeDashboard() {
     };
 
     if (session?.user?.id) {
-      fetchGoals();
+      loadGoals();
     }
-  }, [session?.user?.id]);
+  }, [session?.user?.id, page, limit, selectedStatus, selectedPriority, searchQuery]);
 
-  const filteredGoals = goals.filter(goal => {
-    const matchesSearch = goal.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = !selectedStatus || goal.status === selectedStatus;
-    return matchesSearch && matchesStatus;
-  });
+  // Server-side filtering is handled by API, but we keep client-side filtering for view switching
+  const filteredGoals = goals;
 
   const getGoalStats = (): GoalStats => {
     const totalGoals = goals.length;
@@ -392,8 +420,8 @@ export default function EmployeeDashboard() {
         throw new Error(error.error || 'Failed to submit goal');
       }
 
-      // Refresh goals using the reusable function
-      const refreshedGoals = await fetchAndDeduplicateGoals();
+      // Refresh goals
+      const refreshedGoals = await fetchGoals();
       setGoals(refreshedGoals);
       setShowDetailModal(false);
       showToast.goal.updated();
@@ -404,6 +432,7 @@ export default function EmployeeDashboard() {
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
+    setPage(1); // Reset to first page on search change
     // Optional: Show toast for no results after a delay
     if (value && !filteredGoals.length) {
       setTimeout(() => {
@@ -416,6 +445,7 @@ export default function EmployeeDashboard() {
 
   const handleStatusChange = (value: string) => {
     setSelectedStatus(value);
+    setPage(1); // Reset to first page on status change
     // Optional: Show toast for no results after filter
     if (value && !filteredGoals.length) {
       showToast.error('Filter Results', 'No goals found with the selected status');
@@ -433,13 +463,19 @@ export default function EmployeeDashboard() {
         <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
         
         <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
-      
+          {/* Hero Section */}
+          <HeroSection />
+
           {/* Stats Section */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <StatsSection stats={getGoalStats()} />
+            <StatsSection 
+              stats={getGoalStats()} 
+              goals={goals}
+              onViewManagerRatings={() => setShowManagerRatingsModal(true)}
+            />
           </motion.div>
 
           {/* Quick Actions */}
@@ -510,7 +546,10 @@ export default function EmployeeDashboard() {
           {/* AI Goal Suggestions - Component has its own modal */}
           {showAIGoalSuggestions && (
             <AIGoalSuggestions
+              autoGenerate={true}
+              showTriggerButton={false}
               onSelectGoal={() => {
+                // Close the modal when user manually closes it (X button or click outside)
                 setShowAIGoalSuggestions(false);
               }}
               onUseGoal={handleAIGoalSelect}
@@ -558,13 +597,32 @@ export default function EmployeeDashboard() {
               </motion.div>
             )}
           </AnimatePresence>
+             {/* Filters Section */}
+             <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Filters
+              selectedStatus={selectedStatus}
+              onStatusChange={(status) => {
+                setSelectedStatus(status);
+                setPage(1); // Reset to first page on filter change
+              }}
+              selectedPriority={selectedPriority}
+              onPriorityChange={(priority) => {
+                setSelectedPriority(priority);
+                setPage(1); // Reset to first page on filter change
+              }}
+            />
+          </motion.div>
+
 
           {/* Goals Section */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10"
           >
             <GoalsSection
               goals={filteredGoals}
@@ -576,7 +634,23 @@ export default function EmployeeDashboard() {
                 setSelectedGoal(goal);
                 setShowDetailModal(true);
               }}
+              onStatusUpdate={(goalId, newStatus, updatedGoal) => {
+                setGoals(prevGoals =>
+                  prevGoals.map(goal =>
+                    goal.id === goalId ? { ...updatedGoal, status: updatedGoal.status } as Goal : goal
+                  )
+                );
+              }}
               userRole={session?.user?.role}
+              pagination={pagination}
+              onPageChange={(newPage) => {
+                setPage(newPage);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onLimitChange={(newLimit) => {
+                setLimit(newLimit);
+                setPage(1);
+              }}
             />
           </motion.div>
 
@@ -587,7 +661,7 @@ export default function EmployeeDashboard() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4"
               >
                 <motion.div
                   initial={{ scale: 0.95, opacity: 0 }}
@@ -680,6 +754,164 @@ export default function EmployeeDashboard() {
             confirmText="Delete"
             cancelText="Cancel"
           />
+
+          {/* Manager Ratings Modal */}
+          <AnimatePresence>
+            {showManagerRatingsModal && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-40 p-4"
+                onClick={() => setShowManagerRatingsModal(false)}
+              >
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden border-2 border-amber-500/40 flex flex-col"
+                >
+                  {/* Compact Header - Sticky */}
+                  <div className="sticky top-0 z-10 bg-gradient-to-r from-amber-900/40 via-amber-800/40 to-orange-900/40 backdrop-blur-md border-b-2 border-amber-500/50 px-4 py-3 flex items-center justify-between flex-shrink-0">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-1.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg shadow-lg">
+                        <BsPersonCheck className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-white">Manager Ratings</h3>
+                        <p className="text-[11px] text-amber-200/80">Feedback on your performance</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowManagerRatingsModal(false)}
+                      className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+                      aria-label="Close"
+                    >
+                      <BsX className="w-5 h-5 text-gray-300 hover:text-white" />
+                    </button>
+                  </div>
+
+                  {/* Scrollable Content */}
+                  <div className="overflow-y-auto flex-1 p-4">
+                    {(() => {
+                      const ratedGoals = goals.filter(goal => goal.rating?.managerScore);
+                      
+                      if (ratedGoals.length === 0) {
+                        return (
+                          <div className="text-center py-16">
+                            <div className="mb-4 inline-flex p-4 bg-amber-500/10 rounded-full">
+                              <BsPersonCheck className="w-12 h-12 text-amber-400/50" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-300 mb-2">No Manager Ratings Yet</h3>
+                            <p className="text-sm text-gray-400">Your manager hasn't rated any goals yet.</p>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="space-y-3">
+                          {ratedGoals.map((goal, index) => {
+                            const rating = goal.rating?.managerScore || 0;
+                            const ratingColors = {
+                              1: { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/20', icon: 'from-red-500 to-red-600' },
+                              2: { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/20', icon: 'from-orange-500 to-orange-600' },
+                              3: { bg: 'bg-yellow-500/10', text: 'text-yellow-400', border: 'border-yellow-500/20', icon: 'from-yellow-500 to-yellow-600' },
+                              4: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20', icon: 'from-blue-500 to-blue-600' },
+                              5: { bg: 'bg-green-500/10', text: 'text-green-400', border: 'border-green-500/20', icon: 'from-green-500 to-green-600' }
+                            };
+                            const ratingStyle = ratingColors[rating as keyof typeof ratingColors] || { bg: 'bg-gray-500/10', text: 'text-gray-400', border: 'border-gray-500/20', icon: 'from-gray-500 to-gray-600' };
+                            const ratingLabels = {
+                              1: "Needs Improvement",
+                              2: "Below Expectations",
+                              3: "Meets Expectations",
+                              4: "Exceeds Expectations",
+                              5: "Outstanding"
+                            };
+
+                            return (
+                              <motion.div
+                                key={goal.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                                whileHover={{ scale: 1.01, y: -2 }}
+                                onClick={() => {
+                                  setSelectedGoal(goal);
+                                  setShowDetailModal(true);
+                                  // Keep manager ratings modal open - don't close it
+                                  // setShowManagerRatingsModal(false);
+                                }}
+                                className="group relative bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border-2 border-gray-700/50 hover:border-amber-500/60 transition-all cursor-pointer hover:shadow-lg hover:shadow-amber-500/10"
+                              >
+                                {/* Rating Badge */}
+                                <div className="absolute top-3 right-3">
+                                  <div className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${ratingStyle.bg} border ${ratingStyle.border} backdrop-blur-sm`}>
+                                    <div className={`p-1 rounded bg-gradient-to-r ${ratingStyle.icon}`}>
+                                      <BsStarFill className="w-3 h-3 text-white" />
+                                    </div>
+                                    <span className={`text-sm font-bold ${ratingStyle.text}`}>{rating}/5</span>
+                                  </div>
+                                </div>
+
+                                <div className="pr-20">
+                                  {/* Goal Title */}
+                                  <h4 className="text-base font-bold text-white mb-2 group-hover:text-amber-300 transition-colors line-clamp-1">
+                                    {goal.title}
+                                  </h4>
+                                  
+                                  {/* Description */}
+                                  {goal.description && (
+                                    <p className="text-sm text-gray-400 line-clamp-2 mb-3 group-hover:text-gray-300 transition-colors">
+                                      {goal.description}
+                                    </p>
+                                  )}
+
+                                  {/* Rating Details */}
+                                  <div className="flex items-center gap-3 flex-wrap mb-3">
+                                    <div className={`px-2.5 py-1 rounded-md ${ratingStyle.bg} border ${ratingStyle.border}`}>
+                                      <span className={`text-xs font-semibold ${ratingStyle.text}`}>
+                                        {ratingLabels[rating as keyof typeof ratingLabels] || 'Not Rated'}
+                                      </span>
+                                    </div>
+                                    {goal.rating?.managerRatedAt && (
+                                      <span className="text-xs text-gray-500">
+                                        {new Date(goal.rating.managerRatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Manager Comments */}
+                                  {goal.rating?.managerComments && (
+                                    <div className="mt-3 p-3 bg-black/30 rounded-lg border border-amber-500/20">
+                                      <div className="flex items-start gap-2">
+                                        <div className="p-1 bg-amber-500/20 rounded flex-shrink-0 mt-0.5">
+                                          <BsPersonCheck className="w-3 h-3 text-amber-400" />
+                                        </div>
+                                        <p className="text-sm text-gray-300 italic flex-1">
+                                          "{goal.rating.managerComments}"
+                                        </p>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Click Indicator */}
+                                  <div className="mt-3 flex items-center gap-2 text-xs text-amber-400/70 group-hover:text-amber-400 transition-colors">
+                                    <span>View details</span>
+                                    <BsArrowRight className="w-3 h-3 transform group-hover:translate-x-1 transition-transform" />
+                                  </div>
+                                </div>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </DashboardLayout>

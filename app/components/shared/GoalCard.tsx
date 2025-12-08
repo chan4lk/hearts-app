@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
-import { BsCalendar, BsTag, BsGear, BsXCircle, BsCheckCircle, BsClock, BsPencil, BsTrash, BsPerson } from 'react-icons/bs';
-import { Goal } from '@/app/components/shared/types';
+import { BsCalendar, BsTag, BsGear, BsXCircle, BsCheckCircle, BsClock, BsPencil, BsTrash, BsPerson, BsBarChart, BsPlayCircle, BsPauseCircle, BsFlag, BsCircle } from 'react-icons/bs';
+import { Goal, ProgressStatus } from '@/app/components/shared/types';
 import { IconType } from 'react-icons';
 import { CATEGORIES } from '@/app/components/shared/constants';
+import { Progress } from '@/app/components/ui/progress';
 
 interface GoalCardProps {
   goal: Goal;
@@ -18,10 +19,20 @@ type StatusConfig = {
   text: string;
   icon: IconType;
   border?: string;
+  label?: string;
 };
 
 type StatusConfigs = {
   [key in 'APPROVED' | 'REJECTED' | 'COMPLETED' | 'MODIFIED' | 'PENDING' | 'DRAFT' | 'DELETED']: StatusConfig;
+};
+
+// Progress status display configuration
+const PROGRESS_STATUS_CONFIG: Record<ProgressStatus, { label: string; color: string; icon: IconType }> = {
+  'NOT_STARTED': { label: 'Not Started', color: 'text-gray-400', icon: BsCircle },
+  'IN_PROGRESS': { label: 'In Progress', color: 'text-blue-400', icon: BsPlayCircle },
+  'ON_HOLD': { label: 'On Hold', color: 'text-amber-400', icon: BsPauseCircle },
+  'BLOCKED': { label: 'Blocked', color: 'text-red-400', icon: BsFlag },
+  'COMPLETED': { label: 'Completed', color: 'text-green-400', icon: BsCheckCircle },
 };
 
 export default function GoalCard({ 
@@ -150,6 +161,39 @@ export default function GoalCard({
 
           {/* Description */}
           <p className="text-gray-400 text-sm leading-relaxed line-clamp-2 mb-auto">{goal.description}</p>
+
+          {/* Progress Bar and Status for DRAFT, PENDING, and APPROVED goals */}
+          {['DRAFT', 'PENDING', 'APPROVED'].includes(goal.status) && (
+            <div className="mt-2 mb-2">
+              <div className="flex items-center justify-between mb-1">
+                {/* Progress Status Label */}
+                {(() => {
+                  const progressStatusKey = (goal.progressStatus || 'NOT_STARTED') as ProgressStatus;
+                  const statusConfig = PROGRESS_STATUS_CONFIG[progressStatusKey];
+                  const StatusIcon = statusConfig.icon;
+                  return (
+                    <div className={`flex items-center gap-1.5 text-xs ${statusConfig.color}`}>
+                      <StatusIcon className="w-3 h-3" />
+                      <span>{statusConfig.label}</span>
+                    </div>
+                  );
+                })()}
+                <span className={`text-xs font-medium ${
+                  (goal.progress || 0) === 100 ? 'text-green-400' :
+                  (goal.progress || 0) >= 75 ? 'text-blue-400' :
+                  (goal.progress || 0) >= 50 ? 'text-amber-400' :
+                  (goal.progress || 0) >= 25 ? 'text-orange-400' :
+                  'text-gray-400'
+                }`}>
+                  {goal.progress || 0}%
+                </span>
+              </div>
+              <Progress
+                value={goal.progress || 0}
+                className="h-1.5"
+              />
+            </div>
+          )}
 
           {/* Footer */}
           <div className="flex items-center justify-between pt-2 border-t border-white/10 mt-2">

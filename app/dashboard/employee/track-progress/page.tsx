@@ -1,19 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { ProgressUpdateForm } from '@/app/components/ProgressUpdateForm';
-import { Progress } from '@/app/components/ui/progress';
-
-interface Goal {
-  id: string;
-  title: string;
-  description: string;
-  progress: number;
-  progressNotes: string | null;
-  lastProgressUpdate: string | null;
-  dueDate: string;
-}
+import DashboardLayout from '@/app/components/layout/DashboardLayout';
+import GoalsTable from '@/app/components/shared/GoalsTable';
+import { Goal } from '@/app/components/shared/types';
+import LoadingComponent from '@/app/components/LoadingScreen';
 
 export default function TrackProgressPage() {
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -25,11 +16,11 @@ export default function TrackProgressPage() {
 
   const fetchGoals = async () => {
     try {
-      const response = await fetch('/api/goals/employee?status=APPROVED');
+      const response = await fetch('/api/goals?view=my-goals&status=APPROVED');
       if (!response.ok) throw new Error('Failed to fetch goals');
-      
+
       const data = await response.json();
-      setGoals(data);
+      setGoals(data.goals || []);
     } catch (error) {
       console.error('Error fetching goals:', error);
     } finally {
@@ -38,57 +29,29 @@ export default function TrackProgressPage() {
   };
 
   if (loading) {
-    return (
-      <div className="container mx-auto py-8">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-gray-400">Loading goals...</div>
-        </div>
-      </div>
-    );
+    return <LoadingComponent />;
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">Track Your Progress</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {goals.map((goal) => (
-          <Card key={goal.id}>
-            <CardHeader>
-              <CardTitle>{goal.title}</CardTitle>
-              <p className="text-sm text-gray-500">
-                Due Date: {new Date(goal.dueDate).toLocaleDateString()}
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4">
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm font-medium">Progress</span>
-                  <span className="text-sm text-gray-500">{goal.progress}%</span>
-                </div>
-                <Progress value={goal.progress} className="h-2" />
-              </div>
-
-              {goal.progressNotes && (
-                <div className="mb-4">
-                  <h3 className="text-sm font-medium mb-2">Latest Update</h3>
-                  <p className="text-sm text-gray-600">{goal.progressNotes}</p>
-                  {goal.lastProgressUpdate && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Updated: {new Date(goal.lastProgressUpdate).toLocaleString()}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              <ProgressUpdateForm
-                goalId={goal.id}
-                currentProgress={goal.progress}
-              />
-            </CardContent>
-          </Card>
-        ))}
+    <DashboardLayout type="employee">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-3xl font-bold text-white mb-6">My Goals</h1>
+          <GoalsTable
+            goals={goals}
+            onGoalClick={(goal) => {
+              // Goal detail modal will be handled by the table component
+            }}
+            onStatusUpdate={(goalId, newStatus, updatedGoal) => {
+              setGoals(prevGoals =>
+                prevGoals.map(goal =>
+                  goal.id === goalId ? { ...goal, status: updatedGoal.status } : goal
+                )
+              );
+            }}
+          />
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 } 

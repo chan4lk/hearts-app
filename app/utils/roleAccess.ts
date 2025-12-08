@@ -186,7 +186,9 @@ const ROLE_ACCESS: Record<Role, {
       '/dashboard/employee',
       '/dashboard/employee/goals',
       '/dashboard/employee/goals/create',
-      '/dashboard/employee/self-rating'
+      '/dashboard/employee/self-rating',
+      // Analytics - accessible to all
+      '/dashboard/analytics'
     ],
     defaultPath: '/dashboard/admin'
   },
@@ -202,7 +204,9 @@ const ROLE_ACCESS: Record<Role, {
       '/dashboard/employee',
       '/dashboard/employee/goals',
       '/dashboard/employee/goals/create',
-      '/dashboard/employee/self-rating'
+      '/dashboard/employee/self-rating',
+      // Analytics - accessible to all
+      '/dashboard/analytics'
     ],
     defaultPath: '/dashboard/manager'
   },
@@ -212,59 +216,35 @@ const ROLE_ACCESS: Record<Role, {
       '/dashboard/employee',
       '/dashboard/employee/goals',
       '/dashboard/employee/goals/create',
-      '/dashboard/employee/self-rating'
+      '/dashboard/employee/self-rating',
+      // Analytics - accessible to all
+      '/dashboard/analytics'
     ],
     defaultPath: '/dashboard/employee'
   }
 } as const;
 
 export const hasAccess = (role: Role, path: string): boolean => {
-  console.log('[roleAccess] Checking access:', {
-    role,
-    path,
-    availablePaths: ROLE_ACCESS[role]?.canAccess || []
-  });
-
   // For admin role, allow access to all dashboard paths
   if (role === 'ADMIN' && path.startsWith('/dashboard/')) {
-    console.log('[roleAccess] Admin access granted:', { path });
     return true;
   }
 
   // Get the role's access configuration
   const roleConfig = ROLE_ACCESS[role];
   if (!roleConfig) {
-    console.log('[roleAccess] No role configuration found:', { role });
     return false;
   }
 
   // For non-admin roles, check specific path access
   const hasAccess = roleConfig.canAccess.some((allowedPath: string) => {
-    const pathMatches = path.startsWith(allowedPath);
-    console.log('[roleAccess] Checking path match:', {
-      allowedPath,
-      requestPath: path,
-      matches: pathMatches
-    });
-    return pathMatches;
-  });
-
-  console.log('[roleAccess] Access check result:', {
-    role,
-    path,
-    hasAccess,
-    allowedPaths: roleConfig.canAccess
+    return path.startsWith(allowedPath);
   });
 
   return hasAccess;
 };
 
 export const getDefaultRedirectPath = (role: Role): string => {
-  console.log('[roleAccess] Getting default path:', {
-    role,
-    defaultPath: ROLE_ACCESS[role]?.defaultPath || ROLE_ACCESS['EMPLOYEE'].defaultPath
-  });
-
   return ROLE_ACCESS[role]?.defaultPath || ROLE_ACCESS['EMPLOYEE'].defaultPath;
 };
 
