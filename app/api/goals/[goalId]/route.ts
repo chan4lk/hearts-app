@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
+import { rateLimiters } from '@/lib/rateLimit';
 
 // Standard include for goal queries (matching the main goals route)
 const goalInclude = {
@@ -71,8 +72,14 @@ export async function GET(req: Request, { params }: { params: { goalId: string }
 }
 
 // PATCH to update goal status (for managers)
-export async function PATCH(request: Request, { params }: { params: { goalId: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: { goalId: string } }) {
   try {
+    // Apply rate limiting
+    const rateLimitResponse = await rateLimiters.moderate(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -132,8 +139,14 @@ export async function PATCH(request: Request, { params }: { params: { goalId: st
 }
 
 // PUT to update goal details
-export async function PUT(req: Request, { params }: { params: { goalId: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: { goalId: string } }) {
   try {
+    // Apply rate limiting
+    const rateLimitResponse = await rateLimiters.moderate(req);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -244,8 +257,14 @@ export async function PUT(req: Request, { params }: { params: { goalId: string }
 }
 
 // DELETE (soft delete) a goal
-export async function DELETE(req: Request, { params }: { params: { goalId: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: { goalId: string } }) {
   try {
+    // Apply rate limiting
+    const rateLimitResponse = await rateLimiters.moderate(req);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

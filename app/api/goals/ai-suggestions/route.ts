@@ -1,16 +1,23 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { generateGoalSuggestions } from '@/lib/openai';
 import { z } from 'zod';
+import { rateLimiters } from '@/lib/rateLimit';
 
 const requestSchema = z.object({
   category: z.string().min(1, 'Category is required'),
   context: z.string().optional(),
 });
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    // Apply strict rate limiting for AI operations (expensive)
+    const rateLimitResponse = await rateLimiters.moderate(req);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

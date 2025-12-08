@@ -3,9 +3,16 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { generatePerformanceInsights } from '@/lib/openai';
 import { prisma } from '@/lib/prisma';
+import { rateLimiters } from '@/lib/rateLimit';
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply strict rate limiting for AI operations (expensive)
+    const rateLimitResponse = await rateLimiters.moderate(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const session = await getServerSession(authOptions);
     
     if (!session?.user) {

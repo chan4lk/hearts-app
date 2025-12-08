@@ -1,9 +1,15 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { generateGoalSuggestions } from '@/lib/openai';
+import { rateLimiters } from '@/lib/rateLimit';
 
-
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    // Apply strict rate limiting for AI operations (expensive)
+    const rateLimitResponse = await rateLimiters.moderate(req);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const { prompt, category } = await req.json();
 
     if (!prompt || !category) {

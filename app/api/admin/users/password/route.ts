@@ -1,12 +1,19 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { logger } from '@/lib/logger';
+import { rateLimiters } from '@/lib/rateLimit';
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
   try {
+    // Apply strict rate limiting for password changes (security critical)
+    const rateLimitResponse = await rateLimiters.strict(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const session = await getServerSession(authOptions);
     
     if (!session?.user || session.user.role !== 'ADMIN') {

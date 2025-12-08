@@ -1,10 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { Role, Prisma, PrismaClient } from '.prisma/client';
 import { logger } from '@/lib/logger';
+import { rateLimiters } from '@/lib/rateLimit';
 
 interface CreateUserBody {
   name: string;
@@ -173,8 +174,14 @@ export async function GET(request: Request) {
 }
 
 // Create new user
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    // Apply rate limiting
+    const rateLimitResponse = await rateLimiters.moderate(req);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const session = await getServerSession(authOptions);
     if (!session?.user || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -280,8 +287,14 @@ export async function POST(req: Request) {
 }
 
 // Update user
-export async function PUT(req: Request) {
+export async function PUT(req: NextRequest) {
   try {
+    // Apply rate limiting
+    const rateLimitResponse = await rateLimiters.moderate(req);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const session = await getServerSession(authOptions);
     if (!session?.user || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

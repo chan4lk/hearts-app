@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { GoalStatus, GoalCategory, NotificationType } from '@prisma/client';
+import { rateLimiters } from '@/lib/rateLimit';
 
 interface BulkGoalData {
   title: string;
@@ -33,6 +34,12 @@ interface BulkGoalResponse {
 
 export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalResponse>> {
   try {
+    // Apply strict rate limiting for bulk operations
+    const rateLimitResponse = await rateLimiters.bulk(req);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json(
