@@ -9,7 +9,6 @@ import Filters from './components/Filters';
 import GoalsSection from './components/GoalsSection';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { Pagination } from '@/app/components/shared/Pagination';
-import LoadingComponent from '@/app/components/LoadingScreen';
 import AIPerformanceInsights from '@/app/components/ai/AIPerformanceInsights';
 import { BsStars, BsLightbulb } from 'react-icons/bs';
 
@@ -182,12 +181,6 @@ export default function ManagerDashboard() {
       )
     );
   };
-
-
-  if (loading) {
-    return <LoadingComponent />;
-  }
-
   return (
     <DashboardLayout type="manager">
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">

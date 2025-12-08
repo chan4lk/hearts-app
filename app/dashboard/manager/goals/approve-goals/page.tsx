@@ -12,7 +12,6 @@ import Filters from './components/Filters';
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { Pagination } from '@/app/components/shared/Pagination';
-import LoadingComponent from '@/app/components/LoadingScreen';
 
 
 export default function ApproveGoalsPage() {
@@ -339,11 +338,6 @@ export default function ApproveGoalsPage() {
 
   // Server-side filtering is done, but we keep client-side filtering for view switching if needed
   const filteredGoals = goals;
-
-  if (isLoading) {
-    return <LoadingComponent />;
-  }
-
   return (
     <DashboardLayout type="manager">
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">

@@ -24,7 +24,6 @@ import { Pagination } from '@/app/components/shared/Pagination';
 import GoalTemplates from '@/app/components/shared/GoalTemplates';
 import { BulkGoalFormModal } from '@/app/components/shared/BulkGoalFormModal';
 import { CATEGORIES } from '@/app/components/shared/constants';
-import LoadingComponent from '@/app/components/LoadingScreen';
 
 // Styles and Types
 import { colors } from './components/styles/colors';
@@ -432,11 +431,6 @@ function ManagerGoalSettingPageContent() {
   if (error) {
     return <ErrorFallback error={error} resetErrorBoundary={() => setError(null)} />;
   }
-
-  if (loading) {
-    return <LoadingComponent />;
-  }
-
   return (
     <DashboardLayout type="manager">
       <div className={`min-h-screen bg-gradient-to-br ${colors.background.gradient}`}>
@@ -618,7 +612,7 @@ function ManagerGoalSettingPageContent() {
 
 export default function ManagerGoalSettingPage() {
   return (
-    <Suspense fallback={<LoadingComponent />}>
+    <Suspense>
       <ManagerGoalSettingPageContent />
     </Suspense>
   );
