@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import LoadingComponent from '@/app/components/LoadingScreen';
 import HeroSection from './components/HeroSection';
 import ReviewCycleTable from './components/ReviewCycleTable';
 import ReviewCycleForm from './components/ReviewCycleForm';
@@ -205,11 +204,6 @@ export default function ReviewCyclesPage() {
     setIsFormOpen(false);
     setEditingCycle(null);
   };
-
-  if (loading) {
-    return <LoadingComponent />;
-  }
-
   return (
     <DashboardLayout type="admin">
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">

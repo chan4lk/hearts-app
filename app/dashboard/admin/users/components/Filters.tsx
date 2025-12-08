@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Filters } from '@/app/components/shared/types';
 import { BsSearch, BsFilter, BsPerson } from 'react-icons/bs';
-import { motion } from 'framer-motion';
 import { Role } from '.prisma/client';
 
 interface FiltersProps {
@@ -103,16 +102,14 @@ export default function UserFilters({
   });
 
   useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      onSearchAction(searchTerm);
-    }, 300);
-
-    return () => clearTimeout(debounceTimer);
+    // Immediate update for faster UI response
+    onSearchAction(searchTerm);
   }, [searchTerm, onSearchAction]);
 
   const handleFilterChange = (name: keyof Filters, value: string) => {
     const newFilters = { ...filters, [name]: value };
     setFilters(newFilters);
+    // Immediate update for faster UI response
     onFilterChangeAction(newFilters);
   };
 
@@ -155,12 +152,7 @@ export default function UserFilters({
     : 'from-amber-500 to-orange-500';
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 }}
-      className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 border-2 border-gray-700/50"
-    >
+    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 border-2 border-gray-700/50">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {/* Search Bar */}
         <div className="relative">
@@ -230,7 +222,7 @@ export default function UserFilters({
         </div>
 
       </div>
-    </motion.div>
+    </div>
   );
 }
 

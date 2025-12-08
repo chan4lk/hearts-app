@@ -5,7 +5,6 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import LoadingComponent from '@/app/components/LoadingScreen';
 import {
   BarChart,
   Bar,
@@ -394,21 +393,10 @@ export default function AnalyticsPage() {
     }
   };
 
-  // Wait for session to load before rendering
-  if (sessionStatus === 'loading') {
-    return <LoadingComponent />;
-  }
-
   if (!session || !session.user) {
     // Don't render anything if no session - will redirect
     return null;
   }
-
-  // Show loading only if we're actually loading data, not just waiting for session
-  if (loading && !analyticsData) {
-    return <LoadingComponent />;
-  }
-
   // Prepare chart data with safety checks (even if analyticsData is null)
   const statusData = analyticsData?.breakdowns?.byStatus 
     ? Object.entries(analyticsData.breakdowns.byStatus)

@@ -8,7 +8,6 @@ import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import AdminGoalsTable from '../components/AdminGoalsTable';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import { Pagination } from '@/app/components/shared/Pagination';
-import LoadingComponent from '@/app/components/LoadingScreen';
 import { Goal, User as UserType } from '@/app/components/shared/types';
 import { motion } from 'framer-motion';
 import { showToast } from '@/app/utils/toast';
@@ -185,10 +184,6 @@ export default function AllGoalsPage() {
       showToast.error('Error', 'Failed to delete goals');
     }
   };
-
-  if (loading) {
-    return <LoadingComponent />;
-  }
 
   return (
     <DashboardLayout type="admin">

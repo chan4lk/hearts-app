@@ -42,7 +42,6 @@ export default function HeroSection({ userRole }: HeroSectionProps) {
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <BsBarChart className="w-5 h-5" />
             {pageTitle}
-            <span className="inline-flex animate-bounce">✨</span>
           </h2>
           <p className="text-purple-100 text-xs">{pageDescription}</p>
         </div>

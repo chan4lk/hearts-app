@@ -6,7 +6,6 @@ import { useSession } from 'next-auth/react';
 import { Toaster } from 'sonner';
 import { motion } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import LoadingComponent from '@/app/components/LoadingScreen';
 import UserTable from './components/UserTable';
 import UserFilters from './components/Filters';
 import HeroSection from './components/HeroSection';
@@ -130,12 +129,23 @@ export default function UsersPage() {
     }
   };
 
+
   // Reset to page 1 when filters or search term changes
   useEffect(() => {
     if (page !== 1) {
       setPage(1);
     }
   }, [filters, searchTerm]);
+
+  // Clear filters on component mount/reload
+  useEffect(() => {
+    setFilters({
+      role: '',
+      status: '',
+      manager: ''
+    });
+    setSearchTerm('');
+  }, []);
 
   useEffect(() => {
     if (!session?.user || session.user.role !== 'ADMIN') {
@@ -225,9 +235,7 @@ export default function UsersPage() {
     }
   };
 
-  if (isLoading) {
-    return <LoadingComponent />;
-  }
+
 
   // Calculate stats for StatsSection
   const userStats = {
