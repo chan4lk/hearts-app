@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { BsTrash, BsPencil, BsPerson, BsEye, BsGear, BsArrowUp, BsArrowDown, BsArrowsExpand } from 'react-icons/bs';
+import { BsPerson, BsGear, BsArrowUp, BsArrowDown, BsArrowsExpand, BsTrash } from 'react-icons/bs';
 import { User } from '@/app/components/shared/types';
 import { Role } from '.prisma/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
@@ -10,12 +10,10 @@ import { showToast } from '@/app/utils/toast';
 interface UserTableProps {
   users: User[];
   managers: User[];
-  onViewDetailsAction: (user: User) => void;
-  onEditAction: (user: User) => void;
-  onDeleteAction: (userId: string) => void;
   onRoleUpdate?: (userId: string, newRole: string, updatedUser: User) => void;
   onStatusUpdate?: (userId: string, newStatus: string, updatedUser: User) => void;
   onManagerUpdate?: (userId: string, newManagerId: string | null, updatedUser: User) => void;
+  onDeleteAction?: (userId: string) => void;
 }
 
 type SortColumn = 'name' | 'email' | 'role' | 'status' | 'manager';
@@ -24,12 +22,10 @@ type SortDirection = 'asc' | 'desc' | null;
 export default function UserTable({ 
   users, 
   managers,
-  onViewDetailsAction, 
-  onEditAction, 
-  onDeleteAction,
   onRoleUpdate,
   onStatusUpdate,
-  onManagerUpdate
+  onManagerUpdate,
+  onDeleteAction
 }: UserTableProps) {
   const [updatingRole, setUpdatingRole] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
@@ -376,8 +372,7 @@ export default function UserTable({
               return (
                 <tr
                   key={user.id}
-                  className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer"
-                  onClick={() => onViewDetailsAction(user)}
+                  className="border-b border-white/5 hover:bg-white/5 transition-colors"
                 >
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-3">
@@ -482,21 +477,7 @@ export default function UserTable({
                     </Select>
                   </td>
                   <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => onViewDetailsAction(user)}
-                        className="p-1.5 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 rounded transition-colors"
-                        title="View Details"
-                      >
-                        <BsEye className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => onEditAction(user)}
-                        className="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded transition-colors"
-                        title="Edit User"
-                      >
-                        <BsPencil className="w-4 h-4" />
-                      </button>
+                    {onDeleteAction && (
                       <button
                         onClick={() => onDeleteAction(user.id)}
                         className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded transition-colors"
@@ -504,7 +485,7 @@ export default function UserTable({
                       >
                         <BsTrash className="w-4 h-4" />
                       </button>
-                    </div>
+                    )}
                   </td>
                 </tr>
               );

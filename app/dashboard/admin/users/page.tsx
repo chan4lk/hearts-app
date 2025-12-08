@@ -4,18 +4,15 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Toaster } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import LoadingComponent from '@/app/components/LoadingScreen';
 import UserTable from './components/UserTable';
-import UserForm from './components/UserForm';
-import UserDetails from './components/UserDetails';
 import UserFilters from './components/Filters';
-import StatsSection from './components/StatsSection';
 import HeroSection from './components/HeroSection';
-import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
+import StatsSection from './components/StatsSection';
 import { Pagination } from '@/app/components/shared/Pagination';
-import { User, FormData, Filters } from '@/app/components/shared/types';
+import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
+import { User, Filters } from '@/app/components/shared/types';
 import { Role } from '.prisma/client';
 import { showToast } from '@/app/utils/toast';
 
@@ -43,13 +40,9 @@ export default function UsersPage() {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [managers, setManagers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+
   const [filters, setFilters] = useState<Filters>({
     role: '',
     status: '',
@@ -136,6 +129,24 @@ export default function UsersPage() {
     }
   };
 
+
+  // Reset to page 1 when filters or search term changes
+  useEffect(() => {
+    if (page !== 1) {
+      setPage(1);
+    }
+  }, [filters, searchTerm]);
+
+  // Clear filters on component mount/reload
+  useEffect(() => {
+    setFilters({
+      role: '',
+      status: '',
+      manager: ''
+    });
+    setSearchTerm('');
+  }, []);
+
   useEffect(() => {
     if (!session?.user || session.user.role !== 'ADMIN') {
       router.push('/dashboard');
@@ -147,121 +158,15 @@ export default function UsersPage() {
 
     // Set up auto-refresh
     const intervalId = setInterval(() => {
-      // Only refresh if no modals are open
-      if (!isFormOpen && !isDetailsOpen && !isDeleteConfirmOpen) {
-        fetchUsers(page);
-      }
+      fetchUsers(page);
     }, REFRESH_INTERVAL);
 
     // Cleanup on unmount
     return () => clearInterval(intervalId);
-  }, [session, router, isFormOpen, isDetailsOpen, isDeleteConfirmOpen, page, limit, filters, searchTerm]);
+  }, [session, router, page, limit, filters, searchTerm]);
 
   // Filtering is now done on the server, but we keep this for any client-side filtering needed
   const filteredUsers = users;
-
-  const handleCreateUser = async (formData: FormData) => {
-    try {
-      const response = await fetch('/api/admin/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          role: formData.role,
-          managerId: formData.managerId || null,
-          isActive: formData.status === 'ACTIVE'
-        }),
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create user');
-      }
-
-      setUsers(prev => [data, ...prev]);
-      // Update managers list if the new user is a manager or admin
-      if (data.role === Role.MANAGER || data.role === Role.ADMIN) {
-        setManagers(prev => [data, ...prev]);
-      }
-      setIsFormOpen(false);
-      showToast.user.created();
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to create user';
-      showToast.user.error(errorMessage);
-      console.error('Error creating user:', error);
-    }
-  };
-
-  const handleUpdateUser = async (formData: FormData) => {
-    if (!selectedUser) return;
-
-    try {
-      // Determine managerId based on role and current selection
-      const managerId = formData.managerId || null;
-
-      const response = await fetch('/api/admin/users', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: selectedUser.id,
-          name: formData.name,
-          email: formData.email,
-          role: formData.role as Role,
-          managerId,
-          isActive: formData.status === 'ACTIVE'
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update user');
-      }
-
-      const updatedUser = await response.json();
-      
-      setUsers(prev => prev.map(user => 
-        user.id === updatedUser.id ? updatedUser : user
-      ));
-      setIsFormOpen(false);
-      setSelectedUser(null);
-      showToast.user.updated();
-    } catch (error) {
-      console.error('Error in handleUpdateUser:', error);
-      showToast.error('Failed to update user', error);
-    }
-  };
-
-  const handleDeleteUser = async (userId: string) => {
-    const user = users.find(u => u.id === userId);
-    if (!user) return;
-    setUserToDelete(user);
-    setIsDeleteConfirmOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!userToDelete) return;
-
-    try {
-      const response = await fetch(`/api/admin/users?id=${userToDelete.id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to delete user');
-      }
-
-      setUsers(prev => prev.filter(user => user.id !== userToDelete.id));
-      setIsDeleteConfirmOpen(false);
-      setUserToDelete(null);
-      showToast.user.deleted();
-    } catch (error) {
-      showToast.error('Failed to delete user', error);
-    }
-  };
 
   // Handle quick role update from table
   const handleQuickRoleUpdate = (userId: string, newRole: string, updatedUser: User) => {
@@ -300,9 +205,36 @@ export default function UsersPage() {
     ));
   };
 
-  if (isLoading) {
-    return <LoadingComponent />;
-  }
+  // Handle delete user
+  const handleDeleteUser = async (userId: string) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+    setUserToDelete(user);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!userToDelete) return;
+
+    try {
+      const response = await fetch(`/api/admin/users?id=${userToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete user');
+      }
+
+      setUsers(prev => prev.filter(user => user.id !== userToDelete.id));
+      setIsDeleteConfirmOpen(false);
+      setUserToDelete(null);
+      showToast.user.deleted();
+    } catch (error) {
+      showToast.error('Failed to delete user', error);
+    }
+  };
+
 
 
   // Calculate stats for StatsSection
@@ -321,10 +253,7 @@ export default function UsersPage() {
         
         <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
           {/* Hero Section */}
-          <HeroSection onAddUser={() => {
-            setSelectedUser(null);
-            setIsFormOpen(true);
-          }} />
+          <HeroSection />
 
           {/* Stats Section */}
           <motion.div
@@ -343,12 +272,9 @@ export default function UsersPage() {
             <UserFilters
               onFilterChangeAction={setFilters}
               onSearchAction={setSearchTerm}
-              managers={managers.map((user: User) => ({
-                id: user.id,
-                name: user.name,
-                role: user.role
-              }))}
               currentUserRole={session?.user?.role as Role}
+              initialFilters={filters}
+              initialSearchTerm={searchTerm}
             />
           </motion.div>
 
@@ -363,18 +289,10 @@ export default function UsersPage() {
                 <UserTable
                   users={filteredUsers}
                   managers={managers}
-                  onViewDetailsAction={(user: User) => {
-                    setSelectedUser(user);
-                    setIsDetailsOpen(true);
-                  }}
-                  onEditAction={(user: User) => {
-                    setSelectedUser(user);
-                    setIsFormOpen(true);
-                  }}
-                  onDeleteAction={handleDeleteUser}
                   onRoleUpdate={handleQuickRoleUpdate}
                   onStatusUpdate={handleQuickStatusUpdate}
                   onManagerUpdate={handleQuickManagerUpdate}
+                  onDeleteAction={handleDeleteUser}
                 />
                 
                 {/* Pagination */}
@@ -403,76 +321,18 @@ export default function UsersPage() {
           </motion.div>
         </div>
 
-        <AnimatePresence>
-          {isFormOpen && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-            >
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 100, damping: 20 }}
-                className="bg-gray-900/95 backdrop-blur-xl rounded-lg sm:rounded-xl md:rounded-2xl p-3 sm:p-4 md:p-6 shadow-xl sm:shadow-2xl border border-white/20 dark:border-gray-700/30 transform-gpu"
-              >
-                <UserForm
-                  initialData={selectedUser || undefined}
-                  managers={managers}
-                  onSubmitAction={selectedUser ? handleUpdateUser : handleCreateUser}
-                  onCancelAction={() => {
-                    setSelectedUser(null);
-                    setIsFormOpen(false);
-                  }}
-                  isEditing={!!selectedUser}
-                />
-              </motion.div>
-            </motion.div>
-          )}
-
-          {isDetailsOpen && selectedUser && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-            >
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-2xl max-w-2xl border border-white/20 dark:border-gray-700/30 overflow-hidden"
-              >
-                <UserDetails
-                  user={selectedUser}
-                  onCloseAction={() => {
-                    setSelectedUser(null);
-                    setIsDetailsOpen(false);
-                  }}
-                  onEditAction={() => {
-                    setIsDetailsOpen(false);
-                    setIsFormOpen(true);
-                  }}
-                />
-              </motion.div>
-            </motion.div>
-          )}
-
-          <DeleteConfirmationModal
-            isOpen={isDeleteConfirmOpen}
-            onClose={() => {
-              setIsDeleteConfirmOpen(false);
-              setUserToDelete(null);
-            }}
-            onConfirm={confirmDelete}
-            title="Delete User"
-            message={userToDelete ? `Are you sure you want to delete "${userToDelete.name}"? This action cannot be undone.` : "Are you sure you want to delete this user? This action cannot be undone."}
-            confirmText="Delete"
-            cancelText="Cancel"
-          />
-        </AnimatePresence>
+        <DeleteConfirmationModal
+          isOpen={isDeleteConfirmOpen}
+          onClose={() => {
+            setIsDeleteConfirmOpen(false);
+            setUserToDelete(null);
+          }}
+          onConfirm={confirmDelete}
+          title="Delete User"
+          message={userToDelete ? `Are you sure you want to delete "${userToDelete.name}"? This action cannot be undone.` : "Are you sure you want to delete this user? This action cannot be undone."}
+          confirmText="Delete"
+          cancelText="Cancel"
+        />
 
         <Toaster 
           position="top-center"

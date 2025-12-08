@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react';
 import { Filters } from '@/app/components/shared/types';
 import { BsSearch, BsFilter, BsPerson } from 'react-icons/bs';
-import { motion } from 'framer-motion';
 import { Role } from '.prisma/client';
 
 interface FiltersProps {
   onFilterChangeAction: (filters: Filters) => void;
   onSearchAction: (searchTerm: string) => void;
-  managers: Array<{ id: string; name: string; role: Role }>;
   currentUserRole?: Role;
+  initialFilters?: Filters;
+  initialSearchTerm?: string;
 }
 
 // Create a mapping for display names
@@ -63,14 +63,34 @@ const STATUS_CONFIG = {
   }
 };
 
-export default function UserFilters({ onFilterChangeAction, onSearchAction, managers, currentUserRole }: FiltersProps) {
-  const [filters, setFilters] = useState<Filters>({
+export default function UserFilters({ 
+  onFilterChangeAction, 
+  onSearchAction, 
+  currentUserRole,
+  initialFilters,
+  initialSearchTerm = ''
+}: FiltersProps) {
+  const [filters, setFilters] = useState<Filters>(initialFilters || {
     role: '',
     status: '',
-    manager: ''
+    manager: '' // Keep in state but not displayed in UI
   });
 
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+
+  // Sync with parent component's filter state
+  useEffect(() => {
+    if (initialFilters) {
+      setFilters(initialFilters);
+    }
+  }, [initialFilters?.role, initialFilters?.status, initialFilters?.manager]);
+
+  // Sync with parent component's search term
+  useEffect(() => {
+    if (initialSearchTerm !== undefined) {
+      setSearchTerm(initialSearchTerm);
+    }
+  }, [initialSearchTerm]);
 
   // Filter available roles based on current user's role
   const availableRoles = Object.values(Role).filter(role => {
@@ -82,16 +102,14 @@ export default function UserFilters({ onFilterChangeAction, onSearchAction, mana
   });
 
   useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      onSearchAction(searchTerm);
-    }, 300);
-
-    return () => clearTimeout(debounceTimer);
+    // Immediate update for faster UI response
+    onSearchAction(searchTerm);
   }, [searchTerm, onSearchAction]);
 
   const handleFilterChange = (name: keyof Filters, value: string) => {
     const newFilters = { ...filters, [name]: value };
     setFilters(newFilters);
+    // Immediate update for faster UI response
     onFilterChangeAction(newFilters);
   };
 
@@ -134,13 +152,8 @@ export default function UserFilters({ onFilterChangeAction, onSearchAction, mana
     : 'from-amber-500 to-orange-500';
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 }}
-      className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 border-2 border-gray-700/50"
-    >
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 border-2 border-gray-700/50">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {/* Search Bar */}
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none z-10">
@@ -192,7 +205,7 @@ export default function UserFilters({ onFilterChangeAction, onSearchAction, mana
             </div>
           </div>
           <select
-            value={filters.status}
+            value={filters.status || ''}
             onChange={(e) => handleFilterChange('status', e.target.value)}
             className={`w-full pl-10 pr-8 py-2.5 ${statusBgColor} ${statusTextColor} rounded-lg border ${statusBorderColor} focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-amber-500 focus:border-amber-500 text-sm font-medium appearance-none cursor-pointer transition-all duration-200 hover:border-opacity-70 hover:shadow-sm`}
             style={{
@@ -208,35 +221,8 @@ export default function UserFilters({ onFilterChangeAction, onSearchAction, mana
           </select>
         </div>
 
-        {/* Manager Filter */}
-        {managers.length > 0 && (
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none z-10">
-              <div className="p-1.5 rounded-md bg-gradient-to-r from-purple-500 to-indigo-500">
-                <BsPerson className="w-3 h-3 text-white" />
-              </div>
-            </div>
-            <select
-              value={filters.manager}
-              onChange={(e) => handleFilterChange('manager', e.target.value)}
-              className="w-full pl-10 pr-8 py-2.5 bg-gray-900/50 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-purple-500 focus:border-purple-500 text-sm font-medium appearance-none cursor-pointer transition-all duration-200 hover:border-opacity-70 hover:shadow-sm"
-              style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 12 12'%3E%3Cpath fill='%239CA3AF' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'right 0.75rem center'
-              }}
-            >
-              <option value="" style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}>All Managers</option>
-              {managers.map((manager) => (
-                <option key={manager.id} value={manager.id} style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}>
-                  {manager.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
       </div>
-    </motion.div>
+    </div>
   );
 }
 

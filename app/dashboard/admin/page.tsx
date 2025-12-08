@@ -20,7 +20,6 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import LoadingComponent from '@/app/components/LoadingScreen';
 import { Role } from '@prisma/client';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import AdminGoalsTable from './components/AdminGoalsTable';
@@ -283,11 +282,6 @@ export default function AdminDashboard() {
       showToast.error('Error', 'Failed to delete goals');
     }
   };
-
-
-  if (isLoading) {
-    return <LoadingComponent />;
-  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
