@@ -39,7 +39,16 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
     // Apply strict rate limiting for bulk operations
     const rateLimitResponse = await rateLimiters.bulk(req);
     if (rateLimitResponse) {
-      return rateLimitResponse;
+      // Rate limit exceeded - return error response matching BulkGoalResponse format
+      return NextResponse.json<BulkGoalResponse>(
+        {
+          success: false,
+          message: 'Too many requests, please try again later.',
+          created: 0,
+          failed: 0
+        },
+        { status: 429 }
+      );
     }
 
     const session = await getServerSession(authOptions);
@@ -268,7 +277,16 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
 
   } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
-    return handleApiError(error);
+    // Return error in BulkGoalResponse format
+    return NextResponse.json<BulkGoalResponse>(
+      {
+        success: false,
+        message: error instanceof Error ? error.message : 'Internal server error',
+        created: 0,
+        failed: 0
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -304,78 +322,6 @@ export async function GET(): Promise<NextResponse> {
       categories: Object.values(GoalCategory),
       priorities: ['LOW', 'MEDIUM', 'HIGH']
     });
-  } catch (error) {
-    logger.error(error instanceof Error ? error : new Error(String(error)));
-    return handleApiError(error);
-  }
-}
-      success: false,
-      message: 'Internal server error',
-      created: 0,
-      failed: 0
-    }, { status: 500 });
-  }
-}
-
-// GET endpoint to retrieve bulk goal creation templates
-export async function GET(): Promise<NextResponse> {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const isAdminOrManager = session.user.role === 'ADMIN' || session.user.role === 'MANAGER';
-    if (!isAdminOrManager) {
-      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
-    }
-
-    // Return goal templates for bulk creation
-    const templates = [
-      {
-        id: 'quarterly-review',
-        name: 'Quarterly Performance Review',
-        category: 'PROFESSIONAL',
-        priority: 'HIGH',
-        description: 'Complete quarterly performance review and set goals for next quarter',
-        estimatedDuration: '30 days'
-      },
-      {
-        id: 'skill-development',
-        name: 'Skill Development',
-        category: 'TECHNICAL',
-        priority: 'MEDIUM',
-        description: 'Develop new technical skills relevant to current role',
-        estimatedDuration: '60 days'
-      },
-      {
-        id: 'team-collaboration',
-        name: 'Team Collaboration',
-        category: 'LEADERSHIP',
-        priority: 'MEDIUM',
-        description: 'Improve team collaboration and communication skills',
-        estimatedDuration: '45 days'
-      },
-      {
-        id: 'project-completion',
-        name: 'Project Completion',
-        category: 'KPI',
-        priority: 'HIGH',
-        description: 'Complete assigned project within deadline and quality standards',
-        estimatedDuration: '90 days'
-      },
-      {
-        id: 'training-certification',
-        name: 'Training & Certification',
-        category: 'TRAINING',
-        priority: 'MEDIUM',
-        description: 'Complete required training and obtain relevant certification',
-        estimatedDuration: '60 days'
-      }
-    ];
-
-    return NextResponse.json({ templates }, { status: 200 });
-
   } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);

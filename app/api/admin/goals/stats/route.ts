@@ -62,7 +62,8 @@ export async function GET() {
           in: ['EMPLOYEE', 'MANAGER']
         }
       },
-      take: MAX_STATS_USERS, // Safety limit
+      take: MAX_STATS_USERS // Safety limit
+    });
 
     const userStats = {
       totalEmployees: users.filter((u) => u.role === 'EMPLOYEE').length,
