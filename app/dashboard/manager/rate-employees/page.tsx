@@ -5,8 +5,6 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import LoadingComponent from '@/app/components/LoadingScreen';
-
 import { GoalWithRatingExtended, EmployeeStats } from "@/app/components/shared/types";
 import HeroSection from "./components/HeroSection";
 import StatsSection from "./components/StatsSection";
@@ -404,11 +402,6 @@ export default function RateEmployeesPage() {
       return true;
     });
   }, [goals, filterRating]);
-
-  if (loading) {
-    return <LoadingComponent />;
-  }
-
   return (
     <DashboardLayout type="manager">
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">

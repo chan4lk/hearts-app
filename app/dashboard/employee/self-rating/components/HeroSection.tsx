@@ -26,7 +26,6 @@ export function HeroSection({ userRole }: HeroSectionProps) {
         <div className="space-y-1">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             Self Rating, {userName}
-            <span className="inline-flex animate-bounce">⭐</span>
           </h2>
           <p className="text-purple-100 text-xs">Rate your performance on your goals</p>
         </div>

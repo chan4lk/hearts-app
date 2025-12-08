@@ -99,7 +99,6 @@ export default function StatsDisplay({ stats, roleStats }: StatsDisplayProps) {
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               Welcome back, {userName}
-              <span className="inline-flex animate-bounce">✨</span>
             </h2>
           </div>
         </div>

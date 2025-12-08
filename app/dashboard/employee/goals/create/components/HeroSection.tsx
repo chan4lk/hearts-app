@@ -29,7 +29,6 @@ export const HeroSection = ({ onCreateClick, totalGoals, completedGoals }: HeroS
         <div className="space-y-1">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             Create Your Goals, {userName}
-            <span className="inline-flex animate-bounce">✨</span>
           </h2>
           <p className="text-purple-100 text-xs">Define your personal objectives and growth targets</p>
         </div>

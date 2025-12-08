@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { PageContainer } from '@/app/components/shared/PageContainer';
-import LoadingComponent from '@/app/components/LoadingScreen';
 import { BsPlus, BsArrowUpRight, BsStars } from 'react-icons/bs';
 import GoalTemplates from '@/app/components/shared/GoalTemplates';
 import { HeroSection } from './components/HeroSection';
@@ -30,7 +29,6 @@ function GoalsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
-  const [loading, setLoading] = useState(true);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -114,8 +112,6 @@ function GoalsPageContent() {
     } catch (error) {
       console.error('Error fetching goals:', error);
       showNotificationWithTimeout('Failed to load goals', 'error');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -131,7 +127,6 @@ function GoalsPageContent() {
   };
 
   const handleSubmit = async (goalData: NewGoal) => {
-    setLoading(true);
     try {
       const response = await fetch('/api/goals', {
         method: 'POST',
@@ -161,8 +156,6 @@ function GoalsPageContent() {
         `Failed to create goal: ${error instanceof Error ? error.message : 'Unknown error'}`,
         'error'
       );
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -189,7 +182,6 @@ function GoalsPageContent() {
 
   const handleEditSubmit = async (goalData: NewGoal) => {
     if (!editGoal?.id || !session?.user) return;
-    setLoading(true);
     try {
       const response = await fetch(`/api/goals/${editGoal.id}`, {
         method: 'PUT',
@@ -245,14 +237,11 @@ function GoalsPageContent() {
         error instanceof Error ? error.message : 'Failed to update goal',
         'error'
       );
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleDeleteConfirm = async () => {
     if (!deleteGoal?.id || !session?.user) return;
-    setLoading(true);
     try {
       const response = await fetch(`/api/goals/${deleteGoal.id}`, {
         method: 'DELETE',
@@ -282,8 +271,6 @@ function GoalsPageContent() {
         error instanceof Error ? error.message : 'Failed to delete goal',
         'error'
       );
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -295,10 +282,6 @@ function GoalsPageContent() {
 
   // Calculate completed goals for HeroSection
   const completedGoals = goals.filter(g => g.status === 'APPROVED').length;
-
-  if (loading) {
-    return <LoadingComponent />;
-  }
 
   return (
     <DashboardLayout type="employee">
@@ -501,7 +484,7 @@ function GoalsPageContent() {
           });
         }}
         assignedEmployees={[]}
-        loading={loading}
+        loading={false}
         formData={formData}
         onFormDataChange={handleFormDataChange}
         errors={formErrors}
@@ -556,7 +539,7 @@ function GoalsPageContent() {
           });
         }}
         assignedEmployees={[]}
-        loading={loading}
+        loading={false}
         formData={formData}
         onFormDataChange={handleFormDataChange}
         errors={formErrors}
@@ -590,15 +573,13 @@ function GoalsPageContent() {
         confirmText="Delete"
         cancelText="Cancel"
       />
-
-      {loading && <LoadingComponent />}
     </DashboardLayout>
   );
 }
 
 export default function GoalsPage() {
   return (
-    <Suspense fallback={<LoadingComponent />}>
+    <Suspense>
       <GoalsPageContent />
     </Suspense>
   );

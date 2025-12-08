@@ -15,7 +15,6 @@ import { Goal, GoalStats } from '@/app/components/shared/types';
 import { BsStars, BsLightbulb, BsX, BsPlus, BsPersonCheck, BsStarFill, BsStar, BsArrowRight } from 'react-icons/bs';
 import { showToast } from '@/app/utils/toast';
 import { RATING_LABELS } from '@/app/components/shared/constants';
-import LoadingComponent from '@/app/components/LoadingScreen';
 import { useSession } from 'next-auth/react';
 import AIGoalSuggestions from '@/app/components/ai/AIGoalSuggestions';
 import AIPerformanceInsights from '@/app/components/ai/AIPerformanceInsights';
@@ -452,9 +451,6 @@ export default function EmployeeDashboard() {
     }
   };
 
-  if (loading) {
-    return <LoadingComponent />;
-  }
 
   return (
     <DashboardLayout type="employee">

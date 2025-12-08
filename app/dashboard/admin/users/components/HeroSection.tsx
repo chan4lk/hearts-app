@@ -22,7 +22,6 @@ export default function HeroSection() {
         <div className="space-y-1">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             User Management, {userName}
-            <span className="inline-flex animate-bounce">👥</span>
           </h2>
           <p className="text-purple-100 text-xs">View and manage your team members and their roles</p>
         </div>

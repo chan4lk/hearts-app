@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import LoadingComponent from '@/app/components/LoadingScreen';
 
 import { toast } from "sonner";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
@@ -292,11 +291,6 @@ export default function SelfRatingPage() {
     }
     return "employee";
   };
-
-  if (loading) {
-    return <LoadingComponent />;
-  }
-
   return (
     <DashboardLayout type="employee">
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
