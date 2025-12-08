@@ -3,6 +3,8 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 /**
  * PDF Report Generation API
@@ -62,11 +64,8 @@ export async function POST(req: Request) {
         );
     }
   } catch (error) {
-    console.error('Error generating report:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate report' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }
 

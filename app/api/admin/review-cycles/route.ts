@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma'; // Prisma client with ReviewCycle model
 import { NotificationType } from '@prisma/client';
 import { getPaginationFromSearchParams, getPaginationMeta, PAGINATION_LIMITS } from '@/lib/pagination';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 // GET all review cycles with pagination support
 export async function GET(req: Request) {
@@ -106,15 +108,12 @@ export async function GET(req: Request) {
       pagination: getPaginationMeta(page, limit, total)
     });
   } catch (error) {
-    console.error('Error fetching review cycles:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }
 
-// Create or update review cycle
+// POST/PUT - Create or update review cycle
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -319,12 +318,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, reviewCycle });
   } catch (error) {
-    console.error('Error creating/updating review cycle:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to save review cycle';
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }
 
@@ -381,12 +376,8 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({ success: true, message: 'Review cycle deleted successfully' });
   } catch (error) {
-    console.error('Error deleting review cycle:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to delete review cycle';
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }
 

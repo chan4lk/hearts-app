@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { GoalStatus, GoalCategory, NotificationType } from '@prisma/client';
 import { rateLimiters } from '@/lib/rateLimit';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 interface BulkGoalData {
   title: string;
@@ -238,7 +240,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
               },
             });
           } catch (error) {
-            console.error(`Error creating goal ${i}:`, error);
+            logger.error(error instanceof Error ? error : new Error(String(error)));
             throw new Error(`Failed to create goal ${i + 1}: ${goalData.title}`);
           }
         }
@@ -255,7 +257,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
       }, { status: 201 });
 
     } catch (transactionError) {
-      console.error('Transaction failed:', transactionError);
+      logger.error(transactionError instanceof Error ? transactionError : new Error(String(transactionError)));
       return NextResponse.json({
         success: false,
         message: transactionError instanceof Error ? transactionError.message : 'Failed to create goals',
@@ -265,8 +267,48 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
     }
 
   } catch (error) {
-    console.error('Bulk goal creation error:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
+  }
+}
+
+// GET endpoint to retrieve bulk goal creation templates
+export async function GET(): Promise<NextResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Only managers and admins can access bulk goal templates
+    if (session.user.role !== 'MANAGER' && session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // Return template structure
     return NextResponse.json({
+      template: {
+        goals: [
+          {
+            title: 'Example Goal Title',
+            description: 'Example goal description',
+            dueDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+            employeeId: 'employee-id-here',
+            category: 'PROFESSIONAL',
+            department: 'ENGINEERING',
+            priority: 'MEDIUM'
+          }
+        ]
+      },
+      categories: Object.values(GoalCategory),
+      priorities: ['LOW', 'MEDIUM', 'HIGH']
+    });
+  } catch (error) {
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
+  }
+}
       success: false,
       message: 'Internal server error',
       created: 0,
@@ -335,7 +377,7 @@ export async function GET(): Promise<NextResponse> {
     return NextResponse.json({ templates }, { status: 200 });
 
   } catch (error) {
-    console.error('Error fetching bulk goal templates:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }

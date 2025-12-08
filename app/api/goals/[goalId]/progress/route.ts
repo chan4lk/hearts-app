@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { rateLimiters } from '@/lib/rateLimit';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 // Valid statuses for progress updates
 const ALLOWED_STATUSES_FOR_PROGRESS = ['DRAFT', 'PENDING', 'APPROVED'];
@@ -105,7 +107,7 @@ export async function PUT(
 
     return NextResponse.json(updatedGoal);
   } catch (error) {
-    console.error('Error updating goal progress:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }

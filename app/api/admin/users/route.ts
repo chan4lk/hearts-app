@@ -7,6 +7,8 @@ import { Role, Prisma, PrismaClient } from '.prisma/client';
 import { logger } from '@/lib/logger';
 import { rateLimiters } from '@/lib/rateLimit';
 import { getPaginationFromSearchParams, getPaginationMeta, PAGINATION_LIMITS } from '@/lib/pagination';
+import { validatePassword } from '@/lib/validation';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 interface CreateUserBody {
   name: string;
@@ -162,10 +164,7 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
 
@@ -197,6 +196,15 @@ export async function POST(req: NextRequest) {
     if (!name || !email || !password || !role) {
       return NextResponse.json(
         { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return NextResponse.json(
+        { error: passwordValidation.error },
         { status: 400 }
       );
     }
@@ -431,6 +439,18 @@ export async function PUT(req: NextRequest) {
       isActive,
     };
 
+    // Validate and update password if provided
+    if (password) {
+      const passwordValidation = validatePassword(password);
+      if (!passwordValidation.valid) {
+        return NextResponse.json(
+          { error: passwordValidation.error },
+          { status: 400 }
+        );
+      }
+      updateData.password = await bcrypt.hash(password, 12); // Use 12 rounds for consistency
+    }
+
     // Only include managerId in updateData if it's explicitly provided or needs to be nulled
     if (managerId !== undefined) {
       updateData.managerId = managerId || null;
@@ -453,11 +473,14 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json(user);
   } catch (error: any) {
+    if (error.code === 'P2002') {
+      return NextResponse.json(
+        { error: 'Email already exists' },
+        { status: 400 }
+      );
+    }
     logger.error(error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
 

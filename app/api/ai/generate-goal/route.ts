@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateGoalSuggestions } from '@/lib/openai';
 import { rateLimiters } from '@/lib/rateLimit';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,10 +28,7 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json(goals[0]);
   } catch (error) {
-    console.error('Error generating goal:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate goal' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 } 

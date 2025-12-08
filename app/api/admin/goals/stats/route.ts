@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { GoalStatus, Role } from '@prisma/client';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 
 export const dynamic = 'force-dynamic';
@@ -101,10 +103,7 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('Error fetching admin goal statistics:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch goal statistics' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 } 

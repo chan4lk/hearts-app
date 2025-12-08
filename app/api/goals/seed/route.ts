@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { GoalStatus } from '@prisma/client';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export async function POST() {
   try {
@@ -64,7 +66,7 @@ export async function POST() {
       managerId: manager.id
     });
   } catch (error) {
-    console.error('Error seeding goals:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 } 

@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 import { NotificationType } from '@prisma/client';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export async function POST(
   request: Request,
@@ -182,10 +184,7 @@ export async function POST(
       updatedAt: rating.updatedAt,
     });
   } catch (error) {
-    console.error('Error submitting self rating:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }

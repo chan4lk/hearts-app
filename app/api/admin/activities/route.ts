@@ -5,6 +5,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { PAGINATION_LIMITS } from '@/lib/pagination';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export async function GET() {
   try {
@@ -79,10 +81,7 @@ export async function GET() {
 
     return NextResponse.json(activities);
   } catch (error) {
-    console.error('Error Fetching Admin Activities:', error);
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 } 

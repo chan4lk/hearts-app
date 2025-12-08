@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { getPaginationFromSearchParams, getPaginationMeta, PAGINATION_LIMITS } from '@/lib/pagination';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 // GET user's notifications
 export async function GET(req: NextRequest) {
@@ -51,11 +53,8 @@ export async function GET(req: NextRequest) {
       pagination: getPaginationMeta(page, limit, total)
     });
   } catch (error) {
-    console.error('Error fetching notifications:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch notifications' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }
 
@@ -119,11 +118,8 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error deleting notification:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete notification' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }
 

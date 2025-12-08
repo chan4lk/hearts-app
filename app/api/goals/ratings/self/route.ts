@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export const dynamic = 'force-dynamic';
 
@@ -61,10 +63,7 @@ export async function GET() {
 
     return NextResponse.json({ ratings: formattedRatings });
   } catch (error) {
-    console.error('Error fetching ratings:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch ratings' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }

@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 import { GoalStatus } from '@prisma/client';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export const dynamic = 'force-dynamic';
 
@@ -130,18 +132,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(transformedGoals);
   } catch (error) {
-    console.error('Error fetching pending goals:', error);
-    return new NextResponse(
-      JSON.stringify({ 
-        error: 'Internal Server Error',
-        message: error instanceof Error ? error.message : 'Unknown error occurred'
-      }), 
-      { 
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 } 

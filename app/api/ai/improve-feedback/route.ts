@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { improveFeedback } from '@/lib/openai';
 import { rateLimiters } from '@/lib/rateLimit';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,11 +55,8 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error improving feedback:', error);
-    return NextResponse.json(
-      { error: 'Failed to improve feedback' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }
 

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 // Helper to format rating response
 function formatRatingResponse(rating: any) {
@@ -57,11 +59,8 @@ export async function GET(
 
     return NextResponse.json({ rating: formatRatingResponse(rating) });
   } catch (error) {
-    console.error('Error fetching ratings:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch ratings' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }
 
@@ -144,10 +143,7 @@ export async function POST(
 
     return NextResponse.json(formatRatingResponse(rating));
   } catch (error) {
-    console.error('Error creating/updating rating:', error);
-    return NextResponse.json(
-      { error: 'Failed to create/update rating' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }

@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
 import { rateLimiters } from '@/lib/rateLimit';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 // Standard include for goal queries (matching the main goals route)
 const goalInclude = {
@@ -66,8 +68,8 @@ export async function GET(req: Request, { params }: { params: { goalId: string }
 
     return NextResponse.json({ goal });
   } catch (error) {
-    console.error('Error fetching goal:', error);
-    return NextResponse.json({ error: 'Failed to fetch goal' }, { status: 500 });
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }
 
@@ -133,8 +135,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { goalId
 
     return NextResponse.json(updatedGoal);
   } catch (error) {
-    console.error('Error updating goal:', error);
-    return NextResponse.json({ error: 'Failed to update goal' }, { status: 500 });
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }
 
@@ -348,7 +350,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { goalId: s
       goal
     });
   } catch (error) {
-    console.error('Error deleting goal:', error);
-    return NextResponse.json({ error: 'Failed to delete goal' }, { status: 500 });
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 } 

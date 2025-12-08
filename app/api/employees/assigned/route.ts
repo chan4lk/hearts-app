@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { Role } from '@prisma/client';
 import { getPaginationFromSearchParams, getPaginationMeta, PAGINATION_LIMITS } from '@/lib/pagination';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -93,10 +95,7 @@ export async function GET(request: NextRequest) {
       pagination: getPaginationMeta(page, limit, total)
     });
   } catch (error) {
-    console.error('Error fetching assigned employees:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch assigned employees' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }

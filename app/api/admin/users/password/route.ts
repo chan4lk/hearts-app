@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { logger } from '@/lib/logger';
 import { rateLimiters } from '@/lib/rateLimit';
+import { validatePassword } from '@/lib/validation';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export async function PUT(request: NextRequest) {
   try {
@@ -26,6 +28,15 @@ export async function PUT(request: NextRequest) {
     if (!userId || !newPassword) {
       return NextResponse.json(
         { error: 'User ID and new password are required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.valid) {
+      return NextResponse.json(
+        { error: passwordValidation.error },
         { status: 400 }
       );
     }
@@ -68,9 +79,6 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ success: true, message: 'Password updated successfully' });
   } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 } 

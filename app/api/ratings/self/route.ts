@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NotificationType } from "@prisma/client";
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export async function POST(req: Request) {
   try {
@@ -80,10 +82,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(results);
   } catch (error) {
-    console.error("Error submitting self-ratings:", error);
-    return NextResponse.json(
-      { error: "Failed to submit self-ratings" },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }

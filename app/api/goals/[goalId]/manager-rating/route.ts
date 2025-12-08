@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 import { NotificationType } from '@prisma/client';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export async function POST(
   request: Request,
@@ -210,16 +212,7 @@ export async function POST(
       updatedAt: rating.updatedAt,
     });
   } catch (error) {
-    console.error('Error submitting manager rating:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    const statusCode = error instanceof Error && errorMessage.includes('not found') ? 404 : 500;
-    
-    return NextResponse.json(
-      {
-        error: 'Failed to submit rating',
-        message: errorMessage
-      },
-      { status: statusCode }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }

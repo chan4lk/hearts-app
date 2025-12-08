@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 import { Role } from '@prisma/client';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -93,13 +95,7 @@ export async function GET() {
       activeCount: activeEmployees
     });
   } catch (error) {
-    console.error('Error fetching employees:', error);
-    return NextResponse.json(
-      { 
-        error: 'Failed to fetch employees',
-        message: error instanceof Error ? error.message : 'Unknown error occurred'
-      },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 } 

@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { generatePerformanceReview } from '@/lib/openai';
 import { prisma } from '@/lib/prisma';
 import { rateLimiters } from '@/lib/rateLimit';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export async function POST(request: NextRequest) {
   try {
@@ -116,11 +118,8 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error generating performance review:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate performance review' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }
 

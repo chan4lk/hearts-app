@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 // Due date update endpoint for goals
 export async function PATCH(
@@ -124,11 +126,7 @@ export async function PATCH(
       goal: updatedGoal
     });
   } catch (error) {
-    console.error('Error updating goal due date:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to update goal due date';
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }

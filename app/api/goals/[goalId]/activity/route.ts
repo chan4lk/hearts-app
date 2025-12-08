@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
 
 export async function GET(
   request: NextRequest,
@@ -178,11 +180,8 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('Error fetching goal activity:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch goal activity' },
-      { status: 500 }
-    );
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
   }
 }
 
