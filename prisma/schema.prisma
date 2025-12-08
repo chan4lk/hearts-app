@@ -38,9 +38,22 @@ model User {
   reportingPersonFor  ReviewCycle[]  @relation("ReviewCycleReportingPerson")
   updatedReviewCycles ReviewCycle[]  @relation("ReviewCycleUpdater")
 
+  // Foreign key and login-related indexes
   @@index([managerId])
   @@index([lastLoginAt])
   @@index([lastLoginAttempt])
+  
+  // Frequently filtered fields
+  @@index([role])
+  @@index([department])
+  @@index([isActive])
+  @@index([createdAt])
+  
+  // Composite indexes for common query patterns
+  @@index([role, isActive])          // Get active users by role
+  @@index([managerId, isActive])     // Get active employees for a manager
+  @@index([department, isActive])    // Get active users by department
+  @@index([role, department])        // Users by role and department
 }
 
 model Goal {
@@ -77,11 +90,31 @@ model Goal {
   notifications      Notification[]
   rating             Rating? // One-to-one: each goal has at most one rating record
 
+  // Foreign key indexes
   @@index([managerId])
   @@index([employeeId])
   @@index([createdById])
   @@index([updatedById])
   @@index([deletedById])
+  
+  // Single column indexes for frequently filtered fields
+  @@index([status])
+  @@index([category])
+  @@index([priority])
+  @@index([department])
+  @@index([createdAt])
+  @@index([dueDate])
+  @@index([progressStatus])
+  
+  // Composite indexes for common query patterns
+  @@index([status, employeeId])        // Get goals by status for an employee
+  @@index([status, managerId])         // Get goals by status for a manager
+  @@index([employeeId, status])        // Alternative ordering for employee status queries
+  @@index([category, status])          // Filter goals by category and status
+  @@index([department, status])        // Filter goals by department and status
+  @@index([status, dueDate])           // Find overdue goals by status
+  @@index([employeeId, dueDate])       // Employee goals sorted by due date
+  @@index([status, createdAt])         // Status-based queries sorted by creation date
 }
 
 model Rating {
@@ -123,8 +156,19 @@ model Notification {
   goal      Goal?            @relation(fields: [goalId], references: [id])
   user      User             @relation(fields: [userId], references: [id])
 
+  // Foreign key indexes
   @@index([userId])
   @@index([goalId])
+  
+  // Frequently filtered and sorted fields
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([type])
+  
+  // Composite indexes for common query patterns
+  @@index([userId, isRead])          // Get unread notifications for user
+  @@index([userId, createdAt])       // User notifications sorted by date
+  @@index([userId, isRead, createdAt]) // Optimized for unread notifications query
 }
 
 enum Role {
