@@ -7,6 +7,7 @@ import { prisma } from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { rateLimiters } from '@/lib/rateLimit';
+import { getPaginationFromSearchParams, getPaginationMeta, PAGINATION_LIMITS } from '@/lib/pagination';
 
 // Define GoalStatus enum locally
 enum GoalStatus {
@@ -120,10 +121,11 @@ export async function GET(req: Request) {
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
     
-    // Pagination parameters
-    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
-    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20')));
-    const skip = (page - 1) * limit;
+    // Pagination parameters with limits
+    const { page, limit, skip } = getPaginationFromSearchParams(
+      searchParams,
+      PAGINATION_LIMITS.GOALS
+    );
     
     // Sort parameters
     const sortBy = searchParams.get('sortBy') || 'createdAt';
@@ -331,14 +333,7 @@ export async function GET(req: Request) {
         ...stats,
         categories: categoryStats
       },
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-        hasNext: skip + limit < total,
-        hasPrev: page > 1
-      },
+      pagination: getPaginationMeta(page, limit, total),
       meta: {
         view: effectiveView,
         role: userRole,

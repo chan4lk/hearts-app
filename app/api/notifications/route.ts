@@ -1,16 +1,31 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getPaginationFromSearchParams, getPaginationMeta, PAGINATION_LIMITS } from '@/lib/pagination';
 
 // GET user's notifications
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Get pagination parameters
+    const { searchParams } = new URL(req.url);
+    const { page, limit, skip } = getPaginationFromSearchParams(
+      searchParams,
+      PAGINATION_LIMITS.NOTIFICATIONS
+    );
+
+    // Get total count
+    const total = await prisma.notification.count({
+      where: {
+        userId: session.user.id
+      }
+    });
 
     const notifications = await prisma.notification.findMany({
       where: {
@@ -27,10 +42,14 @@ export async function GET() {
       orderBy: {
         createdAt: 'desc'
       },
-      take: 50 // Limit to last 50 notifications
+      skip,
+      take: limit
     });
 
-    return NextResponse.json({ notifications });
+    return NextResponse.json({ 
+      notifications,
+      pagination: getPaginationMeta(page, limit, total)
+    });
   } catch (error) {
     console.error('Error fetching notifications:', error);
     return NextResponse.json(

@@ -1,13 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { Role } from '@prisma/client';
+import { getPaginationFromSearchParams, getPaginationMeta, PAGINATION_LIMITS } from '@/lib/pagination';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -23,6 +24,12 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const managerIdParam = searchParams.get('managerId');
 
+    // Get pagination parameters
+    const { page, limit, skip } = getPaginationFromSearchParams(
+      searchParams,
+      PAGINATION_LIMITS.MAX_STANDARD
+    );
+
     // Determine which manager's employees to fetch
     const targetManagerId = (session.user.role === Role.ADMIN && managerIdParam)
       ? managerIdParam
@@ -33,6 +40,9 @@ export async function GET(request: Request) {
     const whereClause = {
       managerId: targetManagerId
     };
+
+    // Get total count
+    const total = await prisma.user.count({ where: whereClause });
 
     const employees = await prisma.user.findMany({
       where: whereClause,
@@ -63,7 +73,9 @@ export async function GET(request: Request) {
       },
       orderBy: {
         name: 'asc'
-      }
+      },
+      skip,
+      take: limit
     });
 
     return NextResponse.json({ 
@@ -77,7 +89,8 @@ export async function GET(request: Request) {
         isActive: emp.isActive,
         manager: emp.manager,
         goalsCount: emp._count.goals
-      }))
+      })),
+      pagination: getPaginationMeta(page, limit, total)
     });
   } catch (error) {
     console.error('Error fetching assigned employees:', error);

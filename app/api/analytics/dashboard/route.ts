@@ -112,8 +112,12 @@ export async function GET(req: Request) {
     }
 
     // Get all goals for analysis
+    // Apply safety limit to prevent excessive data retrieval (analytics may need all data, but cap it)
+    const MAX_ANALYTICS_GOALS = 10000; // Safety limit for analytics queries
+    
     const goals = await prisma.goal.findMany({
       where: goalWhereClause,
+      take: MAX_ANALYTICS_GOALS, // Safety limit
       include: {
         employee: { select: { id: true, name: true, email: true, department: true } },
         rating: true
@@ -122,8 +126,12 @@ export async function GET(req: Request) {
     });
 
     // Get users for team analysis
+    // Apply safety limit to prevent excessive data retrieval
+    const MAX_ANALYTICS_USERS = 5000; // Safety limit for user analytics
+    
     const users = await prisma.user.findMany({
       where: userWhereClause,
+      take: MAX_ANALYTICS_USERS, // Safety limit
       select: {
         id: true,
         name: true,

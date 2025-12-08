@@ -20,13 +20,15 @@ export async function GET() {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Fetch all goals
+    // Fetch all goals (with safety limit for stats calculation)
+    const MAX_STATS_GOALS = 10000; // Safety limit for stats queries
     const goals = await prisma.goal.findMany({
       where: {
         status: {
           not: 'DELETED'
         }
       },
+      take: MAX_STATS_GOALS, // Safety limit
       include: {
         employee: {
           select: {
@@ -50,14 +52,15 @@ export async function GET() {
       modified: goals.filter((g) => g.status === 'MODIFIED').length
     };
 
-    // Get user counts
+    // Get user counts (with safety limit)
+    const MAX_STATS_USERS = 5000; // Safety limit for stats queries
     const users = await prisma.user.findMany({
       where: {
         role: {
           in: ['EMPLOYEE', 'MANAGER']
         }
-      }
-    });
+      },
+      take: MAX_STATS_USERS, // Safety limit
 
     const userStats = {
       totalEmployees: users.filter((u) => u.role === 'EMPLOYEE').length,

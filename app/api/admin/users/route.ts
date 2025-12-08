@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs';
 import { Role, Prisma, PrismaClient } from '.prisma/client';
 import { logger } from '@/lib/logger';
 import { rateLimiters } from '@/lib/rateLimit';
+import { getPaginationFromSearchParams, getPaginationMeta, PAGINATION_LIMITS } from '@/lib/pagination';
 
 interface CreateUserBody {
   name: string;
@@ -52,10 +53,12 @@ export async function GET(request: Request) {
     // Check if minimal mode is requested (for dropdowns - faster loading)
     const minimal = searchParams.get('minimal') === 'true';
     
-    // Pagination parameters
-    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
-    const limit = minimal ? Math.min(1000, Math.max(1, parseInt(searchParams.get('limit') || '1000'))) : Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20')));
-    const skip = (page - 1) * limit;
+    // Pagination parameters with limits
+    const maxLimit = minimal ? PAGINATION_LIMITS.USERS_MINIMAL : PAGINATION_LIMITS.USERS;
+    const { page, limit, skip } = getPaginationFromSearchParams(
+      searchParams,
+      maxLimit
+    );
     
     // Filter parameters
     const role = searchParams.get('role');
@@ -154,14 +157,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       users,
       ...(minimal ? {} : {
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit),
-          hasNext: skip + limit < total,
-          hasPrev: page > 1
-        }
+        pagination: getPaginationMeta(page, limit, total)
       })
     });
   } catch (error) {

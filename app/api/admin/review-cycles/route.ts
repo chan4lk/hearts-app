@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma'; // Prisma client with ReviewCycle model
 import { NotificationType } from '@prisma/client';
+import { getPaginationFromSearchParams, getPaginationMeta, PAGINATION_LIMITS } from '@/lib/pagination';
 
 // GET all review cycles with pagination support
 export async function GET(req: Request) {
@@ -15,10 +16,11 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url);
     
-    // Pagination parameters
-    const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
-    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20')));
-    const skip = (page - 1) * limit;
+    // Pagination parameters with limits
+    const { page, limit, skip } = getPaginationFromSearchParams(
+      searchParams,
+      PAGINATION_LIMITS.REVIEW_CYCLES
+    );
     
     // Filtering parameters
     const userId = searchParams.get('userId');
@@ -101,14 +103,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       reviewCycles,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-        hasNext: skip + limit < total,
-        hasPrev: page > 1
-      }
+      pagination: getPaginationMeta(page, limit, total)
     });
   } catch (error) {
     console.error('Error fetching review cycles:', error);
