@@ -189,9 +189,11 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
 
   // Function to check if current path matches exactly
   const isPathActive = (href: string) => {
+    // Extract pathname from href (remove query params and hash)
+    const hrefPath = href.split('?')[0].split('#')[0];
     // Remove trailing slashes for consistent comparison
     const cleanPath = pathname.replace(/\/$/, '');
-    const cleanHref = href.replace(/\/$/, '');
+    const cleanHref = hrefPath.replace(/\/$/, '');
     // Only return true if paths match exactly
     return cleanPath === cleanHref;
   };
