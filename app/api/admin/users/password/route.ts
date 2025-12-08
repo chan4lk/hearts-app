@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { logger } from '@/lib/logger';
 
 export async function PUT(request: Request) {
   try {
@@ -46,8 +47,8 @@ export async function PUT(request: Request) {
       }
     }
 
-    // Hash new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    // Hash new password (use consistent bcrypt rounds - 12 recommended)
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
 
     // Update user password
     await prisma.user.update({
@@ -59,7 +60,7 @@ export async function PUT(request: Request) {
 
     return NextResponse.json({ success: true, message: 'Password updated successfully' });
   } catch (error) {
-    console.error('Error updating password:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

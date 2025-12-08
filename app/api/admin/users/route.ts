@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { Role, Prisma, PrismaClient } from '.prisma/client';
+import { logger } from '@/lib/logger';
 
 interface CreateUserBody {
   name: string;
@@ -163,7 +164,7 @@ export async function GET(request: Request) {
       })
     });
   } catch (error) {
-    console.error('Error fetching users:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -270,7 +271,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    console.error('Error creating user:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -283,18 +284,15 @@ export async function PUT(req: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user || session.user.role !== 'ADMIN') {
-      console.log('Update failed: Unauthorized user', session?.user);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await req.json();
-    console.log('Received update request with body:', body);
 
     const { id, name, email, password, role, managerId, isActive } = body as UpdateUserBody;
 
     // Validate role is a valid Role enum value
     if (!Object.values(Role).includes(role)) {
-      console.log('Update failed: Invalid role', role);
       return NextResponse.json(
         { error: 'Invalid role specified' },
         { status: 400 }
@@ -302,7 +300,6 @@ export async function PUT(req: Request) {
     }
 
     if (!id || !name || !email || !role) {
-      console.log('Update failed: Missing required fields', { id, name, email, role });
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -340,7 +337,6 @@ export async function PUT(req: Request) {
       });
       
       if (!manager) {
-        console.log('Update failed: Manager not found', managerId);
         return NextResponse.json(
           { error: 'Selected manager does not exist' },
           { status: 400 }
@@ -349,7 +345,6 @@ export async function PUT(req: Request) {
 
       // Only MANAGER or ADMIN can be assigned as managers
       if (!canManage(manager.role, role)) {
-        console.log('Update failed: Manager role mismatch', { userRole: role, managerRole: manager.role });
         return NextResponse.json(
           { error: 'Only users with MANAGER or ADMIN role can be assigned as managers' },
           { status: 400 }
@@ -432,8 +427,6 @@ export async function PUT(req: Request) {
       updateData.managerId = managerId || null;
     }
 
-    console.log('Attempting to update user with data:', updateData);
-
     const user = await prisma.user.update({
       where: { id },
       data: updateData,
@@ -449,15 +442,9 @@ export async function PUT(req: Request) {
       }
     });
 
-    console.log('Successfully updated user:', user);
     return NextResponse.json(user);
   } catch (error: any) {
-    console.error('Error updating user:', {
-      error,
-      code: error.code,
-      message: error.message,
-      stack: error.stack
-    });
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }
@@ -543,21 +530,11 @@ export async function DELETE(request: Request) {
 
       return NextResponse.json({ success: true, message: 'User deleted successfully' });
     } catch (txError: any) {
-      console.error('Transaction error:', {
-        error: txError,
-        code: txError.code,
-        message: txError.message,
-        meta: txError.meta
-      });
+      logger.error(txError instanceof Error ? txError : new Error(String(txError)));
       throw txError; // Re-throw to be caught by outer catch
     }
   } catch (error: any) {
-    console.error('Error deleting user:', {
-      error,
-      code: error.code,
-      message: error.message,
-      meta: error.meta
-    });
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: `Failed to delete user: ${error.message}` },
       { status: 500 }

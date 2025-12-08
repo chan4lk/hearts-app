@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { compare } from 'bcryptjs';
 import { sign } from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export async function POST(req: Request) {
   try {
@@ -69,13 +70,22 @@ export async function POST(req: Request) {
     });
 
     // Create JWT token
+    const JWT_SECRET = process.env.JWT_SECRET;
+    if (!JWT_SECRET) {
+      logger.error(new Error('JWT_SECRET environment variable is required'));
+      return NextResponse.json(
+        { message: 'Server configuration error' },
+        { status: 500 }
+      );
+    }
+    
     const token = sign(
       { 
         userId: user.id,
         email: user.email,
         role: user.role 
       },
-      process.env.JWT_SECRET || 'your-secret-key',
+      JWT_SECRET,
       { expiresIn: '1d' }
     );
 
@@ -100,7 +110,7 @@ export async function POST(req: Request) {
 
     return response;
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { message: 'Error during login' },
       { status: 500 }

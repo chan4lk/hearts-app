@@ -5,6 +5,7 @@ import { prisma } from './prisma';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 import { verify } from 'jsonwebtoken';
+import { logger } from './logger';
 
 declare module 'next-auth' {
   interface User {
@@ -49,21 +50,22 @@ export const authOptions: NextAuthOptions = {
       },
       profile: async (profile, tokens) => {
         try {
-          console.log('[Azure AD] Processing profile:', {
-            email: profile.email,
-            name: profile.name,
-            groups: profile.groups || [],
-            roles: profile.roles || [],
-            tokens: tokens ? 'present' : 'missing'
-          });
+          // Only log in development - never log sensitive profile data in production
+          if (process.env.NODE_ENV === 'development') {
+            logger.log('Azure AD processing profile', 'Information', {
+              hasEmail: !!profile.email,
+              hasName: !!profile.name,
+              hasTokens: !!tokens
+            });
+          }
 
           // Validate required profile data
           if (!profile.email) {
             throw new Error('No email found in Azure AD profile');
           }
 
-          if (!profile.name) {
-            console.warn('[Azure AD] No name found in profile, using email as fallback');
+          if (!profile.name && process.env.NODE_ENV === 'development') {
+            logger.log('Azure AD: No name found, using email as fallback', 'Warning');
           }
 
           // Normalize email to lowercase for case-insensitive lookup
@@ -79,11 +81,9 @@ export const authOptions: NextAuthOptions = {
 
           // If user exists, don't automatically update their role
           if (existingUser) {
-            console.log(`[Azure AD] Existing user found:`, {
-              id: existingUser.id,
-              email: existingUser.email,
-              role: existingUser.role
-            });
+            if (process.env.NODE_ENV === 'development') {
+              logger.log('Azure AD: Existing user found', 'Information');
+            }
             return {
               id: existingUser.id,
               name: existingUser.name,
@@ -92,7 +92,7 @@ export const authOptions: NextAuthOptions = {
             };
           }
         } catch (error) {
-          console.error('[Azure AD] Error in profile processing:', error);
+          logger.error(error instanceof Error ? error : new Error(String(error)));
           throw error;
         }
 
@@ -100,10 +100,12 @@ export const authOptions: NextAuthOptions = {
         // Admin will manually change roles in admin panel
         let role: Role = 'EMPLOYEE';
 
-        // Normalize email for logging
+        // Normalize email for database
         const normalizedEmail = profile.email.toLowerCase().trim();
 
-        console.log(`[Azure AD] Creating new user with default EMPLOYEE role: ${normalizedEmail}`);
+        if (process.env.NODE_ENV === 'development') {
+          logger.log('Azure AD: Creating new user with EMPLOYEE role', 'Information');
+        }
 
         try {
           // Create new user with determined role
@@ -117,11 +119,9 @@ export const authOptions: NextAuthOptions = {
             },
           });
 
-          console.log(`[Azure AD] New user created:`, {
-            id: user.id,
-            email: user.email,
-            role: user.role
-          });
+          if (process.env.NODE_ENV === 'development') {
+            logger.log('Azure AD: New user created', 'Information');
+          }
 
           return {
             id: user.id,
@@ -213,7 +213,7 @@ export const authOptions: NextAuthOptions = {
             role: user.role,
           };
         } catch (error) {
-          console.error('Authentication error:', error);
+          logger.error(error instanceof Error ? error : new Error(String(error)));
           throw error;
         }
       },
@@ -241,7 +241,9 @@ export const authOptions: NextAuthOptions = {
 
           // If user doesn't exist, try to create them (fallback in case profile callback failed)
           if (!dbUser) {
-            console.warn('[signIn] User not found in database, attempting to create:', user.email);
+            if (process.env.NODE_ENV === 'development') {
+              logger.log('SignIn: User not found, attempting to create', 'Warning');
+            }
 
             try {
               // Always assign EMPLOYEE role for new users
@@ -258,19 +260,13 @@ export const authOptions: NextAuthOptions = {
                 },
               });
 
-              console.log('[signIn] User created successfully with EMPLOYEE role:', {
-                id: dbUser.id,
-                email: dbUser.email,
-                role: dbUser.role
-              });
+              if (process.env.NODE_ENV === 'development') {
+                logger.log('SignIn: User created successfully', 'Information');
+              }
             } catch (createError) {
-              console.error('[signIn] Failed to create user:', {
-                error: createError,
-                errorMessage: createError instanceof Error ? createError.message : 'Unknown error',
-                errorStack: createError instanceof Error ? createError.stack : undefined,
-                userEmail: user.email,
-                timestamp: new Date().toISOString()
-              });
+              logger.error(
+                createError instanceof Error ? createError : new Error(String(createError))
+              );
               // Return false to show access denied error
               // This triggers NextAuth to redirect to /error?error=AccessDenied
               return false;
@@ -282,22 +278,16 @@ export const authOptions: NextAuthOptions = {
           user.role = dbUser.role;
           user.email = dbUser.email; // Use the email from database (preserves original casing)
 
-          console.log(`[signIn] User logged in successfully:`, {
-            id: user.id,
-            email: user.email,
-            role: user.role
-          });
+          if (process.env.NODE_ENV === 'development') {
+            logger.log('SignIn: User logged in successfully', 'Information');
+          }
         }
         return true;
       } catch (error) {
-        console.error('[signIn] Error in signIn callback:', {
-          error: error,
-          errorMessage: error instanceof Error ? error.message : 'Unknown error',
-          errorStack: error instanceof Error ? error.stack : undefined,
-          provider: account?.provider,
-          userEmail: user?.email,
-          timestamp: new Date().toISOString()
-        });
+        logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          { provider: account?.provider }
+        );
         // Return false to show access denied error
         // This triggers NextAuth to redirect to /error?error=AccessDenied
         return false;
@@ -324,7 +314,7 @@ export const authOptions: NextAuthOptions = {
 
             if (dbUser) {
               token.role = dbUser.role;
-              console.log(`[jwt] Updated token role from database: ${dbUser.role}`);
+              // Don't log role updates - security risk
             }
           } catch (error) {
             console.error('[jwt] Error fetching user role from database:', error);
@@ -335,14 +325,7 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        console.log('[session] Initial session data:', {
-          email: session.user.email,
-          role: session.user.role
-        });
-        console.log('[session] Token data:', {
-          id: token.id,
-          role: token.role
-        });
+        // Don't log session data - security risk
 
         // Ensure the session user has the correct type
         const sessionUser = session.user as User & { role?: Role };
@@ -361,23 +344,12 @@ export const authOptions: NextAuthOptions = {
           if (dbUser) {
             sessionUser.id = dbUser.id;
             sessionUser.role = dbUser.role;
-            console.log(`[session] Updated session with database values:`, {
-              id: dbUser.id,
-              role: dbUser.role,
-              email: sessionUser.email
-            });
           } else {
-            console.error(`[session] User not found in database: ${sessionUser.email}`);
+            logger.error(new Error('Session: User not found in database'));
           }
         } catch (error) {
-          console.error('[session] Error fetching user data from database:', error);
+          logger.error(error instanceof Error ? error : new Error(String(error)));
         }
-
-        console.log('[session] Final session data:', {
-          id: sessionUser.id,
-          email: sessionUser.email,
-          role: sessionUser.role
-        });
       }
       return session;
     },
@@ -406,14 +378,16 @@ export const authOptions: NextAuthOptions = {
   },
   logger: {
     error(code, ...message) {
-      console.error(code, message);
+      logger.error(new Error(`NextAuth: ${code} - ${message.join(' ')}`));
     },
     warn(code, ...message) {
-      console.warn(code, message);
+      if (process.env.NODE_ENV === 'development') {
+        logger.log(`NextAuth Warning: ${code}`, 'Warning', { message: message.join(' ') });
+      }
     },
     debug(code, ...message) {
       if (process.env.NODE_ENV === 'development') {
-        console.debug(code, message);
+        logger.log(`NextAuth Debug: ${code}`, 'Verbose', { message: message.join(' ') });
       }
     },
   },

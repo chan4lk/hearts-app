@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
+import { logger } from '@/lib/logger';
 
 // Status update endpoint for goals
 // Manager-assigned goals: Start as APPROVED → Employee can update to IN_PROGRESS → COMPLETED and others
@@ -23,7 +24,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Status is required' }, { status: 400 });
     }
 
-    console.log(`📝 Status update request: goalId=${params.goalId}, newStatus=${status}, userId=${session.user.id}, role=${session.user.role}`);
+    // Removed: Sensitive data logging (userId, role)
 
     // Get the goal
     const goal = await prisma.goal.findUnique({
@@ -81,7 +82,7 @@ export async function PATCH(
       // Employees can set progress-related statuses from APPROVED or update existing progress statuses
       const employeeAllowedStatuses = ['NOT_STARTED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED', 'COMPLETED'];
       if (!employeeAllowedStatuses.includes(status)) {
-        console.error(`❌ Employee status update rejected: currentStatus=${goal.status}, requestedStatus=${status}, allowedStatuses=${employeeAllowedStatuses.join(', ')}`);
+        logger.log('Employee status update rejected', 'Warning', { currentStatus: goal.status, requestedStatus: status });
         return NextResponse.json(
           { error: `Invalid status for employee. Allowed: ${employeeAllowedStatuses.join(', ')}` },
           { status: 400 }
@@ -243,7 +244,7 @@ export async function PATCH(
       goal: updatedGoal
     });
   } catch (error) {
-    console.error('Error updating goal status:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     const errorMessage = error instanceof Error ? error.message : 'Failed to update goal status';
     return NextResponse.json(
       { error: errorMessage },

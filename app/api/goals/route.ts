@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
+import { logger } from '@/lib/logger';
 
 // Define GoalStatus enum locally
 enum GoalStatus {
@@ -345,7 +346,7 @@ export async function GET(req: Request) {
       }
     });
   } catch (error) {
-    console.error('Error fetching goals:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Failed to fetch goals' }, { status: 500 });
   }
 }
@@ -460,22 +461,14 @@ export async function POST(req: Request) {
       }
     }
 
-    // Log for debugging - verify status is set correctly
-    console.log('Goal created with status:', {
-      goalId: goal.id,
-      status: goal.status,
-      createdBy: userRole,
-      isManagerAssigning: isAdminOrManager && !isSelfGoal,
-      targetEmployeeId,
-      userId
-    });
+    // Don't log sensitive goal data - security risk
 
     return NextResponse.json({
       success: true,
       goal
     }, { status: 201 });
   } catch (error) {
-    console.error('Error creating goal:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Failed to create goal' }, { status: 500 });
   }
 }
@@ -563,7 +556,7 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json(deletedGoal);
   } catch (error) {
-    console.error('Error deleting goal:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Failed to delete goal' },
       { status: 500 }
@@ -698,7 +691,7 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json(updatedGoal);
   } catch (error) {
-    console.error('Error updating goal:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Failed to update goal' },
       { status: 500 }

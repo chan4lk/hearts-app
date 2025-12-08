@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export async function GET(req: Request) {
   try {
@@ -21,14 +22,10 @@ export async function GET(req: Request) {
     const userRole = session.user.role;
     const userId = session.user.id;
     
-    console.log('[Analytics API] Request from user:', {
-      userId,
-      role: userRole,
-      email: session.user.email,
-      context,
-      employeeId,
-      department
-    });
+    // Only log in development - never log sensitive user data in production
+    if (process.env.NODE_ENV === 'development') {
+      logger.log('Analytics API request', 'Information', { role: userRole, context });
+    }
 
     // Build date range filter
     const dateFilter: any = {};
@@ -354,7 +351,7 @@ export async function GET(req: Request) {
       }
     });
   } catch (error) {
-    console.error('Error fetching analytics:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Failed to fetch analytics' },
       { status: 500 }

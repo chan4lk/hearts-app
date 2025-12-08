@@ -5,11 +5,11 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { GoalStatus } from '@prisma/client';
+import { logger } from '@/lib/logger';
 
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    console.log('Session:', session); // Debug log
 
     if (!session?.user) {
       return new NextResponse('Unauthorized', { status: 401 });
@@ -81,7 +81,6 @@ export async function GET(req: Request) {
         createdAt: 'desc',
       },
     });
-    console.log('Found goals:', goals); // Debug log
 
     // Transform the data to include ratings and all goal fields
     const goalsWithRatings = goals.map(goal => ({
@@ -102,10 +101,9 @@ export async function GET(req: Request) {
       updatedAt: goal.updatedAt.toISOString(),
     }));
 
-    console.log('Transformed goals:', goalsWithRatings); // Debug log
     return NextResponse.json(goalsWithRatings);
   } catch (error) {
-    console.error('Error fetching goals:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { 
         error: 'Failed to fetch goals',
@@ -172,7 +170,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(goalWithCategory);
   } catch (error) {
-    console.error('Error creating manager goal:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Failed to create goal' },
       { status: 500 }

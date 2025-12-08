@@ -384,7 +384,6 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                   <Link
                     href={item.href}
                     onClick={(e) => {
-                      console.log('[Nav] Clicked link:', item.href);
                       setIsPageTransitioning(true);
                       // Add a small delay for visual feedback
                       setTimeout(() => {
