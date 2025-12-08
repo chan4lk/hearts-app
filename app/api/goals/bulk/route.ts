@@ -6,7 +6,7 @@ import { GoalStatus, GoalCategory, NotificationType } from '@prisma/client';
 import { rateLimiters } from '@/lib/rateLimit';
 import { logger } from '@/lib/logger';
 import { handleApiError } from '@/app/api/utils/error-handler';
-
+ 
 interface BulkGoalData {
   title: string;
   description: string;
@@ -16,11 +16,11 @@ interface BulkGoalData {
   department: string;
   priority: string;
 }
-
+ 
 interface BulkGoalRequest {
   goals: BulkGoalData[];
 }
-
+ 
 interface BulkGoalResponse {
   success: boolean;
   message: string;
@@ -33,15 +33,24 @@ interface BulkGoalResponse {
     goal: BulkGoalData;
   }>;
 }
-
+ 
 export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalResponse>> {
   try {
     // Apply strict rate limiting for bulk operations
     const rateLimitResponse = await rateLimiters.bulk(req);
     if (rateLimitResponse) {
-      return rateLimitResponse;
+      // Rate limit exceeded - return error response matching BulkGoalResponse format
+      return NextResponse.json<BulkGoalResponse>(
+        {
+          success: false,
+          message: 'Too many requests, please try again later.',
+          created: 0,
+          failed: 0
+        },
+        { status: 429 }
+      );
     }
-
+ 
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json(
@@ -49,7 +58,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
         { status: 401 }
       );
     }
-
+ 
     // Check if user has permission to create goals
     const isAdminOrManager = session.user.role === 'ADMIN' || session.user.role === 'MANAGER';
     if (!isAdminOrManager) {
@@ -58,29 +67,29 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
         { status: 403 }
       );
     }
-
+ 
     const body: BulkGoalRequest = await req.json();
-    
+   
     if (!body.goals || !Array.isArray(body.goals) || body.goals.length === 0) {
       return NextResponse.json(
         { success: false, message: 'No goals provided', created: 0, failed: 0 },
         { status: 400 }
       );
     }
-
+ 
     if (body.goals.length > 50) {
       return NextResponse.json(
         { success: false, message: 'Maximum 50 goals allowed per batch', created: 0, failed: 0 },
         { status: 400 }
       );
     }
-
+ 
     const errors: Array<{ index: number; error: string; goal: BulkGoalData }> = [];
-
+ 
     // Validate all goals first
     for (let i = 0; i < body.goals.length; i++) {
       const goal = body.goals[i];
-      
+     
       // Basic validation
       if (!goal.title?.trim()) {
         errors.push({
@@ -90,7 +99,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
         });
         continue;
       }
-
+ 
       if (!goal.employeeId?.trim()) {
         errors.push({
           index: i,
@@ -99,7 +108,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
         });
         continue;
       }
-
+ 
       if (!goal.dueDate) {
         errors.push({
           index: i,
@@ -108,7 +117,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
         });
         continue;
       }
-
+ 
       // Validate due date
       const dueDate = new Date(goal.dueDate);
       if (isNaN(dueDate.getTime())) {
@@ -119,7 +128,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
         });
         continue;
       }
-
+ 
       // Check if due date is in the past
       if (dueDate < new Date()) {
         errors.push({
@@ -129,7 +138,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
         });
         continue;
       }
-
+ 
       // Validate category
       const validCategories = ['PROFESSIONAL', 'TECHNICAL', 'LEADERSHIP', 'PERSONAL', 'TRAINING', 'KPI'];
       if (!validCategories.includes(goal.category)) {
@@ -140,7 +149,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
         });
         continue;
       }
-
+ 
       // Validate priority
       const validPriorities = ['LOW', 'MEDIUM', 'HIGH'];
       if (!validPriorities.includes(goal.priority)) {
@@ -152,7 +161,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
         continue;
       }
     }
-
+ 
     // If there are validation errors, return them
     if (errors.length > 0) {
       return NextResponse.json({
@@ -163,10 +172,10 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
         errors
       }, { status: 400 });
     }
-
+ 
     // Verify all employees exist
     const employeeIds = Array.from(new Set(body.goals.map(goal => goal.employeeId)));
-
+ 
     // Check if all employees exist (don't require them to be assigned to this manager)
     const existingEmployees = await prisma.user.findMany({
       where: {
@@ -174,10 +183,10 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
       },
       select: { id: true, name: true, email: true }
     });
-
+ 
     const foundEmployeeIds = new Set(existingEmployees.map(emp => emp.id));
     const missingEmployeeIds = employeeIds.filter(id => !foundEmployeeIds.has(id));
-
+ 
     if (missingEmployeeIds.length > 0) {
       return NextResponse.json({
         success: false,
@@ -186,15 +195,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
         failed: body.goals.length
       }, { status: 400 });
     }
-
+ 
     // Create goals in a transaction
     try {
       const result = await prisma.$transaction(async (tx) => {
         const createdGoals = [];
-        
+       
         for (let i = 0; i < body.goals.length; i++) {
           const goalData = body.goals[i];
-          
+         
           try {
             const goal = await tx.goal.create({
               data: {
@@ -227,9 +236,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
                 }
               }
             });
-            
+           
             createdGoals.push(goal);
-            
+           
             // Create notification for employee when goal is bulk assigned
             await tx.notification.create({
               data: {
@@ -244,10 +253,10 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
             throw new Error(`Failed to create goal ${i + 1}: ${goalData.title}`);
           }
         }
-        
+       
         return createdGoals;
       });
-
+ 
       return NextResponse.json({
         success: true,
         message: `Successfully created ${result.length} goal(s)`,
@@ -255,7 +264,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
         failed: 0,
         goals: result
       }, { status: 201 });
-
+ 
     } catch (transactionError) {
       logger.error(transactionError instanceof Error ? transactionError : new Error(String(transactionError)));
       return NextResponse.json({
@@ -265,27 +274,36 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
         failed: body.goals.length
       }, { status: 500 });
     }
-
+ 
   } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
-    return handleApiError(error);
+    // Return error in BulkGoalResponse format
+    return NextResponse.json<BulkGoalResponse>(
+      {
+        success: false,
+        message: error instanceof Error ? error.message : 'Internal server error',
+        created: 0,
+        failed: 0
+      },
+      { status: 500 }
+    );
   }
 }
-
+ 
 // GET endpoint to retrieve bulk goal creation templates
 export async function GET(): Promise<NextResponse> {
   try {
     const session = await getServerSession(authOptions);
-    
+   
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
+ 
     // Only managers and admins can access bulk goal templates
     if (session.user.role !== 'MANAGER' && session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-
+ 
     // Return template structure
     return NextResponse.json({
       template: {
