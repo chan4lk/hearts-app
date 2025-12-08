@@ -158,12 +158,6 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
     // Verify all employees exist
     const employeeIds = Array.from(new Set(body.goals.map(goal => goal.employeeId)));
 
-    console.log('Bulk goal creation - Employee validation:', {
-      currentManagerId: session.user.id,
-      currentUserRole: session.user.role,
-      employeeIdsToValidate: employeeIds
-    });
-
     // Check if all employees exist (don't require them to be assigned to this manager)
     const existingEmployees = await prisma.user.findMany({
       where: {
@@ -172,13 +166,10 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
       select: { id: true, name: true, email: true }
     });
 
-    console.log('Found employees:', existingEmployees);
-
     const foundEmployeeIds = new Set(existingEmployees.map(emp => emp.id));
     const missingEmployeeIds = employeeIds.filter(id => !foundEmployeeIds.has(id));
 
     if (missingEmployeeIds.length > 0) {
-      console.log('Missing employee IDs:', missingEmployeeIds);
       return NextResponse.json({
         success: false,
         message: `Invalid employee IDs: ${missingEmployeeIds.join(', ')}`,

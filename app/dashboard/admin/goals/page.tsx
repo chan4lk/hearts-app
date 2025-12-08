@@ -237,15 +237,10 @@ function AdminGoalSettingPageContent() {
     if (!selectedGoal) return;
     setLoading(true);
     try {
-      console.log('Updating goal:', selectedGoal.id, 'with data:', formData);
-      
       const goalData = {
         ...formData,
         dueDate: new Date(formData.dueDate).toISOString(),
       };
-      
-      console.log('Admin page - Sending update data:', goalData);
-      console.log('Admin page - Employee ID being sent:', goalData.employeeId);
 
       const response = await fetch(`/api/goals/${selectedGoal.id}`, {
         method: 'PUT',
@@ -253,16 +248,12 @@ function AdminGoalSettingPageContent() {
         body: JSON.stringify(goalData),
       });
 
-      console.log('Update response status:', response.status);
-
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Update error response:', errorData);
         throw new Error(errorData.error || 'Failed to update goal');
       }
 
       const { goal: updatedGoal } = await response.json();
-      console.log('Updated goal:', updatedGoal);
       
       setGoals(prevGoals => 
         prevGoals.map(g => g.id === selectedGoal.id ? updatedGoal : g)
@@ -313,14 +304,10 @@ function AdminGoalSettingPageContent() {
   const handleConfirmDelete = async () => {
     if (!goalToDelete) return;
     try {
-      console.log('Deleting goal:', goalToDelete.id);
-      
       const response = await fetch(`/api/goals/${goalToDelete.id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
       });
-
-      console.log('Delete response status:', response.status);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -329,7 +316,6 @@ function AdminGoalSettingPageContent() {
       }
 
       const result = await response.json();
-      console.log('Delete result:', result);
 
       setGoals(prevGoals => prevGoals.filter(goal => goal.id !== goalToDelete.id));
       toast.success('🗑️ Goal deleted successfully!', {

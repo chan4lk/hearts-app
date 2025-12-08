@@ -28,8 +28,6 @@ export async function GET(request: Request) {
       ? managerIdParam
       : session.user.id;
 
-    console.log('Fetching employees for manager:', targetManagerId);
-
     // Get all assigned users (managers, admins, employees) - any user can be assigned as a manager
     // Previously we only allowed employees, but now any MANAGER or ADMIN can be assigned
     const whereClause = {

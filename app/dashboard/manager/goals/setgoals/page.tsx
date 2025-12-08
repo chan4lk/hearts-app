@@ -238,10 +238,6 @@ function ManagerGoalSettingPageContent() {
   const handleBulkSubmit = async (bulkGoals: any[]) => {
     setLoading(true);
     try {
-      console.log('Submitting bulk goals:', {
-        goals: bulkGoals,
-        assignedEmployees: assignedEmployees.map(e => ({ id: e.id, name: e.name }))
-      });
 
       const response = await fetch('/api/goals/bulk', {
         method: 'POST',

@@ -68,12 +68,6 @@ export function GoalModals({
   // Filter out only the current admin user (self) from the employee dropdown
   // Allow assigning goals to other admins, managers, and employees
   const filteredUsers = users?.filter(user => user.id !== session?.user?.id) || [];
-  
-  // Debug: Log filtering results
-  console.log('GoalModals - Current user ID:', session?.user?.id);
-  console.log('GoalModals - Total users:', users?.length);
-  console.log('GoalModals - Filtered users:', filteredUsers?.length);
-  console.log('GoalModals - Filtered users:', filteredUsers?.map(u => ({ id: u.id, name: u.name, role: u.role })));
   const [localContext, setLocalContext] = useState(context);
   const [errors, setErrors] = useState<{
     title?: string;
@@ -101,11 +95,6 @@ export function GoalModals({
           priority: selectedGoal.priority || 'MEDIUM'
         };
         
-        // Log for debugging
-        console.log('Setting form data:', newFormData);
-        console.log('Selected goal:', selectedGoal);
-        console.log('Modal type:', isEditModalOpen ? 'edit' : 'create');
-        
         // Set the form data
         setFormData(newFormData);
       }, 100);
@@ -116,9 +105,7 @@ export function GoalModals({
 
   // Force re-render when formData changes
   useEffect(() => {
-    if (isEditModalOpen && selectedGoal) {
-      console.log('Form data updated:', formData);
-    }
+    // Form data changes handled by state updates
   }, [formData, isEditModalOpen, selectedGoal]);
 
   // Separate useEffect for resetting - only when both modals are closed
@@ -141,10 +128,8 @@ export function GoalModals({
   }, [isCreateModalOpen, isEditModalOpen]);
 
   const handleFormDataChange = (field: string, value: string) => {
-    console.log('GoalModals - Form data change:', field, value);
     setFormData(prev => {
       const newData = { ...prev, [field]: value };
-      console.log('GoalModals - New form data:', newData);
       return newData;
     });
   };

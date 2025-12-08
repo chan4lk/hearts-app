@@ -141,9 +141,6 @@ export async function PUT(req: Request, { params }: { params: { goalId: string }
 
     const body = await req.json();
     const { title, description, category, dueDate, department, priority, employeeId } = body;
-    
-    console.log('API - Received update data:', body);
-    console.log('API - Employee ID received:', employeeId);
 
     // Check if the goal exists
     const existingGoal = await prisma.goal.findUnique({
@@ -188,8 +185,6 @@ export async function PUT(req: Request, { params }: { params: { goalId: string }
       employeeId: employeeId || existingGoal.employeeId, // Allow updating employee assignment
       updatedById: session.user.id
     };
-    
-    console.log('API - Updating goal with data:', updateData);
     
     const goal = await prisma.goal.update({
       where: { id: params.goalId },

@@ -79,12 +79,8 @@ export default function GoalProgressTracker({
       const finalProgress = progressValue !== undefined ? progressValue : progress;
       const finalStatus = statusValue || status;
 
-      console.log('🔄 Saving progress:', { finalProgress, finalStatus, notes });
-
       // Call the parent's onProgressUpdate function
       await onProgressUpdate(finalProgress, finalStatus, notes);
-
-      console.log('✅ Progress saved successfully');
 
       showToast.success('Progress Updated', `Goal is now ${finalProgress}% complete`);
       setShowNotes(false);

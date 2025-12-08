@@ -50,8 +50,6 @@ function ErrorContent() {
     } else {
       setErrorMessage('An unknown error occurred. Please try again.');
     }
-    
-    console.log(`[Error] Authentication error: ${error}`);
   }, [searchParams]);
 
   if (!mounted) {

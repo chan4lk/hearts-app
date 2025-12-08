@@ -49,22 +49,9 @@ export function GoalFormModal({
   onReset,
   onTemplateClick
 }: GoalFormModalProps) {
-  // Add useEffect to log form data changes for debugging
-  React.useEffect(() => {
-    if (isOpen && isEditMode) {
-      console.log('GoalFormModal - Current formData:', formData);
-    }
-  }, [formData, isOpen, isEditMode]);
-
   // Force re-render when modal opens in edit mode
   React.useEffect(() => {
-    if (isOpen && isEditMode) {
-      // Force a small delay to ensure the form is properly rendered
-      const timer = setTimeout(() => {
-        console.log('GoalFormModal - Modal opened in edit mode, formData:', formData);
-      }, 50);
-      return () => clearTimeout(timer);
-    }
+    // Form data changes handled by state updates
   }, [isOpen, isEditMode, formData]);
 
   if (!isOpen) return null;

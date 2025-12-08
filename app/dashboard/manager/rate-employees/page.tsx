@@ -315,7 +315,6 @@ export default function RateEmployeesPage() {
 
     try {
 
-      console.log('Submitting rating:', { goalId, value });
 
       const response = await fetch(`/api/goals/${goalId}/manager-rating`, {
         method: 'POST',
@@ -328,8 +327,6 @@ export default function RateEmployeesPage() {
           comments: '' // Allow empty comments
         })
       });
-
-      console.log('Rating response status:', response.status);
 
       if (!response.ok) {
         let errorData;
@@ -344,7 +341,6 @@ export default function RateEmployeesPage() {
       }
 
       const data = await response.json();
-      console.log('Rating updated successfully:', data);
 
       // Update with server response to ensure data consistency
       setGoals(prevGoals => {

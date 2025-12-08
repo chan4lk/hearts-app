@@ -92,11 +92,6 @@ export default function ApproveGoalsPage() {
       }
       const employeesData = await employeesResponse.json();
 
-      console.log('✅ Received employees data:', {
-        count: employeesData.employees?.length || 0,
-        employees: employeesData.employees
-      });
-
       // Transform the goals data to include required properties
       const transformedGoals = goalsData.map((goal: any) => ({
         ...goal,
@@ -214,7 +209,6 @@ export default function ApproveGoalsPage() {
     // Use functional update to ensure we're working with latest state
     setGoals(prevGoals => {
       const updated = prevGoals.map(g => g.id === goalId ? updatedGoal as Goal : g);
-      console.log('✅ Optimistically updated goal:', goalId, 'New status:', updatedGoal.status);
       return updated;
     });
     
@@ -247,7 +241,6 @@ export default function ApproveGoalsPage() {
       if (!response.ok) {
         throw new Error('Failed to approve goal');
       }
-      console.log('✅ Goal approved successfully:', goalId);
       // Success - no need to revert, UI is already updated
     })
     .catch(err => {
@@ -284,7 +277,6 @@ export default function ApproveGoalsPage() {
     // Use functional update to ensure we're working with latest state
     setGoals(prevGoals => {
       const updated = prevGoals.map(g => g.id === goalId ? updatedGoal as Goal : g);
-      console.log('✅ Optimistically updated goal:', goalId, 'New status:', updatedGoal.status);
       return updated;
     });
     
@@ -317,7 +309,6 @@ export default function ApproveGoalsPage() {
       if (!response.ok) {
         throw new Error('Failed to reject goal');
       }
-      console.log('✅ Goal rejected successfully:', goalId);
       // Success - no need to revert, UI is already updated
     })
     .catch(err => {
@@ -397,8 +388,6 @@ export default function ApproveGoalsPage() {
                 onGoalClick={(goal) => setSelectedGoalDetails(goal)}
                 onStatusUpdate={(goalId, newStatus, updatedGoal) => {
               // Handle status update - keep goal in list regardless of status (DRAFT, APPROVED, or REJECTED)
-              console.log('Status updated:', goalId, newStatus);
-              
               // Always update the goal in the list (don't remove it)
               setGoals(prevGoals => 
                 prevGoals.map(g => g.id === goalId ? updatedGoal as Goal : g)

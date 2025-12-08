@@ -28,8 +28,6 @@ export async function GET(request: Request) {
       ? managerIdParam
       : session.user.id;
 
-    console.log('Target Manager ID:', targetManagerId); // Debug log
-
     // First get all employees managed by this manager
     const employees = await prisma.user.findMany({
       where: {
@@ -41,7 +39,6 @@ export async function GET(request: Request) {
     });
 
     const employeeIds = employees.map(emp => emp.id);
-    console.log('Found employee IDs:', employeeIds); // Debug log
 
     // Then fetch pending goals for these employees
     const goals = await prisma.goal.findMany({
@@ -94,8 +91,6 @@ export async function GET(request: Request) {
         createdAt: 'desc',
       },
     });
-
-    console.log('Found goals:', goals); // Debug log
 
     // Transform the data to match the frontend interface
     const transformedGoals = goals.map(goal => ({

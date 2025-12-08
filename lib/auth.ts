@@ -153,11 +153,6 @@ export const authOptions: NextAuthOptions = {
             });
 
             if (existingUserRetry) {
-              console.log('[Azure AD] Found existing user on retry:', {
-                id: existingUserRetry.id,
-                email: existingUserRetry.email,
-                role: existingUserRetry.role
-              });
               return {
                 id: existingUserRetry.id,
                 name: existingUserRetry.name,
@@ -222,12 +217,6 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account, profile }) {
       try {
-        console.log('[signIn] Callback triggered:', {
-          provider: account?.provider,
-          userEmail: user?.email,
-          hasProfile: !!profile
-        });
-
         if (account?.provider === 'azure-ad') {
           // Use case-insensitive email lookup to find existing user
           let dbUser = await prisma.user.findFirst({

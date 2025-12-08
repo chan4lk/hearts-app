@@ -162,11 +162,6 @@ export default function UsersPage() {
 
   const handleCreateUser = async (formData: FormData) => {
     try {
-      console.log('Creating user with data:', {
-        ...formData,
-        password: '[REDACTED]'
-      });
-
       const response = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -183,18 +178,8 @@ export default function UsersPage() {
       const data = await response.json();
       
       if (!response.ok) {
-        console.error('Failed to create user:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: data.error
-        });
         throw new Error(data.error || 'Failed to create user');
       }
-
-      console.log('User created successfully:', {
-        ...data,
-        password: undefined
-      });
 
       setUsers(prev => [data, ...prev]);
       // Update managers list if the new user is a manager or admin
@@ -217,15 +202,6 @@ export default function UsersPage() {
       // Determine managerId based on role and current selection
       const managerId = formData.managerId || null;
 
-      console.log('Updating user with data:', {
-        id: selectedUser.id,
-        name: formData.name,
-        email: formData.email,
-        role: formData.role,
-        managerId,
-        isActive: formData.status === 'ACTIVE'
-      });
-
       const response = await fetch('/api/admin/users', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -241,12 +217,10 @@ export default function UsersPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Update failed with error:', errorData);
         throw new Error(errorData.error || 'Failed to update user');
       }
 
       const updatedUser = await response.json();
-      console.log('Successfully updated user:', updatedUser);
       
       setUsers(prev => prev.map(user => 
         user.id === updatedUser.id ? updatedUser : user

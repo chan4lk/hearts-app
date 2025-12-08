@@ -21,7 +21,6 @@ export async function POST(req: Request) {
     return NextResponse.json(goals[0]);
   } catch (error) {
     console.error('Error generating goal:', error);
-    console.log(error);
     return NextResponse.json(
       { error: 'Failed to generate goal' },
       { status: 500 }
