@@ -48,11 +48,11 @@ export function generatePDFReport(data: PDFReportData, title: string = 'Analytic
   const pageHeight = doc.internal.pageSize.getHeight();
   let yPosition = 20;
 
-  // Colors
-  const primaryColor = [59, 130, 246]; // Blue
-  const secondaryColor = [16, 185, 129]; // Green
-  const textColor = [31, 41, 55]; // Dark gray
-  const lightGray = [243, 244, 246];
+  // Colors - using tuple types for proper TypeScript support
+  const primaryColor: [number, number, number] = [59, 130, 246]; // Blue
+  const secondaryColor: [number, number, number] = [16, 185, 129]; // Green
+  const textColor: [number, number, number] = [31, 41, 55]; // Dark gray
+  const lightGray: [number, number, number] = [243, 244, 246];
 
   // Helper function to add a new page if needed
   const checkPageBreak = (requiredSpace: number) => {
@@ -65,7 +65,7 @@ export function generatePDFReport(data: PDFReportData, title: string = 'Analytic
   };
 
   // Cover Page
-  doc.setFillColor(...primaryColor);
+  doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
   doc.rect(0, 0, pageWidth, 60, 'F');
   
   doc.setTextColor(255, 255, 255);
@@ -81,7 +81,7 @@ export function generatePDFReport(data: PDFReportData, title: string = 'Analytic
 
   // Metadata Section
   if (data.metadata) {
-    doc.setTextColor(...textColor);
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     
@@ -113,10 +113,10 @@ export function generatePDFReport(data: PDFReportData, title: string = 'Analytic
 
   // Summary Section
   checkPageBreak(50);
-  doc.setFillColor(...lightGray);
+  doc.setFillColor(lightGray[0], lightGray[1], lightGray[2]);
   doc.rect(15, yPosition - 5, pageWidth - 30, 25, 'F');
   
-  doc.setTextColor(...textColor);
+  doc.setTextColor(textColor[0], textColor[1], textColor[2]);
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
   doc.text('Key Metrics Summary', 20, yPosition + 5);
@@ -147,7 +147,7 @@ export function generatePDFReport(data: PDFReportData, title: string = 'Analytic
     
     doc.setTextColor(100, 100, 100);
     doc.text(stat.label + ':', x, y);
-    doc.setTextColor(...textColor);
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
     doc.setFont('helvetica', 'bold');
     doc.text(stat.value, x + 50, y);
     doc.setFont('helvetica', 'normal');
@@ -165,7 +165,7 @@ export function generatePDFReport(data: PDFReportData, title: string = 'Analytic
   checkPageBreak(100);
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(...textColor);
+  doc.setTextColor(textColor[0], textColor[1], textColor[2]);
   doc.text('Goals Breakdown', 20, yPosition);
   yPosition += 10;
 
