@@ -163,7 +163,7 @@ export default function AnalyticsPage() {
     }
   };
 
-  // Initialize page - only run once when session is loaded
+  // Initialize page - fetch employees and analytics in parallel for faster loading
   useEffect(() => {
     if (sessionStatus === 'loading') {
       return; // Wait for session to load
@@ -174,11 +174,13 @@ export default function AnalyticsPage() {
       return;
     }
     
-    // Fetch employees and departments based on role (only once when session is ready)
+    // Fetch employees and analytics in parallel for faster loading
     const userRole = session.user.role;
     if (userRole === 'ADMIN' || userRole === 'MANAGER') {
       fetchEmployees();
     }
+    // Start fetching analytics immediately
+    fetchAnalytics();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionStatus]); // Only depend on sessionStatus to prevent loops
 
@@ -190,14 +192,20 @@ export default function AnalyticsPage() {
     }
     
     // Create a filter key to check if filters actually changed
-    const filterKey = `${startDate}-${endDate}-${selectedEmployee}-${selectedDepartment}`;
-    if (lastFiltersRef.current === filterKey && analyticsData) {
-      return; // Don't refetch if filters haven't changed and we already have data
+    const filterKey = `${startDate}-${endDate}-${selectedEmployee}-${selectedDepartment}-${dashboardType}`;
+    if (lastFiltersRef.current === filterKey) {
+      return; // Don't refetch if filters haven't changed
     }
     lastFiltersRef.current = filterKey;
     
     try {
-      setRefreshing(true);
+      // Set loading only on initial load, use refreshing for subsequent updates
+      if (!analyticsData) {
+        setLoading(true);
+      } else {
+        setRefreshing(true);
+      }
+
       const params = new URLSearchParams({
         startDate,
         endDate
@@ -303,7 +311,7 @@ export default function AnalyticsPage() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [sessionStatus, session?.user, startDate, endDate, selectedEmployee, selectedDepartment, dashboardType, analyticsData]);
+  }, [sessionStatus, session?.user, startDate, endDate, selectedEmployee, selectedDepartment, dashboardType]);
 
   // Fetch analytics when filters change (only after session is loaded)
   useEffect(() => {
@@ -315,9 +323,12 @@ export default function AnalyticsPage() {
       return; // Don't fetch if no session
     }
     
-    fetchAnalytics();
+    // Only fetch if this is not the initial load (initial load is handled above)
+    if (analyticsData !== null) {
+      fetchAnalytics();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionStatus, startDate, endDate, selectedEmployee, selectedDepartment, dashboardType, fetchAnalytics]);
+  }, [startDate, endDate, selectedEmployee, selectedDepartment, dashboardType]);
 
   // Handle refresh action
   const handleRefresh = useCallback(() => {
@@ -325,7 +336,7 @@ export default function AnalyticsPage() {
     fetchAnalytics().finally(() => setRefreshing(false));
   }, [fetchAnalytics]);
 
-  const handleExport = async (format: 'json') => {
+  const handleExport = async (format: 'pdf'): Promise<void> => {
     if (!analyticsData) {
       alert('No data available to export');
       return;
@@ -351,45 +362,24 @@ export default function AnalyticsPage() {
         }
       }
       
-      // JSON export
-      const response = await fetch('/api/reports/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          reportType: 'dashboard',
-          analyticsData,
-          options: {
-            filters: exportFilters,
-            role: session?.user?.role
-          }
-        })
-      });
-
-      const data = await response.json();
+      // Generate PDF client-side
+      const { generatePDFReport } = await import('@/app/utils/pdfGenerator');
       const reportData = {
-        ...data.report,
+        ...analyticsData,
         metadata: {
           exportedAt: new Date().toISOString(),
-          exportedBy: session?.user?.name || session?.user?.email,
-          role: session?.user?.role,
+          exportedBy: session?.user?.name || session?.user?.email || 'Unknown',
+          role: session?.user?.role || 'UNKNOWN',
           filters: exportFilters
         }
       };
-      const blob = new Blob([JSON.stringify(reportData, null, 2)], {
-        type: 'application/json'
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      
+      const pdfDoc = generatePDFReport(reportData, 'Performance Analytics Report');
       const rolePrefix = session?.user?.role === 'ADMIN' ? 'admin' : session?.user?.role === 'MANAGER' ? 'manager' : 'employee';
-      a.href = url;
-      a.download = `${rolePrefix}-analytics-report-${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
+      pdfDoc.save(`${rolePrefix}-analytics-report-${new Date().toISOString().split('T')[0]}.pdf`);
     } catch (error) {
-      console.error('Error exporting report:', error);
-      alert('Failed to export report. Please try again.');
+      console.error('Error exporting PDF report:', error);
+      alert('Failed to export PDF report. Please try again.');
     }
   };
 

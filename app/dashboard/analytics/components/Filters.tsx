@@ -1,6 +1,6 @@
 'use client';
 
-import { BsCalendar, BsPerson, BsBuilding, BsFiletypeJson, BsArrowClockwise } from 'react-icons/bs';
+import { BsCalendar, BsPerson, BsBuilding, BsFiletypePdf, BsArrowClockwise } from 'react-icons/bs';
 import { Download, FileDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
@@ -16,7 +16,7 @@ interface FiltersProps {
   onDepartmentChange: (department: string) => void;
   employees: Array<{ id: string; name: string; email: string; department: string | null }>;
   departments: string[];
-  onExport: (format: 'json') => void;
+  onExport: (format: 'pdf') => void | Promise<void>;
   userRole?: string;
   onRefresh?: () => void;
   refreshing?: boolean;
@@ -47,9 +47,11 @@ export default function Filters(props: FiltersProps) {
   const handleExport = async () => {
     setExportLoading(true);
     try {
-      await onExport('json');
+      await onExport('pdf');
     } finally {
-      setTimeout(() => setExportLoading(false), 1000);
+      setTimeout(() => {
+        setExportLoading(false);
+      }, 1000);
     }
   };
 
@@ -84,17 +86,15 @@ export default function Filters(props: FiltersProps) {
         
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-2">
-
-          
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleExport}
             disabled={exportLoading}
-            className="px-4 py-2 bg-gray-700/60 hover:bg-gray-700/80 backdrop-blur-sm text-gray-300 rounded-lg border border-gray-600/50 hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500/50 text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-4 py-2 bg-red-600/80 hover:bg-red-600 backdrop-blur-sm text-white rounded-lg border border-red-500/50 hover:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500/50 text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            <BsFiletypeJson className={`w-4 h-4 ${exportLoading ? 'animate-pulse' : ''}`} />
-            <span>Download JSON</span>
+            <BsFiletypePdf className={`w-4 h-4 ${exportLoading ? 'animate-pulse' : ''}`} />
+            <span>{exportLoading ? 'Generating PDF...' : 'Download PDF Report'}</span>
           </motion.button>
         </div>
       </div>
