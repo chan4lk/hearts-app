@@ -457,7 +457,7 @@ export default function UserTable({
                     {/* Manager Selector Modal */}
                     {managerSelectorOpen === user.id && (
                       <ManagerSelector
-                        currentManager={user.manager}
+                        currentManager={user.manager ?? null}
                         userId={user.id}
                         userName={user.name}
                         onSelect={(managerId) => handleQuickManagerUpdate(user.id, managerId)}
