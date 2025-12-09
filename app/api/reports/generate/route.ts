@@ -7,13 +7,10 @@ import { logger } from '@/lib/logger';
 import { handleApiError } from '@/app/api/utils/error-handler';
 
 /**
- * PDF Report Generation API
+ * Report Generation API
  * 
- * This endpoint generates PDF reports for analytics data.
- * Currently returns JSON data that can be used by client-side PDF generation.
- * 
- * For full PDF generation, install: npm install jspdf jspdf-autotable
- * or use a headless browser like puppeteer for HTML-to-PDF conversion.
+ * This endpoint generates reports (JSON or PDF) for analytics data.
+ * Supports both JSON export and PDF generation using jsPDF.
  */
 export async function POST(req: Request) {
   try {
@@ -23,7 +20,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { reportType, analyticsData, options = {} } = body;
+    const { reportType, analyticsData, format = 'json', options = {} } = body;
 
     // Fetch analytics if not provided
     let reportData = analyticsData;
@@ -38,7 +35,8 @@ export async function POST(req: Request) {
       );
       
       if (analyticsResponse.ok) {
-        reportData = await analyticsResponse.json();
+        const analyticsResult = await analyticsResponse.json();
+        reportData = analyticsResult.success ? analyticsResult : { success: true, ...analyticsResult };
       }
     }
 
@@ -49,14 +47,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // Generate report based on type
+    // Generate report based on type and format
     switch (reportType) {
       case 'dashboard':
-        return generateDashboardReport(reportData, options);
+        return generateDashboardReport(reportData, format, options, session.user);
       case 'performance':
-        return generatePerformanceReport(reportData, options);
+        return generatePerformanceReport(reportData, format, options, session.user);
       case 'goals':
-        return generateGoalsReport(reportData, options);
+        return generateGoalsReport(reportData, format, options, session.user);
       default:
         return NextResponse.json(
           { error: 'Invalid report type' },
@@ -69,38 +67,67 @@ export async function POST(req: Request) {
   }
 }
 
-function generateDashboardReport(data: any, options: any) {
+function generateDashboardReport(data: any, format: string, options: any, user: any) {
   const report = {
     title: 'Performance Dashboard Report',
     generatedAt: new Date().toISOString(),
-    summary: data.summary,
-    breakdowns: data.breakdowns,
-    employeePerformance: data.employeePerformance,
-    meta: data.meta
+    summary: data.summary || {},
+    breakdowns: data.breakdowns || {},
+    trends: data.trends || {},
+    employeePerformance: data.employeePerformance || [],
+    metadata: {
+      exportedAt: new Date().toISOString(),
+      exportedBy: user.name || user.email,
+      role: user.role,
+      filters: options.filters || {}
+    }
   };
 
-  // Return structured data that can be converted to PDF client-side
-  // or use server-side PDF generation library
+  if (format === 'pdf') {
+    // PDF generation is handled client-side for better performance
+    // Return the data needed for PDF generation
+    return NextResponse.json({
+      success: true,
+      report,
+      format: 'pdf',
+      message: 'PDF data prepared. Generate PDF on client side.'
+    });
+  }
+
+  // Enhanced JSON export
   return NextResponse.json({
     success: true,
     report,
-    format: 'json', // Can be 'pdf' when PDF generation is implemented
-    message: 'Report generated. Install jspdf or puppeteer for PDF export.'
+    format: 'json'
   });
 }
 
-function generatePerformanceReport(data: any, options: any) {
+function generatePerformanceReport(data: any, format: string, options: any, user: any) {
   const report = {
     title: 'Performance Review Report',
     generatedAt: new Date().toISOString(),
-    employeePerformance: data.employeePerformance,
+    employeePerformance: data.employeePerformance || [],
     summary: {
-      totalEmployees: data.summary.totalUsers,
-      averageCompletionRate: data.summary.completionRate,
-      averageRating: data.summary.averageRating
+      totalEmployees: data.summary?.totalUsers || 0,
+      averageCompletionRate: data.summary?.completionRate || 0,
+      averageRating: data.summary?.averageRating || 0
     },
-    meta: data.meta
+    metadata: {
+      exportedAt: new Date().toISOString(),
+      exportedBy: user.name || user.email,
+      role: user.role,
+      filters: options.filters || {}
+    }
   };
+
+  if (format === 'pdf') {
+    return NextResponse.json({
+      success: true,
+      report,
+      format: 'pdf',
+      message: 'PDF data prepared. Generate PDF on client side.'
+    });
+  }
 
   return NextResponse.json({
     success: true,
@@ -109,18 +136,32 @@ function generatePerformanceReport(data: any, options: any) {
   });
 }
 
-function generateGoalsReport(data: any, options: any) {
+function generateGoalsReport(data: any, format: string, options: any, user: any) {
   const report = {
     title: 'Goals Summary Report',
     generatedAt: new Date().toISOString(),
-    summary: data.summary,
+    summary: data.summary || {},
     breakdowns: {
-      byStatus: data.breakdowns.byStatus,
-      byCategory: data.breakdowns.byCategory,
-      byPriority: data.breakdowns.byPriority
+      byStatus: data.breakdowns?.byStatus || {},
+      byCategory: data.breakdowns?.byCategory || {},
+      byPriority: data.breakdowns?.byPriority || {}
     },
-    meta: data.meta
+    metadata: {
+      exportedAt: new Date().toISOString(),
+      exportedBy: user.name || user.email,
+      role: user.role,
+      filters: options.filters || {}
+    }
   };
+
+  if (format === 'pdf') {
+    return NextResponse.json({
+      success: true,
+      report,
+      format: 'pdf',
+      message: 'PDF data prepared. Generate PDF on client side.'
+    });
+  }
 
   return NextResponse.json({
     success: true,

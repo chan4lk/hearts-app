@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { BsPerson, BsGear, BsArrowUp, BsArrowDown, BsArrowsExpand, BsTrash } from 'react-icons/bs';
+import { BsPerson, BsGear, BsArrowUp, BsArrowDown, BsArrowsExpand, BsTrash, BsChevronDown } from 'react-icons/bs';
 import { User } from '@/app/components/shared/types';
 import { Role } from '.prisma/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { showToast } from '@/app/utils/toast';
+import ManagerSelector from './ManagerSelector';
 
 interface UserTableProps {
   users: User[];
@@ -32,6 +33,7 @@ export default function UserTable({
   const [updatingManager, setUpdatingManager] = useState<string | null>(null);
   const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const [managerSelectorOpen, setManagerSelectorOpen] = useState<string | null>(null);
 
   // Get role config for dropdown styling
   const getRoleConfig = (role: string | undefined) => {
@@ -159,19 +161,16 @@ export default function UserTable({
   };
 
   // Handle quick manager update
-  const handleQuickManagerUpdate = async (userId: string, newManagerId: string, e?: React.MouseEvent) => {
+  const handleQuickManagerUpdate = async (userId: string, newManagerId: string | null, e?: React.MouseEvent) => {
     if (e) {
       e.stopPropagation();
     }
 
     const user = users.find(u => u.id === userId);
     if (!user) return;
-
-    // If selecting "Unassigned", set to null
-    const managerId = newManagerId === 'unassigned' ? null : newManagerId;
     
     // Don't update if it's the same manager
-    if ((!user.manager && !managerId) || (user.manager?.id === managerId)) {
+    if ((!user.manager && !newManagerId) || (user.manager?.id === newManagerId)) {
       return;
     }
 
@@ -186,7 +185,7 @@ export default function UserTable({
           name: user.name,
           email: user.email,
           role: user.role as Role,
-          managerId: managerId,
+          managerId: newManagerId,
           isActive: user.status === 'ACTIVE'
         }),
       });
@@ -207,17 +206,26 @@ export default function UserTable({
 
       // Notify parent component
       if (onManagerUpdate) {
-        onManagerUpdate(userId, managerId, transformedUser);
+        onManagerUpdate(userId, newManagerId, transformedUser);
       }
       
-      const managerName = managerId ? managers.find(m => m.id === managerId)?.name : 'Unassigned';
+      const managerName = newManagerId ? managers.find(m => m.id === newManagerId)?.name : 'Unassigned';
       showToast.success('Manager Updated!', `User manager has been updated to ${managerName}`);
     } catch (error) {
       console.error('Error updating manager:', error);
       showToast.error('Error', error instanceof Error ? error.message : 'Failed to update manager');
     } finally {
       setUpdatingManager(null);
+      setManagerSelectorOpen(null);
     }
+  };
+
+  // Handle opening manager selector
+  const handleOpenManagerSelector = (userId: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    setManagerSelectorOpen(userId);
   };
 
   // Handle column sorting
@@ -435,46 +443,28 @@ export default function UserTable({
                     </Select>
                   </td>
                   <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
-                    <Select
-                      value={user.manager?.id || 'unassigned'}
-                      onValueChange={(newManagerId) => handleQuickManagerUpdate(user.id, newManagerId)}
+                    <button
+                      onClick={() => handleOpenManagerSelector(user.id)}
                       disabled={updatingManager === user.id}
+                      className="bg-blue-500/10 text-blue-400 border border-white/20 text-xs px-3 py-1.5 h-auto hover:opacity-90 hover:border-white/30 transition-all cursor-pointer min-w-[150px] font-medium rounded-md flex items-center justify-between gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <SelectTrigger className="bg-blue-500/10 text-blue-400 border border-white/20 text-xs px-3 py-1.5 h-auto hover:opacity-90 hover:border-white/30 transition-all cursor-pointer min-w-[150px] font-medium">
-                        <SelectValue>
-                          {user.manager?.name || 'Unassigned'}
-                        </SelectValue>
-                        <BsGear className="w-3 h-3 ml-auto opacity-50 rotate-90" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-gray-800 border-gray-700 z-50 max-h-[300px] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                        <SelectItem value="unassigned" className="hover:bg-gray-700 cursor-pointer">
-                          <span className="text-gray-400">Unassigned</span>
-                        </SelectItem>
-                        {managers
-                          .filter(manager => manager.id !== user.id) // Don't allow user to be their own manager
-                          .map((manager) => {
-                            const isAdmin = manager.role === Role.ADMIN;
-                            return (
-                              <SelectItem 
-                                key={manager.id} 
-                                value={manager.id} 
-                                className="hover:bg-gray-700 cursor-pointer"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <span className="text-blue-400">{manager.name}</span>
-                                  <span className={`text-xs px-1.5 py-0.5 rounded ${
-                                    isAdmin 
-                                      ? 'bg-purple-500/20 text-purple-400' 
-                                      : 'bg-blue-500/20 text-blue-400'
-                                  }`}>
-                                    {isAdmin ? 'ADMIN' : 'MANAGER'}
-                                  </span>
-                                </div>
-                              </SelectItem>
-                            );
-                          })}
-                      </SelectContent>
-                    </Select>
+                      <span className="truncate">
+                        {updatingManager === user.id ? 'Updating...' : (user.manager?.name || 'Unassigned')}
+                      </span>
+                      <BsChevronDown className="w-3 h-3 opacity-50 flex-shrink-0" />
+                    </button>
+                    
+                    {/* Manager Selector Modal */}
+                    {managerSelectorOpen === user.id && (
+                      <ManagerSelector
+                        currentManager={user.manager}
+                        userId={user.id}
+                        userName={user.name}
+                        onSelect={(managerId) => handleQuickManagerUpdate(user.id, managerId)}
+                        onClose={() => setManagerSelectorOpen(null)}
+                        isLoading={updatingManager === user.id}
+                      />
+                    )}
                   </td>
                   <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
                     {onDeleteAction && (

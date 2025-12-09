@@ -111,54 +111,105 @@ export async function GET(req: Request) {
       userWhereClause.department = department;
     }
 
-    // Get all goals for analysis
-    // Apply safety limit to prevent excessive data retrieval (analytics may need all data, but cap it)
-    const MAX_ANALYTICS_GOALS = 10000; // Safety limit for analytics queries
-    
-    const goals = await prisma.goal.findMany({
-      where: goalWhereClause,
-      take: MAX_ANALYTICS_GOALS, // Safety limit
-      include: {
-        employee: { select: { id: true, name: true, email: true, department: true } },
-        rating: true
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+    // Use parallel database queries for faster performance
+    const [
+      totalGoalsResult,
+      statusCounts,
+      categoryCounts,
+      priorityCounts,
+      departmentCounts,
+      monthlyTrends,
+      users,
+      goalsWithRatings
+    ] = await Promise.all([
+      // Total goals count
+      prisma.goal.count({ where: goalWhereClause }),
+      
+      // Goals by status (using groupBy for better performance)
+      prisma.goal.groupBy({
+        by: ['status'],
+        where: goalWhereClause,
+        _count: { status: true }
+      }),
+      
+      // Goals by category
+      prisma.goal.groupBy({
+        by: ['category'],
+        where: { ...goalWhereClause, category: { not: null } },
+        _count: { category: true }
+      }),
+      
+      // Goals by priority
+      prisma.goal.groupBy({
+        by: ['priority'],
+        where: { ...goalWhereClause, priority: { not: null } },
+        _count: { priority: true }
+      }),
+      
+      // Goals by department
+      prisma.goal.groupBy({
+        by: ['department'],
+        where: { ...goalWhereClause, department: { not: null } },
+        _count: { department: true }
+      }),
+      
+      // Monthly trends - get goals with createdAt for grouping
+      prisma.goal.findMany({
+        where: goalWhereClause,
+        select: { createdAt: true },
+        orderBy: { createdAt: 'desc' }
+      }),
+      
+      // Get users for team analysis (limited fields)
+      prisma.user.findMany({
+        where: userWhereClause,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          department: true,
+          isActive: true
+        }
+      }),
+      
+      // Get goals with ratings for performance calculation (only needed fields)
+      prisma.goal.findMany({
+        where: goalWhereClause,
+        select: {
+          id: true,
+          employeeId: true,
+          status: true,
+          rating: {
+            select: {
+              selfScore: true,
+              managerScore: true
+            }
+          },
+          employee: {
+            select: { id: true, name: true, email: true, department: true }
+          }
+        }
+      })
+    ]);
 
-    // Get users for team analysis
-    // Apply safety limit to prevent excessive data retrieval
-    const MAX_ANALYTICS_USERS = 5000; // Safety limit for user analytics
-    
-    const users = await prisma.user.findMany({
-      where: userWhereClause,
-      take: MAX_ANALYTICS_USERS, // Safety limit
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        department: true,
-        isActive: true
-      }
-    });
-
-    // Calculate goal statistics
-    const totalGoals = goals.length;
-    const completedGoals = goals.filter(g => g.status === 'COMPLETED').length;
-    const inProgressGoals = goals.filter(g => g.status === 'IN_PROGRESS').length;
-    const pendingGoals = goals.filter(g => g.status === 'PENDING').length;
-    const approvedGoals = goals.filter(g => g.status === 'APPROVED').length;
-    const draftGoals = goals.filter(g => g.status === 'DRAFT').length;
+    // Calculate goal statistics from aggregated data
+    const totalGoals = totalGoalsResult;
+    const completedGoals = statusCounts.find(s => s.status === 'COMPLETED')?._count.status || 0;
+    const inProgressGoals = statusCounts.find(s => s.status === 'IN_PROGRESS')?._count.status || 0;
+    const pendingGoals = statusCounts.find(s => s.status === 'PENDING')?._count.status || 0;
+    const approvedGoals = statusCounts.find(s => s.status === 'APPROVED')?._count.status || 0;
+    const draftGoals = statusCounts.find(s => s.status === 'DRAFT')?._count.status || 0;
     const completionRate = totalGoals > 0 ? (completedGoals / totalGoals) * 100 : 0;
 
-    // Calculate rating statistics
-    const ratedGoals = goals.filter(g => 
+    // Calculate rating statistics from goalsWithRatings
+    const ratedGoals = goalsWithRatings.filter(g => 
       g.rating && (g.rating.selfScore !== null || g.rating.managerScore !== null)
     ).length;
     const ratingCompletionRate = totalGoals > 0 ? (ratedGoals / totalGoals) * 100 : 0;
 
-    // Average ratings
-    const ratingsWithScore = goals
+    // Average ratings - optimized calculation
+    const ratingsWithScore = goalsWithRatings
       .map(g => {
         if (g.rating) {
           if (g.rating.selfScore !== null && g.rating.managerScore !== null) {
@@ -177,59 +228,46 @@ export async function GET(req: Request) {
       ? ratingsWithScore.reduce((sum, r) => sum + r, 0) / ratingsWithScore.length
       : 0;
 
-    // Goals by status - only include statuses with values > 0
+    // Goals by status - convert from groupBy result
     const goalsByStatus: Record<string, number> = {};
-    const statusCounts = {
-      DRAFT: goals.filter(g => g.status === 'DRAFT').length,
-      PENDING: goals.filter(g => g.status === 'PENDING').length,
-      APPROVED: goals.filter(g => g.status === 'APPROVED').length,
-      IN_PROGRESS: goals.filter(g => g.status === 'IN_PROGRESS').length,
-      COMPLETED: goals.filter(g => g.status === 'COMPLETED').length,
-      REJECTED: goals.filter(g => g.status === 'REJECTED').length,
-      ON_HOLD: goals.filter(g => g.status === 'ON_HOLD').length,
-      BLOCKED: goals.filter(g => g.status === 'BLOCKED').length
-    };
-    
-    // Only include statuses that have goals
-    Object.entries(statusCounts).forEach(([status, count]) => {
-      if (count > 0) {
-        goalsByStatus[status] = count;
+    statusCounts.forEach(item => {
+      if (item._count.status > 0) {
+        goalsByStatus[item.status] = item._count.status;
       }
     });
 
-    // Goals by category
+    // Goals by category - convert from groupBy result
     const goalsByCategory: Record<string, number> = {};
-    goals.forEach(goal => {
-      if (goal.category) {
-        goalsByCategory[goal.category] = (goalsByCategory[goal.category] || 0) + 1;
+    categoryCounts.forEach(item => {
+      if (item.category && item._count.category > 0) {
+        goalsByCategory[item.category] = item._count.category;
       }
     });
 
-    // Goals by priority
+    // Goals by priority - convert from groupBy result
     const goalsByPriority: Record<string, number> = {};
-    goals.forEach(goal => {
-      if (goal.priority) {
-        goalsByPriority[goal.priority] = (goalsByPriority[goal.priority] || 0) + 1;
+    priorityCounts.forEach(item => {
+      if (item.priority && item._count.priority > 0) {
+        goalsByPriority[item.priority] = item._count.priority;
       }
     });
 
-    // Goals by department
+    // Goals by department - convert from groupBy result
     const goalsByDepartment: Record<string, number> = {};
-    goals.forEach(goal => {
-      if (goal.department) {
-        goalsByDepartment[goal.department] = (goalsByDepartment[goal.department] || 0) + 1;
+    departmentCounts.forEach(item => {
+      if (item.department && item._count.department > 0) {
+        goalsByDepartment[item.department] = item._count.department;
       }
     });
 
-    // Monthly trend (goals created over time)
+    // Monthly trend - optimized calculation
     const monthlyTrend: Record<string, number> = {};
-    goals.forEach(goal => {
+    monthlyTrends.forEach(goal => {
       const month = new Date(goal.createdAt).toISOString().slice(0, 7); // YYYY-MM
       monthlyTrend[month] = (monthlyTrend[month] || 0) + 1;
     });
 
-    // Employee performance (top performers by average rating)
-    // Note: managedEmployeeIds is set above for manager context
+    // Employee performance (top performers by average rating) - optimized using goalsWithRatings
     const employeePerformance: Array<{
       employeeId: string;
       employeeName: string;
@@ -240,8 +278,8 @@ export async function GET(req: Request) {
       completionRate: number;
     }> = [];
 
-    const employeeGoalsMap = new Map<string, typeof goals>();
-    goals.forEach(goal => {
+    const employeeGoalsMap = new Map<string, typeof goalsWithRatings>();
+    goalsWithRatings.forEach(goal => {
       if (!employeeGoalsMap.has(goal.employeeId)) {
         employeeGoalsMap.set(goal.employeeId, []);
       }
@@ -256,13 +294,13 @@ export async function GET(req: Request) {
       if (effectiveContext === 'employee' || userRole === 'EMPLOYEE') {
         // Employees and admins in employee context: only show their own performance
         if (empId !== userId) {
-        return;
-      }
+          return;
+        }
       } else if (effectiveContext === 'manager' || userRole === 'MANAGER') {
         // Managers and admins in manager context: exclude their own performance, only show assigned employees
         if (empId === userId) {
-        return; // Don't include manager's own performance
-      }
+          return; // Don't include manager's own performance
+        }
         // Verify this employee is actually managed by this user
         if (!managedEmployeeIds.includes(empId)) {
           return; // Not managed by this user, skip
@@ -307,14 +345,16 @@ export async function GET(req: Request) {
       employeePerformance.sort((a, b) => b.averageRating - a.averageRating);
     }
 
-    // Overdue goals - goals that are past due date and not completed
+    // Overdue goals - use database query for better performance
     const now = new Date();
     now.setHours(23, 59, 59, 999); // End of today for comparison
-    const overdueGoals = goals.filter(g => {
-      if (g.status === 'COMPLETED') return false;
-      const dueDate = new Date(g.dueDate);
-      return dueDate < now;
-    }).length;
+    const overdueGoals = await prisma.goal.count({
+      where: {
+        ...goalWhereClause,
+        status: { not: 'COMPLETED' },
+        dueDate: { lt: now }
+      }
+    });
 
     // Ensure all breakdown objects have at least empty objects
     const breakdowns = {
