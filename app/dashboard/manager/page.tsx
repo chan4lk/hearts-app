@@ -61,19 +61,29 @@ export default function ManagerDashboard() {
     );
   };
 
-  // Calculate statistics for employee goals
+  // Filter goals based on selected employee (if any)
+  const filteredGoalsForStats = goals.filter(g => {
+    if (!g.employee || isCurrentUserGoal(g)) return false;
+    // If an employee is selected, only include their goals
+    if (selectedEmployee && selectedEmployee !== 'all') {
+      return g.employee.email === selectedEmployee;
+    }
+    return true;
+  });
+
+  // Calculate statistics for employee goals (respecting employee filter)
   const stats: DashboardStats = {
     employeeGoals: {
-      total: goals.filter(g => g.employee && !isCurrentUserGoal(g)).length,
-      draft: goals.filter(g => g.employee && !isCurrentUserGoal(g) && g.status === 'DRAFT').length,
-      pending: goals.filter(g => g.employee && !isCurrentUserGoal(g) && g.status === 'PENDING').length,
-      approved: goals.filter(g => g.employee && !isCurrentUserGoal(g) && g.status === 'APPROVED').length,
-      rejected: goals.filter(g => g.employee && !isCurrentUserGoal(g) && g.status === 'REJECTED').length,
-      modified: goals.filter(g => g.employee && !isCurrentUserGoal(g) && g.status === 'MODIFIED').length,
-      completed: goals.filter(g => g.employee && !isCurrentUserGoal(g) && g.status === 'COMPLETED').length,
+      total: filteredGoalsForStats.length,
+      draft: filteredGoalsForStats.filter(g => g.status === 'DRAFT').length,
+      pending: filteredGoalsForStats.filter(g => g.status === 'PENDING').length,
+      approved: filteredGoalsForStats.filter(g => g.status === 'APPROVED').length,
+      rejected: filteredGoalsForStats.filter(g => g.status === 'REJECTED').length,
+      modified: filteredGoalsForStats.filter(g => g.status === 'MODIFIED').length,
+      completed: filteredGoalsForStats.filter(g => g.status === 'COMPLETED').length,
     },
-    employeeCount: employeeCounts.total,
-    activeEmployees: employeeCounts.active
+    employeeCount: selectedEmployee && selectedEmployee !== 'all' ? 1 : employeeCounts.total,
+    activeEmployees: selectedEmployee && selectedEmployee !== 'all' ? 1 : employeeCounts.active
   };
 
   // Calculate role-based statistics
@@ -88,6 +98,29 @@ export default function ManagerDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Fetch assigned employees first to get employee IDs
+        const empResponse = await fetch('/api/employees/assigned');
+        if (!empResponse.ok) {
+          throw new Error('Failed to fetch assigned employees');
+        }
+        const empData = await empResponse.json();
+        const employeesList = empData.employees || [];
+        
+        setEmployees(employeesList);
+        setEmployeeCounts({
+          total: employeesList.length || 0,
+          active: employeesList.filter((emp: any) => emp.isActive !== false).length || 0
+        });
+
+        // Convert selectedEmployee email to employeeId if filtering by employee
+        let employeeIdFilter = undefined;
+        if (selectedEmployee && selectedEmployee !== 'all') {
+          const selectedEmp = employeesList.find((emp: any) => emp.email === selectedEmployee);
+          if (selectedEmp) {
+            employeeIdFilter = selectedEmp.id;
+          }
+        }
+
         // Build query params with pagination and filters
         const params = new URLSearchParams({
           view: 'team-goals',
@@ -97,32 +130,16 @@ export default function ManagerDashboard() {
           sortOrder: 'desc',
           ...(selectedStatus && selectedStatus !== '' && { status: selectedStatus }),
           ...(selectedPriority && { priority: selectedPriority }),
-          ...(selectedEmployee && selectedEmployee !== 'all' && { employeeId: selectedEmployee })
+          ...(employeeIdFilter && { employeeId: employeeIdFilter })
         });
         
-        // Fetch assigned employees and goals in parallel
-        const [empResponse, goalResponse] = await Promise.all([
-          fetch('/api/employees/assigned'),
-          fetch(`/api/goals?${params}`)
-        ]);
-
-        if (!empResponse.ok) {
-          throw new Error('Failed to fetch assigned employees');
-        }
+        // Fetch goals
+        const goalResponse = await fetch(`/api/goals?${params}`);
         if (!goalResponse.ok) {
           throw new Error('Failed to fetch goals');
         }
 
-        const [empData, goalData] = await Promise.all([
-          empResponse.json(),
-          goalResponse.json()
-        ]);
-
-        setEmployees(empData.employees || []);
-        setEmployeeCounts({
-          total: empData.employees?.length || 0,
-          active: empData.employees?.filter((emp: any) => emp.isActive !== false).length || 0
-        });
+        const goalData = await goalResponse.json();
 
         // Goals from unified API already include all related data
         setGoals(goalData.goals || []);
