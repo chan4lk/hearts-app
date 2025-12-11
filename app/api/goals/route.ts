@@ -194,12 +194,37 @@ export async function GET(req: Request) {
         });
         const employeeIds = managedEmployees.map(e => e.id);
 
-        // Include manager's own goals + managed employees' goals
-        orConditions.push(
-          { employeeId: { in: employeeIds } },
-          { employeeId: userId },
-          { managerId: userId }
-        );
+        // If specific employeeId filter is provided, validate it's a managed employee
+        let filteredEmployeeIds = employeeIds;
+        if (employeeId) {
+          if (!employeeIds.includes(employeeId)) {
+            // Employee not managed by this manager, return empty results
+            filteredEmployeeIds = [];
+          } else {
+            // Filter to only this specific employee
+            filteredEmployeeIds = [employeeId];
+          }
+        }
+
+        // Only include goals for assigned employees (exclude manager's own goals)
+        // Include: 1) Goals assigned by manager to employees, 2) Self-created goals by assigned employees
+        if (filteredEmployeeIds.length > 0) {
+          orConditions.push(
+            // Manager-assigned goals (managerId = userId AND employeeId is in managed employees)
+            { 
+              managerId: userId,
+              employeeId: { in: filteredEmployeeIds }
+            },
+            // Employee self-created goals (created by assigned employees, not assigned by manager)
+            {
+              employeeId: { in: filteredEmployeeIds },
+              managerId: null
+            }
+          );
+        } else {
+          // No managed employees or invalid employee filter, return empty results
+          orConditions.push({ employeeId: 'INVALID' });
+        }
         break;
 
       case 'pending-approval':

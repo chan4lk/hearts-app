@@ -42,7 +42,7 @@ function GoalsPageContent() {
     title: '',
     description: '',
     dueDate: new Date().toISOString().split('T')[0],
-    employeeId: '',
+    employeeId: session?.user?.id || '',
     category: 'PROFESSIONAL',
     department: 'ENGINEERING',
     priority: 'MEDIUM'
@@ -74,6 +74,16 @@ function GoalsPageContent() {
 
   // Helper to check if user is admin or manager
   const userIsAdminOrManager = session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER';
+
+  // Ensure employeeId defaults to the signed-in user once session is ready
+  useEffect(() => {
+    if (session?.user?.id) {
+      setFormData(prev => ({
+        ...prev,
+        employeeId: prev.employeeId || session.user.id
+      }));
+    }
+  }, [session?.user?.id]);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -145,7 +155,7 @@ function GoalsPageContent() {
         title: '',
         description: '',
         dueDate: new Date().toISOString().split('T')[0],
-        employeeId: '',
+        employeeId: session?.user?.id || '',
         category: 'PROFESSIONAL',
         department: 'ENGINEERING',
         priority: 'MEDIUM'
@@ -165,7 +175,7 @@ function GoalsPageContent() {
       title: goal.title,
       description: goal.description,
       dueDate: goal.dueDate.split('T')[0],
-      employeeId: '',
+      employeeId: goal.employeeId || session?.user?.id || '',
       category: goal.category,
       department: goal.department || 'ENGINEERING',
       priority: goal.priority || 'MEDIUM'
@@ -194,6 +204,8 @@ function GoalsPageContent() {
           description: goalData.description.trim(),
           category: goalData.category,
           dueDate: goalData.dueDate,
+          department: goalData.department,
+          priority: goalData.priority,
           employeeId: session.user.id // Add the employee ID
         }),
       });
@@ -381,7 +393,7 @@ function GoalsPageContent() {
                     title: template.title,
                     description: template.description,
                     dueDate: new Date().toISOString().split('T')[0],
-                    employeeId: '',
+                    employeeId: session?.user?.id || '',
                     category: template.category,
                     department: 'ENGINEERING',
                     priority: 'MEDIUM'
@@ -468,7 +480,7 @@ function GoalsPageContent() {
             title: '',
             description: '',
             dueDate: new Date().toISOString().split('T')[0],
-            employeeId: '',
+            employeeId: session?.user?.id || '',
             category: 'PROFESSIONAL',
             department: 'ENGINEERING',
             priority: 'MEDIUM'
@@ -480,10 +492,21 @@ function GoalsPageContent() {
             title: formData.title,
             description: formData.description,
             category: formData.category,
-            dueDate: formData.dueDate
+            dueDate: formData.dueDate,
+            department: formData.department,
+            priority: formData.priority
           });
         }}
-        assignedEmployees={[]}
+        assignedEmployees={session?.user ? [{
+          id: session.user.id,
+          name: session.user.name || '',
+          email: session.user.email || '',
+          role: session.user.role,
+          department: 'ENGINEERING',
+          position: '',
+          status: 'ACTIVE',
+          createdAt: new Date().toISOString()
+        }] : []}
         loading={false}
         formData={formData}
         onFormDataChange={handleFormDataChange}
@@ -496,7 +519,7 @@ function GoalsPageContent() {
             title: '',
             description: '',
             dueDate: new Date().toISOString().split('T')[0],
-            employeeId: '',
+            employeeId: session?.user?.id || '',
             category: 'PROFESSIONAL',
             department: 'ENGINEERING',
             priority: 'MEDIUM'
@@ -523,7 +546,7 @@ function GoalsPageContent() {
             title: '',
             description: '',
             dueDate: new Date().toISOString().split('T')[0],
-            employeeId: '',
+            employeeId: session?.user?.id || '',
             category: 'PROFESSIONAL',
             department: 'ENGINEERING',
             priority: 'MEDIUM'
@@ -535,10 +558,21 @@ function GoalsPageContent() {
             title: formData.title,
             description: formData.description,
             category: formData.category,
-            dueDate: formData.dueDate
+            dueDate: formData.dueDate,
+            department: formData.department,
+            priority: formData.priority
           });
         }}
-        assignedEmployees={[]}
+        assignedEmployees={session?.user ? [{
+          id: session.user.id,
+          name: session.user.name || '',
+          email: session.user.email || '',
+          role: session.user.role,
+          department: 'ENGINEERING',
+          position: '',
+          status: 'ACTIVE',
+          createdAt: new Date().toISOString()
+        }] : []}
         loading={false}
         formData={formData}
         onFormDataChange={handleFormDataChange}
@@ -551,7 +585,7 @@ function GoalsPageContent() {
             title: '',
             description: '',
             dueDate: new Date().toISOString().split('T')[0],
-            employeeId: '',
+            employeeId: session?.user?.id || '',
             category: 'PROFESSIONAL',
             department: 'ENGINEERING',
             priority: 'MEDIUM'

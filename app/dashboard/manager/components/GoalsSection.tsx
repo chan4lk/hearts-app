@@ -70,6 +70,10 @@ export default function GoalsSection({
   const filteredAssignedGoals = filterGoals(assignedGoals);
   const filteredSelfCreatedGoals = filterGoals(selfCreatedGoals);
   const currentGoals = activeView === 'assigned' ? filteredAssignedGoals : filteredSelfCreatedGoals;
+  
+  // Use filtered counts for badges to match what's displayed in the table
+  const assignedGoalsCount = filteredAssignedGoals.length;
+  const selfCreatedGoalsCount = filteredSelfCreatedGoals.length;
 
   return (
     <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl border border-white/20 dark:border-gray-700/50 overflow-hidden shadow-lg">
@@ -98,7 +102,7 @@ export default function GoalsSection({
                 <span className="hidden sm:inline">Assigned Goals to Employees</span>
                 <span className="sm:hidden">Assigned</span>
                 <span className="bg-white/10 px-1.5 py-0.5 rounded text-xs ml-1">
-                  {assignedGoals.length}
+                  {assignedGoalsCount}
                 </span>
               </button>
               <button
@@ -113,7 +117,7 @@ export default function GoalsSection({
                 <span className="hidden sm:inline">Employees Self Created Goals</span>
                 <span className="sm:hidden">Self-Created</span>
                 <span className="bg-white/10 px-1.5 py-0.5 rounded text-xs ml-1">
-                  {selfCreatedGoals.length}
+                  {selfCreatedGoalsCount}
                 </span>
               </button>
             </div>
