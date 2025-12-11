@@ -103,7 +103,7 @@ export function GoalFormModal({
                     {CATEGORIES.find(c => c.value === formData.category)?.label || 'Select category'}
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a1b1e] border-gray-800/50">
+                <SelectContent className="bg-[#1a1b1e] border-gray-800/50 z-[70]">
                   {CATEGORIES.map((category) => (
                     <SelectItem key={category.value} value={category.value} className="text-white text-xs">
                       <div className="flex items-center gap-1.5">
@@ -130,7 +130,7 @@ export function GoalFormModal({
                     {DEPARTMENTS.find(d => d.value === formData.department)?.label || 'Select department'}
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a1b1e] border-gray-800/50">
+                <SelectContent className="bg-[#1a1b1e] border-gray-800/50 z-[70]">
                   {DEPARTMENTS.map((department) => (
                     <SelectItem key={department.value} value={department.value} className="text-white text-xs">
                       <div className="flex items-center gap-1.5">
@@ -157,7 +157,7 @@ export function GoalFormModal({
                     {PRIORITIES.find(p => p.value === formData.priority)?.label || 'Select priority'}
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a1b1e] border-gray-800/50">
+                <SelectContent className="bg-[#1a1b1e] border-gray-800/50 z-[70]">
                   {PRIORITIES.map((priority) => (
                     <SelectItem key={priority.value} value={priority.value} className="text-white text-xs">
                       <div className="flex items-center gap-1.5">
@@ -200,7 +200,7 @@ export function GoalFormModal({
                 <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20">
                   <SelectValue>{assignedEmployees.find(e => e.id === formData.employeeId)?.name || 'Select'}</SelectValue>
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a1b1e] border-gray-800/50 max-h-40">
+                <SelectContent className="bg-[#1a1b1e] border-gray-800/50 max-h-40 z-[70]">
                   {assignedEmployees.map((employee) => (
                     <SelectItem key={employee.id} value={employee.id} className="text-white text-xs">
                       <div className="flex items-center gap-1.5">

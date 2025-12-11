@@ -120,6 +120,8 @@ export interface DashboardStats {
   description: string;
   category: string;
   dueDate: string;
+  department?: string;
+  priority?: string;
 } 
 
 export interface Rating {
