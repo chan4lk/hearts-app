@@ -83,7 +83,7 @@ export default function AdminDashboard() {
   const [selectedUser, setSelectedUser] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedPriority, setSelectedPriority] = useState<string>('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [goalsLoading, setGoalsLoading] = useState(false);
   const [showGoals, setShowGoals] = useState(false);
@@ -167,8 +167,8 @@ export default function AdminDashboard() {
         page: goalsPage.toString(),
         limit: goalsLimit.toString(),
         ...(selectedStatus && selectedStatus !== 'all' && { status: selectedStatus }),
-        ...(selectedPriority && { priority: selectedPriority }),
-        ...(selectedCategory && { category: selectedCategory }),
+        ...(selectedPriority && selectedPriority !== '' && { priority: selectedPriority }),
+        ...(selectedCategory && selectedCategory !== '' && selectedCategory !== 'all' && { category: selectedCategory }),
         ...(selectedUser && selectedUser !== 'all' && { employeeId: selectedUser })
       });
       
@@ -485,13 +485,25 @@ export default function AdminDashboard() {
                   >
                     <Filters
                       selectedUser={selectedUser}
-                      onUserChange={setSelectedUser}
+                      onUserChange={(value) => {
+                        setSelectedUser(value);
+                        setGoalsPage(1); // Reset to first page on filter change
+                      }}
                       selectedStatus={selectedStatus}
-                      onStatusChange={setSelectedStatus}
+                      onStatusChange={(value) => {
+                        setSelectedStatus(value);
+                        setGoalsPage(1); // Reset to first page on filter change
+                      }}
                       selectedPriority={selectedPriority}
-                      onPriorityChange={setSelectedPriority}
+                      onPriorityChange={(value) => {
+                        setSelectedPriority(value);
+                        setGoalsPage(1); // Reset to first page on filter change
+                      }}
                       selectedCategory={selectedCategory}
-                      onCategoryChange={setSelectedCategory}
+                      onCategoryChange={(value) => {
+                        setSelectedCategory(value);
+                        setGoalsPage(1); // Reset to first page on filter change
+                      }}
                       users={users}
                     />
                   </motion.div>
