@@ -68,8 +68,8 @@ export default function AllGoalsPage() {
         page: page.toString(),
         limit: limit.toString(),
         ...(selectedStatus && selectedStatus !== 'all' && { status: selectedStatus }),
-        ...(selectedPriority && { priority: selectedPriority }),
-        ...(selectedCategory && selectedCategory !== 'all' && { category: selectedCategory }),
+        ...(selectedPriority && selectedPriority !== '' && { priority: selectedPriority }),
+        ...(selectedCategory && selectedCategory !== 'all' && selectedCategory !== '' && { category: selectedCategory }),
         ...(selectedUser && selectedUser !== 'all' && { employeeId: selectedUser })
       });
 

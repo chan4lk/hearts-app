@@ -249,7 +249,11 @@ export async function GET(req: Request) {
         if (userRole !== 'ADMIN') {
           return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
-        // No additional filter - get all non-deleted goals
+        // If specific employeeId filter is provided, filter by that employee
+        if (employeeId) {
+          whereClause.employeeId = employeeId;
+        }
+        // Otherwise, get all non-deleted goals (no additional filter needed)
         break;
 
       default:
