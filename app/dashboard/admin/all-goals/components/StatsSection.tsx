@@ -5,14 +5,22 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 interface StatsSectionProps {
   goals: Goal[];
+  totalStats?: {
+    total: number;
+    approved: number;
+    rejected: number;
+    draft: number;
+    completed: number;
+  };
   onStatusFilter?: (status: string) => void;
 }
 
-export default function StatsSection({ goals, onStatusFilter }: StatsSectionProps) {
+export default function StatsSection({ goals, totalStats, onStatusFilter }: StatsSectionProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const stats = {
+  // Use totalStats if provided (for showing total counts), otherwise calculate from goals
+  const stats = totalStats || {
     total: goals.length,
     approved: goals.filter(g => g.status === 'APPROVED').length,
     rejected: goals.filter(g => g.status === 'REJECTED').length,

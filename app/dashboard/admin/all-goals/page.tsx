@@ -32,6 +32,15 @@ export default function AllGoalsPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [goalsToBulkDelete, setGoalsToBulkDelete] = useState<string[]>([]);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+
+  // Total stats for status grid (always show total, not filtered)
+  const [totalStats, setTotalStats] = useState({
+    total: 0,
+    approved: 0,
+    rejected: 0,
+    draft: 0,
+    completed: 0
+  });
   
   // Pagination state
   const [page, setPage] = useState(1);
@@ -62,6 +71,29 @@ export default function AllGoalsPage() {
     }
   }, [searchParams]);
 
+  // Fetch total stats (all goals, not filtered)
+  const fetchTotalStats = async () => {
+    try {
+      // Fetch all goals without filters to get total counts
+      const response = await fetch('/api/goals?view=all&limit=10000&page=1');
+      if (!response.ok) return;
+      
+      const data = await response.json();
+      const allGoals = data.goals || [];
+      
+      // Calculate stats from all goals
+      setTotalStats({
+        total: allGoals.length,
+        approved: allGoals.filter((g: Goal) => g.status === 'APPROVED').length,
+        rejected: allGoals.filter((g: Goal) => g.status === 'REJECTED').length,
+        draft: allGoals.filter((g: Goal) => g.status === 'DRAFT').length,
+        completed: allGoals.filter((g: Goal) => g.status === 'COMPLETED').length
+      });
+    } catch (error) {
+      console.error('Error fetching total stats:', error);
+    }
+  };
+
   useEffect(() => {
     if (!session) {
       router.push('/login');
@@ -73,6 +105,9 @@ export default function AllGoalsPage() {
       return;
     }
 
+    // Fetch total stats once on mount
+    fetchTotalStats();
+    
     fetchData();
   }, [session, router, page, limit, selectedUser, selectedStatus, selectedPriority, selectedCategory]);
 
@@ -148,6 +183,7 @@ export default function AllGoalsPage() {
       setGoalToDelete(null);
       showToast.success('Goal Deleted!', 'The goal has been deleted successfully');
       fetchData(); // Refresh goals
+      fetchTotalStats(); // Refresh total stats
     } catch (error) {
       console.error('Error deleting goal:', error);
       // Revert optimistic update on error
@@ -195,6 +231,7 @@ export default function AllGoalsPage() {
       
       // Refresh goals from server to ensure sync
       fetchData();
+      fetchTotalStats(); // Refresh total stats
     } catch (error) {
       console.error('Error bulk deleting goals:', error);
       // Revert optimistic update on error
@@ -219,10 +256,20 @@ export default function AllGoalsPage() {
             animate={{ opacity: 1, y: 0 }}
           >
             <StatsSection 
-              goals={goals} 
+              goals={[]} 
+              totalStats={totalStats}
               onStatusFilter={(status) => {
                 setSelectedStatus(status === 'all' ? 'all' : status);
                 setPage(1);
+                // Update URL with status filter
+                const params = new URLSearchParams(window.location.search);
+                if (status === 'all' || status === '') {
+                  params.delete('status');
+                } else {
+                  params.set('status', status);
+                }
+                params.delete('page'); // Reset to page 1
+                router.push(`/dashboard/admin/all-goals?${params.toString()}`);
               }}
             />
           </motion.div>
