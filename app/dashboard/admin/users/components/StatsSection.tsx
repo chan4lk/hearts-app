@@ -1,4 +1,4 @@
-import { BsPeople, BsCheckCircle, BsPersonBadge, BsBuilding } from 'react-icons/bs';
+import { BsPeople, BsPersonBadge, BsBuilding, BsShieldExclamation } from 'react-icons/bs';
 import { motion } from 'framer-motion';
 
 interface StatsSectionProps {
@@ -7,10 +7,18 @@ interface StatsSectionProps {
     active: number;
     managers: number;
     employees: number;
+    admins: number;
   };
+  onFilterChange?: (filterType: 'role' | 'clear', value?: string) => void;
 }
 
-export default function StatsSection({ users }: StatsSectionProps) {
+export default function StatsSection({ users, onFilterChange }: StatsSectionProps) {
+  const handleStatClick = (filterType: 'role' | 'clear', value?: string) => {
+    if (onFilterChange) {
+      onFilterChange(filterType, value);
+    }
+  };
+
   const statsList = [
     {
       title: 'Total Users',
@@ -18,15 +26,17 @@ export default function StatsSection({ users }: StatsSectionProps) {
       icon: <BsPeople className="w-4 h-4" />,
       gradient: 'from-blue-500 to-cyan-500',
       bgColor: 'bg-blue-500/10',
-      borderColor: 'border-blue-500/30'
+      borderColor: 'border-blue-500/30',
+      onClick: () => handleStatClick('clear')
     },
     {
-      title: 'Active Users',
-      value: users.active,
-      icon: <BsCheckCircle className="w-4 h-4" />,
+      title: 'Employees',
+      value: users.employees,
+      icon: <BsBuilding className="w-4 h-4" />,
       gradient: 'from-emerald-500 to-teal-500',
       bgColor: 'bg-emerald-500/10',
-      borderColor: 'border-emerald-500/30'
+      borderColor: 'border-emerald-500/30',
+      onClick: () => handleStatClick('role', 'EMPLOYEE')
     },
     {
       title: 'Managers',
@@ -34,15 +44,17 @@ export default function StatsSection({ users }: StatsSectionProps) {
       icon: <BsPersonBadge className="w-4 h-4" />,
       gradient: 'from-purple-500 to-pink-500',
       bgColor: 'bg-purple-500/10',
-      borderColor: 'border-purple-500/30'
+      borderColor: 'border-purple-500/30',
+      onClick: () => handleStatClick('role', 'MANAGER')
     },
     {
-      title: 'Employees',
-      value: users.employees,
-      icon: <BsBuilding className="w-4 h-4" />,
+      title: 'Admins',
+      value: users.admins,
+      icon: <BsShieldExclamation className="w-4 h-4" />,
       gradient: 'from-orange-500 to-red-500',
       bgColor: 'bg-orange-500/10',
-      borderColor: 'border-orange-500/30'
+      borderColor: 'border-orange-500/30',
+      onClick: () => handleStatClick('role', 'ADMIN')
     }
   ];
 
@@ -54,6 +66,7 @@ export default function StatsSection({ users }: StatsSectionProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: index * 0.05 }}
+          onClick={stat.onClick}
           className={`
             relative overflow-hidden
             ${stat.bgColor}
@@ -72,8 +85,8 @@ export default function StatsSection({ users }: StatsSectionProps) {
             flex items-center gap-3
           `}
           tabIndex={0}
-          aria-label={`${stat.title}: ${stat.value}`}
-          title={`${stat.title}: ${stat.value}`}
+          aria-label={`${stat.title}: ${stat.value} - Click to filter`}
+          title={`${stat.title}: ${stat.value} - Click to filter`}
         >
           {/* Animated background gradient on hover */}
           <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>

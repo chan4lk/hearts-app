@@ -1,5 +1,6 @@
 import { BsPeople, BsBullseye, BsGraphUp, BsShieldExclamation, BsClipboardData } from 'react-icons/bs';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 interface StatsSectionProps {
   stats: {
@@ -12,6 +13,8 @@ interface StatsSectionProps {
 }
 
 export default function StatsSection({ stats }: StatsSectionProps) {
+  const router = useRouter();
+
   const statsList = [
     {
       title: 'Total Users',
@@ -19,7 +22,8 @@ export default function StatsSection({ stats }: StatsSectionProps) {
       icon: <BsPeople className="w-4 h-4" />,
       gradient: 'from-blue-500 to-cyan-500',
       bgColor: 'bg-blue-500/10',
-      borderColor: 'border-blue-500/30'
+      borderColor: 'border-blue-500/30',
+      onClick: () => router.push('/dashboard/admin/users')
     },
     {
       title: 'Employees',
@@ -27,7 +31,8 @@ export default function StatsSection({ stats }: StatsSectionProps) {
       icon: <BsPeople className="w-4 h-4" />,
       gradient: 'from-emerald-500 to-teal-500',
       bgColor: 'bg-emerald-500/10',
-      borderColor: 'border-emerald-500/30'
+      borderColor: 'border-emerald-500/30',
+      onClick: () => router.push('/dashboard/admin/users?role=EMPLOYEE')
     },
     {
       title: 'Managers',
@@ -35,7 +40,8 @@ export default function StatsSection({ stats }: StatsSectionProps) {
       icon: <BsGraphUp className="w-4 h-4" />,
       gradient: 'from-purple-500 to-pink-500',
       bgColor: 'bg-purple-500/10',
-      borderColor: 'border-purple-500/30'
+      borderColor: 'border-purple-500/30',
+      onClick: () => router.push('/dashboard/admin/users?role=MANAGER')
     },
     {
       title: 'Admins',
@@ -43,7 +49,8 @@ export default function StatsSection({ stats }: StatsSectionProps) {
       icon: <BsShieldExclamation className="w-4 h-4" />,
       gradient: 'from-orange-500 to-red-500',
       bgColor: 'bg-orange-500/10',
-      borderColor: 'border-orange-500/30'
+      borderColor: 'border-orange-500/30',
+      onClick: () => router.push('/dashboard/admin/users?role=ADMIN')
     },
     {
       title: 'Total Goals',
@@ -51,7 +58,8 @@ export default function StatsSection({ stats }: StatsSectionProps) {
       icon: <BsBullseye className="w-4 h-4" />,
       gradient: 'from-indigo-500 to-purple-500',
       bgColor: 'bg-indigo-500/10',
-      borderColor: 'border-indigo-500/30'
+      borderColor: 'border-indigo-500/30',
+      onClick: () => router.push('/dashboard/admin/all-goals')
     }
   ];
 
@@ -63,6 +71,7 @@ export default function StatsSection({ stats }: StatsSectionProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: index * 0.05 }}
+          onClick={stat.onClick}
           className={`
             relative overflow-hidden
             ${stat.bgColor}
@@ -82,7 +91,7 @@ export default function StatsSection({ stats }: StatsSectionProps) {
           `}
           tabIndex={0}
           aria-label={`${stat.title}: ${stat.value}`}
-          title={`${stat.title}: ${stat.value}`}
+          title={`${stat.title}: ${stat.value} - Click to view details`}
         >
           {/* Animated background gradient on hover */}
           <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>

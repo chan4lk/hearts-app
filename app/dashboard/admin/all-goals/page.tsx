@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import AdminGoalsTable from '../components/AdminGoalsTable';
@@ -19,6 +19,7 @@ import { PageContainer } from '@/app/components/shared/PageContainer';
 export default function AllGoalsPage() {
   const { data: session } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [users, setUsers] = useState<UserType[]>([]);
   const [selectedUser, setSelectedUser] = useState<string>('all');
@@ -43,6 +44,23 @@ export default function AllGoalsPage() {
     hasNext: boolean;
     hasPrev: boolean;
   } | null>(null);
+
+  // Read URL params on mount and when they change
+  useEffect(() => {
+    const statusParam = searchParams.get('status');
+    const pageParam = searchParams.get('page');
+    
+    if (statusParam) {
+      setSelectedStatus(statusParam);
+    }
+    
+    if (pageParam) {
+      const pageNum = parseInt(pageParam, 10);
+      if (!isNaN(pageNum) && pageNum > 0) {
+        setPage(pageNum);
+      }
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!session) {
@@ -200,7 +218,13 @@ export default function AllGoalsPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <StatsSection goals={goals} />
+            <StatsSection 
+              goals={goals} 
+              onStatusFilter={(status) => {
+                setSelectedStatus(status === 'all' ? 'all' : status);
+                setPage(1);
+              }}
+            />
           </motion.div>
 
           {/* Filters */}

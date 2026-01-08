@@ -1,18 +1,40 @@
 import { BsBullseye, BsCheckCircle, BsXCircle, BsFileEarmark, BsCheck2All } from 'react-icons/bs';
 import { motion } from 'framer-motion';
 import { Goal } from '@/app/components/shared/types';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface StatsSectionProps {
   goals: Goal[];
+  onStatusFilter?: (status: string) => void;
 }
 
-export default function StatsSection({ goals }: StatsSectionProps) {
+export default function StatsSection({ goals, onStatusFilter }: StatsSectionProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const stats = {
     total: goals.length,
     approved: goals.filter(g => g.status === 'APPROVED').length,
     rejected: goals.filter(g => g.status === 'REJECTED').length,
     draft: goals.filter(g => g.status === 'DRAFT').length,
     completed: goals.filter(g => g.status === 'COMPLETED').length
+  };
+
+  const handleStatusClick = (status: string) => {
+    if (onStatusFilter) {
+      // Use callback prop if provided (preferred method)
+      onStatusFilter(status);
+    } else {
+      // Fallback: Update URL with status filter
+      const params = new URLSearchParams(searchParams.toString());
+      if (status === 'all' || status === '') {
+        params.delete('status');
+      } else {
+        params.set('status', status);
+      }
+      params.set('page', '1'); // Reset to first page
+      router.push(`/dashboard/admin/all-goals?${params.toString()}`);
+    }
   };
 
   const statsList = [
@@ -22,7 +44,8 @@ export default function StatsSection({ goals }: StatsSectionProps) {
       icon: <BsBullseye className="w-4 h-4" />,
       gradient: 'from-blue-500 to-cyan-500',
       bgColor: 'bg-blue-500/10',
-      borderColor: 'border-blue-500/30'
+      borderColor: 'border-blue-500/30',
+      status: 'all'
     },
     {
       title: 'Draft',
@@ -30,7 +53,8 @@ export default function StatsSection({ goals }: StatsSectionProps) {
       icon: <BsFileEarmark className="w-4 h-4" />,
       gradient: 'from-gray-500 to-slate-500',
       bgColor: 'bg-gray-500/10',
-      borderColor: 'border-gray-500/30'
+      borderColor: 'border-gray-500/30',
+      status: 'DRAFT'
     },
     {
       title: 'Approved',
@@ -38,7 +62,8 @@ export default function StatsSection({ goals }: StatsSectionProps) {
       icon: <BsCheckCircle className="w-4 h-4" />,
       gradient: 'from-emerald-500 to-teal-500',
       bgColor: 'bg-emerald-500/10',
-      borderColor: 'border-emerald-500/30'
+      borderColor: 'border-emerald-500/30',
+      status: 'APPROVED'
     },
     {
       title: 'Rejected',
@@ -46,7 +71,8 @@ export default function StatsSection({ goals }: StatsSectionProps) {
       icon: <BsXCircle className="w-4 h-4" />,
       gradient: 'from-rose-500 to-red-500',
       bgColor: 'bg-rose-500/10',
-      borderColor: 'border-rose-500/30'
+      borderColor: 'border-rose-500/30',
+      status: 'REJECTED'
     },
     {
       title: 'Completed',
@@ -54,7 +80,8 @@ export default function StatsSection({ goals }: StatsSectionProps) {
       icon: <BsCheck2All className="w-4 h-4" />,
       gradient: 'from-green-500 to-emerald-500',
       bgColor: 'bg-green-500/10',
-      borderColor: 'border-green-500/30'
+      borderColor: 'border-green-500/30',
+      status: 'COMPLETED'
     }
   ];
 
@@ -66,6 +93,7 @@ export default function StatsSection({ goals }: StatsSectionProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: index * 0.05 }}
+          onClick={() => handleStatusClick(stat.status)}
           className={`
             relative overflow-hidden
             ${stat.bgColor}
@@ -84,8 +112,8 @@ export default function StatsSection({ goals }: StatsSectionProps) {
             flex items-center gap-3
           `}
           tabIndex={0}
-          aria-label={`${stat.title}: ${stat.value}`}
-          title={`${stat.title}: ${stat.value}`}
+          aria-label={`${stat.title}: ${stat.value} - Click to filter`}
+          title={`${stat.title}: ${stat.value} - Click to filter`}
         >
           {/* Animated background gradient on hover */}
           <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>

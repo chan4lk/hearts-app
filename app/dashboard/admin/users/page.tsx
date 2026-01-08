@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Toaster } from 'sonner';
 import { motion } from 'framer-motion';
@@ -38,22 +38,49 @@ interface RawUser {
 export default function UsersPage() {
   const { data: session } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // Initialize filters from URL params
+  const getInitialFilters = (searchParams: URLSearchParams): Filters => {
+    const roleParam = searchParams.get('role');
+    const validRoles = ['EMPLOYEE', 'MANAGER', 'ADMIN'];
+    return {
+      role: roleParam && validRoles.includes(roleParam) ? roleParam : '',
+      status: '',
+      manager: ''
+    };
+  };
+
+  const getInitialPage = (searchParams: URLSearchParams): number => {
+    const pageParam = searchParams.get('page');
+    if (pageParam) {
+      const pageNum = parseInt(pageParam, 10);
+      if (!isNaN(pageNum) && pageNum > 0) return pageNum;
+    }
+    return 1;
+  };
+
   const [users, setUsers] = useState<User[]>([]);
   const [managers, setManagers] = useState<User[]>([]);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
-  const [filters, setFilters] = useState<Filters>({
-    role: '',
-    status: '',
-    manager: ''
+  // Total counts for stats (always show total, not filtered)
+  const [totalStats, setTotalStats] = useState({
+    total: 0,
+    active: 0,
+    managers: 0,
+    employees: 0,
+    admins: 0
   });
+
+  const [filters, setFilters] = useState<Filters>(() => getInitialFilters(searchParams));
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   
   // Pagination state
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(() => getInitialPage(searchParams));
   const [limit, setLimit] = useState(20);
   const [pagination, setPagination] = useState<{
     page: number;
@@ -66,6 +93,59 @@ export default function UsersPage() {
 
   // Add auto-refresh functionality
   const REFRESH_INTERVAL = 30000; // 30 seconds
+
+  // Update filters when URL params change (for navigation)
+  useEffect(() => {
+    const roleParam = searchParams.get('role');
+    const pageParam = searchParams.get('page');
+    
+    if (roleParam) {
+      const validRoles = ['EMPLOYEE', 'MANAGER', 'ADMIN'];
+      if (validRoles.includes(roleParam) && filters.role !== roleParam) {
+        setFilters(prev => ({
+          ...prev,
+          role: roleParam
+        }));
+      }
+    } else if (filters.role !== '') {
+      // Clear role filter if not in URL
+      setFilters(prev => ({
+        ...prev,
+        role: ''
+      }));
+    }
+    
+    if (pageParam) {
+      const pageNum = parseInt(pageParam, 10);
+      if (!isNaN(pageNum) && pageNum > 0 && page !== pageNum) {
+        setPage(pageNum);
+      }
+    }
+  }, [searchParams]);
+
+  // Fetch total stats (all users, not filtered)
+  const fetchTotalStats = async () => {
+    try {
+      // Fetch all users without filters to get total counts
+      // Use minimal mode and high limit to get all users efficiently
+      const response = await fetch('/api/admin/users?minimal=true&limit=10000&page=1');
+      if (!response.ok) return;
+      
+      const data = await response.json();
+      const allUsers = Array.isArray(data) ? data : (data.users || []);
+      
+      // Calculate stats from all users
+      setTotalStats({
+        total: allUsers.length,
+        active: allUsers.filter((u: any) => u.isActive !== false).length,
+        managers: allUsers.filter((u: any) => u.role === 'MANAGER').length,
+        employees: allUsers.filter((u: any) => u.role === 'EMPLOYEE').length,
+        admins: allUsers.filter((u: any) => u.role === 'ADMIN').length
+      });
+    } catch (error) {
+      console.error('Error fetching total stats:', error);
+    }
+  };
 
   const fetchUsers = async (currentPage = page) => {
     try {
@@ -137,21 +217,14 @@ export default function UsersPage() {
     }
   }, [filters, searchTerm]);
 
-  // Clear filters on component mount/reload
-  useEffect(() => {
-    setFilters({
-      role: '',
-      status: '',
-      manager: ''
-    });
-    setSearchTerm('');
-  }, []);
-
   useEffect(() => {
     if (!session?.user || session.user.role !== 'ADMIN') {
       router.push('/dashboard');
       return;
     }
+
+    // Fetch total stats once on mount
+    fetchTotalStats();
 
     // Initial fetch
     fetchUsers(page);
@@ -159,6 +232,7 @@ export default function UsersPage() {
     // Set up auto-refresh
     const intervalId = setInterval(() => {
       fetchUsers(page);
+      fetchTotalStats(); // Refresh stats too
     }, REFRESH_INTERVAL);
 
     // Cleanup on unmount
@@ -237,12 +311,38 @@ export default function UsersPage() {
 
 
 
-  // Calculate stats for StatsSection
+  // Use total stats (always show total counts, not filtered)
   const userStats = {
-    total: users.length,
-    active: users.filter(u => u.status === 'ACTIVE').length,
-    managers: users.filter(u => u.role === 'MANAGER').length,
-    employees: users.filter(u => u.role === 'EMPLOYEE').length
+    total: totalStats.total,
+    active: totalStats.active,
+    managers: totalStats.managers,
+    employees: totalStats.employees,
+    admins: totalStats.admins
+  };
+
+  // Handle stat card clicks to filter
+  const handleStatFilter = (filterType: 'role' | 'clear', value?: string) => {
+    if (filterType === 'clear') {
+      setFilters(prev => ({
+        ...prev,
+        role: ''
+      }));
+      // Update URL to remove role filter
+      const params = new URLSearchParams(window.location.search);
+      params.delete('role');
+      router.push(`/dashboard/admin/users?${params.toString()}`);
+    } else if (filterType === 'role' && value) {
+      setFilters(prev => ({
+        ...prev,
+        role: value
+      }));
+      // Update URL with role filter
+      const params = new URLSearchParams(window.location.search);
+      params.set('role', value);
+      params.delete('page'); // Reset to page 1
+      router.push(`/dashboard/admin/users?${params.toString()}`);
+    }
+    setPage(1); // Reset to first page
   };
 
   return (
@@ -260,7 +360,10 @@ export default function UsersPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <StatsSection users={userStats} />
+            <StatsSection 
+              users={userStats} 
+              onFilterChange={handleStatFilter}
+            />
           </motion.div>
 
           {/* Filters */}
