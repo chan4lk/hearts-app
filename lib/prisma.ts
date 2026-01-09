@@ -12,37 +12,41 @@ if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is required');
 }
 
-// Create a new PrismaClient instance with improved configuration
-prismaClient = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL,
+// In development, check for existing client FIRST to prevent connection leaks
+// This is critical for Next.js hot reloading - prevents creating new connections on each reload
+if (process.env.NODE_ENV === 'development' && globalForPrisma.prisma) {
+  prismaClient = globalForPrisma.prisma;
+} else {
+  // Create a new PrismaClient instance only if one doesn't exist
+  prismaClient = new PrismaClient({
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL,
+      },
     },
-  },
-  log: process.env.NODE_ENV === 'development' 
-    ? ['query', 'error', 'warn'] 
-    : ['error'],
-  errorFormat: 'pretty',
-});
+    log: process.env.NODE_ENV === 'development' 
+      ? ['query', 'error', 'warn'] 
+      : ['error'],
+    errorFormat: 'pretty',
+  });
 
-// Handle Prisma connection errors
-prismaClient.$connect().catch((error) => {
-  logger.error(error instanceof Error ? error : new Error(String(error)));
-  throw new Error('Failed to connect to database');
-});
+  // Store in global scope for development to prevent multiple instances
+  if (process.env.NODE_ENV === 'development') {
+    globalForPrisma.prisma = prismaClient;
+  }
+}
 
-// Graceful shutdown
-if (typeof process !== 'undefined') {
+// Don't call $connect() eagerly - Prisma connects lazily when needed
+// This prevents connection pool exhaustion during hot reloads in development
+// The connection will be established automatically on first query
+
+// Graceful shutdown - only set up once (not in development to avoid multiple handlers)
+if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'development') {
   process.on('beforeExit', async () => {
     await prismaClient.$disconnect();
   });
 }
 
-// In development, store the client in the global scope to prevent hot reloading issues
-if (process.env.NODE_ENV === 'development') {
-  if (!globalForPrisma.prisma) {
-    globalForPrisma.prisma = prismaClient;
-  }
-}
-
+// Export the Prisma client
+// Note: Prisma connects lazily on first query, so we don't need to call $connect() here
 export const prisma = prismaClient; 

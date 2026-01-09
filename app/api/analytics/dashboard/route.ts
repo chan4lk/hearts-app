@@ -111,75 +111,24 @@ export async function GET(req: Request) {
       userWhereClause.department = department;
     }
 
-    // Use parallel database queries for faster performance
-    const [
-      totalGoalsResult,
-      statusCounts,
-      categoryCounts,
-      priorityCounts,
-      departmentCounts,
-      monthlyTrends,
-      users,
-      goalsWithRatings
-    ] = await Promise.all([
+    // Optimize queries to reduce connection pool usage
+    // Run queries in batches to prevent connection exhaustion
+    // Batch 1: Core goal queries (can be parallel)
+    const [totalGoalsResult, goalsData] = await Promise.all([
       // Total goals count
       prisma.goal.count({ where: goalWhereClause }),
       
-      // Goals by status (using groupBy for better performance)
-      prisma.goal.groupBy({
-        by: ['status'],
-        where: goalWhereClause,
-        _count: { status: true }
-      }),
-      
-      // Goals by category
-      prisma.goal.groupBy({
-        by: ['category'],
-        where: { ...goalWhereClause, category: { not: null } },
-        _count: { category: true }
-      }),
-      
-      // Goals by priority
-      prisma.goal.groupBy({
-        by: ['priority'],
-        where: { ...goalWhereClause, priority: { not: null } },
-        _count: { priority: true }
-      }),
-      
-      // Goals by department
-      prisma.goal.groupBy({
-        by: ['department'],
-        where: { ...goalWhereClause, department: { not: null } },
-        _count: { department: true }
-      }),
-      
-      // Monthly trends - get goals with createdAt for grouping
-      prisma.goal.findMany({
-        where: goalWhereClause,
-        select: { createdAt: true },
-        orderBy: { createdAt: 'desc' }
-      }),
-      
-      // Get users for team analysis (limited fields)
-      prisma.user.findMany({
-        where: userWhereClause,
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-          department: true,
-          isActive: true
-        }
-      }),
-      
-      // Get goals with ratings for performance calculation (only needed fields)
+      // Get all goals data needed for multiple calculations in one query
       prisma.goal.findMany({
         where: goalWhereClause,
         select: {
           id: true,
-          employeeId: true,
           status: true,
+          category: true,
+          priority: true,
+          department: true,
+          createdAt: true,
+          employeeId: true,
           rating: {
             select: {
               selfScore: true,
@@ -192,14 +141,63 @@ export async function GET(req: Request) {
         }
       })
     ]);
+    
+    // Batch 2: User query (independent, can run in parallel with batch 1)
+    const usersPromise = prisma.user.findMany({
+      where: userWhereClause,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        department: true,
+        isActive: true
+      }
+    });
+    
+    // Wait for users query
+    const users = await usersPromise;
+    
+    // Calculate breakdowns from the single goals query (reduces DB connections)
+    const statusCounts = goalsData.reduce((acc, goal) => {
+      acc[goal.status] = (acc[goal.status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const categoryCounts = goalsData
+      .filter(g => g.category)
+      .reduce((acc, goal) => {
+        acc[goal.category!] = (acc[goal.category!] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+    
+    const priorityCounts = goalsData
+      .filter(g => g.priority)
+      .reduce((acc, goal) => {
+        acc[goal.priority!] = (acc[goal.priority!] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+    
+    const departmentCounts = goalsData
+      .filter(g => g.department)
+      .reduce((acc, goal) => {
+        acc[goal.department!] = (acc[goal.department!] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+    
+    // Monthly trends from goalsData
+    const monthlyTrends = goalsData.map(g => ({ createdAt: g.createdAt }));
+    
+    // Goals with ratings (already included in goalsData)
+    const goalsWithRatings = goalsData;
 
     // Calculate goal statistics from aggregated data
     const totalGoals = totalGoalsResult;
-    const completedGoals = statusCounts.find(s => s.status === 'COMPLETED')?._count.status || 0;
-    const inProgressGoals = statusCounts.find(s => s.status === 'IN_PROGRESS')?._count.status || 0;
-    const pendingGoals = statusCounts.find(s => s.status === 'PENDING')?._count.status || 0;
-    const approvedGoals = statusCounts.find(s => s.status === 'APPROVED')?._count.status || 0;
-    const draftGoals = statusCounts.find(s => s.status === 'DRAFT')?._count.status || 0;
+    const completedGoals = statusCounts['COMPLETED'] || 0;
+    const inProgressGoals = statusCounts['IN_PROGRESS'] || 0;
+    const pendingGoals = statusCounts['PENDING'] || 0;
+    const approvedGoals = statusCounts['APPROVED'] || 0;
+    const draftGoals = statusCounts['DRAFT'] || 0;
     const completionRate = totalGoals > 0 ? (completedGoals / totalGoals) * 100 : 0;
 
     // Calculate rating statistics from goalsWithRatings
@@ -228,35 +226,35 @@ export async function GET(req: Request) {
       ? ratingsWithScore.reduce((sum, r) => sum + r, 0) / ratingsWithScore.length
       : 0;
 
-    // Goals by status - convert from groupBy result
+    // Goals by status - already calculated from goalsData
     const goalsByStatus: Record<string, number> = {};
-    statusCounts.forEach(item => {
-      if (item._count.status > 0) {
-        goalsByStatus[item.status] = item._count.status;
+    Object.entries(statusCounts).forEach(([status, count]) => {
+      if (count > 0) {
+        goalsByStatus[status] = count;
       }
     });
 
-    // Goals by category - convert from groupBy result
+    // Goals by category - already calculated from goalsData
     const goalsByCategory: Record<string, number> = {};
-    categoryCounts.forEach(item => {
-      if (item.category && item._count.category > 0) {
-        goalsByCategory[item.category] = item._count.category;
+    Object.entries(categoryCounts).forEach(([category, count]) => {
+      if (count > 0) {
+        goalsByCategory[category] = count;
       }
     });
 
-    // Goals by priority - convert from groupBy result
+    // Goals by priority - already calculated from goalsData
     const goalsByPriority: Record<string, number> = {};
-    priorityCounts.forEach(item => {
-      if (item.priority && item._count.priority > 0) {
-        goalsByPriority[item.priority] = item._count.priority;
+    Object.entries(priorityCounts).forEach(([priority, count]) => {
+      if (count > 0) {
+        goalsByPriority[priority] = count;
       }
     });
 
-    // Goals by department - convert from groupBy result
+    // Goals by department - already calculated from goalsData
     const goalsByDepartment: Record<string, number> = {};
-    departmentCounts.forEach(item => {
-      if (item.department && item._count.department > 0) {
-        goalsByDepartment[item.department] = item._count.department;
+    Object.entries(departmentCounts).forEach(([department, count]) => {
+      if (count > 0) {
+        goalsByDepartment[department] = count;
       }
     });
 
@@ -400,6 +398,24 @@ export async function GET(req: Request) {
     });
   } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
+    
+    // Check if it's a connection pool error
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes('too many clients') || errorMessage.includes('connection')) {
+      return NextResponse.json(
+        { 
+          error: 'Database connection limit reached. Please try again in a moment.',
+          retryAfter: 5
+        },
+        { 
+          status: 503, // Service Unavailable
+          headers: {
+            'Retry-After': '5'
+          }
+        }
+      );
+    }
+    
     return NextResponse.json(
       { error: 'Failed to fetch analytics' },
       { status: 500 }

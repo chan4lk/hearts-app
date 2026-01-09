@@ -79,6 +79,10 @@ export default function AnalyticsPage() {
   
   // Use ref to track if filters have changed to prevent duplicate calls
   const lastFiltersRef = useRef<string>('');
+  // Use ref to track if we have data (to avoid stale closure issues)
+  const hasDataRef = useRef<boolean>(false);
+  // Use ref to track debounce timeout to prevent rapid successive requests
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Determine dashboard layout type based on context preservation or user role
   // This preserves the dashboard context when navigating from employee/manager pages
@@ -179,7 +183,9 @@ export default function AnalyticsPage() {
     if (userRole === 'ADMIN' || userRole === 'MANAGER') {
       fetchEmployees();
     }
-    // Start fetching analytics immediately
+    // Start fetching analytics immediately on initial load
+    // Reset filter ref to allow fetch on initial load
+    lastFiltersRef.current = ''; // Reset to allow fetch on initial load
     fetchAnalytics();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionStatus]); // Only depend on sessionStatus to prevent loops
@@ -191,16 +197,9 @@ export default function AnalyticsPage() {
       return;
     }
     
-    // Create a filter key to check if filters actually changed
-    const filterKey = `${startDate}-${endDate}-${selectedEmployee}-${selectedDepartment}-${dashboardType}`;
-    if (lastFiltersRef.current === filterKey) {
-      return; // Don't refetch if filters haven't changed
-    }
-    lastFiltersRef.current = filterKey;
-    
     try {
       // Set loading only on initial load, use refreshing for subsequent updates
-      if (!analyticsData) {
+      if (!hasDataRef.current) {
         setLoading(true);
       } else {
         setRefreshing(true);
@@ -227,6 +226,11 @@ export default function AnalyticsPage() {
 
       const response = await fetch(`/api/analytics/dashboard?${params}`);
       if (!response.ok) {
+        // Handle connection pool errors specifically
+        if (response.status === 503) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Database connection limit reached. Please try again in a moment.');
+        }
         throw new Error('Failed to fetch analytics');
       }
 
@@ -256,6 +260,10 @@ export default function AnalyticsPage() {
           employeePerformance: data.employeePerformance || [],
         };
         setAnalyticsData(sanitizedData);
+        hasDataRef.current = true; // Mark that we have data
+        // Update filter ref after successful fetch to track current filter state
+        const currentFilterKey = `${startDate}-${endDate}-${selectedEmployee}-${selectedDepartment}-${dashboardType}`;
+        lastFiltersRef.current = currentFilterKey;
       } else {
         console.error('API returned error:', data.error);
         // Set empty data structure to prevent crashes
@@ -281,9 +289,25 @@ export default function AnalyticsPage() {
           },
           employeePerformance: [],
         });
+        hasDataRef.current = true; // Mark that we have attempted to load data
       }
     } catch (error) {
       console.error('Error fetching analytics:', error);
+      
+      // Handle connection pool errors with user-friendly message
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('connection limit') || errorMessage.includes('too many clients')) {
+        // Show user-friendly error message
+        console.warn('Database connection limit reached. Retrying in 2 seconds...');
+        // Retry after 2 seconds
+        setTimeout(() => {
+          if (sessionStatus === 'authenticated' && session?.user) {
+            fetchAnalytics();
+          }
+        }, 2000);
+        return; // Don't set empty data, wait for retry
+      }
+      
       // Set empty data structure on error to prevent crashes
       setAnalyticsData({
         summary: {
@@ -307,6 +331,7 @@ export default function AnalyticsPage() {
         },
         employeePerformance: [],
       });
+      hasDataRef.current = true; // Mark that we have attempted to load data
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -323,12 +348,34 @@ export default function AnalyticsPage() {
       return; // Don't fetch if no session
     }
     
-    // Only fetch if this is not the initial load (initial load is handled above)
-    if (analyticsData !== null) {
-      fetchAnalytics();
+    // Skip if we don't have data yet (initial load is handled separately)
+    if (!hasDataRef.current) {
+      return; // Wait for initial load to complete
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startDate, endDate, selectedEmployee, selectedDepartment, dashboardType]);
+    
+    // Check if filters actually changed before fetching
+    const currentFilterKey = `${startDate}-${endDate}-${selectedEmployee}-${selectedDepartment}-${dashboardType}`;
+    if (lastFiltersRef.current !== currentFilterKey) {
+      // Clear any existing debounce timeout
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+      
+      // Debounce filter changes to prevent rapid successive requests (500ms delay)
+      debounceTimeoutRef.current = setTimeout(() => {
+        // Filters changed, reset ref to allow fetchAnalytics to proceed
+        lastFiltersRef.current = '';
+        fetchAnalytics();
+      }, 500);
+    }
+    
+    // Cleanup timeout on unmount or filter change
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [startDate, endDate, selectedEmployee, selectedDepartment, dashboardType, fetchAnalytics, sessionStatus, session?.user]);
 
   // Handle refresh action
   const handleRefresh = useCallback(() => {
@@ -464,12 +511,12 @@ export default function AnalyticsPage() {
             selectedEmployee={selectedEmployee}
             onEmployeeChange={(value: string) => {
               setSelectedEmployee(value);
-              setLoading(true);
+              // Don't set loading here - fetchAnalytics will handle it
             }}
             selectedDepartment={selectedDepartment}
             onDepartmentChange={(value: string) => {
               setSelectedDepartment(value);
-              setLoading(true);
+              // Don't set loading here - fetchAnalytics will handle it
             }}
             employees={employees}
             departments={departments}
