@@ -12,12 +12,13 @@ if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is required');
 }
 
-// In development, check for existing client FIRST to prevent connection leaks
-// This is critical for Next.js hot reloading - prevents creating new connections on each reload
-if (process.env.NODE_ENV === 'development' && globalForPrisma.prisma) {
+// Ensure singleton Prisma client instance to prevent connection pool exhaustion
+// Check for existing client FIRST in both development and production
+if (globalForPrisma.prisma) {
   prismaClient = globalForPrisma.prisma;
 } else {
   // Create a new PrismaClient instance only if one doesn't exist
+  // Prisma automatically manages connection pooling internally
   prismaClient = new PrismaClient({
     datasources: {
       db: {
@@ -30,10 +31,8 @@ if (process.env.NODE_ENV === 'development' && globalForPrisma.prisma) {
     errorFormat: 'pretty',
   });
 
-  // Store in global scope for development to prevent multiple instances
-  if (process.env.NODE_ENV === 'development') {
-    globalForPrisma.prisma = prismaClient;
-  }
+  // Store in global scope to prevent multiple instances (works in both dev and prod)
+  globalForPrisma.prisma = prismaClient;
 }
 
 // Don't call $connect() eagerly - Prisma connects lazily when needed
