@@ -242,18 +242,21 @@ export default function AllGoalsPage() {
 
   return (
     <DashboardLayout type="admin">
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="fixed inset-0 top-16 left-0 md:left-64 right-0 bottom-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col overflow-hidden z-0">
         {/* Subtle Background Pattern */}
-        <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
         
-        <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
-          {/* Hero Section */}
-          <HeroSection />
+        <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
+          {/* Hero Section - Fixed */}
+          <div className="flex-shrink-0 mb-3 relative z-10">
+            <HeroSection />
+          </div>
 
-          {/* Stats Section */}
+          {/* Stats Section - Fixed */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
+            className="flex-shrink-0 mb-3"
           >
             <StatsSection 
               goals={[]} 
@@ -274,11 +277,12 @@ export default function AllGoalsPage() {
             />
           </motion.div>
 
-          {/* Filters */}
+          {/* Filters - Fixed */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
+            className="flex-shrink-0 mb-3"
           >
             <Filters
               selectedUser={selectedUser}
@@ -293,52 +297,54 @@ export default function AllGoalsPage() {
             />
           </motion.div>
 
-          {/* Goals Table */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <div className="relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl shadow-xl">
-              <div className="p-4">
-                <AdminGoalsTable
-                  goals={filteredGoals}
-                  selectedStatus={selectedStatus === 'all' ? '' : selectedStatus}
-                  onStatusChange={(status) => {
-                    setSelectedStatus(status === '' ? 'all' : status);
-                    setPage(1); // Reset to first page on filter change
-                  }}
-                  onGoalClick={(goal) => setSelectedGoal(goal)}
-                  onDelete={handleDeleteGoal}
-                  onBulkDelete={handleBulkDelete}
-                  showEmployee={true}
-                  showManager={true}
-                />
-                
-                {/* Pagination */}
-                {pagination && (
-                  <div className="mt-6 pt-4 border-t border-gray-700/50">
-                    <Pagination
-                      page={pagination.page}
-                      limit={pagination.limit}
-                      total={pagination.total}
-                      totalPages={pagination.totalPages}
-                      hasNext={pagination.hasNext}
-                      hasPrev={pagination.hasPrev}
-                      onPageChange={(newPage) => {
-                        setPage(newPage);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                      onLimitChange={(newLimit) => {
-                        setLimit(newLimit);
-                        setPage(1);
-                      }}
-                    />
-                  </div>
-                )}
+          {/* Goals Table - Scrollable Container */}
+          <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="flex-1 flex flex-col overflow-hidden min-h-0"
+            >
+              <div className="relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm flex flex-col h-full">
+                <div className="p-4 flex flex-col flex-1 overflow-hidden min-h-0">
+                  <AdminGoalsTable
+                    goals={filteredGoals}
+                    selectedStatus={selectedStatus === 'all' ? '' : selectedStatus}
+                    onStatusChange={(status) => {
+                      setSelectedStatus(status === '' ? 'all' : status);
+                      setPage(1); // Reset to first page on filter change
+                    }}
+                    onGoalClick={(goal) => setSelectedGoal(goal)}
+                    onDelete={handleDeleteGoal}
+                    onBulkDelete={handleBulkDelete}
+                    showEmployee={true}
+                    showManager={true}
+                  />
+                  
+                  {/* Pagination - Fixed at bottom */}
+                  {pagination && (
+                    <div className="flex-shrink-0 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <Pagination
+                        page={pagination.page}
+                        limit={pagination.limit}
+                        total={pagination.total}
+                        totalPages={pagination.totalPages}
+                        hasNext={pagination.hasNext}
+                        hasPrev={pagination.hasPrev}
+                        onPageChange={(newPage) => {
+                          setPage(newPage);
+                        }}
+                        onLimitChange={(newLimit) => {
+                          setLimit(newLimit);
+                          setPage(1);
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
       </div>
 
