@@ -8,7 +8,6 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import HeroSection from './components/HeroSection';
 import ReviewCycleTable from './components/ReviewCycleTable';
 import ReviewCycleForm from './components/ReviewCycleForm';
-import ExcelImportModal from './components/ExcelImportModal';
 import { Pagination } from '@/app/components/shared/Pagination';
 import { showToast } from '@/app/utils/toast';
 import { BsArrowLeft } from 'react-icons/bs';
@@ -59,7 +58,6 @@ export default function ReviewCyclesPage() {
   const [editingCycle, setEditingCycle] = useState<ReviewCycle | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [cycleToDelete, setCycleToDelete] = useState<ReviewCycle | null>(null);
-  const [importModalOpen, setImportModalOpen] = useState(false);
   
   // Pagination state
   const [page, setPage] = useState(1);
@@ -217,7 +215,6 @@ export default function ReviewCyclesPage() {
           <div className="flex-shrink-0 pt-3 pb-3 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 z-10 relative">
             <HeroSection 
               onAddNew={() => setIsFormOpen(true)}
-              onImport={() => setImportModalOpen(true)}
             />
           </div>
 
@@ -307,14 +304,6 @@ export default function ReviewCyclesPage() {
             message={`Are you sure you want to delete the review cycle for ${cycleToDelete?.user.name}? This action cannot be undone.`}
           />
 
-          {/* Excel Import Modal */}
-          <ExcelImportModal
-            isOpen={importModalOpen}
-            onClose={() => setImportModalOpen(false)}
-            onImportSuccess={() => {
-              fetchReviewCycles();
-            }}
-          />
 
         </div>
       </div>
