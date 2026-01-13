@@ -340,23 +340,36 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
   const selectedUser = users.find(u => u.id === formData.userId);
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-white">
-          {reviewCycle ? 'Edit Review Cycle' : 'Add Review Cycle'}
-        </h2>
-        <button
-          onClick={onClose}
-          className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-        >
-          <BsX className="w-5 h-5 text-gray-400 hover:text-white" />
-        </button>
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Fixed Header - Brand Teal Color */}
+      <div className="flex-shrink-0 px-6 py-4 bg-gradient-to-r from-teal-600 to-cyan-600 border-b border-teal-500/30 z-10 shadow-lg rounded-t-xl">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-white" style={{ color: '#ffffff' }}>
+            Review Cycle
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+            aria-label="Close modal"
+          >
+            <BsX className="w-5 h-5 text-white" style={{ color: '#ffffff' }} />
+          </button>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Scrollable Form Fields - Only This Scrolls */}
+      <form 
+        id="review-cycle-form" 
+        onSubmit={handleSubmit} 
+        className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 space-y-4 min-h-0"
+        style={{
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'rgba(107, 114, 128, 0.5) transparent'
+        }}
+      >
         {/* Employee Selection - Searchable Dropdown */}
         <div ref={employeeRef} className="relative">
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-semibold text-gray-200 mb-2" style={{ color: '#e5e7eb' }}>
             <BsPerson className="inline w-4 h-4 mr-2" />
             Employee *
           </label>
@@ -436,7 +449,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
 
         {/* Reporting Person - Searchable Dropdown */}
         <div ref={reportingPersonRef} className="relative">
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-semibold text-gray-200 mb-2" style={{ color: '#e5e7eb' }}>
             <BsPerson className="inline w-4 h-4 mr-2" />
             Reporting Person
           </label>
@@ -502,7 +515,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
 
         {/* Job Category - Searchable Dropdown */}
         <div ref={jobCategoryRef} className="relative">
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-semibold text-gray-200 mb-2" style={{ color: '#e5e7eb' }}>
             <BsBriefcase className="inline w-4 h-4 mr-2" />
             Job Category
           </label>
@@ -573,7 +586,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
 
         {/* Designation - Searchable Dropdown */}
         <div ref={designationRef} className="relative">
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-semibold text-gray-200 mb-2" style={{ color: '#e5e7eb' }}>
             <BsBriefcase className="inline w-4 h-4 mr-2" />
             Designation
           </label>
@@ -644,7 +657,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
 
         {/* Date of Appointment */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-semibold text-gray-200 mb-2" style={{ color: '#e5e7eb' }}>
             <BsCalendar className="inline w-4 h-4 mr-2" />
             Date of Appointment (Joined Date)
           </label>
@@ -667,7 +680,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
 
         {/* After 6 Months */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-semibold text-gray-200 mb-2" style={{ color: '#e5e7eb' }}>
             After 6 Months
           </label>
           <select
@@ -686,7 +699,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
 
         {/* Review Month */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-semibold text-gray-200 mb-2" style={{ color: '#e5e7eb' }}>
             Review Month
             {calculatedReviewMonth && formData.reviewMonth === calculatedReviewMonth && (
               <span className="ml-2 text-xs text-indigo-400 font-normal"></span>
@@ -714,7 +727,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
 
         {/* Adjusted Review Month */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-semibold text-gray-200 mb-2" style={{ color: '#e5e7eb' }}>
             Adjusted Review Month
           </label>
           <select
@@ -761,24 +774,28 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
           )}
         </div>
 
-        {/* Form Actions */}
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-700">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Saving...' : 'Save Review Cycle'}
-          </button>
-        </div>
       </form>
+
+      {/* Fixed Footer with Buttons */}
+      <div className="flex-shrink-0 px-6 py-4 border-t border-gray-700/30 bg-gray-800/50 flex items-center justify-end gap-3 rounded-b-xl">
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors rounded-lg hover:bg-gray-700/50"
+          style={{ color: '#d1d5db' }}
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          form="review-cycle-form"
+          disabled={loading}
+          className="px-6 py-2 text-sm font-medium bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+          style={{ color: '#ffffff' }}
+        >
+          {loading ? 'Saving...' : (reviewCycle ? 'Update' : 'Add')}
+        </button>
+      </div>
     </div>
   );
 }
