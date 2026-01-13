@@ -31,27 +31,48 @@ export default function ManagerSelector({
   const [managers, setManagers] = useState<ManagerOption[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch managers and admins
+  // Fetch ALL managers and admins independently - no filters from parent
   useEffect(() => {
+    let isMounted = true;
+    let abortController = new AbortController();
+    
     const fetchManagers = async () => {
       try {
         setLoading(true);
-        // Reset search term when fetching to ensure we get all results
+        // Always reset search term when modal opens
         setSearchTerm('');
         
-        // Explicitly exclude search parameter and ensure we get all admins and managers
-        // Use a clean URL without any search filters to load all users
-        const response = await fetch('/api/admin/users?minimal=true&limit=10000&page=1&sortBy=name&sortOrder=asc');
+        // Fetch ALL users with minimal fields - NO FILTER PARAMETERS
+        // Only include essential pagination/sorting params, NO filter params
+        // This ensures we get ALL users regardless of any parent component filters
+        const url = new URL('/api/admin/users', window.location.origin);
+        url.searchParams.set('minimal', 'true');
+        url.searchParams.set('limit', '1000');
+        url.searchParams.set('page', '1');
+        url.searchParams.set('sortBy', 'name');
+        url.searchParams.set('sortOrder', 'asc');
+        // DO NOT include: role, isActive, search, department, managerId
+        // This ensures NO server-side filtering is applied
+        
+        const response = await fetch(url.toString(), {
+          method: 'GET',
+          credentials: 'include',
+          signal: abortController.signal,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          cache: 'no-store' // Ensure fresh data, no cache
+        });
         
         if (!response.ok) {
-          throw new Error('Failed to fetch managers');
+          throw new Error(`Failed to fetch: ${response.status}`);
         }
 
         const data = await response.json();
         const usersList = Array.isArray(data) ? data : (data.users || []);
         
-        // Filter to only ADMIN and MANAGER roles, and exclude the current user
-        // Both admins and managers can be assigned as managers
+        // Filter to ONLY ADMIN and MANAGER roles, exclude current user
+        // This is client-side filtering - search will work on this filtered list
         const managerList = usersList
           .filter((user: User) => 
             (user.role === Role.ADMIN || user.role === Role.MANAGER) && 
@@ -60,35 +81,66 @@ export default function ManagerSelector({
           .map((user: User) => ({
             ...user,
             displayName: `${user.name} (${user.email})`
-          }));
+          }))
+          .sort((a: ManagerOption, b: ManagerOption) => a.name.localeCompare(b.name));
 
-        setManagers(managerList);
-      } catch (error) {
+        if (isMounted) {
+          setManagers(managerList);
+          // Debug: Log how many managers were loaded
+          console.log(`ManagerSelector: Loaded ${managerList.length} managers/admins`);
+        }
+      } catch (error: any) {
+        // Ignore abort errors (component unmounted)
+        if (error.name === 'AbortError') {
+          return;
+        }
         console.error('Error fetching managers:', error);
+        if (isMounted) {
+          setManagers([]);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchManagers();
+    
+    // Cleanup: abort fetch and prevent state updates if component unmounts
+    return () => {
+      isMounted = false;
+      abortController.abort();
+    };
   }, [userId]);
 
-  // Filter managers based on search term
+  // Client-side search filtering - works on ALL loaded managers
+  // This is completely independent of any parent component filters
   const filteredManagers = useMemo(() => {
+    // If no search term, return ALL managers (no filtering)
     if (!searchTerm.trim()) {
-      return managers;
+      return managers; // Return all loaded managers
     }
 
-    const searchLower = searchTerm.toLowerCase();
+    // Filter managers based on search term (name or email only)
+    // This filtering happens entirely client-side on the loaded managers list
+    const searchLower = searchTerm.toLowerCase().trim();
     return managers.filter(manager =>
       manager.name.toLowerCase().includes(searchLower) ||
-      manager.email.toLowerCase().includes(searchLower) ||
-      manager.displayName.toLowerCase().includes(searchLower)
+      manager.email.toLowerCase().includes(searchLower)
     );
   }, [managers, searchTerm]);
 
   const handleSelect = (managerId: string | null) => {
     onSelect(managerId);
+    // Reset search term when closing
+    setSearchTerm('');
+    onClose();
+  };
+
+  // Reset search term when modal closes
+  const handleClose = () => {
+    setSearchTerm('');
     onClose();
   };
 
@@ -100,7 +152,7 @@ export default function ManagerSelector({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         />
 
@@ -117,7 +169,7 @@ export default function ManagerSelector({
             <div className="flex items-center justify-between mb-1">
               <h3 className="text-lg font-semibold text-white">Assign Manager</h3>
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors"
               >
                 <BsX className="w-4 h-4" />
