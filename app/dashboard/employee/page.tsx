@@ -471,6 +471,10 @@ export default function EmployeeDashboard() {
               stats={getGoalStats()} 
               goals={goals}
               onViewManagerRatings={() => setShowManagerRatingsModal(true)}
+              onStatusFilter={(status) => {
+                setSelectedStatus(status);
+                setPage(1);
+              }}
             />
           </motion.div>
 

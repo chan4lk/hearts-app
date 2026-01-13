@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import AdminGoalsTable from '../components/AdminGoalsTable';
@@ -19,6 +19,7 @@ import { PageContainer } from '@/app/components/shared/PageContainer';
 export default function AllGoalsPage() {
   const { data: session } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [users, setUsers] = useState<UserType[]>([]);
   const [selectedUser, setSelectedUser] = useState<string>('all');
@@ -31,6 +32,15 @@ export default function AllGoalsPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [goalsToBulkDelete, setGoalsToBulkDelete] = useState<string[]>([]);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+
+  // Total stats for status grid (always show total, not filtered)
+  const [totalStats, setTotalStats] = useState({
+    total: 0,
+    approved: 0,
+    rejected: 0,
+    draft: 0,
+    completed: 0
+  });
   
   // Pagination state
   const [page, setPage] = useState(1);
@@ -44,6 +54,46 @@ export default function AllGoalsPage() {
     hasPrev: boolean;
   } | null>(null);
 
+  // Read URL params on mount and when they change
+  useEffect(() => {
+    const statusParam = searchParams.get('status');
+    const pageParam = searchParams.get('page');
+    
+    if (statusParam) {
+      setSelectedStatus(statusParam);
+    }
+    
+    if (pageParam) {
+      const pageNum = parseInt(pageParam, 10);
+      if (!isNaN(pageNum) && pageNum > 0) {
+        setPage(pageNum);
+      }
+    }
+  }, [searchParams]);
+
+  // Fetch total stats (all goals, not filtered)
+  const fetchTotalStats = async () => {
+    try {
+      // Fetch all goals without filters to get total counts
+      const response = await fetch('/api/goals?view=all&limit=10000&page=1');
+      if (!response.ok) return;
+      
+      const data = await response.json();
+      const allGoals = data.goals || [];
+      
+      // Calculate stats from all goals
+      setTotalStats({
+        total: allGoals.length,
+        approved: allGoals.filter((g: Goal) => g.status === 'APPROVED').length,
+        rejected: allGoals.filter((g: Goal) => g.status === 'REJECTED').length,
+        draft: allGoals.filter((g: Goal) => g.status === 'DRAFT').length,
+        completed: allGoals.filter((g: Goal) => g.status === 'COMPLETED').length
+      });
+    } catch (error) {
+      console.error('Error fetching total stats:', error);
+    }
+  };
+
   useEffect(() => {
     if (!session) {
       router.push('/login');
@@ -55,6 +105,9 @@ export default function AllGoalsPage() {
       return;
     }
 
+    // Fetch total stats once on mount
+    fetchTotalStats();
+    
     fetchData();
   }, [session, router, page, limit, selectedUser, selectedStatus, selectedPriority, selectedCategory]);
 
@@ -130,6 +183,7 @@ export default function AllGoalsPage() {
       setGoalToDelete(null);
       showToast.success('Goal Deleted!', 'The goal has been deleted successfully');
       fetchData(); // Refresh goals
+      fetchTotalStats(); // Refresh total stats
     } catch (error) {
       console.error('Error deleting goal:', error);
       // Revert optimistic update on error
@@ -177,6 +231,7 @@ export default function AllGoalsPage() {
       
       // Refresh goals from server to ensure sync
       fetchData();
+      fetchTotalStats(); // Refresh total stats
     } catch (error) {
       console.error('Error bulk deleting goals:', error);
       // Revert optimistic update on error
@@ -187,27 +242,47 @@ export default function AllGoalsPage() {
 
   return (
     <DashboardLayout type="admin">
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="fixed inset-0 top-16 left-0 md:left-64 right-0 bottom-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col overflow-hidden z-0">
         {/* Subtle Background Pattern */}
-        <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
         
-        <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
-          {/* Hero Section */}
-          <HeroSection />
+        <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
+          {/* Hero Section - Fixed */}
+          <div className="flex-shrink-0 mb-3 relative z-10">
+            <HeroSection />
+          </div>
 
-          {/* Stats Section */}
+          {/* Stats Section - Fixed */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
+            className="flex-shrink-0 mb-3"
           >
-            <StatsSection goals={goals} />
+            <StatsSection 
+              goals={[]} 
+              totalStats={totalStats}
+              onStatusFilter={(status) => {
+                setSelectedStatus(status === 'all' ? 'all' : status);
+                setPage(1);
+                // Update URL with status filter
+                const params = new URLSearchParams(window.location.search);
+                if (status === 'all' || status === '') {
+                  params.delete('status');
+                } else {
+                  params.set('status', status);
+                }
+                params.delete('page'); // Reset to page 1
+                router.push(`/dashboard/admin/all-goals?${params.toString()}`);
+              }}
+            />
           </motion.div>
 
-          {/* Filters */}
+          {/* Filters - Fixed */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
+            className="flex-shrink-0 mb-3"
           >
             <Filters
               selectedUser={selectedUser}
@@ -222,52 +297,54 @@ export default function AllGoalsPage() {
             />
           </motion.div>
 
-          {/* Goals Table */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <div className="relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl shadow-xl">
-              <div className="p-4">
-                <AdminGoalsTable
-                  goals={filteredGoals}
-                  selectedStatus={selectedStatus === 'all' ? '' : selectedStatus}
-                  onStatusChange={(status) => {
-                    setSelectedStatus(status === '' ? 'all' : status);
-                    setPage(1); // Reset to first page on filter change
-                  }}
-                  onGoalClick={(goal) => setSelectedGoal(goal)}
-                  onDelete={handleDeleteGoal}
-                  onBulkDelete={handleBulkDelete}
-                  showEmployee={true}
-                  showManager={true}
-                />
-                
-                {/* Pagination */}
-                {pagination && (
-                  <div className="mt-6 pt-4 border-t border-gray-700/50">
-                    <Pagination
-                      page={pagination.page}
-                      limit={pagination.limit}
-                      total={pagination.total}
-                      totalPages={pagination.totalPages}
-                      hasNext={pagination.hasNext}
-                      hasPrev={pagination.hasPrev}
-                      onPageChange={(newPage) => {
-                        setPage(newPage);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                      onLimitChange={(newLimit) => {
-                        setLimit(newLimit);
-                        setPage(1);
-                      }}
-                    />
-                  </div>
-                )}
+          {/* Goals Table - Scrollable Container */}
+          <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="flex-1 flex flex-col overflow-hidden min-h-0"
+            >
+              <div className="relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm flex flex-col h-full">
+                <div className="p-4 flex flex-col flex-1 overflow-hidden min-h-0">
+                  <AdminGoalsTable
+                    goals={filteredGoals}
+                    selectedStatus={selectedStatus === 'all' ? '' : selectedStatus}
+                    onStatusChange={(status) => {
+                      setSelectedStatus(status === '' ? 'all' : status);
+                      setPage(1); // Reset to first page on filter change
+                    }}
+                    onGoalClick={(goal) => setSelectedGoal(goal)}
+                    onDelete={handleDeleteGoal}
+                    onBulkDelete={handleBulkDelete}
+                    showEmployee={true}
+                    showManager={true}
+                  />
+                  
+                  {/* Pagination - Fixed at bottom */}
+                  {pagination && (
+                    <div className="flex-shrink-0 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <Pagination
+                        page={pagination.page}
+                        limit={pagination.limit}
+                        total={pagination.total}
+                        totalPages={pagination.totalPages}
+                        hasNext={pagination.hasNext}
+                        hasPrev={pagination.hasPrev}
+                        onPageChange={(newPage) => {
+                          setPage(newPage);
+                        }}
+                        onLimitChange={(newLimit) => {
+                          setLimit(newLimit);
+                          setPage(1);
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
       </div>
 

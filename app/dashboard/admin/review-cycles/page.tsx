@@ -206,34 +206,40 @@ export default function ReviewCyclesPage() {
   };
   return (
     <DashboardLayout type="admin">
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="fixed inset-0 top-16 left-0 md:left-64 right-0 bottom-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col overflow-hidden z-0">
         {/* Subtle Background Pattern */}
-        <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
         
-        <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
-          {/* Hero Section */}
-          <HeroSection 
-            onAddNew={() => setIsFormOpen(true)}
-          />
-
-          {/* Review Cycles Table */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <ReviewCycleTable
-              reviewCycles={reviewCycles}
-              onEdit={handleEdit}
-              onDelete={(cycle) => {
-                setCycleToDelete(cycle);
-                setDeleteConfirmOpen(true);
-              }}
-              onRefresh={fetchReviewCycles}
+        <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
+          {/* Hero Section - Fixed */}
+          <div className="flex-shrink-0 pt-3 pb-3 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 z-10 relative">
+            <HeroSection 
+              onAddNew={() => setIsFormOpen(true)}
             />
+          </div>
+
+          {/* Review Cycles Table - Scrollable Container */}
+          <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex-1 flex flex-col overflow-hidden min-h-0"
+            >
+              <ReviewCycleTable
+                reviewCycles={reviewCycles}
+                onEdit={handleEdit}
+                onDelete={(cycle) => {
+                  setCycleToDelete(cycle);
+                  setDeleteConfirmOpen(true);
+                }}
+                onRefresh={fetchReviewCycles}
+              />
             
-            {/* Pagination */}
+            </motion.div>
+            
+            {/* Pagination - Fixed at bottom */}
             {pagination && (
-              <div className="mt-6 pt-4 border-t border-gray-700/50">
+              <div className="flex-shrink-0 pt-4 pb-3 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-t border-gray-700/50">
                 <Pagination
                   page={pagination.page}
                   limit={pagination.limit}
@@ -243,7 +249,6 @@ export default function ReviewCyclesPage() {
                   hasPrev={pagination.hasPrev}
                   onPageChange={(newPage) => {
                     setPage(newPage);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   onLimitChange={(newLimit) => {
                     setLimit(newLimit);
@@ -252,7 +257,7 @@ export default function ReviewCyclesPage() {
                 />
               </div>
             )}
-          </motion.div>
+          </div>
 
           {/* Review Cycle Form Modal */}
           <AnimatePresence>
@@ -298,6 +303,7 @@ export default function ReviewCyclesPage() {
             title="Delete Review Cycle"
             message={`Are you sure you want to delete the review cycle for ${cycleToDelete?.user.name}? This action cannot be undone.`}
           />
+
 
         </div>
       </div>

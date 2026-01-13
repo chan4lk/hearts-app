@@ -206,7 +206,14 @@ export default function ManagerDashboard() {
         
         <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
           {/* Stats Section */}
-          <StatsDisplay stats={stats} roleStats={roleStats} />
+          <StatsDisplay 
+            stats={stats} 
+            roleStats={roleStats}
+            onStatusFilter={(status) => {
+              setSelectedStatus(status);
+              setPage(1);
+            }}
+          />
 
           {/* Filters Section */}
           <Filters
