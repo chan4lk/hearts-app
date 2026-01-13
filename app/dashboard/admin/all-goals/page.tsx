@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
@@ -16,7 +16,7 @@ import StatsSection from './components/StatsSection';
 import Filters from './components/Filters';
 import { PageContainer } from '@/app/components/shared/PageContainer';
 
-export default function AllGoalsPage() {
+function AllGoalsPageContent() {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -384,5 +384,19 @@ export default function AllGoalsPage() {
         cancelText="Cancel"
       />
     </DashboardLayout>
+  );
+}
+
+export default function AllGoalsPage() {
+  return (
+    <Suspense fallback={
+      <DashboardLayout type="admin">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-white">Loading...</div>
+        </div>
+      </DashboardLayout>
+    }>
+      <AllGoalsPageContent />
+    </Suspense>
   );
 }
