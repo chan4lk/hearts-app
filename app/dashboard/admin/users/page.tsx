@@ -162,7 +162,7 @@ function UsersPageContent() {
       const response = await fetch(`/api/admin/users?${params}`);
       if (!response.ok) {
         if (response.status === 401) {
-          showToast.user.error('Unauthorized access');
+          // Toast removed
           router.push('/login');
           return;
         }
@@ -203,7 +203,7 @@ function UsersPageContent() {
       setLastRefresh(new Date());
     } catch (error) {
       console.error('Error fetching users:', error);
-      showToast.user.error('Failed to fetch users');
+      // Toast removed
     } finally {
       setIsLoading(false);
     }
@@ -303,9 +303,9 @@ function UsersPageContent() {
       setUsers(prev => prev.filter(user => user.id !== userToDelete.id));
       setIsDeleteConfirmOpen(false);
       setUserToDelete(null);
-      showToast.user.deleted();
+      // Toast removed
     } catch (error) {
-      showToast.error('Failed to delete user', error);
+      // Toast removed
     }
   };
 

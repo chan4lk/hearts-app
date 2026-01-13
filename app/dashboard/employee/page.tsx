@@ -208,7 +208,7 @@ export default function EmployeeDashboard() {
       const refreshedGoals = await fetchGoals();
       setGoals(refreshedGoals);
     } catch (error) {
-      showToast.error('Error', error instanceof Error ? error.message : 'Failed to create goal');
+      // Error toast removed
     } finally {
       setFormLoading(false);
     }
@@ -294,7 +294,7 @@ export default function EmployeeDashboard() {
       setEditingGoal(null);
       resetForm();
     } catch (error) {
-      showToast.error('Error', error instanceof Error ? error.message : 'Failed to update goal');
+      // Error toast removed
     } finally {
       setFormLoading(false);
     }
@@ -319,7 +319,6 @@ export default function EmployeeDashboard() {
         throw new Error('Failed to delete goal');
       }
 
-      showToast.success('Goal Deleted!', 'Your goal has been deleted successfully');
       setShowDetailModal(false);
       setSelectedGoal(null);
       setGoalToDelete(null);
@@ -328,7 +327,7 @@ export default function EmployeeDashboard() {
       const refreshedGoals = await fetchGoals();
       setGoals(refreshedGoals);
     } catch (error) {
-      showToast.error('Error', error instanceof Error ? error.message : 'Failed to delete goal');
+      // Error toast removed
     }
   };
 
@@ -340,7 +339,7 @@ export default function EmployeeDashboard() {
         const goals = await fetchGoals();
         setGoals(goals);
       } catch (error) {
-        showToast.error('Goals Loading Error', error);
+        // Error toast removed
       } finally {
         setLoading(false);
       }
@@ -421,9 +420,9 @@ export default function EmployeeDashboard() {
       const refreshedGoals = await fetchGoals();
       setGoals(refreshedGoals);
       setShowDetailModal(false);
-      showToast.goal.updated();
+      // Toast removed
     } catch (error) {
-      showToast.goal.error(error instanceof Error ? error.message : 'Failed to submit goal');
+      // Error toast removed
     }
   };
 
@@ -434,7 +433,7 @@ export default function EmployeeDashboard() {
     if (value && !filteredGoals.length) {
       setTimeout(() => {
         if (!filteredGoals.length) {
-          showToast.error('Search Results', 'No goals found matching your search criteria');
+          // Error toast removed
         }
       }, 500);
     }
@@ -445,7 +444,7 @@ export default function EmployeeDashboard() {
     setPage(1); // Reset to first page on status change
     // Optional: Show toast for no results after filter
     if (value && !filteredGoals.length) {
-      showToast.error('Filter Results', 'No goals found with the selected status');
+      // Error toast removed
     }
   };
 

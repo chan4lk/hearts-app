@@ -108,7 +108,7 @@ export default function ReviewCyclesPage() {
       }
     } catch (error) {
       console.error('Error fetching review cycles:', error);
-      showToast.error('Failed to load review cycles', error);
+      // Toast removed
     } finally {
       if (showLoading) {
         setLoading(false);
@@ -125,10 +125,7 @@ export default function ReviewCyclesPage() {
     setEditingCycle(null);
     
     // Show success toast immediately
-    showToast.success(
-      isEditing ? 'Review Cycle Updated' : 'Review Cycle Created', 
-      'Review cycle information has been saved successfully'
-    );
+    // Toast removed
     
     // Optimistically update UI immediately
     if (isEditing && previousEditingCycle) {
@@ -173,7 +170,7 @@ export default function ReviewCyclesPage() {
       // Revert optimistic update by refreshing from server
       fetchReviewCycles(false); // false = don't show loading indicator
       
-      showToast.error('Error', error instanceof Error ? error.message : 'Failed to save review cycle');
+      // Toast removed
     }
   };
 
@@ -188,10 +185,10 @@ export default function ReviewCyclesPage() {
         throw new Error(error.error || 'Failed to delete review cycle');
       }
 
-      showToast.success('Review Cycle Deleted', 'Review cycle has been deleted successfully');
+      // Toast removed
       fetchReviewCycles();
     } catch (error) {
-      showToast.error('Error', error instanceof Error ? error.message : 'Failed to delete review cycle');
+      // Toast removed
     }
   };
 

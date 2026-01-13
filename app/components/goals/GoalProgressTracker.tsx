@@ -70,7 +70,7 @@ export default function GoalProgressTracker({
 
   const handleSaveProgress = async (progressValue?: number, statusValue?: string) => {
     if (!isEmployee) {
-      showToast.info('Only employees can update progress');
+      // Toast removed
       return;
     }
 
@@ -82,12 +82,12 @@ export default function GoalProgressTracker({
       // Call the parent's onProgressUpdate function
       await onProgressUpdate(finalProgress, finalStatus, notes);
 
-      showToast.success('Progress Updated', `Goal is now ${finalProgress}% complete`);
+      // Toast removed
       setShowNotes(false);
       setNotes('');
     } catch (error) {
       console.error('❌ Failed to save progress:', error);
-      showToast.error('Update Failed', error instanceof Error ? error.message : 'Failed to update progress');
+      // Error toast removed
     } finally {
       setIsUpdating(false);
     }

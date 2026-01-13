@@ -525,7 +525,7 @@ export default function GoalsTable({
     // Find the current goal to preserve fields
     const currentGoal = localGoals.find(g => g.id === goalId);
     if (!currentGoal) {
-      showToast.error('Update Failed', 'Goal not found');
+      // Error toast removed
       return;
     }
 
@@ -596,7 +596,7 @@ export default function GoalsTable({
       // Notify parent component with server response
       onPriorityUpdate?.(goalId, newPriority, transformedGoal);
 
-      showToast.success('Priority Updated', `Goal priority updated to ${newPriority}`);
+      // Toast removed
     } catch (error) {
       // REVERT optimistic update on error
       setLocalGoals(prevGoals =>
@@ -608,7 +608,7 @@ export default function GoalsTable({
       // Revert parent component state
       onPriorityUpdate?.(goalId, currentGoal.priority || 'MEDIUM', currentGoal as Goal | GoalWithRatingExtended);
       
-      showToast.error('Update Failed', error instanceof Error ? error.message : 'Failed to update priority');
+      // Error toast removed
     } finally {
       setUpdatingPriority(null);
     }
@@ -620,7 +620,7 @@ export default function GoalsTable({
     // Find the current goal to preserve fields
     const currentGoal = localGoals.find(g => g.id === goalId);
     if (!currentGoal) {
-      showToast.error('Update Failed', 'Goal not found');
+      // Error toast removed
       return;
     }
 
@@ -690,7 +690,7 @@ export default function GoalsTable({
       // Notify parent component with server response
       onStatusUpdate?.(goalId, newStatus, transformedGoal);
 
-      showToast.success('Status Updated', `Goal status updated to ${newStatus.replace('_', ' ')}`);
+      // Toast removed
     } catch (error) {
       // REVERT optimistic update on error
       setLocalGoals(prevGoals =>
@@ -702,7 +702,7 @@ export default function GoalsTable({
       // Revert parent component state
       onStatusUpdate?.(goalId, currentGoal.status, currentGoal as Goal | GoalWithRatingExtended);
       
-      showToast.error('Update Failed', error instanceof Error ? error.message : 'Failed to update status');
+      // Error toast removed
     } finally {
       setUpdatingStatus(null);
     }
@@ -714,7 +714,7 @@ export default function GoalsTable({
     // Find the current goal to preserve fields
     const currentGoal = localGoals.find(g => g.id === goalId);
     if (!currentGoal) {
-      showToast.error('Update Failed', 'Goal not found');
+      // Error toast removed
       return;
     }
 
@@ -784,7 +784,7 @@ export default function GoalsTable({
       // Notify parent component with server response
       onDueDateUpdate?.(goalId, newDueDate, transformedGoal);
 
-      showToast.success('Due Date Updated', `Goal due date updated`);
+      // Toast removed
     } catch (error) {
       // REVERT optimistic update on error
       setLocalGoals(prevGoals =>
@@ -796,7 +796,7 @@ export default function GoalsTable({
       // Revert parent component state
       onDueDateUpdate?.(goalId, currentGoal.dueDate, currentGoal as Goal | GoalWithRatingExtended);
       
-      showToast.error('Update Failed', error instanceof Error ? error.message : 'Failed to update due date');
+      // Error toast removed
     } finally {
       setUpdatingDueDate(null);
     }

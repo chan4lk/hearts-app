@@ -10,7 +10,7 @@ interface HeroSectionProps {
 export default function HeroSection({ onAddNew }: HeroSectionProps) {
   const handleDownloadExcel = async () => {
     try {
-      showToast.info('Downloading...', 'Preparing Excel file');
+      // Toast removed
       
       const response = await fetch('/api/admin/review-cycles/export', {
         method: 'GET',
@@ -71,13 +71,13 @@ export default function HeroSection({ onAddNew }: HeroSectionProps) {
         }
       }, 100);
       
-      showToast.success('Download Complete', 'Excel file downloaded successfully');
+      // Toast removed
     } catch (error) {
       console.error('Download error:', error);
       const errorMessage = error instanceof Error 
         ? error.message 
         : 'Failed to download Excel file. Please check your connection and try again.';
-      showToast.error('Download Failed', errorMessage);
+      // Toast removed
     }
   };
 
