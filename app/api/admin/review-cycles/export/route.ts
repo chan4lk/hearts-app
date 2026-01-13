@@ -6,6 +6,8 @@ import { logger } from '@/lib/logger';
 import { handleApiError } from '@/app/api/utils/error-handler';
 import * as XLSX from 'xlsx';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -14,122 +16,118 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { searchParams } = new URL(req.url);
-    const isTemplate = searchParams.get('template') === 'true';
-
-    if (isTemplate) {
-      // Generate template Excel file
-      const templateData = [
-        ['Email', 'Name', 'Reporting Person Email', 'Reporting Person Name', 'Job Category', 'Designation', 'Date of Appointment', 'After 6 Months', 'Review Month', 'Adjusted Review Month'],
-        ['user@example.com', 'John Doe', 'manager@example.com', 'Manager Name', 'Executive', 'Software Engineer', '2024-01-15', 'July', 'January', '']
-      ];
-
-      const workbook = XLSX.utils.book_new();
-      const worksheet = XLSX.utils.aoa_to_sheet(templateData);
-      
-      // Set column widths
-      worksheet['!cols'] = [
-        { wch: 25 }, // Email
-        { wch: 20 }, // Name
-        { wch: 25 }, // Reporting Person Email
-        { wch: 20 }, // Reporting Person Name
-        { wch: 15 }, // Job Category
-        { wch: 20 }, // Designation
-        { wch: 18 }, // Date of Appointment
-        { wch: 12 }, // After 6 Months
-        { wch: 12 }, // Review Month
-        { wch: 18 }  // Adjusted Review Month
-      ];
-
-      // Note: XLSX library doesn't fully support styling in the free version
-      // Column widths are set via '!cols' above
-
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Review Cycles Template');
-      
-      const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
-      
-      return new NextResponse(excelBuffer, {
-        headers: {
-          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          'Content-Disposition': 'attachment; filename="review-cycles-template.xlsx"'
-        }
-      });
-    } else {
-      // Export actual data
-      const reviewCycles = await prisma.reviewCycle.findMany({
-        include: {
-          user: {
-            select: {
-              name: true,
-              email: true
-            }
-          },
-          reportingPerson: {
-            select: {
-              name: true,
-              email: true
-            }
+    // Fetch all review cycles (no pagination for export)
+    const reviewCycles = await prisma.reviewCycle.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            department: true,
+            position: true,
           }
         },
-        orderBy: {
-          updatedAt: 'desc'
+        reportingPerson: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        updatedBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
         }
-      });
+      },
+      orderBy: {
+        updatedAt: 'desc'
+      }
+    });
 
-      const exportData = [
-        ['Email', 'Name', 'Reporting Person Email', 'Reporting Person Name', 'Job Category', 'Designation', 'Date of Appointment', 'After 6 Months', 'Review Month', 'Adjusted Review Month']
-      ];
+    // Transform data for Excel export
+    const excelData = reviewCycles.map((cycle) => ({
+      'Employee Name': cycle.user.name || '',
+      'Employee Email': cycle.user.email || '',
+      'Reporting Person': cycle.reportingPerson?.name || '',
+      'Reporting Person Email': cycle.reportingPerson?.email || '',
+      'Job Category': cycle.jobCategory || '',
+      'Designation': cycle.designation || '',
+      'Date of Appointment': cycle.dateOfAppointment 
+        ? new Date(cycle.dateOfAppointment).toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })
+        : '',
+      'After 6 Months': cycle.after6Months || '',
+      'Review Month': cycle.reviewMonth || '',
+      'Adjusted Review Month': cycle.adjustedReviewMonth || '',
+      'Created At': cycle.createdAt 
+        ? new Date(cycle.createdAt).toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })
+        : '',
+      'Updated At': cycle.updatedAt 
+        ? new Date(cycle.updatedAt).toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })
+        : '',
+      'Updated By': cycle.updatedBy?.name || '',
+    }));
 
-      reviewCycles.forEach(cycle => {
-        exportData.push([
-          cycle.user.email || '',
-          cycle.user.name || '',
-          cycle.reportingPerson?.email || '',
-          cycle.reportingPerson?.name || '',
-          cycle.jobCategory || '',
-          cycle.designation || '',
-          cycle.dateOfAppointment ? new Date(cycle.dateOfAppointment).toLocaleDateString('en-CA') : '',
-          cycle.after6Months || '',
-          cycle.reviewMonth || '',
-          cycle.adjustedReviewMonth || ''
-        ]);
-      });
+    // Create workbook and worksheet
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
 
-      const workbook = XLSX.utils.book_new();
-      const worksheet = XLSX.utils.aoa_to_sheet(exportData);
-      
-      // Set column widths
-      worksheet['!cols'] = [
-        { wch: 25 }, // Email
-        { wch: 20 }, // Name
-        { wch: 25 }, // Reporting Person Email
-        { wch: 20 }, // Reporting Person Name
-        { wch: 15 }, // Job Category
-        { wch: 20 }, // Designation
-        { wch: 18 }, // Date of Appointment
-        { wch: 12 }, // After 6 Months
-        { wch: 12 }, // Review Month
-        { wch: 18 }  // Adjusted Review Month
-      ];
+    // Set column widths for better readability
+    const columnWidths = [
+      { wch: 25 }, // Employee Name
+      { wch: 30 }, // Employee Email
+      { wch: 25 }, // Reporting Person
+      { wch: 30 }, // Reporting Person Email
+      { wch: 20 }, // Job Category
+      { wch: 20 }, // Designation
+      { wch: 20 }, // Date of Appointment
+      { wch: 15 }, // After 6 Months
+      { wch: 15 }, // Review Month
+      { wch: 20 }, // Adjusted Review Month
+      { wch: 20 }, // Created At
+      { wch: 20 }, // Updated At
+      { wch: 20 }, // Updated By
+    ];
+    worksheet['!cols'] = columnWidths;
 
-      // Note: XLSX library doesn't fully support styling in the free version
-      // Column widths are set via '!cols' above
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Review Cycles');
 
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Review Cycles');
-      
-      const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
-      
-      const filename = `review-cycles-${new Date().toISOString().split('T')[0]}.xlsx`;
-      
-      return new NextResponse(excelBuffer, {
-        headers: {
-          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          'Content-Disposition': `attachment; filename="${filename}"`
-        }
-      });
-    }
+    // Generate Excel file buffer
+    const excelBuffer = XLSX.write(workbook, { 
+      type: 'buffer', 
+      bookType: 'xlsx' 
+    });
+
+    // Generate filename with current date
+    const filename = `review-cycles-${new Date().toISOString().split('T')[0]}.xlsx`;
+
+    // Return Excel file as response
+    return new NextResponse(excelBuffer, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+      },
+    });
   } catch (error) {
-    logger.error('Export error:', error);
+    logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }
 }

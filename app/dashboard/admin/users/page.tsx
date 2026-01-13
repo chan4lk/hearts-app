@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Toaster } from 'sonner';
@@ -35,7 +35,7 @@ interface RawUser {
   position?: string | null;
 }
 
-export default function UsersPage() {
+function UsersPageContent() {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -467,5 +467,19 @@ export default function UsersPage() {
         />
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function UsersPage() {
+  return (
+    <Suspense fallback={
+      <DashboardLayout type="admin">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-white">Loading...</div>
+        </div>
+      </DashboardLayout>
+    }>
+      <UsersPageContent />
+    </Suspense>
   );
 }
