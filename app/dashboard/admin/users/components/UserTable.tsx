@@ -209,8 +209,7 @@ export default function UserTable({
         onManagerUpdate(userId, newManagerId, transformedUser);
       }
       
-      const managerName = newManagerId ? managers.find(m => m.id === newManagerId)?.name : 'Unassigned';
-      showToast.success('Manager Updated!', `User manager has been updated to ${managerName}`);
+      // Manager updated successfully - notification removed
     } catch (error) {
       console.error('Error updating manager:', error);
       showToast.error('Error', error instanceof Error ? error.message : 'Failed to update manager');

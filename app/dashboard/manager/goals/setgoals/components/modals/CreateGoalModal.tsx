@@ -44,11 +44,6 @@ export function CreateGoalModal({
     }
     setErrors({});
     if (!isOpen && justSubmitted) {
-      if (justSubmitted === 'create') {
-        showToast.goal.created();
-      } else {
-        showToast.goal.updated();
-      }
       setJustSubmitted(null);
       setFormData({
         title: '',
@@ -122,7 +117,6 @@ export function CreateGoalModal({
         title: data.title,
         description: data.description,
       }));
-      showToast.goal.updated();
     } catch (error) {
       console.error('Error generating goal:', error);
       showToast.goal.error('Failed to generate goal. Please try again.');

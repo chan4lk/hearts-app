@@ -202,7 +202,6 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
     try {
       setIsSubmitting(true);
       await onSubmitGoal(goal.id);
-      showToast.goal.updated();
       onClose();
     } catch (error) {
       showToast.goal.error(

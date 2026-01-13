@@ -201,7 +201,6 @@ export default function EmployeeDashboard() {
         throw new Error('Failed to create goal');
       }
 
-      showToast.success('Goal Created!', 'Your new goal has been created successfully');
       setShowCreateGoalModal(false);
       resetForm();
 
@@ -291,7 +290,6 @@ export default function EmployeeDashboard() {
         });
       });
 
-      showToast.success('Goal Updated!', 'Your goal has been updated successfully');
       setShowEditGoalModal(false);
       setEditingGoal(null);
       resetForm();
