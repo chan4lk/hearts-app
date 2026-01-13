@@ -225,7 +225,6 @@ function ManagerGoalSettingPageContent() {
       setGoals(prev => [goal, ...prev]);
       setIsCreateModalOpen(false);
       resetForm();
-      showToast.goal.created();
     } catch (error) {
       console.error('Error creating goal:', error);
       showToast.goal.error(error instanceof Error ? error.message : 'Failed to create goal');
@@ -255,7 +254,6 @@ function ManagerGoalSettingPageContent() {
         // Add the created goals to the state
         setGoals(prev => [...result.goals, ...prev]);
         setIsBulkCreateModalOpen(false);
-        showToast.goal.created();
 
         // Refresh the goals and stats
         await fetchAssignedEmployees();
@@ -317,7 +315,6 @@ function ManagerGoalSettingPageContent() {
 
       // Show view modal after update
       setIsViewModalOpen(true);
-      showToast.goal.updated();
       
     } catch (error) {
       console.error('Error updating goal:', error);

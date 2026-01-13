@@ -157,7 +157,6 @@ export function BulkGoalFormModal({
       setGoals([]);
       setErrors({});
       onClose();
-      showToast.goal.created();
     } catch (error) {
       console.error('Error creating bulk goals:', error);
       showToast.goal.error('Failed to create goals. Please try again.');
