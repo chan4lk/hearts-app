@@ -36,7 +36,12 @@ export default function ManagerSelector({
     const fetchManagers = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/admin/users?minimal=true&limit=1000&page=1&sortBy=name&sortOrder=asc');
+        // Reset search term when fetching to ensure we get all results
+        setSearchTerm('');
+        
+        // Explicitly exclude search parameter and ensure we get all admins and managers
+        // Use a clean URL without any search filters to load all users
+        const response = await fetch('/api/admin/users?minimal=true&limit=10000&page=1&sortBy=name&sortOrder=asc');
         
         if (!response.ok) {
           throw new Error('Failed to fetch managers');
@@ -46,6 +51,7 @@ export default function ManagerSelector({
         const usersList = Array.isArray(data) ? data : (data.users || []);
         
         // Filter to only ADMIN and MANAGER roles, and exclude the current user
+        // Both admins and managers can be assigned as managers
         const managerList = usersList
           .filter((user: User) => 
             (user.role === Role.ADMIN || user.role === Role.MANAGER) && 
