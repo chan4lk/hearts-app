@@ -255,14 +255,14 @@ export default function ReviewCyclesPage() {
             )}
           </div>
 
-          {/* Review Cycle Form Modal */}
+          {/* Review Cycle Form Modal - Fixed Center */}
           <AnimatePresence>
             {isFormOpen && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 md:p-6"
                 onClick={handleCloseForm}
               >
                 <motion.div
@@ -270,7 +270,11 @@ export default function ReviewCyclesPage() {
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.95, opacity: 0 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-white/10"
+                  className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"
+                  style={{ 
+                    height: '90vh',
+                    margin: 'auto'
+                  }}
                 >
                   <ReviewCycleForm
                     reviewCycle={editingCycle}
