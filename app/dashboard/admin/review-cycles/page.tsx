@@ -262,18 +262,24 @@ export default function ReviewCyclesPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 md:p-6"
+                className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60]"
+                style={{ 
+                  paddingTop: '5rem',
+                  paddingBottom: '2rem',
+                  paddingLeft: '1rem',
+                  paddingRight: '1rem'
+                }}
                 onClick={handleCloseForm}
               >
                 <motion.div
-                  initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.95, opacity: 0 }}
+                  initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  exit={{ scale: 0.95, opacity: 0, y: 20 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"
+                  className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-2xl flex flex-col overflow-hidden"
                   style={{ 
-                    height: '90vh',
-                    margin: 'auto'
+                    maxHeight: 'calc(100vh - 7rem)',
+                    height: 'auto'
                   }}
                 >
                   <ReviewCycleForm

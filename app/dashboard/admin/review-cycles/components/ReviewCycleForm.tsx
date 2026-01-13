@@ -342,7 +342,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Fixed Header - Brand Teal Color */}
-      <div className="flex-shrink-0 px-6 py-4 bg-gradient-to-r from-teal-600 to-cyan-600 border-b border-teal-500/30 z-10 shadow-lg">
+      <div className="flex-shrink-0 px-6 py-4 bg-gradient-to-r from-teal-600 to-cyan-600 border-b border-teal-500/30 z-10 shadow-lg rounded-t-xl">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-white" style={{ color: '#ffffff' }}>
             Review Cycle
@@ -777,7 +777,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
       </form>
 
       {/* Fixed Footer with Buttons */}
-      <div className="flex-shrink-0 px-6 py-4 border-t border-gray-700/30 bg-gray-800/50 flex items-center justify-end gap-3">
+      <div className="flex-shrink-0 px-6 py-4 border-t border-gray-700/30 bg-gray-800/50 flex items-center justify-end gap-3 rounded-b-xl">
         <button
           type="button"
           onClick={onClose}
