@@ -144,6 +144,22 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
     }
   };
 
+  const clearAllNotifications = async () => {
+    try {
+      // Delete all notifications one by one
+      const deletePromises = notifications.map(notification =>
+        fetch(`/api/notifications?id=${notification.id}`, {
+          method: 'DELETE'
+        })
+      );
+
+      await Promise.all(deletePromises);
+      setNotifications([]);
+    } catch (error) {
+      console.error('Error clearing all notifications:', error);
+    }
+  };
+
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   // Manual refresh function
@@ -152,30 +168,17 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
   };
 
   const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'REVIEW_CYCLE_CREATED':
-      case 'REVIEW_CYCLE_UPDATED':
-        return '📋';
-      case 'REVIEW_CYCLE_DELETED':
-        return '🗑️';
-      case 'GOAL_CREATED':
-      case 'GOAL_UPDATED':
-        return '🎯';
-      case 'GOAL_APPROVED':
-        return '✅';
-      case 'GOAL_REJECTED':
-        return '❌';
-      case 'GOAL_COMPLETED':
-        return '🏆';
-      case 'GOAL_DELETED':
-        return '🗑️';
-      case 'GOAL_MODIFIED':
-        return '📝';
-      case 'RATING_RECEIVED':
-        return '⭐';
-      default:
-        return '🔔';
-    }
+    // Simple colored circle indicators instead of emojis
+    const colorClass = getNotificationColor(type);
+    // Convert text color to background color
+    const bgColor = colorClass.replace('text-indigo-400', 'bg-indigo-400')
+      .replace('text-green-400', 'bg-green-400')
+      .replace('text-red-400', 'bg-red-400')
+      .replace('text-blue-400', 'bg-blue-400');
+    
+    return (
+      <div className={`w-3 h-3 rounded-full ${bgColor} opacity-80`}></div>
+    );
   };
 
   const getNotificationColor = (type: string) => {
@@ -302,7 +305,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                       )}
                       
                       <div className="flex items-start gap-3 pl-2">
-                        <div className={`text-2xl flex-shrink-0 transition-transform duration-200 group-hover:scale-110 ${getNotificationColor(notification.type)}`}>
+                        <div className="flex-shrink-0 flex items-center justify-center w-6 h-6 mt-0.5">
                           {getNotificationIcon(notification.type)}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -314,7 +317,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                           {notification.goal && (
                             <div className="mt-2 px-2 py-1 bg-gray-800/50 rounded-md inline-block">
                               <p className="text-xs text-indigo-400 font-medium truncate max-w-[200px]">
-                                🎯 {notification.goal.title}
+                                {notification.goal.title}
                               </p>
                             </div>
                           )}
@@ -359,20 +362,29 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
 
             {/* Footer */}
             {notifications.length > 0 && (
-              <div className="px-4 py-3 border-t border-gray-700/50 bg-gradient-to-r from-gray-800/40 to-gray-900/40 flex items-center justify-between">
-                <button
-                  onClick={() => {
-                    // Mark all as read
-                    notifications
-                      .filter(n => !n.isRead)
-                      .forEach(n => markAsRead(n.id));
-                  }}
-                  className="text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-indigo-500/10"
-                  disabled={unreadCount === 0}
-                >
-                  <BsCheckCircle className="w-3.5 h-3.5" />
-                  Mark all as read
-                </button>
+              <div className="px-4 py-3 border-t border-gray-700/50 bg-gradient-to-r from-gray-800/40 to-gray-900/40 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      // Mark all as read
+                      notifications
+                        .filter(n => !n.isRead)
+                        .forEach(n => markAsRead(n.id));
+                    }}
+                    className="text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-indigo-500/10"
+                    disabled={unreadCount === 0}
+                  >
+                    <BsCheckCircle className="w-3.5 h-3.5" />
+                    Mark all as read
+                  </button>
+                  <button
+                    onClick={clearAllNotifications}
+                    className="text-xs font-medium text-red-400 hover:text-red-300 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-red-500/10"
+                  >
+                    <BsTrash className="w-3.5 h-3.5" />
+                    Clear All
+                  </button>
+                </div>
                 <span className="text-xs text-gray-500">
                   Last updated: {formatDistanceToNow(new Date(lastFetchTime), { addSuffix: true })}
                 </span>
