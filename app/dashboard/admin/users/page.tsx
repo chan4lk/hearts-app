@@ -347,31 +347,26 @@ function UsersPageContent() {
 
   return (
     <DashboardLayout type="admin">
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="fixed inset-0 top-16 left-0 md:left-64 right-0 bottom-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col overflow-hidden z-0">
         {/* Subtle Background Pattern */}
-        <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
         
-        <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
-          {/* Hero Section */}
-          <HeroSection />
+        <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
+          {/* Hero Section - Fixed */}
+          <div className="flex-shrink-0 pt-3 pb-3">
+            <HeroSection />
+          </div>
 
-          {/* Stats Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
+          {/* Stats Section - Fixed */}
+          <div className="flex-shrink-0 pb-3">
             <StatsSection 
               users={userStats} 
               onFilterChange={handleStatFilter}
             />
-          </motion.div>
+          </div>
 
-          {/* Filters */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
+          {/* Filters - Fixed */}
+          <div className="flex-shrink-0 pb-3">
             <UserFilters
               onFilterChangeAction={setFilters}
               onSearchAction={setSearchTerm}
@@ -379,49 +374,51 @@ function UsersPageContent() {
               initialFilters={filters}
               initialSearchTerm={searchTerm}
             />
-          </motion.div>
+          </div>
 
-          {/* User Table */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <div className="relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl shadow-xl">
-              <div className="p-4">
-                <UserTable
-                  users={filteredUsers}
-                  managers={managers}
-                  onRoleUpdate={handleQuickRoleUpdate}
-                  onStatusUpdate={handleQuickStatusUpdate}
-                  onManagerUpdate={handleQuickManagerUpdate}
-                  onDeleteAction={handleDeleteUser}
-                />
-                
-                {/* Pagination */}
-                {pagination && (
-                  <div className="mt-6 pt-4 border-t border-gray-700/50">
-                    <Pagination
-                      page={pagination.page}
-                      limit={pagination.limit}
-                      total={pagination.total}
-                      totalPages={pagination.totalPages}
-                      hasNext={pagination.hasNext}
-                      hasPrev={pagination.hasPrev}
-                      onPageChange={(newPage) => {
-                        setPage(newPage);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                      onLimitChange={(newLimit) => {
-                        setLimit(newLimit);
-                        setPage(1);
-                      }}
-                    />
-                  </div>
-                )}
+          {/* User Table - Scrollable Container */}
+          <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="flex-1 flex flex-col overflow-hidden min-h-0"
+            >
+              <div className="relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm flex flex-col h-full">
+                <div className="p-4 flex flex-col flex-1 overflow-hidden min-h-0">
+                  <UserTable
+                    users={filteredUsers}
+                    managers={managers}
+                    onRoleUpdate={handleQuickRoleUpdate}
+                    onStatusUpdate={handleQuickStatusUpdate}
+                    onManagerUpdate={handleQuickManagerUpdate}
+                    onDeleteAction={handleDeleteUser}
+                  />
+                </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+            
+            {/* Pagination - Fixed at bottom */}
+            {pagination && (
+              <div className="flex-shrink-0 pt-4 pb-3 border-t border-gray-700/50">
+                <Pagination
+                  page={pagination.page}
+                  limit={pagination.limit}
+                  total={pagination.total}
+                  totalPages={pagination.totalPages}
+                  hasNext={pagination.hasNext}
+                  hasPrev={pagination.hasPrev}
+                  onPageChange={(newPage) => {
+                    setPage(newPage);
+                  }}
+                  onLimitChange={(newLimit) => {
+                    setLimit(newLimit);
+                    setPage(1);
+                  }}
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         <DeleteConfirmationModal
