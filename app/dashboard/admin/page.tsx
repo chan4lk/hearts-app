@@ -26,7 +26,6 @@ import AdminGoalsTable from './components/AdminGoalsTable';
 import { Pagination } from '@/app/components/shared/Pagination';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import { Goal, User as UserType } from '@/app/components/shared/types';
-import { showToast } from '@/app/utils/toast';
 import Link from 'next/link';
 
 interface DashboardStats {

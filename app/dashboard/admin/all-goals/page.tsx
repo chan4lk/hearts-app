@@ -10,7 +10,6 @@ import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmat
 import { Pagination } from '@/app/components/shared/Pagination';
 import { Goal, User as UserType } from '@/app/components/shared/types';
 import { motion } from 'framer-motion';
-import { showToast } from '@/app/utils/toast';
 import HeroSection from './components/HeroSection';
 import StatsSection from './components/StatsSection';
 import Filters from './components/Filters';

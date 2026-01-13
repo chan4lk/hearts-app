@@ -1,7 +1,6 @@
 'use client';
 
 import { BsCalendarCheck, BsPlus, BsDownload } from 'react-icons/bs';
-import { showToast } from '@/app/utils/toast';
 
 interface HeroSectionProps {
   onAddNew: () => void;

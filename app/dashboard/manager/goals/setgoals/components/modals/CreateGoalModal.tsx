@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { User, GoalFormData } from '@/app/components/shared/types';
 import { AIGoalSuggestions } from '@/app/components/shared/AIGoalSuggestions';
-import { showToast } from '@/app/utils/toast';
 import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
 import React from 'react';
 

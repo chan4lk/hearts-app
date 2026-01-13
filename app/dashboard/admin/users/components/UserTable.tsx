@@ -5,7 +5,6 @@ import { BsPerson, BsGear, BsArrowUp, BsArrowDown, BsArrowsExpand, BsTrash, BsCh
 import { User } from '@/app/components/shared/types';
 import { Role } from '.prisma/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
-import { showToast } from '@/app/utils/toast';
 import ManagerSelector from './ManagerSelector';
 
 interface UserTableProps {

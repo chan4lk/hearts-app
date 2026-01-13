@@ -13,7 +13,6 @@ import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmat
 import { Pagination } from '@/app/components/shared/Pagination';
 import { Goal, GoalStats } from '@/app/components/shared/types';
 import { BsStars, BsLightbulb, BsX, BsPlus, BsPersonCheck, BsStarFill, BsStar, BsArrowRight } from 'react-icons/bs';
-import { showToast } from '@/app/utils/toast';
 import { RATING_LABELS } from '@/app/components/shared/constants';
 import { useSession } from 'next-auth/react';
 import AIGoalSuggestions from '@/app/components/ai/AIGoalSuggestions';

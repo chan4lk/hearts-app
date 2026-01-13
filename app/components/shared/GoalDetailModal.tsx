@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, BsArrowRight, BsChevronDown, BsChevronUp, BsPencil, BsTrash, BsPerson, BsGear, BsFlag, BsBuilding, BsPlayCircle, BsPauseCircle, BsCircle, BsArrowRepeat } from 'react-icons/bs';
 import { Goal, GoalWithRatingExtended } from '@/app/components/shared/types';
 import { IconType } from 'react-icons';
-import { showToast } from '@/app/utils/toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';

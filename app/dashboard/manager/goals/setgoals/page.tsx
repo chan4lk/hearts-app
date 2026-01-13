@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { BsExclamationTriangle, BsArrowUpRight } from 'react-icons/bs';
 import { Button } from '@/app/components/ui/button';
-import { showToast } from '@/app/utils/toast';
 
 // Layout
 import DashboardLayout from '@/app/components/layout/DashboardLayout';

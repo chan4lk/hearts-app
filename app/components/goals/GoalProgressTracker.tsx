@@ -11,7 +11,6 @@ import {
   BsFlag
 } from 'react-icons/bs';
 import { Button } from '@/app/components/ui/button';
-import { showToast } from '@/app/utils/toast';
 
 interface GoalProgressTrackerProps {
   goalId: string;

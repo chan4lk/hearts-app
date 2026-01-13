@@ -6,7 +6,6 @@ import { BsSearch, BsFilter, BsEye, BsPencil, BsTrash, BsCheckCircle, BsXCircle,
 import { Badge } from '@/app/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { useSession } from 'next-auth/react';
-import { showToast } from '@/app/utils/toast';
 
 type SortColumn = 'title' | 'status' | 'priority' | 'dueDate' | 'employee' | 'manager' | 'category';
 type SortDirection = 'asc' | 'desc' | null;
