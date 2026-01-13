@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { User, GoalFormData } from '@/app/components/shared/types';
 import { AIGoalSuggestions } from '@/app/components/shared/AIGoalSuggestions';
-import { showToast } from '@/app/utils/toast';
 import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
 import React from 'react';
 
@@ -79,13 +78,13 @@ export function CreateGoalModal({
 
   const handleGenerate = async () => {
     if (!formData.employeeId) {
-      showToast.goal.error('Please select an employee first');
+      // Error toast removed
       return;
     }
 
     const selectedEmployee = assignedEmployees.find(e => e.id === formData.employeeId);
     if (!selectedEmployee) {
-      showToast.goal.error('Selected employee not found');
+      // Error toast removed
       return;
     }
 
@@ -119,7 +118,7 @@ export function CreateGoalModal({
       }));
     } catch (error) {
       console.error('Error generating goal:', error);
-      showToast.goal.error('Failed to generate goal. Please try again.');
+      // Error toast removed
     } finally {
       setIsGenerating(false);
     }

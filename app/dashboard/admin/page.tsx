@@ -26,7 +26,6 @@ import AdminGoalsTable from './components/AdminGoalsTable';
 import { Pagination } from '@/app/components/shared/Pagination';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import { Goal, User as UserType } from '@/app/components/shared/types';
-import { showToast } from '@/app/utils/toast';
 import Link from 'next/link';
 
 interface DashboardStats {
@@ -219,7 +218,7 @@ export default function AdminDashboard() {
 
       setShowDeleteModal(false);
       setGoalToDelete(null);
-      showToast.success('Goal Deleted!', 'The goal has been deleted successfully');
+      // Goal deleted toast removed
       
       // Refresh goals and stats from server to ensure sync
       fetchAllGoals();
@@ -229,7 +228,7 @@ export default function AdminDashboard() {
       // Revert optimistic update on error
       fetchAllGoals();
       fetchDashboardData();
-      showToast.error('Error', error instanceof Error ? error.message : 'Failed to delete goal');
+      // Error toast removed
     }
   };
 
@@ -261,14 +260,11 @@ export default function AdminDashboard() {
           totalGoals: Math.max(0, prev.totalGoals - successful)
         }));
         
-        showToast.success(
-          'Goals Deleted!', 
-          `Successfully deleted ${successful} goal${successful !== 1 ? 's' : ''}${failed > 0 ? ` (${failed} failed)` : ''}`
-        );
+        // Toast removed
       }
 
       if (failed > 0 && successful === 0) {
-        showToast.error('Error', `Failed to delete ${failed} goal${failed !== 1 ? 's' : ''}`);
+        // Error toast removed
       }
 
       setShowBulkDeleteModal(false);
@@ -279,7 +275,7 @@ export default function AdminDashboard() {
       fetchDashboardData();
     } catch (error) {
       console.error('Error bulk deleting goals:', error);
-      showToast.error('Error', 'Failed to delete goals');
+      // Error toast removed
     }
   };
 

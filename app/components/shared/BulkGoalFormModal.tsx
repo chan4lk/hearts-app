@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, GoalFormData } from './types';
-import { showToast } from '@/app/utils/toast';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
@@ -135,7 +134,7 @@ export function BulkGoalFormModal({
     e.preventDefault();
 
     if (!validateGoals()) {
-      showToast.goal.error('Please fix the validation errors before submitting');
+      // Error toast removed
       return;
     }
 
@@ -159,7 +158,7 @@ export function BulkGoalFormModal({
       onClose();
     } catch (error) {
       console.error('Error creating bulk goals:', error);
-      showToast.goal.error('Failed to create goals. Please try again.');
+      // Error toast removed
     } finally {
       setIsSubmitting(false);
     }
@@ -175,7 +174,7 @@ export function BulkGoalFormModal({
 
   const handleTemplateApply = (template: any) => {
     if (selectedEmployees.length === 0) {
-      showToast.goal.error('Please select at least one employee');
+      // Error toast removed
       return;
     }
 
@@ -185,7 +184,7 @@ export function BulkGoalFormModal({
     );
 
     if (validEmployeeIds.length === 0) {
-      showToast.goal.error('Selected employees are not valid');
+      // Error toast removed
       return;
     }
 
@@ -208,7 +207,7 @@ export function BulkGoalFormModal({
     setGoals(prev => [...prev, ...newGoals]);
     setActiveTab('manual');
     setSelectedEmployees([]); // Clear selection
-    showToast.success(`${newGoals.length} goals created from template!`, 'Goals have been added to the manual tab for review');
+    // Toast removed
   };
 
   const handleClose = () => {

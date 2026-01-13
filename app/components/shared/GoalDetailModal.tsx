@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, BsArrowRight, BsChevronDown, BsChevronUp, BsPencil, BsTrash, BsPerson, BsGear, BsFlag, BsBuilding, BsPlayCircle, BsPauseCircle, BsCircle, BsArrowRepeat } from 'react-icons/bs';
 import { Goal, GoalWithRatingExtended } from '@/app/components/shared/types';
 import { IconType } from 'react-icons';
-import { showToast } from '@/app/utils/toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
@@ -169,7 +168,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
       // Update local goal state
       setCurrentGoal({ ...currentGoal, status: updatedGoal.status });
       
-      showToast.success('Status Updated', `Goal status updated to ${newStatus.replace('_', ' ')}`);
+      // Toast removed
       
       // Refresh activities
       const activityResponse = await fetch(`/api/goals/${currentGoal.id}/activity`);
@@ -183,7 +182,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
         setTimeout(() => window.location.reload(), 500);
       }
     } catch (error) {
-      showToast.error('Update Failed', error instanceof Error ? error.message : 'Failed to update status');
+      // Error toast removed
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -197,18 +196,14 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
     e.preventDefault();
     e.stopPropagation();
 
-    if (isSubmitting || !onSubmitGoal) return;
+    if (isSubmitting || !onSubmitGoal) return null;
 
     try {
       setIsSubmitting(true);
       await onSubmitGoal(goal.id);
       onClose();
     } catch (error) {
-      showToast.goal.error(
-        error instanceof Error
-          ? error.message
-          : 'Failed to submit goal. Please try again.'
-      );
+      // Error toast removed
     } finally {
       setIsSubmitting(false);
     }
@@ -218,11 +213,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
   const handleClose = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isSubmitting) {
-      showToast.error(
-        'Action in Progress', 
-        'Please wait for the current action to complete'
-      );
-      return;
+      return; // Action in progress
     }
     onClose();
   };

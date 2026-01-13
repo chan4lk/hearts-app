@@ -3,7 +3,6 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Toaster } from 'sonner';
 import { motion } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import UserTable from './components/UserTable';
@@ -14,7 +13,6 @@ import { Pagination } from '@/app/components/shared/Pagination';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import { User, Filters } from '@/app/components/shared/types';
 import { Role } from '.prisma/client';
-import { showToast } from '@/app/utils/toast';
 
 interface RawUser {
   id: string;
@@ -162,7 +160,7 @@ function UsersPageContent() {
       const response = await fetch(`/api/admin/users?${params}`);
       if (!response.ok) {
         if (response.status === 401) {
-          showToast.user.error('Unauthorized access');
+          // Toast removed
           router.push('/login');
           return;
         }
@@ -203,7 +201,7 @@ function UsersPageContent() {
       setLastRefresh(new Date());
     } catch (error) {
       console.error('Error fetching users:', error);
-      showToast.user.error('Failed to fetch users');
+      // Toast removed
     } finally {
       setIsLoading(false);
     }
@@ -303,9 +301,9 @@ function UsersPageContent() {
       setUsers(prev => prev.filter(user => user.id !== userToDelete.id));
       setIsDeleteConfirmOpen(false);
       setUserToDelete(null);
-      showToast.user.deleted();
+      // Toast removed
     } catch (error) {
-      showToast.error('Failed to delete user', error);
+      // Toast removed
     }
   };
 
@@ -434,34 +432,7 @@ function UsersPageContent() {
           cancelText="Cancel"
         />
 
-        <Toaster 
-          position="top-center"
-          richColors
-          closeButton
-          theme="dark"
-          toastOptions={{
-            style: {
-              background: 'rgba(30, 32, 40, 0.95)',
-              color: '#fff',
-              border: '1px solid rgba(45, 55, 72, 0.5)',
-              borderRadius: '16px',
-              padding: '20px 24px',
-              fontSize: '16px',
-              fontWeight: '600',
-              textAlign: 'center',
-              width: 'auto',
-              maxWidth: '450px',
-              margin: '0 auto',
-              backdropFilter: 'blur(20px)',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '16px'
-            },
-            duration: 4000,
-            className: 'modern-toast'
-          }}
-        />
+        {/* Toaster removed */}
       </div>
     </DashboardLayout>
   );

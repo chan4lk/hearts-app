@@ -10,7 +10,6 @@ import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmat
 import { Pagination } from '@/app/components/shared/Pagination';
 import { Goal, User as UserType } from '@/app/components/shared/types';
 import { motion } from 'framer-motion';
-import { showToast } from '@/app/utils/toast';
 import HeroSection from './components/HeroSection';
 import StatsSection from './components/StatsSection';
 import Filters from './components/Filters';
@@ -181,14 +180,14 @@ function AllGoalsPageContent() {
 
       setShowDeleteModal(false);
       setGoalToDelete(null);
-      showToast.success('Goal Deleted!', 'The goal has been deleted successfully');
+      // Goal deleted toast removed
       fetchData(); // Refresh goals
       fetchTotalStats(); // Refresh total stats
     } catch (error) {
       console.error('Error deleting goal:', error);
       // Revert optimistic update on error
       fetchData();
-      showToast.error('Error', error instanceof Error ? error.message : 'Failed to delete goal');
+      // Error toast removed
     }
   };
 
@@ -216,14 +215,11 @@ function AllGoalsPageContent() {
       const failed = results.length - successful;
 
       if (successful > 0) {
-        showToast.success(
-          'Goals Deleted!', 
-          `Successfully deleted ${successful} goal${successful !== 1 ? 's' : ''}${failed > 0 ? ` (${failed} failed)` : ''}`
-        );
+        // Toast removed
       }
 
       if (failed > 0 && successful === 0) {
-        showToast.error('Error', `Failed to delete ${failed} goal${failed !== 1 ? 's' : ''}`);
+        // Error toast removed
       }
 
       setShowBulkDeleteModal(false);
@@ -236,7 +232,7 @@ function AllGoalsPageContent() {
       console.error('Error bulk deleting goals:', error);
       // Revert optimistic update on error
       fetchData();
-      showToast.error('Error', 'Failed to delete goals');
+      // Error toast removed
     }
   };
 

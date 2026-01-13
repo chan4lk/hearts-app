@@ -5,7 +5,6 @@ import { BsPerson, BsGear, BsArrowUp, BsArrowDown, BsArrowsExpand, BsTrash, BsCh
 import { User } from '@/app/components/shared/types';
 import { Role } from '.prisma/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
-import { showToast } from '@/app/utils/toast';
 import ManagerSelector from './ManagerSelector';
 
 interface UserTableProps {
@@ -98,10 +97,10 @@ export default function UserTable({
         onRoleUpdate(userId, newRole, transformedUser);
       }
       
-      showToast.success('Role Updated!', `User role has been updated to ${newRole}`);
+      // Toast removed
     } catch (error) {
       console.error('Error updating role:', error);
-      showToast.error('Error', error instanceof Error ? error.message : 'Failed to update role');
+      // Toast removed
     } finally {
       setUpdatingRole(null);
     }
@@ -151,10 +150,10 @@ export default function UserTable({
         onStatusUpdate(userId, newStatus, transformedUser);
       }
       
-      showToast.success('Status Updated!', `User status has been updated to ${newStatus}`);
+      // Toast removed
     } catch (error) {
       console.error('Error updating status:', error);
-      showToast.error('Error', error instanceof Error ? error.message : 'Failed to update status');
+      // Error toast removed
     } finally {
       setUpdatingStatus(null);
     }
@@ -212,7 +211,7 @@ export default function UserTable({
       // Manager updated successfully - notification removed
     } catch (error) {
       console.error('Error updating manager:', error);
-      showToast.error('Error', error instanceof Error ? error.message : 'Failed to update manager');
+      // Error toast removed
     } finally {
       setUpdatingManager(null);
       setManagerSelectorOpen(null);

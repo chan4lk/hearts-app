@@ -155,7 +155,7 @@ function LoginForm() {
 
       <Suspense fallback={<div className="h-14 bg-[#0f172a]/50 backdrop-blur-sm border-t border-indigo-500/20" />}>
       </Suspense>
-      <ToastContainer position="bottom-right" theme="dark" />
+      {/* ToastContainer removed */}
     </main>
   );
 }
