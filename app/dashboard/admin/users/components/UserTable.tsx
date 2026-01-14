@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { BsPerson, BsGear, BsArrowUp, BsArrowDown, BsArrowsExpand, BsTrash, BsChevronDown } from 'react-icons/bs';
+import { BsPerson, BsGear, BsArrowUp, BsArrowDown, BsArrowsExpand, BsChevronDown } from 'react-icons/bs';
 import { User } from '@/app/components/shared/types';
 import { Role } from '.prisma/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
@@ -359,18 +359,12 @@ export default function UserTable({
                     {getSortIcon('manager')}
                   </div>
                 </th>
-                <th 
-                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider whitespace-nowrap"
-                  style={{ width: '13%' }}
-                >
-                  Actions
-                </th>
           </tr>
         </thead>
         <tbody>
           {users.length === 0 ? (
             <tr>
-              <td colSpan={6} className="py-12 text-center text-gray-400">
+              <td colSpan={5} className="py-12 text-center text-gray-400">
                 <div className="flex flex-col items-center justify-center py-8">
                   <div className="relative mb-4">
                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full blur-xl"></div>
@@ -473,17 +467,6 @@ export default function UserTable({
                         onClose={() => setManagerSelectorOpen(null)}
                         isLoading={updatingManager === user.id}
                       />
-                    )}
-                  </td>
-                  <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
-                    {onDeleteAction && (
-                      <button
-                        onClick={() => onDeleteAction(user.id)}
-                        className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded transition-colors"
-                        title="Delete User"
-                      >
-                        <BsTrash className="w-4 h-4" />
-                      </button>
                     )}
                   </td>
                 </tr>
