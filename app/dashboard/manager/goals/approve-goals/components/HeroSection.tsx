@@ -6,7 +6,7 @@ export default function HeroSection() {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 rounded-lg p-4 shadow-lg"
+      className="relative overflow-hidden bg-gradient-to-r from-teal-600 to-cyan-600 rounded-xl p-4 shadow-lg"
     >
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
@@ -19,7 +19,7 @@ export default function HeroSection() {
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             Approve Goals
           </h2>
-          <p className="text-purple-100 text-xs">Here's an overview of goal approvals awaiting your review</p>
+          <p className="text-white/90 text-xs">Here's an overview of goal approvals awaiting your review</p>
         </div>
       </div>
     </motion.div>

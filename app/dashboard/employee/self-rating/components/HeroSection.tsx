@@ -14,7 +14,7 @@ export function HeroSection({ userRole }: HeroSectionProps) {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative overflow-hidden rounded-lg p-4 shadow-lg bg-gradient-to-r from-indigo-600 to-purple-600"
+      className="relative overflow-hidden rounded-xl p-4 shadow-lg bg-gradient-to-r from-teal-600 to-cyan-600"
     >
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
@@ -27,7 +27,7 @@ export function HeroSection({ userRole }: HeroSectionProps) {
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             Self Rating, {userName}
           </h2>
-          <p className="text-purple-100 text-xs">Rate your performance on your goals</p>
+          <p className="text-white/90 text-xs">Rate your performance on your goals</p>
         </div>
       </div>
     </motion.div>

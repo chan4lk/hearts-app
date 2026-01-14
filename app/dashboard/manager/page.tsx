@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { useSession } from 'next-auth/react';
 import StatsDisplay from './components/StatsDisplay';
@@ -200,11 +199,29 @@ export default function ManagerDashboard() {
   };
   return (
     <DashboardLayout type="manager">
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800">
         {/* Subtle Background Pattern */}
         <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
         
         <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
+          {/* Hero Section */}
+          <div className="relative overflow-hidden bg-gradient-to-r from-teal-600 to-cyan-600 rounded-xl p-4 shadow-lg">
+            {/* Animated Background Elements */}
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+              <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+            </div>
+
+            <div className="relative flex items-center justify-between">
+              <div className="space-y-1">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  Welcome back, {session?.user?.name || 'Manager'}
+                </h2>
+                <p className="text-white/90 text-xs">Manage your team's goals and performance</p>
+              </div>
+            </div>
+          </div>
+
           {/* Stats Section */}
           <StatsDisplay 
             stats={stats} 
@@ -236,11 +253,7 @@ export default function ManagerDashboard() {
           />
 
           {/* AI Insights Toggle */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex justify-end"
-          >
+          <div className="flex justify-end">
             <button
               onClick={() => setShowAIInsights(!showAIInsights)}
               className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg transition-all shadow-md"
@@ -248,15 +261,11 @@ export default function ManagerDashboard() {
               <BsStars className="w-4 h-4" />
               <span>{showAIInsights ? 'Hide' : 'Show'} AI Insights</span>
             </button>
-          </motion.div>
+          </div>
 
           {/* AI Performance Insights for Selected Employee */}
           {showAIInsights && selectedEmployee !== 'all' && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-br from-purple-900/20 via-indigo-900/20 to-blue-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20"
-            >
+            <div className="bg-gradient-to-br from-purple-900/20 via-indigo-900/20 to-blue-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-purple-500/20 rounded-lg">
                   <BsLightbulb className="w-5 h-5 text-purple-400" />
@@ -272,22 +281,18 @@ export default function ManagerDashboard() {
                 userId={employees.find(e => e.email === selectedEmployee)?.id}
                 autoLoad={true}
               />
-            </motion.div>
+            </div>
           )}
 
           {/* AI Insights Prompt (when no employee selected) */}
           {showAIInsights && selectedEmployee === 'all' && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-br from-blue-900/20 via-indigo-900/20 to-purple-900/20 backdrop-blur-sm rounded-xl p-8 border border-blue-500/20 text-center"
-            >
+            <div className="bg-gradient-to-br from-blue-900/20 via-indigo-900/20 to-purple-900/20 backdrop-blur-sm rounded-xl p-8 border border-blue-500/20 text-center">
               <BsLightbulb className="w-12 h-12 text-blue-400 mx-auto mb-4" />
               <h3 className="text-xl font-bold text-white mb-2">Select an Employee</h3>
               <p className="text-gray-400">
                 Choose a specific employee from the filter above to view their AI-powered performance insights
               </p>
-            </motion.div>
+            </div>
           )}
 
           {/* Goals Section with Tabs */}

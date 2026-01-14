@@ -12,7 +12,7 @@ export function HeroSection({ onCreateClick, onBulkCreateClick }: HeroSectionPro
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 rounded-lg p-4 shadow-lg"
+      className="relative overflow-hidden bg-gradient-to-r from-teal-600 to-cyan-600 rounded-xl p-4 shadow-lg"
     >
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
@@ -25,14 +25,14 @@ export function HeroSection({ onCreateClick, onBulkCreateClick }: HeroSectionPro
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             Manage Team Goals
           </h2>
-          <p className="text-purple-100 text-xs">Create and assign goals for your team members</p>
+          <p className="text-white/90 text-xs">Create and assign goals for your team members</p>
         </div>
         <div className="flex gap-2">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onCreateClick}
-            className="bg-gray-900/60 hover:bg-gray-900/80 backdrop-blur-sm rounded-lg px-3 py-2 text-sm font-medium text-white flex items-center gap-1.5 transition-colors border border-white/20 shadow-lg"
+            className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2 text-sm font-medium text-white flex items-center gap-1.5 transition-colors border border-white/20"
           >
             <BsPlus className="w-4 h-4" />
             Create Goal
@@ -41,7 +41,7 @@ export function HeroSection({ onCreateClick, onBulkCreateClick }: HeroSectionPro
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onBulkCreateClick}
-            className="bg-gray-900/60 hover:bg-gray-900/80 backdrop-blur-sm rounded-lg px-3 py-2 text-sm font-medium text-white flex items-center gap-1.5 transition-colors border border-white/20 shadow-lg"
+            className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2 text-sm font-medium text-white flex items-center gap-1.5 transition-colors border border-white/20"
           >
             <BsStack className="w-4 h-4" />
             Bulk Create Goals

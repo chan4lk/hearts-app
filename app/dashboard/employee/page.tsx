@@ -450,7 +450,7 @@ export default function EmployeeDashboard() {
 
   return (
     <DashboardLayout type="employee">
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800">
         {/* Subtle Background Pattern */}
         <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
         

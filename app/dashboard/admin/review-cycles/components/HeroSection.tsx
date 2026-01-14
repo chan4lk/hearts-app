@@ -81,21 +81,19 @@ export default function HeroSection({ onAddNew }: HeroSectionProps) {
   };
 
   return (
-    <div className="bg-gradient-to-r from-indigo-900/30 via-purple-900/30 to-pink-900/30 backdrop-blur-sm rounded-xl p-4 border border-indigo-500/30">
+    <div className="bg-gradient-to-r from-teal-600 to-cyan-600 rounded-xl p-4 border-b border-teal-500/30 shadow-lg">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-indigo-500/20 rounded-lg">
-            <BsCalendarCheck className="w-5 h-5 text-indigo-400" />
-          </div>
+          <BsCalendarCheck className="w-6 h-6 text-white" />
           <div>
             <h1 className="text-lg font-bold text-white mb-0.5">Review Cycles Management</h1>
-            <p className="text-gray-400 text-xs">Manage employee review cycles and performance evaluation schedules</p>
+            <p className="text-white/80 text-xs">Manage employee review cycles and performance evaluation schedules</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handleDownloadExcel}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all shadow-md text-xs font-medium"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all border border-white/20 text-xs font-medium backdrop-blur-sm"
             title="Download Excel Data"
           >
             <BsDownload className="w-4 h-4" />
@@ -103,7 +101,7 @@ export default function HeroSection({ onAddNew }: HeroSectionProps) {
           </button>
           <button
             onClick={onAddNew}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all shadow-md text-xs font-medium"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all border border-white/20 text-xs font-medium backdrop-blur-sm"
           >
             <BsPlus className="w-4 h-4" />
             <span>Add Review Cycle</span>

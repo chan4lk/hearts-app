@@ -29,7 +29,7 @@ export default function HeroSection({ userRole }: HeroSectionProps) {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 rounded-lg p-4 shadow-lg"
+      className="relative overflow-hidden bg-gradient-to-r from-teal-600 to-cyan-600 rounded-xl p-4 shadow-lg"
     >
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
@@ -43,7 +43,7 @@ export default function HeroSection({ userRole }: HeroSectionProps) {
             <BsBarChart className="w-5 h-5" />
             {pageTitle}
           </h2>
-          <p className="text-purple-100 text-xs">{pageDescription}</p>
+          <p className="text-white/90 text-xs">{pageDescription}</p>
         </div>
       </div>
     </motion.div>
