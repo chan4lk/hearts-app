@@ -888,66 +888,72 @@ export default function GoalsTable({
   // Get sort icon for a column
   const getSortIcon = (column: SortColumn) => {
     if (sortColumn !== column) {
-      return <BsArrowsExpand className="w-3 h-3 text-gray-500 opacity-50" />;
+      return <span className="text-white/60 text-xs">⇅</span>;
     }
     if (sortDirection === 'asc') {
-      return <BsArrowUp className="w-3 h-3 text-indigo-400" />;
+      return <span className="text-yellow-300 font-bold text-sm drop-shadow-lg">↑</span>;
     }
     if (sortDirection === 'desc') {
-      return <BsArrowDown className="w-3 h-3 text-indigo-400" />;
+      return <span className="text-yellow-300 font-bold text-sm drop-shadow-lg">↓</span>;
     }
-    return <BsArrowsExpand className="w-3 h-3 text-gray-500 opacity-50" />;
+    return <span className="text-white/60 text-xs">⇅</span>;
   };
 
   return (
-    <div className="bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl shadow-xl border border-white/10 p-4">
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-white/10">
+    <div className="relative flex flex-col flex-1 overflow-hidden min-h-0">
+      {/* Table Container with Fixed Header */}
+      <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+        <div className="overflow-x-auto overflow-y-auto flex-1 min-h-0">
+          <table className="w-full table-fixed min-w-full">
+            <thead className="sticky top-0 z-20 bg-gradient-to-r from-indigo-600 to-purple-600 border-b-2 border-indigo-700 shadow-md">
+              <tr>
               <th 
-                className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
+                className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-indigo-700 transition-colors whitespace-nowrap"
+                style={{ width: '20%' }}
                 onClick={() => handleSort('title')}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <span>Title</span>
                   {getSortIcon('title')}
                 </div>
               </th>
               <th 
-                className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
+                className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-indigo-700 transition-colors whitespace-nowrap"
+                style={{ width: '12%' }}
                 onClick={() => handleSort('status')}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <span>Status</span>
                   {getSortIcon('status')}
                 </div>
               </th>
               <th 
-                className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
+                className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-indigo-700 transition-colors whitespace-nowrap"
+                style={{ width: '10%' }}
                 onClick={() => handleSort('priority')}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <span>Priority</span>
                   {getSortIcon('priority')}
                 </div>
               </th>
               <th 
-                className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
+                className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-indigo-700 transition-colors whitespace-nowrap"
+                style={{ width: '12%' }}
                 onClick={() => handleSort('dueDate')}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <span>Due Date</span>
                   {getSortIcon('dueDate')}
                 </div>
               </th>
               {showEmployee && (
                 <th 
-                  className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
+                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-indigo-700 transition-colors whitespace-nowrap"
+                  style={{ width: '12%' }}
                   onClick={() => handleSort('employee')}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <span>Employee</span>
                     {getSortIcon('employee')}
                   </div>
@@ -955,29 +961,41 @@ export default function GoalsTable({
               )}
               {showManager && (
                 <th 
-                  className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
+                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-indigo-700 transition-colors whitespace-nowrap"
+                  style={{ width: '12%' }}
                   onClick={() => handleSort('manager')}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <span>Manager</span>
                     {getSortIcon('manager')}
                   </div>
                 </th>
               )}
               <th 
-                className="text-left py-3 px-4 text-sm font-semibold text-gray-300 cursor-pointer hover:bg-white/5 transition-colors select-none"
+                className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-indigo-700 transition-colors whitespace-nowrap"
+                style={{ width: '10%' }}
                 onClick={() => handleSort('category')}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <span>Category</span>
                   {getSortIcon('category')}
                 </div>
               </th>
               {showRating && (
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Rating</th>
+                <th 
+                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider whitespace-nowrap"
+                  style={{ width: '10%' }}
+                >
+                  Rating
+                </th>
               )}
               {showActions && (
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300">Actions</th>
+                <th 
+                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider whitespace-nowrap"
+                  style={{ width: '10%' }}
+                >
+                  Actions
+                </th>
               )}
             </tr>
           </thead>
@@ -1007,21 +1025,21 @@ export default function GoalsTable({
                   className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer"
                   onClick={() => onGoalClick?.(goal)}
                 >
-                  <td className="py-3 px-4">
-                    <div className="max-w-xs">
-                      <div className="text-sm font-medium text-white truncate">{goal.title}</div>
-                      <div className="text-xs text-gray-400 truncate mt-1">{goal.description}</div>
+                  <td className="py-2.5 px-3 text-[11px]">
+                    <div className="truncate">
+                      <div className="font-medium text-white truncate">{goal.title}</div>
+                      <div className="text-gray-400 truncate mt-0.5 text-[10px]">{goal.description}</div>
                     </div>
                   </td>
-                  <td className="py-3 px-4">
+                  <td className="py-2.5 px-3 text-[11px]">
                     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                       {getStatusBadge(goal.status, goal, session, disableStatusUpdate ? undefined : handleQuickStatusUpdate, updatingStatus, disableStatusUpdate, allowedStatuses)}
                     </div>
                   </td>
-                  <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+                  <td className="py-2.5 px-3 text-[11px]" onClick={(e) => e.stopPropagation()}>
                     {getPriorityBadge(goal.priority || 'MEDIUM', goal, session, onPriorityUpdate ? handleQuickPriorityUpdate : undefined, updatingPriority, canEditPriority)}
                   </td>
-                  <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+                  <td className="py-2.5 px-3 text-[11px]" onClick={(e) => e.stopPropagation()}>
                     {onDueDateUpdate && (!canEditDueDate || canEditDueDate(goal)) ? (
                       <div className="relative">
                         <input
@@ -1033,21 +1051,21 @@ export default function GoalsTable({
                             }
                           }}
                           disabled={updatingDueDate === goal.id}
-                          className="bg-gray-800/50 border border-white/10 text-white/90 text-xs px-3 py-1.5 pr-8 rounded-md hover:bg-gray-700/50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="bg-gray-800/50 border border-white/10 text-white/90 text-[10px] px-2 py-1 pr-6 rounded-md hover:bg-gray-700/50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
                         />
-                        <BsCalendar className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none w-3 h-3" />
+                        <BsCalendar className="absolute right-1.5 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none w-2.5 h-2.5" />
                       </div>
                     ) : (
-                      <span className="text-sm text-gray-300">{new Date(goal.dueDate).toLocaleDateString()}</span>
+                      <span className="text-gray-300 truncate">{new Date(goal.dueDate).toLocaleDateString()}</span>
                     )}
                   </td>
                   {showEmployee && (
-                    <td className="py-3 px-4 text-sm text-gray-300">
+                    <td className="py-2.5 px-3 text-[11px] text-gray-300 truncate">
                       {goal.employee?.name || 'Unassigned'}
                     </td>
                   )}
                   {showManager && (
-                    <td className="py-3 px-4 text-sm text-gray-300">
+                    <td className="py-2.5 px-3 text-[11px] text-gray-300 truncate">
                       {(() => {
                         // Check if this is a self-created goal
                         // Self-created goals have no manager assigned
@@ -1064,7 +1082,7 @@ export default function GoalsTable({
                       })()}
                     </td>
                   )}
-                  <td className="py-3 px-4 text-sm text-gray-300">
+                  <td className="py-2.5 px-3 text-[11px] text-gray-300 truncate">
                     {goal.category}
                   </td>
                   {showRating && (() => {
@@ -1079,7 +1097,7 @@ export default function GoalsTable({
                     const displayValue = currentRatingValue ?? 0;
                     
                     return (
-                      <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-2.5 px-3 text-[11px]" onClick={(e) => e.stopPropagation()}>
                         {onRatingChange ? (
                           <Select
                             key={`rating-${goal.id}-${displayValue}-${ratingUpdateCounter}`}
@@ -1147,7 +1165,7 @@ export default function GoalsTable({
                     );
                   })()}
                   {showActions && (
-                    <td className="py-3 px-4">
+                    <td className="py-2.5 px-3 text-[11px]">
                       <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                         {onGoalClick && (
                           <button
@@ -1184,10 +1202,11 @@ export default function GoalsTable({
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Summary */}
-      <div className="mt-4 pt-4 border-t border-white/10 text-sm text-gray-400">
+      <div className="mt-4 pt-4 border-t border-white/10 text-sm text-gray-400 flex-shrink-0">
         Showing {filteredGoals.length} of {goals.length} goals
       </div>
     </div>
