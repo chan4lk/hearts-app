@@ -11,15 +11,17 @@ interface ImportExcelModalProps {
   onImportComplete: () => void;
 }
 
+interface SkippedUserData {
+  rowNumber: number;
+  reason: string;
+  excelData: Record<string, any>;
+}
+
 interface ImportResult {
   success: boolean;
   imported: number;
   skipped: number;
-  skippedUsers: Array<{
-    email: string;
-    name?: string;
-    reason: string;
-  }>;
+  skippedUsers: SkippedUserData[];
   importedUsers?: Array<{
     rowNumber: number;
     firstName: string;
@@ -35,6 +37,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [showSkippedUsers, setShowSkippedUsers] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -328,63 +331,94 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                     </div>
                   </div>
 
-                  {/* Skipped Users */}
+                  {/* Skipped Users - Collapsible */}
                   {importResult.skippedUsers && importResult.skippedUsers.length > 0 && (
                     <div className="bg-yellow-500/10 border border-yellow-500/50 rounded-lg p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <BsExclamationTriangle className="w-5 h-5 text-yellow-400" />
-                        <h3 className="font-medium text-yellow-400">
-                          Skipped Users ({importResult.skippedUsers.length})
-                        </h3>
-                      </div>
-                      <p className="text-sm text-gray-300 mb-3">
-                        The following users were skipped. Please ensure these users exist in the system before importing their review cycles:
-                      </p>
-                      <div className="max-h-60 overflow-y-auto space-y-2">
-                        {importResult.skippedUsers.map((user, idx) => (
-                          <div
-                            key={idx}
-                            className="bg-gray-800/50 rounded p-3 text-sm border border-yellow-500/20"
+                      <button
+                        onClick={() => setShowSkippedUsers(!showSkippedUsers)}
+                        className="w-full flex items-center justify-between hover:opacity-80 transition-opacity"
+                      >
+                        <div className="flex items-center gap-2">
+                          <BsExclamationTriangle className="w-5 h-5 text-yellow-400" />
+                          <h3 className="font-medium text-yellow-400">
+                            Skipped Users ({importResult.skippedUsers.length})
+                          </h3>
+                        </div>
+                        <span className="text-yellow-400 text-sm">
+                          {showSkippedUsers ? '▼' : '▶'}
+                        </span>
+                      </button>
+
+                      {/* Collapsible Content */}
+                      <AnimatePresence>
+                        {showSkippedUsers && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="overflow-hidden"
                           >
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex-1">
-                                <p className="text-white mb-1">
-                                  <span className="font-medium text-yellow-300">Email:</span>{' '}
-                                  <span className="text-gray-200">{user.email}</span>
-                                </p>
-                                {user.name && user.name !== 'Unknown' && (
-                                  <p className="text-gray-300 mb-2">
-                                    <span className="font-medium text-yellow-300">Name:</span>{' '}
-                                    <span className="text-gray-200">{user.name}</span>
-                                  </p>
-                                )}
-                                <div className="mt-2 pt-2 border-t border-yellow-500/20">
-                                  <p className="text-yellow-400 text-xs">
-                                    <span className="font-medium">Reason:</span> {user.reason}
-                                  </p>
-                                </div>
+                            <div className="mt-4">
+                              <p className="text-sm text-gray-300 mb-3">
+                                The following users were skipped. Please ensure these users exist in the system before importing their review cycles:
+                              </p>
+                              <div className="max-h-96 overflow-y-auto space-y-2">
+                                {importResult.skippedUsers.map((skip, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="bg-gray-800/50 rounded p-3 text-sm border border-yellow-500/20"
+                                  >
+                                    <div className="flex items-start justify-between gap-2 mb-2">
+                                      <div className="flex-1">
+                                        <p className="text-white font-medium">
+                                          Row {skip.rowNumber}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Excel Data Grid */}
+                                    <div className="bg-gray-900/50 rounded p-2 mb-2 text-xs">
+                                      <div className="space-y-1">
+                                        {Object.entries(skip.excelData || {}).map(([key, value]) => (
+                                          <div key={key} className="flex gap-2">
+                                            <span className="font-medium text-yellow-300 min-w-fit">{key}:</span>
+                                            <span className="text-gray-300 truncate">{String(value || '')}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Skip Reason */}
+                                    <div className="pt-2 border-t border-yellow-500/20">
+                                      <p className="text-yellow-400 text-xs">
+                                        <span className="font-medium">Reason:</span> {skip.reason}
+                                      </p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="mt-4 flex gap-2">
+                                <button
+                                  onClick={downloadImportReport}
+                                  className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+                                >
+                                  <BsDownload className="w-4 h-4" />
+                                  Download CSV Report
+                                </button>
+                              </div>
+                              <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded text-xs text-blue-300">
+                                <p className="font-medium mb-1">💡 Next Steps:</p>
+                                <ul className="list-disc list-inside space-y-1 mt-2">
+                                  <li>Download the skipped users report above</li>
+                                  <li>Add the missing users to the system through the Users management page</li>
+                                  <li>Import the Excel file again to complete the import</li>
+                                </ul>
                               </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="mt-4 flex gap-2">
-                        <button
-                          onClick={downloadImportReport}
-                          className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
-                        >
-                          <BsDownload className="w-4 h-4" />
-                          Download CSV Report
-                        </button>
-                      </div>
-                      <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded text-xs text-blue-300">
-                        <p className="font-medium mb-1">💡 Next Steps:</p>
-                        <ul className="list-disc list-inside space-y-1 mt-2">
-                          <li>Download the skipped users report above</li>
-                          <li>Add the missing users to the system through the Users management page</li>
-                          <li>Import the Excel file again to complete the import</li>
-                        </ul>
-                      </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   )}
                 </div>

@@ -26,15 +26,17 @@ interface ExcelRow {
   'Adjusted Review Month'?: string;
 }
 
+interface SkippedUserData {
+  rowNumber: number;
+  reason: string;
+  excelData: Record<string, any>; // Raw Excel row data
+}
+
 interface ImportResult {
   success: boolean;
   imported: number;
   skipped: number;
-  skippedUsers: Array<{
-    email: string;
-    name?: string;
-    reason: string;
-  }>;
+  skippedUsers: SkippedUserData[];
   importedUsers?: Array<{
     rowNumber: number;
     firstName: string;
@@ -164,7 +166,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ImportResult>
       });
     }
 
-    const skippedUsers: Array<{ email: string; name?: string; reason: string }> = [];
+    const skippedUsers: SkippedUserData[] = [];
     const importedUsers: Array<{ rowNumber: number; firstName: string; systemUserName: string; status: string }> = [];
     const errors: string[] = [];
     let importedCount = 0;
@@ -221,9 +223,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<ImportResult>
       // Validate name is provided
       if (!excelName || excelName === 'undefined' || excelName === 'null') {
         skippedUsers.push({
-          email: `Row ${i + 2}`,
-          name: 'Unknown',
-          reason: 'First Name or Employee Name is missing or invalid'
+          rowNumber: i + 2,
+          reason: 'First Name or Employee Name is missing or invalid',
+          excelData: row
         });
         continue;
       }
@@ -253,9 +255,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<ImportResult>
 
       if (!user) {
         skippedUsers.push({
-          email: excelName,
-          name: excelName,
-          reason: `User with first name "${searchName}" (from "${excelName}") does not exist in the system or account is inactive`
+          rowNumber: i + 2,
+          reason: `User with first name "${searchName}" (from "${excelName}") does not exist in the system or account is inactive`,
+          excelData: row
         });
         continue;
       }
@@ -444,9 +446,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<ImportResult>
         
         if (!hasData) {
           skippedUsers.push({
-            email: excelName,
-            name: user.name,
-            reason: 'No review cycle data provided in Excel row'
+            rowNumber: i + 2,
+            reason: 'No review cycle data provided in Excel row',
+            excelData: row
           });
           continue;
         }
@@ -515,9 +517,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<ImportResult>
         
         // Also add to skipped users for visibility
         skippedUsers.push({
-          email: excelName,
-          name: excelName,
-          reason: `Import error: ${errorMessage}`
+          rowNumber: i + 2,
+          reason: `Import error: ${errorMessage}`,
+          excelData: row
         });
       }
     }
@@ -540,17 +542,50 @@ export async function POST(req: NextRequest): Promise<NextResponse<ImportResult>
       message = `No review cycles were imported. ${skippedUsers.length} user(s) were skipped. Please check the reasons and add missing users to the system.`;
     }
 
-    // Generate CSV report
-    let csvReport = 'Row Number,First Name (Excel),System User Name,Status,Notes\n';
+    // Generate CSV report with all Excel columns
+    let csvReport = '';
+    
+    // Get all unique column names from the data
+    const allColumns = new Set<string>();
+    for (const row of finalData) {
+      Object.keys(row).forEach(key => allColumns.add(key));
+    }
+    
+    // Build header with all columns plus status and reason
+    const columnArray = Array.from(allColumns).sort();
+    const headers = ['Row Number', 'Status', 'Reason', ...columnArray];
+    csvReport = headers.map(h => `"${h}"`).join(',') + '\n';
     
     // Add imported users
     for (const user of importedUsers) {
-      csvReport += `${user.rowNumber},"${user.firstName}","${user.systemUserName}","${user.status}","Successfully imported"\n`;
+      // Find the row data for this imported user
+      const rowData = finalData[user.rowNumber - 2]; // rowNumber is 1-indexed for display
+      const values = [
+        user.rowNumber,
+        'IMPORTED',
+        'Successfully imported',
+        ...columnArray.map(col => {
+          const val = rowData?.[col];
+          if (val === undefined || val === null) return '';
+          return `"${String(val).replace(/"/g, '""')}"`;
+        })
+      ];
+      csvReport += values.join(',') + '\n';
     }
     
     // Add skipped users
-    for (const user of skippedUsers) {
-      csvReport += `,"${user.name || user.email}","N/A","SKIPPED","${user.reason}"\n`;
+    for (const skip of skippedUsers) {
+      const values = [
+        skip.rowNumber,
+        'SKIPPED',
+        skip.reason,
+        ...columnArray.map(col => {
+          const val = skip.excelData?.[col];
+          if (val === undefined || val === null) return '';
+          return `"${String(val).replace(/"/g, '""')}"`;
+        })
+      ];
+      csvReport += values.join(',') + '\n';
     }
     
     // Encode CSV as base64
