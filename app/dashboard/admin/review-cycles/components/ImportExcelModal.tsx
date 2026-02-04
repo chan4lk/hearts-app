@@ -20,8 +20,15 @@ interface ImportResult {
     name?: string;
     reason: string;
   }>;
+  importedUsers?: Array<{
+    rowNumber: number;
+    firstName: string;
+    systemUserName: string;
+    status: string;
+  }>;
   errors?: string[];
   message?: string;
+  reportData?: string;
 }
 
 export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: ImportExcelModalProps) {
@@ -131,46 +138,28 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
     }
   };
 
-  const downloadSkippedUsersReport = () => {
-    if (!importResult || !importResult.skippedUsers || importResult.skippedUsers.length === 0) {
-      alert('No skipped users to download');
+  const downloadImportReport = () => {
+    if (!importResult || !importResult.reportData) {
+      alert('No report data available');
       return;
     }
 
-    // Prepare data for Excel export
-    const reportData = importResult.skippedUsers.map((user, idx) => ({
-      'Row Number': idx + 1,
-      'Email': user.email,
-      'Name': user.name || 'Unknown',
-      'Reason': user.reason,
-      'Status': 'Not Imported',
-      'Action Required': 'Please add this user to the system or resolve the reason above'
-    }));
-
-    // Create workbook
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(reportData);
-
-    // Set column widths
-    const columnWidths = [
-      { wch: 12 }, // Row Number
-      { wch: 30 }, // Email
-      { wch: 25 }, // Name
-      { wch: 40 }, // Reason
-      { wch: 15 }, // Status
-      { wch: 40 }  // Action Required
-    ];
-    worksheet['!cols'] = columnWidths;
-
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Skipped Users');
-
-    // Generate filename
+    // Decode base64 CSV
+    const csvData = Buffer.from(importResult.reportData, 'base64').toString('utf-8');
+    
+    // Create blob and download
+    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
     const timestamp = new Date().toISOString().split('T')[0];
-    const filename = `skipped-users-${timestamp}.xlsx`;
-
-    // Write and download
-    XLSX.writeFile(workbook, filename);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `import-report-${timestamp}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -307,6 +296,20 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                         <p>✓ Imported: {importResult.imported} review cycle(s)</p>
                         <p>⊗ Skipped: {importResult.skipped} user(s)</p>
                       </div>
+                      
+                      {/* Imported Users List */}
+                      {importResult.importedUsers && importResult.importedUsers.length > 0 && (
+                        <div className="mt-4 p-3 bg-green-500/10 border border-green-500/30 rounded">
+                          <p className="text-sm font-medium text-green-400 mb-2">Imported Users:</p>
+                          <div className="space-y-1">
+                            {importResult.importedUsers.map((user, idx) => (
+                              <div key={idx} className="text-xs text-gray-300">
+                                <span className="font-medium">Row {user.rowNumber}:</span> {user.firstName} → {user.systemUserName}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       {importResult.message && (
                         <p className="text-sm text-gray-200 mt-3 italic">
                           {importResult.message}
@@ -367,11 +370,11 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                       </div>
                       <div className="mt-4 flex gap-2">
                         <button
-                          onClick={downloadSkippedUsersReport}
+                          onClick={downloadImportReport}
                           className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
                         >
                           <BsDownload className="w-4 h-4" />
-                          Download Report
+                          Download CSV Report
                         </button>
                       </div>
                       <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded text-xs text-blue-300">

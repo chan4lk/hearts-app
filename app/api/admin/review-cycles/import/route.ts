@@ -9,10 +9,13 @@ import * as XLSX from 'xlsx';
 export const dynamic = 'force-dynamic';
 
 interface ExcelRow {
+  [key: string]: any;
   'Employee Email'?: string;
   'Employee Name'?: string;
   'Email'?: string;
   'Name'?: string;
+  'First Name'?: string;
+  'Last Name'?: string;
   'Reporting Person'?: string;
   'Reporting Person Email'?: string;
   'Job Category'?: string;
@@ -32,8 +35,15 @@ interface ImportResult {
     name?: string;
     reason: string;
   }>;
+  importedUsers?: Array<{
+    rowNumber: number;
+    firstName: string;
+    systemUserName: string;
+    status: string;
+  }>;
   errors?: string[];
   message?: string;
+  reportData?: string; // Base64 encoded CSV report
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse<ImportResult>> {
@@ -155,6 +165,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ImportResult>
     }
 
     const skippedUsers: Array<{ email: string; name?: string; reason: string }> = [];
+    const importedUsers: Array<{ rowNumber: number; firstName: string; systemUserName: string; status: string }> = [];
     const errors: string[] = [];
     let importedCount = 0;
 
@@ -162,66 +173,72 @@ export async function POST(req: NextRequest): Promise<NextResponse<ImportResult>
     for (let i = 0; i < finalData.length; i++) {
       const row = finalData[i];
       
-      // Get email from various possible column names - handle all possible formats
-      // Check all possible column name variations (case-insensitive matching)
-      let email = '';
-      const allKeys = Object.keys(row);
+      // Get name from Excel - Try all possible column names
+      let excelName = '';
+      let isFullName = false;
       
-      // Try to find email column by checking all keys
-      for (const key of allKeys) {
-        const lowerKey = key.toLowerCase().trim();
-        if (lowerKey.includes('email') && (lowerKey.includes('employee') || !lowerKey.includes('reporting'))) {
-          const value = row[key];
-          if (value && (typeof value === 'string' || typeof value === 'number')) {
-            email = value.toString().trim().toLowerCase();
-            if (email && email !== 'undefined' && email !== 'null') {
-              break;
-            }
+      // First try specific "First Name" columns
+      const firstNameFields = [
+        row['First Name'],
+        row['first name'],
+        row['FirstName'],
+        row['firstName'],
+        row['FIRST NAME']
+      ];
+      
+      for (const field of firstNameFields) {
+        if (field && (typeof field === 'string' || typeof field === 'number')) {
+          excelName = field.toString().trim();
+          if (excelName && excelName !== 'undefined' && excelName !== 'null') {
+            isFullName = false;
+            break;
           }
         }
       }
       
-      // Fallback to specific field names if not found
-      if (!email) {
-        const emailFields = [
-          row['Employee Email'],
-          row['Email'],
-          row['employee email'],
-          row['email'],
-          row['EMPLOYEE EMAIL'],
-          row['EMAIL'],
-          row['EmployeeEmail'],
-          row['employeeEmail']
+      // If no first name found, try full name columns
+      if (!excelName) {
+        const fullNameFields = [
+          row['Name'],
+          row['name'],
+          row['NAME'],
+          row['Employee Name'],
+          row['employee name'],
+          row['EMPLOYEE NAME']
         ];
         
-        for (const field of emailFields) {
+        for (const field of fullNameFields) {
           if (field && (typeof field === 'string' || typeof field === 'number')) {
-            email = field.toString().trim().toLowerCase();
-            if (email && email !== 'undefined' && email !== 'null') {
+            excelName = field.toString().trim();
+            if (excelName && excelName !== 'undefined' && excelName !== 'null') {
+              isFullName = true;
               break;
             }
           }
         }
       }
       
-      if (!email || email === 'undefined' || email === 'null') {
-        const name = (row['Employee Name'] || row['Name'] || row['employee name'] || row['name'] || '').toString().trim();
+      // Validate name is provided
+      if (!excelName || excelName === 'undefined' || excelName === 'null') {
         skippedUsers.push({
           email: `Row ${i + 2}`,
-          name: name || 'Unknown',
-          reason: 'Email is missing or invalid'
+          name: 'Unknown',
+          reason: 'First Name or Employee Name is missing or invalid'
         });
         continue;
       }
 
-      // Normalize email - remove any extra whitespace
-      email = email.replace(/\s+/g, '').toLowerCase();
+      // Extract first name if we have full name (e.g., "Thilan Buddhika" → "Thilan")
+      let searchName = excelName;
+      if (isFullName && excelName.includes(' ')) {
+        searchName = excelName.split(' ')[0]; // Get first word
+      }
 
-      // Check if user exists in the system
-      const user = await prisma.user.findFirst({
+      // Check if user exists in the system by FIRST NAME
+      let user = await prisma.user.findFirst({
         where: {
-          email: {
-            equals: email,
+          name: {
+            contains: searchName,
             mode: 'insensitive'
           },
           isActive: true // Only match active users
@@ -235,39 +252,50 @@ export async function POST(req: NextRequest): Promise<NextResponse<ImportResult>
       });
 
       if (!user) {
-        const name = (row['Employee Name'] || row['Name'] || row['employee name'] || row['name'] || '').toString().trim();
         skippedUsers.push({
-          email: email,
-          name: name || 'Unknown',
-          reason: 'User does not exist in the system or account is inactive'
+          email: excelName,
+          name: excelName,
+          reason: `User with first name "${searchName}" (from "${excelName}") does not exist in the system or account is inactive`
         });
         continue;
       }
 
       try {
-        // Get reporting person if provided - handle multiple column name variations
+        // Get reporting person if provided - just import the name/value as-is without validation
         let reportingPersonId: string | null = null;
         const reportingPersonFields = [
-          row['Reporting Person Email'],
-          row['reporting person email'],
-          row['REPORTING PERSON EMAIL'],
+          row['Reporting Person First Name'],
+          row['Reporting Person Name'],
           row['Reporting Person'],
-          row['reporting person']
+          row['reporting person first name'],
+          row['reporting person name'],
+          row['reporting person'],
+          row['REPORTING PERSON FIRST NAME'],
+          row['REPORTING PERSON NAME'],
+          row['REPORTING PERSON'],
+          row['Manager Name'],
+          row['manager name'],
+          row['MANAGER NAME']
         ];
         
-        let reportingPersonEmail = '';
+        let reportingPersonName = '';
         for (const field of reportingPersonFields) {
-          if (field && typeof field === 'string' && field.trim()) {
-            reportingPersonEmail = field.trim().toLowerCase().replace(/\s+/g, '');
-            break;
+          if (field && (typeof field === 'string' || typeof field === 'number')) {
+            reportingPersonName = field.toString().trim();
+            if (reportingPersonName && reportingPersonName !== 'undefined' && reportingPersonName !== 'null') {
+              break;
+            }
           }
         }
         
-        if (reportingPersonEmail && reportingPersonEmail !== 'undefined' && reportingPersonEmail !== 'null') {
+        // If reporting person name provided, try to find them by name, but DON'T fail if not found
+        // This allows importing reporting person data even if not in system
+        if (reportingPersonName && reportingPersonName !== 'undefined' && reportingPersonName !== 'null') {
+          // Try to find reporting person by name
           const reportingPerson = await prisma.user.findFirst({
             where: {
-              email: {
-                equals: reportingPersonEmail,
+              name: {
+                contains: reportingPersonName,
                 mode: 'insensitive'
               },
               isActive: true
@@ -275,9 +303,11 @@ export async function POST(req: NextRequest): Promise<NextResponse<ImportResult>
             select: { id: true }
           });
           
+          // Set ID if found, otherwise leave as null (don't validate/fail)
           if (reportingPerson) {
             reportingPersonId = reportingPerson.id;
           }
+          // If not found, just continue - reportingPersonId stays null
         }
 
         // Parse date of appointment - handle Excel date formats
@@ -414,7 +444,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ImportResult>
         
         if (!hasData) {
           skippedUsers.push({
-            email: email,
+            email: excelName,
             name: user.name,
             reason: 'No review cycle data provided in Excel row'
           });
@@ -455,6 +485,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<ImportResult>
 
           importedCount++;
           
+          // Track imported user for report
+          importedUsers.push({
+            rowNumber: i + 2,
+            firstName: excelName,
+            systemUserName: user.name,
+            status: 'IMPORTED'
+          });
+          
           // Log successful import for debugging
           logger.log(`Successfully imported review cycle for user: ${user.email}`, 'Information', {
             reviewCycleId: result.id,
@@ -472,14 +510,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<ImportResult>
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        const userName = (row['Employee Name'] || row['Name'] || '').toString().trim() || 'Unknown';
-        errors.push(`Row ${i + 2} (${email} - ${userName}): ${errorMessage}`);
+        errors.push(`Row ${i + 2} (${excelName}): ${errorMessage}`);
         logger.error(error instanceof Error ? error : new Error(String(error)));
         
         // Also add to skipped users for visibility
         skippedUsers.push({
-          email: email,
-          name: userName,
+          email: excelName,
+          name: excelName,
           reason: `Import error: ${errorMessage}`
         });
       }
@@ -503,13 +540,31 @@ export async function POST(req: NextRequest): Promise<NextResponse<ImportResult>
       message = `No review cycles were imported. ${skippedUsers.length} user(s) were skipped. Please check the reasons and add missing users to the system.`;
     }
 
+    // Generate CSV report
+    let csvReport = 'Row Number,First Name (Excel),System User Name,Status,Notes\n';
+    
+    // Add imported users
+    for (const user of importedUsers) {
+      csvReport += `${user.rowNumber},"${user.firstName}","${user.systemUserName}","${user.status}","Successfully imported"\n`;
+    }
+    
+    // Add skipped users
+    for (const user of skippedUsers) {
+      csvReport += `,"${user.name || user.email}","N/A","SKIPPED","${user.reason}"\n`;
+    }
+    
+    // Encode CSV as base64
+    const reportData = Buffer.from(csvReport).toString('base64');
+
     return NextResponse.json({
       success: importedCount > 0,
       imported: importedCount,
       skipped: skippedUsers.length,
       skippedUsers: skippedUsers,
+      importedUsers: importedUsers,
       errors: errors.length > 0 ? errors : undefined,
-      message: message
+      message: message,
+      reportData: reportData
     });
   } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
