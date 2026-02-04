@@ -33,11 +33,102 @@ interface ImportResult {
   reportData?: string;
 }
 
+// Separate component for Skipped Users Modal
+function SkippedUsersModal({ 
+  isOpen, 
+  onClose, 
+  skippedUsers,
+  onDownload
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  skippedUsers: SkippedUserData[];
+  onDownload: () => void;
+}) {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[70]"
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-3xl flex flex-col overflow-hidden"
+            style={{ maxHeight: 'calc(100vh - 4rem)' }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-700 bg-red-500/10">
+              <div className="flex items-center gap-3">
+                <BsExclamationTriangle className="w-6 h-6 text-yellow-400" />
+                <h2 className="text-xl font-bold text-white">Skipped Users ({skippedUsers.length})</h2>
+              </div>
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <BsX className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="space-y-3">
+                {skippedUsers.map((skip, idx) => (
+                  <div key={idx} className="bg-gray-800/50 border border-yellow-500/30 rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <p className="text-sm font-semibold text-yellow-300">Row {skip.rowNumber}</p>
+                      <p className="text-xs text-gray-400">{skip.reason}</p>
+                    </div>
+                    
+                    {/* Excel Data Grid - Compact */}
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {Object.entries(skip.excelData || {}).map(([key, value]) => (
+                        <div key={key} className="bg-gray-900/50 rounded p-2">
+                          <p className="text-yellow-300 font-medium truncate">{key}</p>
+                          <p className="text-gray-300 truncate text-xs mt-1">{String(value || '-')}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-700">
+              <button
+                onClick={onDownload}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+              >
+                <BsDownload className="w-4 h-4" />
+                Download Report
+              </button>
+              <button
+                onClick={onClose}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: ImportExcelModalProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
-  const [showSkippedUsers, setShowSkippedUsers] = useState(false);
+  const [showSkippedUsersModal, setShowSkippedUsersModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -166,88 +257,83 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60]"
-          onClick={handleClose}
-        >
+    <>
+      {/* Main Import Modal */}
+      <AnimatePresence>
+        {isOpen && (
           <motion.div
-            initial={{ scale: 0.95, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            onClick={(e) => e.stopPropagation()}
-            className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-2xl flex flex-col overflow-hidden"
-            style={{ maxHeight: 'calc(100vh - 4rem)' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60]"
+            onClick={handleClose}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-700">
-              <div className="flex items-center gap-3">
-                <BsFileEarmarkExcel className="w-6 h-6 text-teal-400" />
-                <h2 className="text-xl font-bold text-white">Import Review Cycles from Excel</h2>
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden"
+              style={{ maxHeight: 'calc(100vh - 4rem)' }}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-700">
+                <div className="flex items-center gap-3">
+                  <BsFileEarmarkExcel className="w-6 h-6 text-teal-400" />
+                  <h2 className="text-lg font-bold text-white">Import Review Cycles</h2>
+                </div>
+                <button
+                  onClick={handleClose}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <BsX className="w-6 h-6" />
+                </button>
               </div>
-              <button
-                onClick={handleClose}
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <BsX className="w-6 h-6" />
-              </button>
-            </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              {!importResult ? (
-                <div className="space-y-6">
-                  <div className="text-sm text-gray-300 space-y-2">
-                    <p>Upload an Excel file (.xlsx, .xls) or CSV file containing review cycle data.</p>
-                    <p className="text-xs text-gray-400">
-                      The system will automatically use your logged-in account information and skip users that don't exist in the system.
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-6">
+                {!importResult ? (
+                  <div className="space-y-4">
+                    <p className="text-sm text-gray-300">
+                      Upload an Excel file (.xlsx, .xls) or CSV containing review cycle data.
                     </p>
-                  </div>
 
-                  {/* File Upload Area */}
-                  <div
-                    onDragOver={handleDragOver}
-                    onDrop={handleDrop}
-                    className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                      file
-                        ? 'border-teal-500 bg-teal-500/10'
-                        : 'border-gray-600 hover:border-gray-500'
-                    }`}
-                  >
-                    {file ? (
-                      <div className="space-y-3">
-                        <BsFileEarmarkExcel className="w-12 h-12 text-teal-400 mx-auto" />
-                        <div>
-                          <p className="text-white font-medium">{file.name}</p>
-                          <p className="text-gray-400 text-sm">
+                    {/* File Upload Area - Compact */}
+                    <div
+                      onDragOver={handleDragOver}
+                      onDrop={handleDrop}
+                      className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                        file
+                          ? 'border-teal-500 bg-teal-500/10'
+                          : 'border-gray-600 hover:border-gray-500'
+                      }`}
+                    >
+                      {file ? (
+                        <div className="space-y-2">
+                          <BsFileEarmarkExcel className="w-10 h-10 text-teal-400 mx-auto" />
+                          <p className="text-white font-medium text-sm">{file.name}</p>
+                          <p className="text-gray-400 text-xs">
                             {(file.size / 1024).toFixed(2)} KB
                           </p>
+                          <button
+                            onClick={() => {
+                              setFile(null);
+                              if (fileInputRef.current) {
+                                fileInputRef.current.value = '';
+                              }
+                            }}
+                            className="text-xs text-red-400 hover:text-red-300 mt-2"
+                          >
+                            Remove
+                          </button>
                         </div>
-                        <button
-                          onClick={() => {
-                            setFile(null);
-                            if (fileInputRef.current) {
-                              fileInputRef.current.value = '';
-                            }
-                          }}
-                          className="text-sm text-red-400 hover:text-red-300"
-                        >
-                          Remove file
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        <BsUpload className="w-12 h-12 text-gray-400 mx-auto" />
-                        <div>
-                          <p className="text-white mb-2">Drag and drop your Excel file here</p>
-                          <p className="text-gray-400 text-sm mb-4">or</p>
-                          <label className="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg cursor-pointer transition-colors">
-                            <BsUpload className="w-4 h-4" />
-                            <span>Browse Files</span>
+                      ) : (
+                        <div className="space-y-2">
+                          <BsUpload className="w-10 h-10 text-gray-400 mx-auto" />
+                          <p className="text-white text-sm">Drop file here or browse</p>
+                          <label className="inline-flex items-center gap-2 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded text-xs cursor-pointer transition-colors">
+                            <BsUpload className="w-3 h-3" />
+                            <span>Browse</span>
                             <input
                               ref={fileInputRef}
                               type="file"
@@ -257,215 +343,127 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                             />
                           </label>
                         </div>
-                        <p className="text-gray-400 text-xs mt-4">
-                          Supported formats: .xlsx, .xls, .csv
-                        </p>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {/* Success/Error Message */}
-                  <div
-                    className={`p-4 rounded-lg flex items-start gap-3 ${
-                      importResult.success
-                        ? 'bg-green-500/20 border border-green-500/50'
-                        : importResult.imported > 0 ? 'bg-blue-500/20 border border-blue-500/50' : 'bg-red-500/20 border border-red-500/50'
-                    }`}
-                  >
-                    {importResult.success ? (
-                      <BsCheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-                    ) : importResult.imported > 0 ? (
-                      <BsExclamationTriangle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-                    ) : (
-                      <BsExclamationTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                    )}
-                    <div className="flex-1">
-                      <p
-                        className={`font-medium ${
-                          importResult.success 
-                            ? 'text-green-400' 
-                            : importResult.imported > 0 ? 'text-blue-400' : 'text-red-400'
-                        }`}
-                      >
-                        {importResult.success
-                          ? `Import completed successfully!`
+                ) : (
+                  <div className="space-y-3">
+                    {/* Result Card - Compact */}
+                    <div
+                      className={`p-4 rounded-lg border ${
+                        importResult.success
+                          ? 'bg-green-500/20 border-green-500/50'
                           : importResult.imported > 0 
-                            ? 'Import completed with some skipped users'
-                            : 'No records were imported'}
-                      </p>
-                      <div className="text-sm text-gray-300 mt-2 space-y-1">
-                        <p>✓ Imported: {importResult.imported} review cycle(s)</p>
-                        <p>⊗ Skipped: {importResult.skipped} user(s)</p>
-                      </div>
-                      
-                      {/* Imported Users List */}
-                      {importResult.importedUsers && importResult.importedUsers.length > 0 && (
-                        <div className="mt-4 p-3 bg-green-500/10 border border-green-500/30 rounded">
-                          <p className="text-sm font-medium text-green-400 mb-2">Imported Users:</p>
-                          <div className="space-y-1">
-                            {importResult.importedUsers.map((user, idx) => (
-                              <div key={idx} className="text-xs text-gray-300">
-                                <span className="font-medium">Row {user.rowNumber}:</span> {user.firstName} → {user.systemUserName}
-                              </div>
-                            ))}
+                            ? 'bg-blue-500/20 border-blue-500/50' 
+                            : 'bg-red-500/20 border-red-500/50'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        {importResult.success ? (
+                          <BsCheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+                        ) : importResult.imported > 0 ? (
+                          <BsExclamationTriangle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                        ) : (
+                          <BsExclamationTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-semibold text-sm ${
+                            importResult.success 
+                              ? 'text-green-400' 
+                              : importResult.imported > 0 ? 'text-blue-400' : 'text-red-400'
+                          }`}>
+                            {importResult.success
+                              ? 'Import Successful!'
+                              : importResult.imported > 0 
+                                ? 'Import Completed'
+                                : 'Import Failed'}
+                          </p>
+                          <div className="text-xs text-gray-300 mt-1 space-y-0.5">
+                            <p>✓ Imported: <span className="font-semibold">{importResult.imported}</span></p>
+                            {importResult.skipped > 0 && (
+                              <p>⊗ Skipped: <span className="font-semibold">{importResult.skipped}</span></p>
+                            )}
                           </div>
                         </div>
-                      )}
-                      {importResult.message && (
-                        <p className="text-sm text-gray-200 mt-3 italic">
-                          {importResult.message}
-                        </p>
-                      )}
-                      {importResult.errors && importResult.errors.length > 0 && (
-                        <div className="mt-2 text-sm text-red-300">
-                          <p className="font-medium">Errors:</p>
-                          <ul className="list-disc list-inside mt-1">
-                            {importResult.errors.map((error, idx) => (
-                              <li key={idx}>{error}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Skipped Users - Collapsible */}
-                  {importResult.skippedUsers && importResult.skippedUsers.length > 0 && (
-                    <div className="bg-yellow-500/10 border border-yellow-500/50 rounded-lg p-4">
-                      <button
-                        onClick={() => setShowSkippedUsers(!showSkippedUsers)}
-                        className="w-full flex items-center justify-between hover:opacity-80 transition-opacity"
-                      >
-                        <div className="flex items-center gap-2">
-                          <BsExclamationTriangle className="w-5 h-5 text-yellow-400" />
-                          <h3 className="font-medium text-yellow-400">
-                            Skipped Users ({importResult.skippedUsers.length})
-                          </h3>
-                        </div>
-                        <span className="text-yellow-400 text-sm">
-                          {showSkippedUsers ? '▼' : '▶'}
-                        </span>
-                      </button>
-
-                      {/* Collapsible Content */}
-                      <AnimatePresence>
-                        {showSkippedUsers && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="mt-4">
-                              <p className="text-sm text-gray-300 mb-3">
-                                The following users were skipped. Please ensure these users exist in the system before importing their review cycles:
-                              </p>
-                              <div className="max-h-96 overflow-y-auto space-y-2">
-                                {importResult.skippedUsers.map((skip, idx) => (
-                                  <div
-                                    key={idx}
-                                    className="bg-gray-800/50 rounded p-3 text-sm border border-yellow-500/20"
-                                  >
-                                    <div className="flex items-start justify-between gap-2 mb-2">
-                                      <div className="flex-1">
-                                        <p className="text-white font-medium">
-                                          Row {skip.rowNumber}
-                                        </p>
-                                      </div>
-                                    </div>
-                                    
-                                    {/* Excel Data Grid */}
-                                    <div className="bg-gray-900/50 rounded p-2 mb-2 text-xs">
-                                      <div className="space-y-1">
-                                        {Object.entries(skip.excelData || {}).map(([key, value]) => (
-                                          <div key={key} className="flex gap-2">
-                                            <span className="font-medium text-yellow-300 min-w-fit">{key}:</span>
-                                            <span className="text-gray-300 truncate">{String(value || '')}</span>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                    
-                                    {/* Skip Reason */}
-                                    <div className="pt-2 border-t border-yellow-500/20">
-                                      <p className="text-yellow-400 text-xs">
-                                        <span className="font-medium">Reason:</span> {skip.reason}
-                                      </p>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                              <div className="mt-4 flex gap-2">
-                                <button
-                                  onClick={downloadImportReport}
-                                  className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
-                                >
-                                  <BsDownload className="w-4 h-4" />
-                                  Download CSV Report
-                                </button>
-                              </div>
-                              <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded text-xs text-blue-300">
-                                <p className="font-medium mb-1">💡 Next Steps:</p>
-                                <ul className="list-disc list-inside space-y-1 mt-2">
-                                  <li>Download the skipped users report above</li>
-                                  <li>Add the missing users to the system through the Users management page</li>
-                                  <li>Import the Excel file again to complete the import</li>
-                                </ul>
-                              </div>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-700">
-              {!importResult ? (
-                <>
-                  <button
-                    onClick={handleClose}
-                    className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleUpload}
-                    disabled={!file || isUploading}
-                    className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    {isUploading ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>Uploading...</span>
-                      </>
-                    ) : (
-                      <>
-                        <BsUpload className="w-4 h-4" />
-                        <span>Import</span>
-                      </>
+                    {/* Errors */}
+                    {importResult.errors && importResult.errors.length > 0 && (
+                      <div className="p-3 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-300">
+                        <p className="font-medium mb-1">Errors:</p>
+                        <ul className="space-y-0.5">
+                          {importResult.errors.map((error, idx) => (
+                            <li key={idx}>• {error}</li>
+                          ))}
+                        </ul>
+                      </div>
                     )}
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={handleClose}
-                  className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors"
-                >
-                  Close
-                </button>
-              )}
-            </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-700">
+                {!importResult ? (
+                  <>
+                    <button
+                      onClick={handleClose}
+                      className="px-4 py-2 text-sm text-gray-300 hover:text-white transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleUpload}
+                      disabled={!file || isUploading}
+                      className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+                    >
+                      {isUploading ? (
+                        <>
+                          <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Uploading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <BsUpload className="w-3 h-3" />
+                          <span>Import</span>
+                        </>
+                      )}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {importResult.skipped > 0 && (
+                      <button
+                        onClick={() => setShowSkippedUsersModal(true)}
+                        className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
+                      >
+                        <BsExclamationTriangle className="w-4 h-4" />
+                        View Skipped ({importResult.skipped})
+                      </button>
+                    )}
+                    <button
+                      onClick={handleClose}
+                      className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors text-sm font-medium"
+                    >
+                      Close
+                    </button>
+                  </>
+                )}
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
+
+      {/* Skipped Users Modal */}
+      <SkippedUsersModal
+        isOpen={showSkippedUsersModal}
+        onClose={() => setShowSkippedUsersModal(false)}
+        skippedUsers={importResult?.skippedUsers || []}
+        onDownload={downloadImportReport}
+      />
+    </>
   );
 }
 
