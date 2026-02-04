@@ -542,50 +542,25 @@ export async function POST(req: NextRequest): Promise<NextResponse<ImportResult>
       message = `No review cycles were imported. ${skippedUsers.length} user(s) were skipped. Please check the reasons and add missing users to the system.`;
     }
 
-    // Generate CSV report with all Excel columns
-    let csvReport = '';
-    
-    // Get all unique column names from the data
-    const allColumns = new Set<string>();
-    for (const row of finalData) {
-      Object.keys(row).forEach(key => allColumns.add(key));
-    }
-    
-    // Build header with all columns plus status and reason
-    const columnArray = Array.from(allColumns).sort();
-    const headers = ['Row Number', 'Status', 'Reason', ...columnArray];
-    csvReport = headers.map(h => `"${h}"`).join(',') + '\n';
+    // Generate CSV report - Simple format with Row Number, Employee Name, Status
+    let csvReport = 'Row Number,Employee Name,Status\n';
     
     // Add imported users
     for (const user of importedUsers) {
-      // Find the row data for this imported user
-      const rowData = finalData[user.rowNumber - 2]; // rowNumber is 1-indexed for display
-      const values = [
-        user.rowNumber,
-        'IMPORTED',
-        'Successfully imported',
-        ...columnArray.map(col => {
-          const val = rowData?.[col];
-          if (val === undefined || val === null) return '';
-          return `"${String(val).replace(/"/g, '""')}"`;
-        })
-      ];
-      csvReport += values.join(',') + '\n';
+      const employeeName = user.firstName; // Name from Excel
+      const escapedName = `"${String(employeeName).replace(/"/g, '""')}"`;
+      csvReport += `${user.rowNumber},${escapedName},IMPORTED\n`;
     }
     
     // Add skipped users
     for (const skip of skippedUsers) {
-      const values = [
-        skip.rowNumber,
-        'SKIPPED',
-        skip.reason,
-        ...columnArray.map(col => {
-          const val = skip.excelData?.[col];
-          if (val === undefined || val === null) return '';
-          return `"${String(val).replace(/"/g, '""')}"`;
-        })
-      ];
-      csvReport += values.join(',') + '\n';
+      // Get employee name from Excel data (try multiple field names)
+      let employeeName = skip.excelData?.Name || 
+                         skip.excelData?.['Employee Name'] || 
+                         skip.excelData?.['First Name'] || 
+                         'Unknown';
+      const escapedName = `"${String(employeeName).replace(/"/g, '""')}"`;
+      csvReport += `${skip.rowNumber},${escapedName},SKIPPED\n`;
     }
     
     // Encode CSV as base64

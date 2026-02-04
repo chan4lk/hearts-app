@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BsUpload, BsX, BsFileEarmarkExcel, BsCheckCircle, BsExclamationTriangle, BsDownload } from 'react-icons/bs';
 import * as XLSX from 'xlsx';
@@ -45,6 +45,40 @@ function SkippedUsersModal({
   skippedUsers: SkippedUserData[];
   onDownload: () => void;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to Row 5 when modal opens
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      setTimeout(() => {
+        const scrollHeight = containerRef.current?.scrollHeight || 0;
+        const itemHeight = 70; // approximate height of each item
+        const scrollToItem = 4; // Row 5 is index 4 (0-based)
+        containerRef.current?.scrollTo({
+          top: scrollToItem * itemHeight,
+          behavior: 'smooth'
+        });
+      }, 300);
+    }
+  }, [isOpen]);
+
+  // Simplify skip reason message
+  const getSimpleReason = (reason: string): string => {
+    if (reason.includes('does not exist')) {
+      return 'User not found in system';
+    }
+    if (reason.includes('No review cycle data')) {
+      return 'No data provided';
+    }
+    if (reason.includes('missing or invalid')) {
+      return 'Missing required data';
+    }
+    if (reason.includes('Import error')) {
+      return 'Import error';
+    }
+    return reason;
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -60,41 +94,36 @@ function SkippedUsersModal({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-3xl flex flex-col overflow-hidden"
+            className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-xl flex flex-col overflow-hidden"
             style={{ maxHeight: 'calc(100vh - 4rem)' }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-700 bg-red-500/10">
+            <div className="flex items-center justify-between p-5 border-b border-gray-600 bg-yellow-500/15 sticky top-0 z-10">
               <div className="flex items-center gap-3">
-                <BsExclamationTriangle className="w-6 h-6 text-yellow-400" />
-                <h2 className="text-xl font-bold text-white">Skipped Users ({skippedUsers.length})</h2>
+                <BsExclamationTriangle className="w-6 h-6 text-yellow-400 flex-shrink-0" />
+                <h2 className="font-bold text-white">Skipped Users ({skippedUsers.length})</h2>
               </div>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-400 hover:text-white transition-colors flex-shrink-0"
               >
                 <BsX className="w-6 h-6" />
               </button>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="space-y-3">
+            {/* Content - Simple List */}
+            <div className="flex-1 overflow-y-auto p-4" ref={containerRef}>
+              <div className="space-y-2">
                 {skippedUsers.map((skip, idx) => (
-                  <div key={idx} className="bg-gray-800/50 border border-yellow-500/30 rounded-lg p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <p className="text-sm font-semibold text-yellow-300">Row {skip.rowNumber}</p>
-                      <p className="text-xs text-gray-400">{skip.reason}</p>
-                    </div>
-                    
-                    {/* Excel Data Grid - Compact */}
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      {Object.entries(skip.excelData || {}).map(([key, value]) => (
-                        <div key={key} className="bg-gray-900/50 rounded p-2">
-                          <p className="text-yellow-300 font-medium truncate">{key}</p>
-                          <p className="text-gray-300 truncate text-xs mt-1">{String(value || '-')}</p>
-                        </div>
-                      ))}
+                  <div key={idx} className="bg-gray-800/50 border border-yellow-500/20 rounded p-3 text-sm">
+                    <div className="flex items-start gap-3">
+                      <span className="text-yellow-300 font-semibold min-w-fit">Row {skip.rowNumber}:</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-medium truncate">
+                          {skip.excelData?.Name || skip.excelData?.['Employee Name'] || skip.excelData?.['First Name'] || 'Unknown'}
+                        </p>
+                        <p className="text-gray-400 text-xs mt-1">{getSimpleReason(skip.reason)}</p>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -102,17 +131,17 @@ function SkippedUsersModal({
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-700">
+            <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-700">
               <button
                 onClick={onDownload}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+                className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-xs font-medium"
               >
                 <BsDownload className="w-4 h-4" />
                 Download Report
               </button>
               <button
                 onClick={onClose}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm font-medium"
+                className="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-xs font-medium"
               >
                 Close
               </button>
