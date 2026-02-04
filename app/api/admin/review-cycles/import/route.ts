@@ -1,0 +1,542 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+import { handleApiError } from '@/app/api/utils/error-handler';
+import * as XLSX from 'xlsx';
+
+export const dynamic = 'force-dynamic';
+
+interface ExcelRow {
+  'Employee Email'?: string;
+  'Employee Name'?: string;
+  'Email'?: string;
+  'Name'?: string;
+  'Reporting Person'?: string;
+  'Reporting Person Email'?: string;
+  'Job Category'?: string;
+  'Designation'?: string;
+  'Date of Appointment'?: string | Date;
+  'After 6 Months'?: string;
+  'Review Month'?: string;
+  'Adjusted Review Month'?: string;
+}
+
+interface ImportResult {
+  success: boolean;
+  imported: number;
+  skipped: number;
+  skippedUsers: Array<{
+    email: string;
+    name?: string;
+    reason: string;
+  }>;
+  errors?: string[];
+  message?: string;
+}
+
+export async function POST(req: NextRequest): Promise<NextResponse<ImportResult>> {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user || session.user.role !== 'ADMIN') {
+      return NextResponse.json(
+        {
+          success: false,
+          imported: 0,
+          skipped: 0,
+          skippedUsers: [],
+          errors: ['Unauthorized']
+        },
+        { status: 401 }
+      );
+    }
+
+    // Get current logged-in user data
+    const currentUser = session.user;
+
+    // Parse form data
+    const formData = await req.formData();
+    const file = formData.get('file') as File;
+
+    if (!file) {
+      return NextResponse.json(
+        {
+          success: false,
+          imported: 0,
+          skipped: 0,
+          skippedUsers: [],
+          errors: ['No file provided']
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validate file type
+    const validTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+      'text/csv'
+    ];
+    const validExtensions = ['.xlsx', '.xls', '.csv'];
+    const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+
+    if (!validTypes.includes(file.type) && !validExtensions.includes(fileExtension)) {
+      return NextResponse.json(
+        {
+          success: false,
+          imported: 0,
+          skipped: 0,
+          skippedUsers: [],
+          errors: ['Invalid file type. Please upload an Excel file (.xlsx, .xls) or CSV file.']
+        },
+        { status: 400 }
+      );
+    }
+
+    // Read file buffer
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Parse Excel file with better options for handling dates and empty cells
+    const workbook = XLSX.read(buffer, { 
+      type: 'buffer',
+      cellDates: true, // Parse dates as Date objects
+      cellNF: false,   // Don't parse number formats
+      cellText: false, // Use raw cell values
+      raw: false       // Parse values (not raw strings)
+    });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    
+    // Parse with header row and handle empty rows
+    // This will use the first row as headers and return array of objects
+    const data: ExcelRow[] = XLSX.utils.sheet_to_json(worksheet, {
+      defval: null, // Use null for empty cells instead of empty string
+      raw: false,   // Parse values (not raw strings)
+      blankrows: false // Skip completely empty rows
+    }) as ExcelRow[];
+    
+    // Filter out completely empty rows
+    const filteredData = data.filter(row => {
+      // Check if row has any non-empty values
+      return Object.values(row).some(value => 
+        value !== null && 
+        value !== undefined && 
+        value !== '' && 
+        (typeof value !== 'string' || value.trim() !== '')
+      );
+    });
+    
+    const finalData = filteredData.length > 0 ? filteredData : data;
+
+    if (!finalData || finalData.length === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          imported: 0,
+          skipped: 0,
+          skippedUsers: [],
+          errors: ['Excel file is empty or invalid. Please ensure the file contains data rows with headers.']
+        },
+        { status: 400 }
+      );
+    }
+
+    // Log parsed data structure for debugging (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      logger.log(`Parsed ${finalData.length} rows from Excel file`, 'Information', {
+        totalRows: finalData.length,
+        firstRowKeys: Object.keys(finalData[0] || {}),
+        sampleRow: finalData[0],
+        allColumnNames: finalData.length > 0 ? Object.keys(finalData[0]) : []
+      });
+    }
+
+    const skippedUsers: Array<{ email: string; name?: string; reason: string }> = [];
+    const errors: string[] = [];
+    let importedCount = 0;
+
+    // Process each row
+    for (let i = 0; i < finalData.length; i++) {
+      const row = finalData[i];
+      
+      // Get email from various possible column names - handle all possible formats
+      // Check all possible column name variations (case-insensitive matching)
+      let email = '';
+      const allKeys = Object.keys(row);
+      
+      // Try to find email column by checking all keys
+      for (const key of allKeys) {
+        const lowerKey = key.toLowerCase().trim();
+        if (lowerKey.includes('email') && (lowerKey.includes('employee') || !lowerKey.includes('reporting'))) {
+          const value = row[key];
+          if (value && (typeof value === 'string' || typeof value === 'number')) {
+            email = value.toString().trim().toLowerCase();
+            if (email && email !== 'undefined' && email !== 'null') {
+              break;
+            }
+          }
+        }
+      }
+      
+      // Fallback to specific field names if not found
+      if (!email) {
+        const emailFields = [
+          row['Employee Email'],
+          row['Email'],
+          row['employee email'],
+          row['email'],
+          row['EMPLOYEE EMAIL'],
+          row['EMAIL'],
+          row['EmployeeEmail'],
+          row['employeeEmail']
+        ];
+        
+        for (const field of emailFields) {
+          if (field && (typeof field === 'string' || typeof field === 'number')) {
+            email = field.toString().trim().toLowerCase();
+            if (email && email !== 'undefined' && email !== 'null') {
+              break;
+            }
+          }
+        }
+      }
+      
+      if (!email || email === 'undefined' || email === 'null') {
+        const name = (row['Employee Name'] || row['Name'] || row['employee name'] || row['name'] || '').toString().trim();
+        skippedUsers.push({
+          email: `Row ${i + 2}`,
+          name: name || 'Unknown',
+          reason: 'Email is missing or invalid'
+        });
+        continue;
+      }
+
+      // Normalize email - remove any extra whitespace
+      email = email.replace(/\s+/g, '').toLowerCase();
+
+      // Check if user exists in the system
+      const user = await prisma.user.findFirst({
+        where: {
+          email: {
+            equals: email,
+            mode: 'insensitive'
+          },
+          isActive: true // Only match active users
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          isActive: true
+        }
+      });
+
+      if (!user) {
+        const name = (row['Employee Name'] || row['Name'] || row['employee name'] || row['name'] || '').toString().trim();
+        skippedUsers.push({
+          email: email,
+          name: name || 'Unknown',
+          reason: 'User does not exist in the system or account is inactive'
+        });
+        continue;
+      }
+
+      try {
+        // Get reporting person if provided - handle multiple column name variations
+        let reportingPersonId: string | null = null;
+        const reportingPersonFields = [
+          row['Reporting Person Email'],
+          row['reporting person email'],
+          row['REPORTING PERSON EMAIL'],
+          row['Reporting Person'],
+          row['reporting person']
+        ];
+        
+        let reportingPersonEmail = '';
+        for (const field of reportingPersonFields) {
+          if (field && typeof field === 'string' && field.trim()) {
+            reportingPersonEmail = field.trim().toLowerCase().replace(/\s+/g, '');
+            break;
+          }
+        }
+        
+        if (reportingPersonEmail && reportingPersonEmail !== 'undefined' && reportingPersonEmail !== 'null') {
+          const reportingPerson = await prisma.user.findFirst({
+            where: {
+              email: {
+                equals: reportingPersonEmail,
+                mode: 'insensitive'
+              },
+              isActive: true
+            },
+            select: { id: true }
+          });
+          
+          if (reportingPerson) {
+            reportingPersonId = reportingPerson.id;
+          }
+        }
+
+        // Parse date of appointment - handle Excel date formats
+        let dateOfAppointment: Date | null = null;
+        const dateFields = [
+          row['Date of Appointment'],
+          row['date of appointment'],
+          row['DATE OF APPOINTMENT'],
+          row['Date Of Appointment']
+        ];
+        
+        let dateStr: any = null;
+        for (const field of dateFields) {
+          if (field !== undefined && field !== null && field !== '') {
+            dateStr = field;
+            break;
+          }
+        }
+        
+        if (dateStr) {
+          if (dateStr instanceof Date) {
+            // Already a Date object (from XLSX parsing)
+            dateOfAppointment = dateStr;
+          } else if (typeof dateStr === 'number') {
+            // Excel serial date number (days since 1900-01-01)
+            // Excel incorrectly treats 1900 as a leap year, so we need to adjust
+            const excelEpoch = new Date(1899, 11, 30); // Excel epoch is Dec 30, 1899
+            const days = Math.floor(dateStr);
+            const milliseconds = (dateStr - days) * 24 * 60 * 60 * 1000;
+            dateOfAppointment = new Date(excelEpoch.getTime() + days * 24 * 60 * 60 * 1000 + milliseconds);
+            
+            // Validate the date
+            if (isNaN(dateOfAppointment.getTime())) {
+              dateOfAppointment = null;
+            }
+          } else {
+            const dateString = dateStr.toString().trim();
+            if (dateString && dateString !== 'undefined' && dateString !== 'null') {
+              // Try parsing as ISO date or common formats
+              let parsedDate = new Date(dateString);
+              
+              // If invalid, try other formats
+              if (isNaN(parsedDate.getTime())) {
+                // Try Excel date format (MM/DD/YYYY or DD/MM/YYYY)
+                const dateParts = dateString.split(/[\/\-\.]/);
+                if (dateParts.length === 3) {
+                  // Try MM/DD/YYYY format first
+                  const month = parseInt(dateParts[0]) - 1;
+                  const day = parseInt(dateParts[1]);
+                  const year = parseInt(dateParts[2]);
+                  
+                  // Validate year (assume 4-digit or 2-digit)
+                  let fullYear = year;
+                  if (year < 100) {
+                    fullYear = year < 50 ? 2000 + year : 1900 + year;
+                  }
+                  
+                  parsedDate = new Date(fullYear, month, day);
+                  
+                  // If still invalid, try DD/MM/YYYY
+                  if (isNaN(parsedDate.getTime())) {
+                    parsedDate = new Date(fullYear, day - 1, month + 1);
+                  }
+                }
+              }
+              
+              if (!isNaN(parsedDate.getTime())) {
+                dateOfAppointment = parsedDate;
+              }
+            }
+          }
+        }
+
+        // Helper function to safely get string value from row with fuzzy matching
+        const getStringValue = (fieldNames: string[]): string | null => {
+          // First try exact matches
+          for (const fieldName of fieldNames) {
+            const value = row[fieldName];
+            if (value !== undefined && value !== null && value !== '') {
+              const str = value.toString().trim();
+              if (str.length > 0) {
+                return str;
+              }
+            }
+          }
+          
+          // Then try case-insensitive fuzzy matching
+          const allKeys = Object.keys(row);
+          const lowerFieldNames = fieldNames.map(f => f.toLowerCase().trim());
+          
+          for (const key of allKeys) {
+            const lowerKey = key.toLowerCase().trim();
+            // Remove spaces and special chars for comparison
+            const normalizedKey = lowerKey.replace(/[\s\-_]/g, '');
+            
+            for (const fieldName of lowerFieldNames) {
+              const normalizedFieldName = fieldName.replace(/[\s\-_]/g, '');
+              if (normalizedKey === normalizedFieldName || normalizedKey.includes(normalizedFieldName) || normalizedFieldName.includes(normalizedKey)) {
+                const value = row[key];
+                if (value !== undefined && value !== null && value !== '') {
+                  const str = value.toString().trim();
+                  if (str.length > 0) {
+                    return str;
+                  }
+                }
+              }
+            }
+          }
+          
+          return null;
+        };
+
+        // Prepare review cycle data with proper null handling
+        const jobCategory = getStringValue(['Job Category', 'job category', 'JOB CATEGORY', 'JobCategory']);
+        const designation = getStringValue(['Designation', 'designation', 'DESIGNATION']);
+        const after6Months = getStringValue(['After 6 Months', 'after 6 months', 'AFTER 6 MONTHS', 'After6Months']);
+        const reviewMonth = getStringValue(['Review Month', 'review month', 'REVIEW MONTH', 'ReviewMonth']);
+        const adjustedReviewMonth = getStringValue(['Adjusted Review Month', 'adjusted review month', 'ADJUSTED REVIEW MONTH', 'AdjustedReviewMonth']);
+
+        const reviewCycleData = {
+          userId: user.id,
+          reportingPersonId: reportingPersonId,
+          jobCategory: jobCategory,
+          designation: designation,
+          dateOfAppointment: dateOfAppointment,
+          after6Months: after6Months,
+          reviewMonth: reviewMonth,
+          adjustedReviewMonth: adjustedReviewMonth,
+          updatedById: currentUser.id
+        };
+
+        // Validate that we have at least some data to import
+        const hasData = jobCategory || designation || dateOfAppointment || after6Months || reviewMonth || adjustedReviewMonth || reportingPersonId;
+        
+        if (!hasData) {
+          skippedUsers.push({
+            email: email,
+            name: user.name,
+            reason: 'No review cycle data provided in Excel row'
+          });
+          continue;
+        }
+
+        // Upsert review cycle (create or update) with transaction
+        try {
+          const result = await prisma.reviewCycle.upsert({
+            where: { userId: user.id },
+            update: {
+              reportingPersonId: reviewCycleData.reportingPersonId,
+              jobCategory: reviewCycleData.jobCategory,
+              designation: reviewCycleData.designation,
+              dateOfAppointment: reviewCycleData.dateOfAppointment,
+              after6Months: reviewCycleData.after6Months,
+              reviewMonth: reviewCycleData.reviewMonth,
+              adjustedReviewMonth: reviewCycleData.adjustedReviewMonth,
+              updatedById: reviewCycleData.updatedById,
+              updatedAt: new Date()
+            },
+            create: reviewCycleData,
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  email: true,
+                  name: true
+                }
+              }
+            }
+          });
+
+          // Verify the record was actually created/updated
+          if (!result || !result.id) {
+            throw new Error('Failed to create/update review cycle - no result returned');
+          }
+
+          importedCount++;
+          
+          // Log successful import for debugging
+          logger.log(`Successfully imported review cycle for user: ${user.email}`, 'Information', {
+            reviewCycleId: result.id,
+            userId: user.id,
+            jobCategory: reviewCycleData.jobCategory || 'null',
+            designation: reviewCycleData.designation || 'null',
+            reviewMonth: reviewCycleData.reviewMonth || 'null',
+            dateOfAppointment: reviewCycleData.dateOfAppointment ? reviewCycleData.dateOfAppointment.toISOString() : 'null'
+          });
+        } catch (dbError) {
+          // Database error - likely constraint violation or data issue
+          const dbErrorMessage = dbError instanceof Error ? dbError.message : 'Database error';
+          logger.error(new Error(`Database error importing review cycle for ${user.email}: ${dbErrorMessage}`));
+          throw new Error(`Failed to save review cycle: ${dbErrorMessage}`);
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const userName = (row['Employee Name'] || row['Name'] || '').toString().trim() || 'Unknown';
+        errors.push(`Row ${i + 2} (${email} - ${userName}): ${errorMessage}`);
+        logger.error(error instanceof Error ? error : new Error(String(error)));
+        
+        // Also add to skipped users for visibility
+        skippedUsers.push({
+          email: email,
+          name: userName,
+          reason: `Import error: ${errorMessage}`
+        });
+      }
+    }
+
+    // Log final results
+    logger.log(`Import completed: ${importedCount} imported, ${skippedUsers.length} skipped`, 'Information', {
+      imported: importedCount,
+      skipped: skippedUsers.length,
+      errors: errors.length,
+      totalRows: finalData.length
+    });
+
+    // Build result message
+    let message = '';
+    if (importedCount > 0 && skippedUsers.length === 0) {
+      message = `Successfully imported ${importedCount} review cycle(s)!`;
+    } else if (importedCount > 0 && skippedUsers.length > 0) {
+      message = `Imported ${importedCount} review cycle(s) successfully. ${skippedUsers.length} user(s) were skipped - download the report to see details.`;
+    } else if (importedCount === 0 && skippedUsers.length > 0) {
+      message = `No review cycles were imported. ${skippedUsers.length} user(s) were skipped. Please check the reasons and add missing users to the system.`;
+    }
+
+    return NextResponse.json({
+      success: importedCount > 0,
+      imported: importedCount,
+      skipped: skippedUsers.length,
+      skippedUsers: skippedUsers,
+      errors: errors.length > 0 ? errors : undefined,
+      message: message
+    });
+  } catch (error) {
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    
+    if (error instanceof Error && error.message.includes('file')) {
+      return NextResponse.json(
+        {
+          success: false,
+          imported: 0,
+          skipped: 0,
+          skippedUsers: [],
+          errors: [error.message]
+        },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        imported: 0,
+        skipped: 0,
+        skippedUsers: [],
+        errors: ['Failed to process import file']
+      },
+      { status: 500 }
+    );
+  }
+}
+

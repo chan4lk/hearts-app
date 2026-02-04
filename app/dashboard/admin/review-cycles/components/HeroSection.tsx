@@ -1,12 +1,13 @@
 'use client';
 
-import { BsCalendarCheck, BsPlus, BsDownload } from 'react-icons/bs';
+import { BsCalendarCheck, BsPlus, BsDownload, BsUpload } from 'react-icons/bs';
 
 interface HeroSectionProps {
   onAddNew: () => void;
+  onImport: () => void;
 }
 
-export default function HeroSection({ onAddNew }: HeroSectionProps) {
+export default function HeroSection({ onAddNew, onImport }: HeroSectionProps) {
   const handleDownloadExcel = async () => {
     try {
       // Toast removed
@@ -98,6 +99,14 @@ export default function HeroSection({ onAddNew }: HeroSectionProps) {
           >
             <BsDownload className="w-4 h-4" />
             <span>Download Excel</span>
+          </button>
+          <button
+            onClick={onImport}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all border border-white/20 text-xs font-medium backdrop-blur-sm"
+            title="Import Excel Data"
+          >
+            <BsUpload className="w-4 h-4" />
+            <span>Import Excel</span>
           </button>
           <button
             onClick={onAddNew}
