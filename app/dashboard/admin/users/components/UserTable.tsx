@@ -307,10 +307,10 @@ export default function UserTable({
       <div className="flex-1 flex flex-col overflow-hidden min-h-0">
         <div className="overflow-x-auto overflow-y-auto flex-1 min-h-0">
           <table className="w-full table-fixed min-w-full">
-            <thead className="sticky top-0 z-20 bg-gradient-to-r from-indigo-600 to-purple-600 border-b-2 border-indigo-700 shadow-md">
+            <thead className="sticky top-0 z-20 bg-gradient-to-r from-teal-600 to-cyan-600 border-b-2 border-teal-700 shadow-md">
               <tr>
                 <th 
-                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-indigo-700 transition-colors whitespace-nowrap"
+                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
                   style={{ width: '20%' }}
                   onClick={() => handleSort('name')}
                 >
@@ -320,7 +320,7 @@ export default function UserTable({
                   </div>
                 </th>
                 <th 
-                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-indigo-700 transition-colors whitespace-nowrap"
+                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
                   style={{ width: '25%' }}
                   onClick={() => handleSort('email')}
                 >
@@ -330,7 +330,7 @@ export default function UserTable({
                   </div>
                 </th>
                 <th 
-                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-indigo-700 transition-colors whitespace-nowrap"
+                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
                   style={{ width: '12%' }}
                   onClick={() => handleSort('role')}
                 >
@@ -340,7 +340,7 @@ export default function UserTable({
                   </div>
                 </th>
                 <th 
-                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-indigo-700 transition-colors whitespace-nowrap"
+                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
                   style={{ width: '12%' }}
                   onClick={() => handleSort('status')}
                 >
@@ -350,7 +350,7 @@ export default function UserTable({
                   </div>
                 </th>
                 <th 
-                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-indigo-700 transition-colors whitespace-nowrap"
+                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
                   style={{ width: '18%' }}
                   onClick={() => handleSort('manager')}
                 >

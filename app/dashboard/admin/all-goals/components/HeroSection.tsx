@@ -8,7 +8,7 @@ export default function HeroSection() {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative overflow-hidden rounded-lg p-4 shadow-lg bg-gradient-to-r from-indigo-900/30 via-purple-900/30 to-pink-900/30 backdrop-blur-sm border border-indigo-500/30"
+      className="relative overflow-hidden rounded-xl p-4 shadow-lg bg-gradient-to-r from-teal-600 to-cyan-600 border-b border-teal-500/30"
     >
 
       <div className="relative flex items-center justify-between">
@@ -20,7 +20,7 @@ export default function HeroSection() {
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
               All Users Goals
             </h2>
-            <p className="text-purple-100 text-[11px]">View and manage goals across all users</p>
+            <p className="text-white/90 text-[11px]">View and manage goals across all users</p>
           </div>
         </div>
       </div>
