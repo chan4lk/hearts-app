@@ -7,8 +7,10 @@ import { motion } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import UserTable from './components/UserTable';
 import UserFilters from './components/Filters';
-import HeroSection from './components/HeroSection';
-import StatsSection from './components/StatsSection';
+import HeroSection from '@/app/components/shared/HeroSection';
+import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
+import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
+import { BsPeople, BsGraphUp, BsShieldExclamation } from 'react-icons/bs';
 import { Pagination } from '@/app/components/shared/Pagination';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import { User, Filters } from '@/app/components/shared/types';
@@ -352,15 +354,55 @@ function UsersPageContent() {
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
           {/* Hero Section - Fixed */}
           <div className="flex-shrink-0 pt-3 pb-3">
-            <HeroSection />
+            <HeroSection 
+              title="User Management"
+              subtitle="View, manage, and assign roles to users"
+              gradient={HERO_GRADIENTS.ADMIN}
+            />
           </div>
 
           {/* Stats Section - Fixed */}
           <div className="flex-shrink-0 pb-3">
-            <StatsSection 
-              users={userStats} 
-              onFilterChange={handleStatFilter}
-            />
+            {(() => {
+              const statItems: StatItem[] = [
+                {
+                  title: 'Total Users',
+                  value: userStats.total,
+                  icon: <BsPeople className="w-4 h-4" />,
+                  gradient: 'from-blue-500 to-cyan-500',
+                  bgColor: 'bg-blue-500/10',
+                  borderColor: 'border-blue-500/30'
+                },
+                {
+                  title: 'Employees',
+                  value: userStats.employees,
+                  icon: <BsPeople className="w-4 h-4" />,
+                  gradient: 'from-emerald-500 to-teal-500',
+                  bgColor: 'bg-emerald-500/10',
+                  borderColor: 'border-emerald-500/30',
+                  onClick: () => handleStatFilter('role', 'EMPLOYEE')
+                },
+                {
+                  title: 'Managers',
+                  value: userStats.managers,
+                  icon: <BsGraphUp className="w-4 h-4" />,
+                  gradient: 'from-purple-500 to-pink-500',
+                  bgColor: 'bg-purple-500/10',
+                  borderColor: 'border-purple-500/30',
+                  onClick: () => handleStatFilter('role', 'MANAGER')
+                },
+                {
+                  title: 'Admins',
+                  value: userStats.admins,
+                  icon: <BsShieldExclamation className="w-4 h-4" />,
+                  gradient: 'from-orange-500 to-red-500',
+                  bgColor: 'bg-orange-500/10',
+                  borderColor: 'border-orange-500/30',
+                  onClick: () => handleStatFilter('role', 'ADMIN')
+                }
+              ];
+              return <StatsSection stats={statItems} variant="auto" />;
+            })()}
           </div>
 
           {/* Filters - Fixed */}

@@ -7,9 +7,11 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { toast } from "sonner";
 import DashboardLayout from "../../../components/layout/DashboardLayout";
-import { HeroSection } from "./components/HeroSection";
-import { StatsSection } from "./components/StatsSection";
-import Filters from "./components/Filters";
+import HeroSection from "@/app/components/shared/HeroSection";
+import StatsSection, { StatItem } from "@/app/components/shared/StatsSection";
+import Filters from "@/app/components/shared/Filters";
+import { HERO_GRADIENTS } from "@/app/components/shared/filterConfig";
+import { BsClipboardData, BsCheckCircle, BsPencil, BsXCircle } from 'react-icons/bs';
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { Pagination } from '@/app/components/shared/Pagination';
@@ -299,14 +301,50 @@ export default function SelfRatingPage() {
         
         <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
           {/* Hero Section */}
-          <HeroSection userRole={session?.user?.role} />
+          <HeroSection 
+            title="Self Rating"
+            subtitle="Rate your goals and track progress"
+            gradient={HERO_GRADIENTS.EMPLOYEE}
+          />
 
           {/* Stats Section */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <StatsSection goals={goals} onViewSelfRatings={() => setShowSelfRatingsModal(true)} />
+            {(() => {
+              const ratedGoals = goals.filter(g => g.rating?.score);
+              const totalRating = ratedGoals.reduce((acc, goal) => acc + (goal.rating?.score || 0), 0);
+              const averageRating = ratedGoals.length > 0 ? (totalRating / ratedGoals.length).toFixed(1) : '0.0';
+              
+              const statItems: StatItem[] = [
+                {
+                  title: 'Total Goals',
+                  value: goals.length,
+                  icon: <BsClipboardData className="w-4 h-4" />,
+                  gradient: 'from-indigo-500 to-purple-500',
+                  bgColor: 'bg-indigo-500/10',
+                  borderColor: 'border-indigo-500/30'
+                },
+                {
+                  title: 'Rated',
+                  value: ratedGoals.length,
+                  icon: <BsCheckCircle className="w-4 h-4" />,
+                  gradient: 'from-emerald-500 to-teal-500',
+                  bgColor: 'bg-emerald-500/10',
+                  borderColor: 'border-emerald-500/30'
+                },
+                {
+                  title: 'Average Rating',
+                  value: `${averageRating}★`,
+                  icon: <BsStarFill className="w-4 h-4" />,
+                  gradient: 'from-amber-500 to-orange-500',
+                  bgColor: 'bg-amber-500/10',
+                  borderColor: 'border-amber-500/30'
+                }
+              ];
+              return <StatsSection stats={statItems} variant="auto" />;
+            })()}
           </motion.div>
 
           {/* Filters Section */}

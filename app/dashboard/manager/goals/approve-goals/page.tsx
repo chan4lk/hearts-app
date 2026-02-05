@@ -6,9 +6,11 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { Goal, GoalWithRatingExtended, EmployeeStats } from '@/app/components/shared/types';
-import HeroSection from './components/HeroSection';
-import StatsSection from './components/StatsSection';
-import Filters from './components/Filters';
+import HeroSection from '@/app/components/shared/HeroSection';
+import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
+import Filters from '@/app/components/shared/Filters';
+import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
+import { BsClipboardData, BsCheckCircle, BsXCircle, BsPencil } from 'react-icons/bs';
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { Pagination } from '@/app/components/shared/Pagination';
@@ -343,35 +345,70 @@ export default function ApproveGoalsPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         
         <div className="relative z-10 p-4 space-y-4">
-          <HeroSection />
+          <HeroSection 
+            title="Approve Goals"
+            subtitle="Review and approve pending employee goals"
+            gradient={HERO_GRADIENTS.MANAGER}
+          />
 
           <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-4 border border-white/20 dark:border-gray-700/50 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Goal Approval Dashboard</h2>
               <Filters
-                selectedEmployee={selectedEmployee}
-                onEmployeeChange={(employee) => {
-                  setSelectedEmployee(employee);
-                  setPage(1); // Reset to first page on filter change
-                }}
                 selectedStatus={selectedStatus}
-                onStatusChange={(status) => {
+                onStatusChange={(status: string) => {
                   setSelectedStatus(status);
                   setPage(1); // Reset to first page on filter change
                 }}
                 selectedPriority={selectedPriority}
-                onPriorityChange={(priority) => {
+                onPriorityChange={(priority: string) => {
                   setSelectedPriority(priority);
                   setPage(1); // Reset to first page on filter change
                 }}
-                employeeStats={employeeStats}
               />
             </div>
 
-            <StatsSection
-              goals={goals}
-              employeesCount={employeeStats.length}
-            />
+            {(() => {
+              const pendingCount = goals.filter(g => g.status === 'PENDING' || g.status === 'DRAFT').length;
+              const approvedCount = goals.filter(g => g.status === 'APPROVED').length;
+              const rejectedCount = goals.filter(g => g.status === 'REJECTED').length;
+              
+              const statItems: StatItem[] = [
+                {
+                  title: 'Total Goals',
+                  value: goals.length,
+                  icon: <BsClipboardData className="w-4 h-4" />,
+                  gradient: 'from-indigo-500 to-purple-500',
+                  bgColor: 'bg-indigo-500/10',
+                  borderColor: 'border-indigo-500/30'
+                },
+                {
+                  title: 'Pending',
+                  value: pendingCount,
+                  icon: <BsPencil className="w-4 h-4" />,
+                  gradient: 'from-amber-500 to-orange-500',
+                  bgColor: 'bg-amber-500/10',
+                  borderColor: 'border-amber-500/30'
+                },
+                {
+                  title: 'Approved',
+                  value: approvedCount,
+                  icon: <BsCheckCircle className="w-4 h-4" />,
+                  gradient: 'from-emerald-500 to-teal-500',
+                  bgColor: 'bg-emerald-500/10',
+                  borderColor: 'border-emerald-500/30'
+                },
+                {
+                  title: 'Rejected',
+                  value: rejectedCount,
+                  icon: <BsXCircle className="w-4 h-4" />,
+                  gradient: 'from-rose-500 to-red-500',
+                  bgColor: 'bg-rose-500/10',
+                  borderColor: 'border-rose-500/30'
+                }
+              ];
+              return <StatsSection stats={statItems} variant="auto" />;
+            })()}
           </div>
 
           {/* Goals Table */}

@@ -13,9 +13,10 @@ import {
   BsEye,
   BsEyeSlash
 } from 'react-icons/bs';
-import HeroSection from './components/HeroSection';
-import StatsSection from './components/StatsSection';
-import Filters from './components/Filters';
+import HeroSection from '@/app/components/shared/HeroSection';
+import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
+import Filters from '@/app/components/shared/Filters';
+import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -314,14 +315,72 @@ export default function AdminDashboard() {
         
         <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
           {/* Hero Section */}
-          <HeroSection />
+          <HeroSection 
+            userName={session?.user?.name || 'Admin'}
+            subtitle="Manage your organization's goals and users"
+            gradient={HERO_GRADIENTS.ADMIN}
+          />
 
           {/* Stats Section */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <StatsSection stats={stats} />
+            {(() => {
+              const statItems: StatItem[] = [
+                {
+                  title: 'Total Users',
+                  value: stats.totalUsers,
+                  icon: <BsPeople className="w-4 h-4" />,
+                  gradient: 'from-blue-500 to-cyan-500',
+                  bgColor: 'bg-blue-500/10',
+                  borderColor: 'border-blue-500/30',
+                  onClick: () => router.push('/dashboard/admin/users'),
+                  tooltip: 'Click to view all users'
+                },
+                {
+                  title: 'Employees',
+                  value: stats.employeeCount,
+                  icon: <BsPeople className="w-4 h-4" />,
+                  gradient: 'from-emerald-500 to-teal-500',
+                  bgColor: 'bg-emerald-500/10',
+                  borderColor: 'border-emerald-500/30',
+                  onClick: () => router.push('/dashboard/admin/users?role=EMPLOYEE'),
+                  tooltip: 'View all employees'
+                },
+                {
+                  title: 'Managers',
+                  value: stats.managerCount,
+                  icon: <BsBullseye className="w-4 h-4" />,
+                  gradient: 'from-purple-500 to-pink-500',
+                  bgColor: 'bg-purple-500/10',
+                  borderColor: 'border-purple-500/30',
+                  onClick: () => router.push('/dashboard/admin/users?role=MANAGER'),
+                  tooltip: 'View all managers'
+                },
+                {
+                  title: 'Admins',
+                  value: stats.adminCount,
+                  icon: <BsBullseye className="w-4 h-4" />,
+                  gradient: 'from-orange-500 to-red-500',
+                  bgColor: 'bg-orange-500/10',
+                  borderColor: 'border-orange-500/30',
+                  onClick: () => router.push('/dashboard/admin/users?role=ADMIN'),
+                  tooltip: 'View all admins'
+                },
+                {
+                  title: 'Total Goals',
+                  value: stats.totalGoals,
+                  icon: <BsBullseye className="w-4 h-4" />,
+                  gradient: 'from-indigo-500 to-purple-500',
+                  bgColor: 'bg-indigo-500/10',
+                  borderColor: 'border-indigo-500/30',
+                  onClick: () => router.push('/dashboard/admin/all-goals'),
+                  tooltip: 'View all goals'
+                }
+              ];
+              return <StatsSection stats={statItems} variant="auto" />;
+            })()}
           </motion.div>
 
                      {/* Main Content Grid */}

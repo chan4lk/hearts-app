@@ -7,10 +7,12 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { PageContainer } from '@/app/components/shared/PageContainer';
 import { BsPlus, BsArrowUpRight, BsStars } from 'react-icons/bs';
 import GoalTemplates from '@/app/components/shared/GoalTemplates';
-import { HeroSection } from './components/HeroSection';
+import HeroSection from '@/app/components/shared/HeroSection';
 import { GoalsList } from './components/GoalsList';
-import StatsSection from './components/StatsSection';
-import Filters from './components/Filters';
+import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
+import Filters from '@/app/components/shared/Filters';
+import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
+import { BsClipboardData, BsCheckCircle, BsPencil, BsXCircle } from 'react-icons/bs';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import { Goal, NewGoal } from '@/app/components/shared/types';
@@ -304,9 +306,9 @@ function GoalsPageContent() {
         <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
           {/* Hero Section */}
           <HeroSection
-            onCreateClick={() => setIsCreateModalOpen(true)}
-            totalGoals={goals.length}
-            completedGoals={completedGoals}
+            title="Create Goals"
+            subtitle="Set and track your personal goals"
+            gradient={HERO_GRADIENTS.EMPLOYEE}
           />
 
           {/* Stats Section */}
@@ -314,7 +316,51 @@ function GoalsPageContent() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <StatsSection goals={goals} />
+            {(() => {
+              const totalGoals = goals.length;
+              const approvedCount = goals.filter(g => g.status === 'APPROVED').length;
+              const draftCount = goals.filter(g => g.status === 'DRAFT').length;
+              const rejectedCount = goals.filter(g => g.status === 'REJECTED').length;
+              
+              const statItems: StatItem[] = [
+                {
+                  title: 'Total Goals',
+                  value: totalGoals,
+                  icon: <BsClipboardData className="w-4 h-4" />,
+                  gradient: 'from-indigo-500 to-purple-500',
+                  bgColor: 'bg-indigo-500/10',
+                  borderColor: 'border-indigo-500/30'
+                },
+                {
+                  title: 'Draft',
+                  value: draftCount,
+                  icon: <BsPencil className="w-4 h-4" />,
+                  gradient: 'from-gray-500 to-slate-500',
+                  bgColor: 'bg-gray-500/10',
+                  borderColor: 'border-gray-500/30',
+                  onClick: () => setSelectedStatus('DRAFT')
+                },
+                {
+                  title: 'Approved',
+                  value: approvedCount,
+                  icon: <BsCheckCircle className="w-4 h-4" />,
+                  gradient: 'from-emerald-500 to-teal-500',
+                  bgColor: 'bg-emerald-500/10',
+                  borderColor: 'border-emerald-500/30',
+                  onClick: () => setSelectedStatus('APPROVED')
+                },
+                {
+                  title: 'Rejected',
+                  value: rejectedCount,
+                  icon: <BsXCircle className="w-4 h-4" />,
+                  gradient: 'from-rose-500 to-red-500',
+                  bgColor: 'bg-rose-500/10',
+                  borderColor: 'border-rose-500/30',
+                  onClick: () => setSelectedStatus('REJECTED')
+                }
+              ];
+              return <StatsSection stats={statItems} variant="auto" />;
+            })()}
           </motion.div>
 
           {/* Notification Toast */}

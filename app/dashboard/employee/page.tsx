@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import HeroSection from './components/HeroSection';
-import StatsSection from './components/StatsSection';
-import Filters from './components/Filters';
+import HeroSection from '@/app/components/shared/HeroSection';
+import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
+import Filters from '@/app/components/shared/Filters';
+import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
+import { BsClipboardData, BsCheckCircle, BsPencil, BsXCircle } from 'react-icons/bs';
 import GoalsSection from './components/GoalsSection';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
@@ -456,22 +458,79 @@ export default function EmployeeDashboard() {
         
         <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
           {/* Hero Section */}
-          <HeroSection />
+          <HeroSection 
+            userName={session?.user?.name}
+            subtitle="Manage your goals and track progress"
+            gradient={HERO_GRADIENTS.EMPLOYEE}
+          />
 
           {/* Stats Section */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <StatsSection 
-              stats={getGoalStats()} 
-              goals={goals}
-              onViewManagerRatings={() => setShowManagerRatingsModal(true)}
-              onStatusFilter={(status) => {
-                setSelectedStatus(status);
-                setPage(1);
-              }}
-            />
+            {(() => {
+              const goalStats = getGoalStats();
+              const statItems: StatItem[] = [
+                {
+                  title: 'Total Goals',
+                  value: goalStats.totalGoals,
+                  icon: <BsClipboardData className="w-4 h-4" />,
+                  gradient: 'from-indigo-500 to-purple-500',
+                  bgColor: 'bg-indigo-500/10',
+                  borderColor: 'border-indigo-500/30'
+                },
+                {
+                  title: 'Draft',
+                  value: goalStats.draftGoals,
+                  icon: <BsPencil className="w-4 h-4" />,
+                  gradient: 'from-gray-500 to-slate-500',
+                  bgColor: 'bg-gray-500/10',
+                  borderColor: 'border-gray-500/30',
+                  onClick: () => {
+                    setSelectedStatus('DRAFT');
+                    setPage(1);
+                  }
+                },
+                {
+                  title: 'Approved',
+                  value: goalStats.approved,
+                  icon: <BsCheckCircle className="w-4 h-4" />,
+                  gradient: 'from-emerald-500 to-teal-500',
+                  bgColor: 'bg-emerald-500/10',
+                  borderColor: 'border-emerald-500/30',
+                  onClick: () => {
+                    setSelectedStatus('APPROVED');
+                    setPage(1);
+                  }
+                },
+                {
+                  title: 'Rejected',
+                  value: goalStats.rejected,
+                  icon: <BsXCircle className="w-4 h-4" />,
+                  gradient: 'from-rose-500 to-red-500',
+                  bgColor: 'bg-rose-500/10',
+                  borderColor: 'border-rose-500/30',
+                  onClick: () => {
+                    setSelectedStatus('REJECTED');
+                    setPage(1);
+                  }
+                },
+                {
+                  title: 'Completed',
+                  value: goalStats.completed,
+                  icon: <BsCheckCircle className="w-4 h-4" />,
+                  gradient: 'from-green-500 to-emerald-500',
+                  bgColor: 'bg-green-500/10',
+                  borderColor: 'border-green-500/30',
+                  onClick: () => {
+                    setSelectedStatus('COMPLETED');
+                    setPage(1);
+                  }
+                }
+              ];
+              return <StatsSection stats={statItems} variant="auto" />;
+            })()}
           </motion.div>
 
           {/* Quick Actions */}

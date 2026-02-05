@@ -6,9 +6,11 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import { GoalWithRatingExtended, EmployeeStats } from "@/app/components/shared/types";
-import HeroSection from "./components/HeroSection";
-import StatsSection from "./components/StatsSection";
-import Filters from "./components/Filters";
+import HeroSection from "@/app/components/shared/HeroSection";
+import StatsSection, { StatItem } from "@/app/components/shared/StatsSection";
+import Filters from "@/app/components/shared/Filters";
+import { HERO_GRADIENTS } from "@/app/components/shared/filterConfig";
+import { BsClipboardData, BsCheckCircle, BsPercent, BsStarFill as BsStarIcon } from 'react-icons/bs';
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { Pagination } from '@/app/components/shared/Pagination';
@@ -413,31 +415,69 @@ export default function RateEmployeesPage() {
         </div>
 
         <div className="relative z-10 p-4 space-y-4">
-          <HeroSection />
+          <HeroSection 
+            title="Rate Employees"
+            subtitle="Provide performance ratings for employee goals"
+            gradient={HERO_GRADIENTS.MANAGER}
+          />
 
           <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-4 border border-white/20 dark:border-gray-700/50 space-y-4">
-            <StatsSection goals={goals} employeesCount={employeeStats.length} />
+            {(() => {
+              const ratedCount = goals.filter(g => g.rating?.managerScore || g.rating?.score).length;
+              const unratedCount = goals.length - ratedCount;
+              const avgRating = goals.length > 0 
+                ? (goals.reduce((sum, g) => sum + (g.rating?.managerScore || g.rating?.score || 0), 0) / goals.length).toFixed(1)
+                : '0.0';
+              
+              const statItems: StatItem[] = [
+                {
+                  title: 'Total Goals',
+                  value: goals.length,
+                  icon: <BsClipboardData className="w-4 h-4" />,
+                  gradient: 'from-indigo-500 to-purple-500',
+                  bgColor: 'bg-indigo-500/10',
+                  borderColor: 'border-indigo-500/30'
+                },
+                {
+                  title: 'Rated',
+                  value: ratedCount,
+                  icon: <BsCheckCircle className="w-4 h-4" />,
+                  gradient: 'from-emerald-500 to-teal-500',
+                  bgColor: 'bg-emerald-500/10',
+                  borderColor: 'border-emerald-500/30'
+                },
+                {
+                  title: 'Pending',
+                  value: unratedCount,
+                  icon: <BsPercent className="w-4 h-4" />,
+                  gradient: 'from-amber-500 to-orange-500',
+                  bgColor: 'bg-amber-500/10',
+                  borderColor: 'border-amber-500/30'
+                },
+                {
+                  title: 'Avg Rating',
+                  value: `${avgRating}★`,
+                  icon: <BsStarIcon className="w-4 h-4" />,
+                  gradient: 'from-yellow-500 to-orange-500',
+                  bgColor: 'bg-yellow-500/10',
+                  borderColor: 'border-yellow-500/30'
+                }
+              ];
+              return <StatsSection stats={statItems} variant="auto" />;
+            })()}
           </div>
 
           <Filters
-            selectedEmployee={filterEmployee}
-            onEmployeeChange={(employee) => {
-              setFilterEmployee(employee);
-              setPage(1); // Reset to first page on filter change
-            }}
             selectedStatus={selectedStatus}
-            onStatusChange={(status) => {
+            onStatusChange={(status: string) => {
               setSelectedStatus(status);
               setPage(1); // Reset to first page on filter change
             }}
-            selectedRating={filterRating}
-            onRatingChange={setFilterRating}
             selectedPriority={selectedPriority}
-            onPriorityChange={(priority) => {
+            onPriorityChange={(priority: string) => {
               setSelectedPriority(priority);
               setPage(1); // Reset to first page on filter change
             }}
-            employeeStats={employeeStats}
           />
 
           {/* Goals Table */}

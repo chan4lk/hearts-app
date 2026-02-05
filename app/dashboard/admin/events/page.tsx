@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { BsPlus, BsSearch, BsX, BsCalendarEvent, BsFilter } from 'react-icons/bs';
 import { toast } from 'react-toastify';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import EventStatsSection from './components/StatsSection';
+import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
+import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
+import HeroSection from '@/app/components/shared/HeroSection';
+import { BsPlus, BsSearch, BsX, BsCalendarEvent, BsFilter, BsCheckCircle, BsClock } from 'react-icons/bs';
 import { EventFormModal } from '@/app/components/events/EventFormModal';
 import { EventsTable } from '@/app/components/events/EventsTable';
 import { EventDetailsModal } from '@/app/components/events/EventDetailsModal';
@@ -171,53 +173,62 @@ export default function AdminEventsPage() {
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
         
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
-          {/* Header - Fixed */}
+          {/* Hero Section */}
           <div className="flex-shrink-0 pb-3">
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="relative overflow-hidden rounded-xl p-6 shadow-lg bg-gradient-to-r from-teal-600 to-cyan-600"
+            <HeroSection 
+              title="Event Management"
+              subtitle="Create and manage upcoming events for your organization"
+              gradient={HERO_GRADIENTS.ADMIN}
             >
-              {/* Animated Background Elements */}
-              <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-              </div>
-
-              <div className="relative flex items-center justify-between">
-                <div className="space-y-1">
-                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                    Event Management
-                  </h2>
-                  <p className="text-white/90 text-xs">Create and manage upcoming events for your organization</p>
-                </div>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    setEditingEvent(null);
-                    setIsFormOpen(true);
-                  }}
-                  className="flex items-center gap-2 rounded-lg bg-white/20 hover:bg-white/30 backdrop-blur-sm px-5 py-2.5 font-semibold text-white shadow-lg shadow-white/10 transition-all border border-white/20 whitespace-nowrap"
-                >
-                  <BsPlus className="text-lg" /> Create Event
-                </motion.button>
-              </div>
-            </motion.div>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setEditingEvent(null);
+                  setIsFormOpen(true);
+                }}
+                className="flex items-center gap-2 rounded-lg bg-white/20 hover:bg-white/30 backdrop-blur-sm px-5 py-2.5 font-semibold text-white shadow-lg shadow-white/10 transition-all border border-white/20 whitespace-nowrap"
+              >
+                <BsPlus className="text-lg" /> Create Event
+              </motion.button>
+            </HeroSection>
           </div>
 
           {/* Stats Section - Fixed */}
           <div className="flex-shrink-0 pb-3">
-            <EventStatsSection
-              events={{
-                total: pagination.total || 0,
-                scheduled: events.filter((e) => e.status === 'SCHEDULED').length,
-                ongoing: events.filter((e) => e.status === 'ONGOING').length,
-                completed: events.filter((e) => e.status === 'COMPLETED').length,
-                cancelled: events.filter((e) => e.status === 'CANCELLED').length,
-              }}
-            />
+            {(() => {
+              const scheduledCount = events.filter(e => e.status === 'SCHEDULED').length;
+              const ongoingCount = events.filter(e => e.status === 'ONGOING').length;
+              const completedCount = events.filter(e => e.status === 'COMPLETED').length;
+              
+              const statItems: StatItem[] = [
+                {
+                  title: 'Total Events',
+                  value: pagination.total || 0,
+                  icon: <BsCalendarEvent className="w-4 h-4" />,
+                  gradient: 'from-blue-500 to-cyan-500',
+                  bgColor: 'bg-blue-500/10',
+                  borderColor: 'border-blue-500/30'
+                },
+                {
+                  title: 'Scheduled',
+                  value: scheduledCount,
+                  icon: <BsClock className="w-4 h-4" />,
+                  gradient: 'from-amber-500 to-orange-500',
+                  bgColor: 'bg-amber-500/10',
+                  borderColor: 'border-amber-500/30'
+                },
+                {
+                  title: 'Completed',
+                  value: completedCount,
+                  icon: <BsCheckCircle className="w-4 h-4" />,
+                  gradient: 'from-emerald-500 to-teal-500',
+                  bgColor: 'bg-emerald-500/10',
+                  borderColor: 'border-emerald-500/30'
+                }
+              ];
+              return <StatsSection stats={statItems} variant="auto" />;
+            })()}
           </div>
 
           {/* Filters - Fixed */}

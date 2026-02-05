@@ -10,9 +10,11 @@ import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmat
 import { Pagination } from '@/app/components/shared/Pagination';
 import { Goal, User as UserType } from '@/app/components/shared/types';
 import { motion } from 'framer-motion';
-import HeroSection from './components/HeroSection';
-import StatsSection from './components/StatsSection';
-import Filters from './components/Filters';
+import HeroSection from '@/app/components/shared/HeroSection';
+import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
+import Filters from '@/app/components/shared/Filters';
+import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
+import { BsClipboardData, BsPencil, BsCheckCircle, BsXCircle } from 'react-icons/bs';
 import { PageContainer } from '@/app/components/shared/PageContainer';
 
 function AllGoalsPageContent() {
@@ -245,7 +247,11 @@ function AllGoalsPageContent() {
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
           {/* Hero Section - Fixed */}
           <div className="flex-shrink-0 mb-3 relative z-10">
-            <HeroSection />
+            <HeroSection 
+              title="All Goals"
+              subtitle="View and manage all goals across the organization"
+              gradient={HERO_GRADIENTS.ADMIN}
+            />
           </div>
 
           {/* Stats Section - Fixed */}
@@ -254,23 +260,83 @@ function AllGoalsPageContent() {
             animate={{ opacity: 1, y: 0 }}
             className="flex-shrink-0 mb-3"
           >
-            <StatsSection 
-              goals={[]} 
-              totalStats={totalStats}
-              onStatusFilter={(status) => {
-                setSelectedStatus(status === 'all' ? 'all' : status);
-                setPage(1);
-                // Update URL with status filter
-                const params = new URLSearchParams(window.location.search);
-                if (status === 'all' || status === '') {
-                  params.delete('status');
-                } else {
-                  params.set('status', status);
+            {(() => {
+              const statItems: StatItem[] = [
+                {
+                  title: 'Total Goals',
+                  value: totalStats.total,
+                  icon: <BsClipboardData className="w-4 h-4" />,
+                  gradient: 'from-indigo-500 to-purple-500',
+                  bgColor: 'bg-indigo-500/10',
+                  borderColor: 'border-indigo-500/30'
+                },
+                {
+                  title: 'Draft',
+                  value: totalStats.draft,
+                  icon: <BsPencil className="w-4 h-4" />,
+                  gradient: 'from-gray-500 to-slate-500',
+                  bgColor: 'bg-gray-500/10',
+                  borderColor: 'border-gray-500/30',
+                  onClick: () => {
+                    setSelectedStatus('DRAFT');
+                    setPage(1);
+                    const params = new URLSearchParams(window.location.search);
+                    params.set('status', 'DRAFT');
+                    params.delete('page');
+                    router.push(`/dashboard/admin/all-goals?${params.toString()}`);
+                  }
+                },
+                {
+                  title: 'Approved',
+                  value: totalStats.approved,
+                  icon: <BsCheckCircle className="w-4 h-4" />,
+                  gradient: 'from-emerald-500 to-teal-500',
+                  bgColor: 'bg-emerald-500/10',
+                  borderColor: 'border-emerald-500/30',
+                  onClick: () => {
+                    setSelectedStatus('APPROVED');
+                    setPage(1);
+                    const params = new URLSearchParams(window.location.search);
+                    params.set('status', 'APPROVED');
+                    params.delete('page');
+                    router.push(`/dashboard/admin/all-goals?${params.toString()}`);
+                  }
+                },
+                {
+                  title: 'Rejected',
+                  value: totalStats.rejected,
+                  icon: <BsXCircle className="w-4 h-4" />,
+                  gradient: 'from-rose-500 to-red-500',
+                  bgColor: 'bg-rose-500/10',
+                  borderColor: 'border-rose-500/30',
+                  onClick: () => {
+                    setSelectedStatus('REJECTED');
+                    setPage(1);
+                    const params = new URLSearchParams(window.location.search);
+                    params.set('status', 'REJECTED');
+                    params.delete('page');
+                    router.push(`/dashboard/admin/all-goals?${params.toString()}`);
+                  }
+                },
+                {
+                  title: 'Completed',
+                  value: totalStats.completed,
+                  icon: <BsCheckCircle className="w-4 h-4" />,
+                  gradient: 'from-green-500 to-emerald-500',
+                  bgColor: 'bg-green-500/10',
+                  borderColor: 'border-green-500/30',
+                  onClick: () => {
+                    setSelectedStatus('COMPLETED');
+                    setPage(1);
+                    const params = new URLSearchParams(window.location.search);
+                    params.set('status', 'COMPLETED');
+                    params.delete('page');
+                    router.push(`/dashboard/admin/all-goals?${params.toString()}`);
+                  }
                 }
-                params.delete('page'); // Reset to page 1
-                router.push(`/dashboard/admin/all-goals?${params.toString()}`);
-              }}
-            />
+              ];
+              return <StatsSection stats={statItems} variant="auto" />;
+            })()}
           </motion.div>
 
           {/* Filters - Fixed */}

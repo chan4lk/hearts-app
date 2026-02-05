@@ -3,13 +3,15 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { useSession } from 'next-auth/react';
-import StatsDisplay from './components/StatsDisplay';
 import Filters from './components/Filters';
 import GoalsSection from './components/GoalsSection';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { Pagination } from '@/app/components/shared/Pagination';
 import AIPerformanceInsights from '@/app/components/ai/AIPerformanceInsights';
-import { BsStars, BsLightbulb } from 'react-icons/bs';
+import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
+import HeroSection from '@/app/components/shared/HeroSection';
+import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
+import { BsStars, BsLightbulb, BsCheckCircle, BsXCircle, BsPeople, BsPencil } from 'react-icons/bs';
 
 import { Goal, EmployeeStats, DashboardStats } from '@/app/components/shared/types';
 
@@ -205,32 +207,86 @@ export default function ManagerDashboard() {
         
         <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
           {/* Hero Section */}
-          <div className="relative overflow-hidden bg-gradient-to-r from-teal-600 to-cyan-600 rounded-xl p-4 shadow-lg">
-            {/* Animated Background Elements */}
-            <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
-              <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
-            </div>
-
-            <div className="relative flex items-center justify-between">
-              <div className="space-y-1">
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                  Welcome back, {session?.user?.name || 'Manager'}
-                </h2>
-                <p className="text-white/90 text-xs">Manage your team's goals and performance</p>
-              </div>
-            </div>
-          </div>
+          <HeroSection 
+            userName={session?.user?.name || 'Manager'}
+            subtitle="Manage your team's goals and performance"
+            gradient={HERO_GRADIENTS.MANAGER}
+          />
 
           {/* Stats Section */}
-          <StatsDisplay 
-            stats={stats} 
-            roleStats={roleStats}
-            onStatusFilter={(status) => {
-              setSelectedStatus(status);
-              setPage(1);
-            }}
-          />
+          {(() => {
+            const statItems: StatItem[] = [
+              {
+                title: 'Total Goals',
+                value: stats.employeeGoals.total,
+                icon: <BsStars className="w-4 h-4" />,
+                gradient: 'from-indigo-500 to-purple-500',
+                bgColor: 'bg-indigo-500/10',
+                borderColor: 'border-indigo-500/30',
+                onClick: () => {
+                  setSelectedStatus('');
+                  setPage(1);
+                }
+              },
+              {
+                title: 'Draft',
+                value: stats.employeeGoals.draft,
+                icon: <BsPencil className="w-4 h-4" />,
+                gradient: 'from-gray-500 to-slate-500',
+                bgColor: 'bg-gray-500/10',
+                borderColor: 'border-gray-500/30',
+                onClick: () => {
+                  setSelectedStatus('DRAFT');
+                  setPage(1);
+                }
+              },
+              {
+                title: 'Approved',
+                value: stats.employeeGoals.approved,
+                icon: <BsCheckCircle className="w-4 h-4" />,
+                gradient: 'from-emerald-500 to-teal-500',
+                bgColor: 'bg-emerald-500/10',
+                borderColor: 'border-emerald-500/30',
+                onClick: () => {
+                  setSelectedStatus('APPROVED');
+                  setPage(1);
+                }
+              },
+              {
+                title: 'Rejected',
+                value: stats.employeeGoals.rejected,
+                icon: <BsXCircle className="w-4 h-4" />,
+                gradient: 'from-rose-500 to-red-500',
+                bgColor: 'bg-rose-500/10',
+                borderColor: 'border-rose-500/30',
+                onClick: () => {
+                  setSelectedStatus('REJECTED');
+                  setPage(1);
+                }
+              },
+              {
+                title: 'Completed',
+                value: stats.employeeGoals.completed,
+                icon: <BsCheckCircle className="w-4 h-4" />,
+                gradient: 'from-green-500 to-emerald-500',
+                bgColor: 'bg-green-500/10',
+                borderColor: 'border-green-500/30',
+                onClick: () => {
+                  setSelectedStatus('COMPLETED');
+                  setPage(1);
+                }
+              },
+              {
+                title: 'Total Employees',
+                value: stats.employeeCount,
+                icon: <BsPeople className="w-4 h-4" />,
+                gradient: 'from-cyan-500 to-blue-500',
+                bgColor: 'bg-cyan-500/10',
+                borderColor: 'border-cyan-500/30'
+              }
+            ];
+            return <StatsSection stats={statItems} variant="auto" />;
+          })()}
 
           {/* Filters Section */}
           <Filters

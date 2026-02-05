@@ -20,9 +20,11 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { BsBarChart, BsStarFill } from 'react-icons/bs';
-import HeroSection from './components/HeroSection';
-import StatsSection from './components/StatsSection';
-import Filters from './components/Filters';
+import HeroSection from '@/app/components/shared/HeroSection';
+import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
+import Filters from '@/app/components/shared/Filters';
+import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
+import { BsClipboardData, BsCheckCircle, BsPercent, BsStarFill as BsStarIcon } from 'react-icons/bs';
 
 interface AnalyticsData {
   summary: {
@@ -500,7 +502,11 @@ export default function AnalyticsPage() {
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           {/* Hero Section */}
-          <HeroSection userRole={session?.user?.role} />
+          <HeroSection 
+            title="Analytics Dashboard"
+            subtitle="Track performance and insights across the organization"
+            gradient={HERO_GRADIENTS.ANALYTICS}
+          />
 
           {/* Filters Section */}
           <Filters
@@ -560,10 +566,44 @@ export default function AnalyticsPage() {
                   <h2 className="text-xl font-bold text-white mb-1">Key Metrics</h2>
                   <p className="text-sm text-gray-400">Overview of performance indicators</p>
                 </div>
-                <StatsSection 
-                  analyticsData={analyticsData.summary}
-                  userRole={session?.user?.role}
-                />
+                {(() => {
+                  const summary = analyticsData.summary;
+                  const statItems: StatItem[] = [
+                    {
+                      title: 'Total Goals',
+                      value: summary.totalGoals,
+                      icon: <BsClipboardData className="w-4 h-4" />,
+                      gradient: 'from-indigo-500 to-purple-500',
+                      bgColor: 'bg-indigo-500/10',
+                      borderColor: 'border-indigo-500/30'
+                    },
+                    {
+                      title: 'Completed',
+                      value: summary.completedGoals,
+                      icon: <BsCheckCircle className="w-4 h-4" />,
+                      gradient: 'from-emerald-500 to-teal-500',
+                      bgColor: 'bg-emerald-500/10',
+                      borderColor: 'border-emerald-500/30'
+                    },
+                    {
+                      title: 'Completion Rate',
+                      value: `${summary.completionRate.toFixed(1)}%`,
+                      icon: <BsPercent className="w-4 h-4" />,
+                      gradient: 'from-blue-500 to-cyan-500',
+                      bgColor: 'bg-blue-500/10',
+                      borderColor: 'border-blue-500/30'
+                    },
+                    {
+                      title: 'Avg Rating',
+                      value: summary.averageRating.toFixed(2),
+                      icon: <BsStarIcon className="w-4 h-4" />,
+                      gradient: 'from-amber-500 to-orange-500',
+                      bgColor: 'bg-amber-500/10',
+                      borderColor: 'border-amber-500/30'
+                    }
+                  ];
+                  return <StatsSection stats={statItems} variant="auto" />;
+                })()}
               </motion.div>
 
               {/* Charts */}

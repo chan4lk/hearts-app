@@ -12,10 +12,11 @@ import { Button } from '@/app/components/ui/button';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 
 // Components
-import { HeroSection } from './components/sections/HeroSection';
-import { StatsSection } from './components/sections/StatsSection';
+import HeroSection from '@/app/components/shared/HeroSection';
+import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 import { GoalList } from './components/sections/GoalList';
-import Filters from './components/sections/Filters';
+import Filters from '@/app/components/shared/Filters';
+import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
 import { CreateGoalModal } from './components/modals/CreateGoalModal';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
@@ -444,7 +445,7 @@ function ManagerGoalSettingPageContent() {
         />
 
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-4 border border-white/20 dark:border-gray-700/50 space-y-4">
-          <StatsSection stats={stats} />
+          <StatsSection stats={stats} variant="auto" />
         </div>
 
         <Filters

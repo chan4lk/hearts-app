@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import HeroSection from './components/HeroSection';
+import HeroSection from '@/app/components/shared/HeroSection';
+import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
+import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
 import ReviewCycleTable from './components/ReviewCycleTable';
 import ReviewCycleForm from './components/ReviewCycleForm';
 import ImportExcelModal from './components/ImportExcelModal';
 import { Pagination } from '@/app/components/shared/Pagination';
-import { BsArrowLeft } from 'react-icons/bs';
+import { BsArrowLeft, BsUser, BsCheckCircle, BsClock, BsClipboardList } from 'react-icons/bs';
 import Link from 'next/link';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 
@@ -212,9 +214,54 @@ export default function ReviewCyclesPage() {
           {/* Hero Section - Fixed */}
           <div className="flex-shrink-0 pt-3 pb-3 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 z-10 relative">
             <HeroSection 
-              onAddNew={() => setIsFormOpen(true)}
-              onImport={() => setIsImportModalOpen(true)}
+              title="Review Cycles"
+              subtitle="Manage performance review cycles for your organization"
+              gradient={HERO_GRADIENTS.ADMIN}
             />
+          </div>
+
+          {/* Stats Section */}
+          <div className="flex-shrink-0 pb-3">
+            {(() => {
+              const completedCount = reviewCycles.filter(c => c.reviewMonth && c.reviewMonth !== '').length;
+              const pendingCount = reviewCycles.length - completedCount;
+              
+              const statItems: StatItem[] = [
+                {
+                  title: 'Total Cycles',
+                  value: pagination?.total || reviewCycles.length,
+                  icon: <BsClipboardList className="w-4 h-4" />,
+                  gradient: 'from-blue-500 to-cyan-500',
+                  bgColor: 'bg-blue-500/10',
+                  borderColor: 'border-blue-500/30'
+                },
+                {
+                  title: 'Completed',
+                  value: completedCount,
+                  icon: <BsCheckCircle className="w-4 h-4" />,
+                  gradient: 'from-emerald-500 to-teal-500',
+                  bgColor: 'bg-emerald-500/10',
+                  borderColor: 'border-emerald-500/30'
+                },
+                {
+                  title: 'Pending',
+                  value: pendingCount,
+                  icon: <BsClock className="w-4 h-4" />,
+                  gradient: 'from-amber-500 to-orange-500',
+                  bgColor: 'bg-amber-500/10',
+                  borderColor: 'border-amber-500/30'
+                },
+                {
+                  title: 'Users',
+                  value: new Set(reviewCycles.map(c => c.userId)).size,
+                  icon: <BsUser className="w-4 h-4" />,
+                  gradient: 'from-purple-500 to-pink-500',
+                  bgColor: 'bg-purple-500/10',
+                  borderColor: 'border-purple-500/30'
+                }
+              ];
+              return <StatsSection stats={statItems} variant="auto" />;
+            })()}
           </div>
 
           {/* Review Cycles Table - Scrollable Container */}
