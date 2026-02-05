@@ -131,6 +131,29 @@ class Logger {
         }
     }
 
+    public warn(message: string, properties?: { [key: string]: any }) {
+        // Sanitize sensitive data from properties
+        const sanitizedProperties = this.sanitizeProperties(properties);
+        
+        // Track to Application Insights as a warning trace (non-blocking)
+        if (this.client) {
+            try {
+                this.client.trackTrace({
+                    message,
+                    severity: 'Warning',
+                    properties: sanitizedProperties
+                });
+            } catch (error) {
+                // Ignore Application Insights errors
+            }
+        }
+        
+        // Only log to console in development
+        if (process.env.NODE_ENV === 'development') {
+            console.warn(`[Warning] ${message}`, sanitizedProperties || '');
+        }
+    }
+
     public trackEvent(name: string, properties?: { [key: string]: any }) {
         const sanitizedProperties = this.sanitizeProperties(properties);
         

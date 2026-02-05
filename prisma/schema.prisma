@@ -49,11 +49,17 @@ model User {
   @@index([isActive])
   @@index([createdAt])
   
+  // Search indexes - for email and name lookups
+  @@index([email])
+  @@index([name])
+  
   // Composite indexes for common query patterns
   @@index([role, isActive])          // Get active users by role
   @@index([managerId, isActive])     // Get active employees for a manager
   @@index([department, isActive])    // Get active users by department
   @@index([role, department])        // Users by role and department
+  @@index([isActive, createdAt])     // Active users sorted by date
+  @@index([failedLoginAttempts])     // For account lockout checks
 }
 
 model Goal {
@@ -115,6 +121,11 @@ model Goal {
   @@index([status, dueDate])           // Find overdue goals by status
   @@index([employeeId, dueDate])       // Employee goals sorted by due date
   @@index([status, createdAt])         // Status-based queries sorted by creation date
+  
+  // Additional performance indexes for common queries
+  @@index([employeeId, status, createdAt, dueDate]) // Employee dashboard queries
+  @@index([managerId, status, createdAt]) // Manager review queries
+  @@index([status, createdAt, dueDate]) // Analytics and sorting
 }
 
 model Rating {

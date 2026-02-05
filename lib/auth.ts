@@ -178,17 +178,62 @@ export const authOptions: NextAuthOptions = {
             throw new Error('Invalid credentials');
           }
 
-          // Use case-insensitive email lookup
+          const normalizedEmail = credentials.email.trim().toLowerCase();
+
+          // NEW: Check if account is locked due to failed attempts
           const user = await prisma.user.findFirst({
             where: {
               email: {
-                equals: credentials.email.trim(),
+                equals: normalizedEmail,
                 mode: 'insensitive',
               },
             },
+            select: {
+              id: true,
+              email: true,
+              password: true,
+              name: true,
+              role: true,
+              isActive: true,
+              failedLoginAttempts: true,
+              lastLoginAttempt: true,
+            },
           });
 
-          if (!user || !user.password) {
+          // NEW: Check if user exists and is active
+          if (!user) {
+            throw new Error('Invalid credentials');
+          }
+
+          if (!user.isActive) {
+            throw new Error('User account is inactive');
+          }
+
+          // NEW: Implement login rate limiting (5 attempts = 15 minute lockout)
+          if (user.failedLoginAttempts >= 5) {
+            const timeSinceLastAttempt = user.lastLoginAttempt 
+              ? Date.now() - user.lastLoginAttempt.getTime() 
+              : 0;
+            const lockoutDuration = 15 * 60 * 1000; // 15 minutes
+
+            if (timeSinceLastAttempt < lockoutDuration) {
+              const remainingTime = Math.ceil((lockoutDuration - timeSinceLastAttempt) / 1000);
+              throw new Error(
+                `Account locked due to too many failed login attempts. Try again in ${remainingTime} seconds.`
+              );
+            } else {
+              // Lockout period expired, reset attempts
+              await prisma.user.update({
+                where: { id: user.id },
+                data: {
+                  failedLoginAttempts: 0,
+                  lastLoginAttempt: new Date(),
+                },
+              });
+            }
+          }
+
+          if (!user.password) {
             throw new Error('Invalid credentials');
           }
 
@@ -198,8 +243,25 @@ export const authOptions: NextAuthOptions = {
           );
 
           if (!isPasswordValid) {
+            // NEW: Increment failed attempts on wrong password
+            await prisma.user.update({
+              where: { id: user.id },
+              data: {
+                failedLoginAttempts: { increment: 1 },
+                lastLoginAttempt: new Date(),
+              },
+            });
             throw new Error('Invalid credentials');
           }
+
+          // NEW: Reset failed attempts on successful login
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              failedLoginAttempts: 0,
+              lastLoginAt: new Date(),
+            },
+          });
 
           return {
             id: user.id,
@@ -323,21 +385,37 @@ export const authOptions: NextAuthOptions = {
         sessionUser.id = token.id as string;
         sessionUser.role = token.role as Role;
         
-        // Always fetch the latest role from the database
+        // Always fetch the latest role and isActive status from the database
+        // Use ID-based lookup (indexed) instead of email for performance
         try {
           const dbUser = await prisma.user.findUnique({
-            where: { email: sessionUser.email },
-            select: { role: true, id: true }
+            where: { id: sessionUser.id },
+            select: { 
+              role: true, 
+              id: true,
+              isActive: true  // NEW: Check if user is still active
+            }
           });
           
-          if (dbUser) {
-            sessionUser.id = dbUser.id;
-            sessionUser.role = dbUser.role;
-          } else {
+          // Validate user exists and is active
+          if (!dbUser) {
             logger.error(new Error('Session: User not found in database'));
+            throw new Error('User not found');
           }
+
+          // NEW: Prevent access if user is disabled/inactive
+          if (!dbUser.isActive) {
+            logger.warn(`Session: Inactive user attempted access - ${sessionUser.email}`);
+            throw new Error('User account is inactive');
+          }
+          
+          sessionUser.id = dbUser.id;
+          sessionUser.role = dbUser.role;
         } catch (error) {
-          logger.error(error instanceof Error ? error : new Error(String(error)));
+          // If any validation fails, log and throw to invalidate session
+          const errorMsg = error instanceof Error ? error.message : String(error);
+          logger.error(new Error(`Session validation failed: ${errorMsg}`));
+          throw error;
         }
       }
       return session;
@@ -390,6 +468,33 @@ export interface AuthUser {
   role: string;
 }
 
+/**
+ * Get JWT secret from environment - REQUIRED for security
+ * Must be set in .env.local or production environment
+ */
+function getJWTSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  
+  if (!secret) {
+    throw new Error(
+      'FATAL: JWT_SECRET environment variable is not set. ' +
+      'This is required for token verification. ' +
+      'Please set JWT_SECRET in your .env.local file. ' +
+      'Use a minimum of 32 characters for security.'
+    );
+  }
+  
+  if (secret.length < 16) {
+    throw new Error(
+      'FATAL: JWT_SECRET must be at least 16 characters long for security. ' +
+      `Current length: ${secret.length} characters. ` +
+      'Recommended: 32+ characters.'
+    );
+  }
+  
+  return secret;
+}
+
 export async function getAuthUser(): Promise<AuthUser | null> {
   const cookieStore = cookies();
   const token = cookieStore.get('token')?.value;
@@ -399,9 +504,14 @@ export async function getAuthUser(): Promise<AuthUser | null> {
   }
 
   try {
-    const decoded = verify(token, process.env.JWT_SECRET || 'your-secret-key') as AuthUser;
+    const secret = getJWTSecret();
+    const decoded = verify(token, secret) as AuthUser;
     return decoded;
   } catch (error) {
+    if (error instanceof Error && error.message.includes('FATAL')) {
+      console.error(error.message);
+      throw error;
+    }
     return null;
   }
 }
