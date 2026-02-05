@@ -62,25 +62,25 @@ export const EventsTable = ({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b border-white/10">
-            <th className="px-4 py-3 text-left text-sm font-semibold text-white">
+      <table className="w-full table-fixed min-w-full">
+        <thead className="sticky top-0 z-20 bg-gradient-to-r from-indigo-600 to-purple-600 border-b-2 border-indigo-700 shadow-md">
+          <tr>
+            <th className="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">
               Event Title
             </th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-white">
+            <th className="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">
               Type
             </th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-white">
+            <th className="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">
               Date
             </th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-white">
+            <th className="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">
               Participants
             </th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-white">
+            <th className="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">
               Status
             </th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-white">
+            <th className="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">
               Actions
             </th>
           </tr>

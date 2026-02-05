@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { BsSearch, BsCalendarPlus, BsArrowRight } from 'react-icons/bs';
+import { BsSearch, BsCalendarPlus, BsArrowRight, BsFilter } from 'react-icons/bs';
 import { toast } from 'react-toastify';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { EventParticipationCard } from '@/app/components/events/EventParticipationCard';
@@ -185,22 +185,32 @@ export default function EmployeeEventsPage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl"
+              className="mb-6 rounded-xl border-2 border-indigo-500/20 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-indigo-500/5 p-4 backdrop-blur-xl"
             >
-              <div className="flex items-center gap-4">
+              <div className="relative max-w-xs">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                  <div className="p-1.5 rounded-md bg-gradient-to-r from-amber-500 to-orange-600">
+                    <BsFilter className="w-3.5 h-3.5 text-white" />
+                  </div>
+                </div>
                 <select
                   value={status}
                   onChange={(e) => {
                     setStatus(e.target.value);
                     setPage(1);
                   }}
-                  className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white hover:border-white/20 focus:outline-none transition-colors"
+                  className="w-full pl-10 pr-8 py-2.5 bg-gray-900/50 text-white rounded-lg border border-gray-700 hover:border-amber-500/30 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-all duration-200 text-sm font-medium appearance-none cursor-pointer"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 12 12'%3E%3Cpath fill='%239CA3AF' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 0.75rem center'
+                  }}
                 >
-                  <option value="">All Participation Status</option>
-                  <option value="REGISTERED">Registered</option>
-                  <option value="ATTENDED">Attended</option>
-                  <option value="NO_SHOW">No Show</option>
-                  <option value="CANCELLED">Cancelled</option>
+                  <option value="" style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}>All Participation Status</option>
+                  <option value="REGISTERED" style={{ backgroundColor: '#1f2937', color: '#93c5fd' }}>Registered</option>
+                  <option value="ATTENDED" style={{ backgroundColor: '#1f2937', color: '#86efac' }}>Attended</option>
+                  <option value="NO_SHOW" style={{ backgroundColor: '#1f2937', color: '#fca5a5' }}>No Show</option>
+                  <option value="CANCELLED" style={{ backgroundColor: '#1f2937', color: '#fca5a5' }}>Cancelled</option>
                 </select>
               </div>
             </motion.div>

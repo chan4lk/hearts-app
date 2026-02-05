@@ -126,7 +126,7 @@ export const EventFormModal = ({
                     value={formData.title}
                     onChange={handleChange}
                     required
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white placeholder-white/50 hover:border-white/20 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
+                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white placeholder-gray-400 hover:border-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
                     placeholder="e.g., Toastmasters Conference"
                   />
                 </div>
@@ -139,7 +139,7 @@ export const EventFormModal = ({
                     name="eventType"
                     value={formData.eventType}
                     onChange={handleChange}
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white hover:border-white/20 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
+                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
                   >
                     {eventTypes.map((type) => (
                       <option key={type} value={type}>
@@ -160,7 +160,7 @@ export const EventFormModal = ({
                   onChange={handleChange}
                   required
                   rows={3}
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white placeholder-white/50 hover:border-white/20 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors resize-none"
+                  className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white placeholder-gray-400 hover:border-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors resize-none"
                   placeholder="Event details and agenda..."
                 />
               </div>
@@ -175,7 +175,7 @@ export const EventFormModal = ({
                     name="location"
                     value={formData.location}
                     onChange={handleChange}
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white placeholder-white/50 hover:border-white/20 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
+                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white placeholder-gray-400 hover:border-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
                     placeholder="e.g., Conference Room A"
                   />
                 </div>
@@ -189,7 +189,7 @@ export const EventFormModal = ({
                     name="capacity"
                     value={formData.capacity}
                     onChange={handleChange}
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white placeholder-white/50 hover:border-white/20 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
+                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white placeholder-gray-400 hover:border-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
                     placeholder="Number of participants"
                   />
                 </div>
@@ -206,7 +206,7 @@ export const EventFormModal = ({
                     value={formData.startDate}
                     onChange={handleChange}
                     required
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white hover:border-white/20 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
+                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
                   />
                 </div>
 
@@ -220,7 +220,7 @@ export const EventFormModal = ({
                     value={formData.endDate}
                     onChange={handleChange}
                     required
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white hover:border-white/20 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
+                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -235,7 +235,7 @@ export const EventFormModal = ({
                   value={formData.registrationDeadline}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white hover:border-white/20 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
+                  className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
                 />
               </div>
 
