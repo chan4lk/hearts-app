@@ -171,7 +171,7 @@ export default function EmployeeEventsPage() {
             </motion.div>
             <motion.div 
               whileHover={{ scale: 1.02 }}
-              className="rounded-xl border border-indigo-500/30 bg-gradient-to-br from-indigo-500/10 to-indigo-500/5 p-4 backdrop-blur-xl hover:border-indigo-500/50 transition-all"
+              className="rounded-xl border border-teal-500/30 bg-gradient-to-br from-teal-500/10 to-teal-500/5 p-4 backdrop-blur-xl hover:border-teal-500/50 transition-all"
             >
               <p className="text-sm text-white/60 mb-2">Total Hours</p>
               <p className="text-3xl font-bold text-indigo-300">
@@ -185,7 +185,7 @@ export default function EmployeeEventsPage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 rounded-xl border-2 border-indigo-500/20 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-indigo-500/5 p-4 backdrop-blur-xl"
+              className="mb-6 rounded-xl border-2 border-teal-500/20 bg-gradient-to-r from-teal-500/5 via-cyan-500/5 to-teal-500/5 p-4 backdrop-blur-xl"
             >
               <div className="relative max-w-xs">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
@@ -287,7 +287,7 @@ export default function EmployeeEventsPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => window.location.href = '/dashboard/employee/events/browse'}
-                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-3 font-semibold text-white hover:from-indigo-600 hover:to-purple-700 shadow-lg shadow-purple-500/30 transition-all"
+                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-600 px-6 py-3 font-semibold text-white hover:from-teal-600 hover:to-cyan-700 shadow-lg shadow-cyan-500/30 transition-all"
               >
                 Browse Events
                 <BsArrowRight className="text-lg" />
@@ -320,7 +320,7 @@ export default function EmployeeEventsPage() {
                       onClick={() => setPage(p)}
                       className={`rounded-lg px-3 py-1 text-sm font-medium transition-all ${
                         page === p
-                          ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-purple-500/30'
+                          ? 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-lg shadow-cyan-500/30'
                           : 'border border-white/20 text-white hover:bg-white/10'
                       }`}
                     >

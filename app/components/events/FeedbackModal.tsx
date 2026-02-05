@@ -102,7 +102,7 @@ export const FeedbackModal = ({
                   }
                   rows={4}
                   placeholder="Share your experience, key learnings, and suggestions for improvement..."
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white placeholder-white/50 focus:border-indigo-500 focus:outline-none"
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white placeholder-white/50 focus:border-teal-500 focus:outline-none"
                 />
               </div>
 
@@ -110,7 +110,7 @@ export const FeedbackModal = ({
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 py-2 font-semibold text-white hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50 transition"
+                  className="flex-1 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-600 py-2 font-semibold text-white hover:from-teal-600 hover:to-cyan-700 disabled:opacity-50 transition"
                 >
                   {isLoading ? 'Saving...' : 'Save Feedback'}
                 </button>

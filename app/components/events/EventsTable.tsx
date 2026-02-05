@@ -63,7 +63,7 @@ export const EventsTable = ({
   return (
     <div className="overflow-x-auto">
       <table className="w-full table-fixed min-w-full">
-        <thead className="sticky top-0 z-20 bg-gradient-to-r from-indigo-600 to-purple-600 border-b-2 border-indigo-700 shadow-md">
+        <thead className="sticky top-0 z-20 bg-gradient-to-r from-teal-600 to-cyan-600 border-b-2 border-teal-700 shadow-md">
           <tr>
             <th className="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">
               Event Title

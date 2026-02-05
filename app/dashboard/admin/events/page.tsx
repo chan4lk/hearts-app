@@ -177,7 +177,7 @@ export default function AdminEventsPage() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="relative overflow-hidden rounded-xl p-6 shadow-lg bg-gradient-to-r from-indigo-600 to-purple-600"
+              className="relative overflow-hidden rounded-xl p-6 shadow-lg bg-gradient-to-r from-teal-600 to-cyan-600"
             >
               {/* Animated Background Elements */}
               <div className="absolute inset-0 overflow-hidden">
@@ -225,7 +225,7 @@ export default function AdminEventsPage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-xl border-2 border-indigo-500/20 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-indigo-500/5 p-4 backdrop-blur-xl"
+              className="rounded-xl border-2 border-teal-500/20 bg-gradient-to-r from-teal-500/5 via-cyan-500/5 to-teal-500/5 p-4 backdrop-blur-xl"
           >
             <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
               {/* Search Input */}
@@ -365,7 +365,7 @@ export default function AdminEventsPage() {
                             onClick={() => setPage(p)}
                             className={`rounded-lg px-3 py-1 text-sm font-medium transition-all ${
                               page === p
-                                ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-purple-500/30'
+                                ? 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-lg shadow-cyan-500/30'
                                 : 'border border-white/20 text-white hover:bg-white/10'
                             }`}
                           >

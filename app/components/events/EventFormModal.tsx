@@ -86,17 +86,17 @@ export const EventFormModal = ({
           onClick={onClose}
         >
           <motion.div
-            className="relative w-full max-w-2xl rounded-xl border border-indigo-500/30 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 shadow-2xl shadow-indigo-500/10 backdrop-blur-xl overflow-hidden"
+            className="relative w-full max-w-2xl rounded-xl border border-teal-500/30 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 shadow-2xl shadow-teal-500/10 backdrop-blur-xl overflow-hidden"
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header with gradient background */}
-            <div className="border-b border-indigo-500/20 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-indigo-500/10 px-6 py-4">
+            <div className="border-b border-teal-500/20 bg-gradient-to-r from-teal-500/10 via-cyan-500/10 to-teal-500/10 px-6 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-lg">
+                  <div className="p-2 bg-gradient-to-r from-teal-500 to-cyan-600 rounded-lg shadow-lg">
                     <BsCalendarEvent className="text-xl text-white" />
                   </div>
                   <h2 className="text-xl font-bold text-white">
@@ -126,7 +126,7 @@ export const EventFormModal = ({
                     value={formData.title}
                     onChange={handleChange}
                     required
-                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white placeholder-gray-400 hover:border-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
+                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white placeholder-gray-400 hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
                     placeholder="e.g., Toastmasters Conference"
                   />
                 </div>
@@ -139,7 +139,7 @@ export const EventFormModal = ({
                     name="eventType"
                     value={formData.eventType}
                     onChange={handleChange}
-                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
+                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
                   >
                     {eventTypes.map((type) => (
                       <option key={type} value={type}>
@@ -160,7 +160,7 @@ export const EventFormModal = ({
                   onChange={handleChange}
                   required
                   rows={3}
-                  className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white placeholder-gray-400 hover:border-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors resize-none"
+                  className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white placeholder-gray-400 hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors resize-none"
                   placeholder="Event details and agenda..."
                 />
               </div>
@@ -175,7 +175,7 @@ export const EventFormModal = ({
                     name="location"
                     value={formData.location}
                     onChange={handleChange}
-                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white placeholder-gray-400 hover:border-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
+                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white placeholder-gray-400 hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
                     placeholder="e.g., Conference Room A"
                   />
                 </div>
@@ -189,7 +189,7 @@ export const EventFormModal = ({
                     name="capacity"
                     value={formData.capacity}
                     onChange={handleChange}
-                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white placeholder-gray-400 hover:border-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
+                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white placeholder-gray-400 hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
                     placeholder="Number of participants"
                   />
                 </div>
@@ -206,7 +206,7 @@ export const EventFormModal = ({
                     value={formData.startDate}
                     onChange={handleChange}
                     required
-                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
+                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
                   />
                 </div>
 
@@ -220,7 +220,7 @@ export const EventFormModal = ({
                     value={formData.endDate}
                     onChange={handleChange}
                     required
-                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
+                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -235,7 +235,7 @@ export const EventFormModal = ({
                   value={formData.registrationDeadline}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 focus:outline-none transition-colors"
+                  className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
                 />
               </div>
 
@@ -245,7 +245,7 @@ export const EventFormModal = ({
                   whileTap={{ scale: 0.98 }}
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 py-2.5 font-semibold text-white hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50 shadow-lg shadow-purple-500/20 transition-all"
+                  className="flex-1 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-600 py-2.5 font-semibold text-white hover:from-teal-600 hover:to-cyan-700 disabled:opacity-50 shadow-lg shadow-cyan-500/20 transition-all"
                 >
                   {isLoading ? 'Saving...' : 'Save Event'}
                 </motion.button>

@@ -19,9 +19,9 @@ export default function EventStatsSection({ events }: EventStatsSectionProps) {
       title: 'Total Events',
       value: events.total,
       icon: <BsCalendarEvent className="w-4 h-4" />,
-      gradient: 'from-indigo-500 to-purple-500',
-      bgColor: 'bg-indigo-500/10',
-      borderColor: 'border-indigo-500/30',
+      gradient: 'from-teal-500 to-cyan-500',
+      bgColor: 'bg-teal-500/10',
+      borderColor: 'border-teal-500/30',
     },
     {
       title: 'Scheduled',
