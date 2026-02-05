@@ -28,11 +28,14 @@ interface StatsSectionProps {
 }
 
 export default function StatsSection({
-  stats,
+  stats = [],
   variant = 'auto',
   columns,
   children
 }: StatsSectionProps) {
+  // Ensure stats is an array to prevent runtime errors
+  const safeStats = Array.isArray(stats) ? stats : [];
+  
   // Auto-detect optimal grid layout based on number of stats
   const getAutoGridClass = (count: number) => {
     if (count <= 2) return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3';
@@ -56,7 +59,7 @@ export default function StatsSection({
 
   if (variant === 'auto') {
     // Auto mode: intelligent grid based on item count
-    gridClass = getAutoGridClass(stats.length);
+    gridClass = getAutoGridClass(safeStats.length);
   } else if (variant === 'compact') {
     gridClass = `grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2`;
   } else {
@@ -67,7 +70,7 @@ export default function StatsSection({
 
   return (
     <div className={gridClass}>
-      {stats.map((stat, index) => (
+      {safeStats.map((stat, index) => (
         <motion.div
           key={stat.title}
           initial={{ opacity: 0, y: 20 }}

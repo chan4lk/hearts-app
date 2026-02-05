@@ -1,6 +1,6 @@
 'use client';
 
-import { BsFilter, BsPerson, BsFlag, BsFolder2Open } from 'react-icons/bs';
+import { BsFilter, BsPerson, BsFlag, BsFolder2Open, BsCalendar, BsDownload, BsArrowClockwise, BsBuilding } from 'react-icons/bs';
 import { motion } from 'framer-motion';
 import { ReactNode } from 'react';
 
@@ -91,11 +91,28 @@ export interface FilterOption {
 }
 
 export interface FiltersProps {
+  // Date Range
+  startDate?: string;
+  endDate?: string;
+  onStartDateChange?: (date: string) => void;
+  onEndDateChange?: (date: string) => void;
+
   // User filter
   selectedUser?: string;
   onUserChange?: (value: string) => void;
   users?: Array<{ id: string; name: string; role: string }>;
   
+  // Employee filter (alias for User filter but specific for Analytics/Manager views)
+  selectedEmployee?: string;
+  onEmployeeChange?: (value: string) => void;
+  employees?: Array<{ id: string; name: string; email: string; department: string | null }>;
+  assignedEmployees?: Array<{ id: string; name: string; role: string }>; // For Manager Set Goals
+
+  // Department filter
+  selectedDepartment?: string;
+  onDepartmentChange?: (value: string) => void;
+  departments?: string[];
+
   // Status filter
   selectedStatus?: string;
   onStatusChange?: (value: string) => void;
@@ -121,6 +138,12 @@ export interface FiltersProps {
     icon?: ReactNode;
     gradient?: string;
   }>;
+
+  // Actions
+  onExport?: () => void;
+  userRole?: string;
+  onRefresh?: () => void;
+  refreshing?: boolean;
 }
 
 const getColorConfig = (value: string, config: any) => {
@@ -200,9 +223,20 @@ const FilterSelect = ({
 };
 
 export default function Filters({
+  startDate,
+  endDate,
+  onStartDateChange,
+  onEndDateChange,
   selectedUser = 'all',
   onUserChange,
   users = [],
+  selectedEmployee = 'all',
+  onEmployeeChange,
+  employees = [],
+  assignedEmployees = [],
+  selectedDepartment = 'all',
+  onDepartmentChange,
+  departments = [],
   selectedStatus = 'all',
   onStatusChange,
   statusOptions,
@@ -212,7 +246,11 @@ export default function Filters({
   selectedCategory = '',
   onCategoryChange,
   categoryOptions,
-  filters = []
+  filters = [],
+  onExport,
+  userRole,
+  onRefresh,
+  refreshing = false
 }: FiltersProps) {
   const statusColorConfig = getColorConfig(selectedStatus, STATUS_CONFIG);
   const priorityColorConfig = getColorConfig(selectedPriority, PRIORITY_CONFIG);
@@ -220,7 +258,10 @@ export default function Filters({
   // Determine grid columns based on active filters
   let gridColsClass = 'lg:grid-cols-2';
   const activeFiltersCount = [
+    onStartDateChange,
     onUserChange,
+    onEmployeeChange,
+    onDepartmentChange,
     onStatusChange,
     onPriorityChange,
     onCategoryChange
@@ -228,6 +269,13 @@ export default function Filters({
 
   if (activeFiltersCount >= 4) gridColsClass = 'lg:grid-cols-4 xl:grid-cols-4';
   else if (activeFiltersCount === 3) gridColsClass = 'lg:grid-cols-3';
+
+  // Merge employees lists if needed
+  const employeeOptions = employees.length > 0 
+    ? employees.map(e => ({ value: e.id, label: e.name }))
+    : assignedEmployees.length > 0
+      ? assignedEmployees.map(e => ({ value: e.id, label: e.name }))
+      : [];
 
   const defaultStatusOptions = statusOptions || [
     { value: 'DRAFT', label: 'Draft' },
@@ -261,6 +309,33 @@ export default function Filters({
       className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border-2 border-gray-700/50 space-y-4"
     >
       <div className={`grid grid-cols-1 md:grid-cols-2 ${gridColsClass} gap-3`}>
+        {/* Date Range Filter */}
+        {onStartDateChange && onEndDateChange && (
+          <div className="flex space-x-2">
+             <div className="relative flex-1">
+               <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none z-10">
+                 <div className="p-1.5 rounded-md bg-gradient-to-r from-blue-500 to-indigo-500">
+                   <BsCalendar className="w-3 h-3 text-white" />
+                 </div>
+               </div>
+               <input
+                 type="date"
+                 value={startDate}
+                 onChange={(e) => onStartDateChange(e.target.value)}
+                 className="w-full pl-10 pr-3 py-2.5 bg-gray-900/50 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all duration-200 hover:border-opacity-70 hover:shadow-sm"
+               />
+             </div>
+             <div className="relative flex-1">
+               <input
+                 type="date"
+                 value={endDate}
+                 onChange={(e) => onEndDateChange(e.target.value)}
+                 className="w-full pl-3 pr-3 py-2.5 bg-gray-900/50 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all duration-200 hover:border-opacity-70 hover:shadow-sm"
+               />
+             </div>
+          </div>
+        )}
+
         {/* User Filter */}
         {onUserChange && users.length > 0 && (
           <FilterSelect
@@ -273,6 +348,30 @@ export default function Filters({
             gradient="from-blue-500 to-indigo-500"
             focusRing="focus:ring-blue-500 focus:border-blue-500"
           />
+        )}
+
+        {/* Employee Filter */}
+        {onEmployeeChange && employeeOptions.length > 0 && (
+          <FilterSelect
+            value={selectedEmployee}
+            onChange={onEmployeeChange}
+            options={employeeOptions}
+            icon={<BsPerson className="w-3 h-3 text-white" />}
+            gradient="from-blue-500 to-indigo-500"
+            focusRing="focus:ring-blue-500 focus:border-blue-500"
+          />
+        )}
+
+        {/* Department Filter */}
+        {onDepartmentChange && departments.length > 0 && (
+           <FilterSelect
+             value={selectedDepartment}
+             onChange={onDepartmentChange}
+             options={departments.map(d => ({ value: d, label: d }))}
+             icon={<BsBuilding className="w-3 h-3 text-white" />}
+             gradient="from-indigo-500 to-purple-500"
+             focusRing="focus:ring-indigo-500 focus:border-indigo-500"
+           />
         )}
 
         {/* Status Filter */}
@@ -328,6 +427,31 @@ export default function Filters({
           />
         ))}
       </div>
+
+      {/* Action Buttons */}
+      {(onExport || onRefresh) && (
+        <div className="flex justify-end gap-3 pt-2 border-t border-gray-700/50">
+           {onRefresh && (
+             <button
+               onClick={onRefresh}
+               disabled={refreshing}
+               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-700/50 text-white hover:bg-gray-700 transition-colors disabled:opacity-50"
+             >
+               <BsArrowClockwise className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+               {refreshing ? 'Refreshing...' : 'Refresh'}
+             </button>
+           )}
+           {onExport && (userRole === 'ADMIN' || userRole === 'MANAGER') && (
+             <button
+               onClick={onExport}
+               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+             >
+               <BsDownload className="w-4 h-4" />
+               Export Report
+             </button>
+           )}
+        </div>
+      )}
     </motion.div>
   );
 }

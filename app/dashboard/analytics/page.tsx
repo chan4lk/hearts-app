@@ -24,7 +24,7 @@ import HeroSection from '@/app/components/shared/HeroSection';
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 import Filters from '@/app/components/shared/Filters';
 import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
-import { BsClipboardData, BsCheckCircle, BsPercent, BsStarFill as BsStarIcon } from 'react-icons/bs';
+import { BsClipboardData, BsCheckCircle, BsPercent, BsStarFill as BsStarIcon, BsClock, BsFileEarmarkText, BsCheck2Circle, BsXCircle, BsListCheck } from 'react-icons/bs';
 
 interface AnalyticsData {
   summary: {
@@ -497,8 +497,6 @@ export default function AnalyticsPage() {
   return (
     <DashboardLayout type={dashboardType}>
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-        {/* Subtle Background Pattern */}
-        <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           {/* Hero Section */}
@@ -526,7 +524,7 @@ export default function AnalyticsPage() {
             }}
             employees={employees}
             departments={departments}
-            onExport={handleExport}
+            onExport={() => handleExport('pdf')}
             userRole={session?.user?.role}
             onRefresh={handleRefresh}
             refreshing={refreshing}
@@ -600,6 +598,73 @@ export default function AnalyticsPage() {
                       gradient: 'from-amber-500 to-orange-500',
                       bgColor: 'bg-amber-500/10',
                       borderColor: 'border-amber-500/30'
+                    }
+                  ];
+                  return <StatsSection stats={statItems} variant="auto" />;
+                })()}
+              </motion.div>
+
+              {/* Status Breakdown Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                className="mb-6"
+              >
+                <div className="mb-4">
+                  <h2 className="text-xl font-bold text-white mb-1">Status Breakdown</h2>
+                  <p className="text-sm text-gray-400">Detailed breakdown of goals by status</p>
+                </div>
+                {(() => {
+                  const byStatus = analyticsData.breakdowns.byStatus || {};
+                  const statItems: StatItem[] = [
+                    {
+                      title: 'Draft',
+                      value: byStatus['DRAFT'] || 0,
+                      icon: <BsFileEarmarkText className="w-4 h-4" />,
+                      gradient: 'from-gray-500 to-slate-500',
+                      bgColor: 'bg-gray-500/10',
+                      borderColor: 'border-gray-500/30'
+                    },
+                    {
+                      title: 'Pending',
+                      value: byStatus['PENDING'] || 0,
+                      icon: <BsClock className="w-4 h-4" />,
+                      gradient: 'from-amber-500 to-orange-500',
+                      bgColor: 'bg-amber-500/10',
+                      borderColor: 'border-amber-500/30'
+                    },
+                    {
+                      title: 'Approved',
+                      value: byStatus['APPROVED'] || 0,
+                      icon: <BsCheck2Circle className="w-4 h-4" />,
+                      gradient: 'from-emerald-500 to-teal-500',
+                      bgColor: 'bg-emerald-500/10',
+                      borderColor: 'border-emerald-500/30'
+                    },
+                    {
+                      title: 'Rejected',
+                      value: byStatus['REJECTED'] || 0,
+                      icon: <BsXCircle className="w-4 h-4" />,
+                      gradient: 'from-red-500 to-rose-500',
+                      bgColor: 'bg-red-500/10',
+                      borderColor: 'border-red-500/30'
+                    },
+                    {
+                      title: 'Modified',
+                      value: byStatus['MODIFIED'] || 0,
+                      icon: <BsListCheck className="w-4 h-4" />,
+                      gradient: 'from-blue-500 to-indigo-500',
+                      bgColor: 'bg-blue-500/10',
+                      borderColor: 'border-blue-500/30'
+                    },
+                    {
+                      title: 'Completed',
+                      value: byStatus['COMPLETED'] || 0,
+                      icon: <BsCheckCircle className="w-4 h-4" />,
+                      gradient: 'from-green-500 to-lime-500',
+                      bgColor: 'bg-green-500/10',
+                      borderColor: 'border-green-500/30'
                     }
                   ];
                   return <StatsSection stats={statItems} variant="auto" />;

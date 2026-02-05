@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { BsExclamationTriangle, BsArrowUpRight } from 'react-icons/bs';
+import { BsExclamationTriangle, BsArrowUpRight, BsCheckCircle, BsClock, BsFileEarmarkText, BsCheck2Circle, BsXCircle, BsListCheck } from 'react-icons/bs';
 import { Button } from '@/app/components/ui/button';
 
 // Layout
@@ -431,12 +431,6 @@ function ManagerGoalSettingPageContent() {
   return (
     <DashboardLayout type="manager">
       <div className={`min-h-screen bg-gradient-to-br ${colors.background.gradient}`}>
-      {/* Floating Background Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
-      </div>
 
       <div className="relative z-10 p-4 space-y-4">
         <HeroSection
@@ -445,7 +439,59 @@ function ManagerGoalSettingPageContent() {
         />
 
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-4 border border-white/20 dark:border-gray-700/50 space-y-4">
-          <StatsSection stats={stats} variant="auto" />
+          {(() => {
+            const statItems: StatItem[] = [
+              {
+                title: 'Total Goals',
+                value: stats.totalGoals,
+                icon: <BsListCheck className="w-4 h-4" />,
+                gradient: 'from-blue-500 to-indigo-500',
+                bgColor: 'bg-blue-500/10',
+                borderColor: 'border-blue-500/30'
+              },
+              {
+                title: 'Draft',
+                value: stats.draftGoals,
+                icon: <BsFileEarmarkText className="w-4 h-4" />,
+                gradient: 'from-gray-500 to-slate-500',
+                bgColor: 'bg-gray-500/10',
+                borderColor: 'border-gray-500/30'
+              },
+              {
+                title: 'Pending',
+                value: stats.pendingGoals,
+                icon: <BsClock className="w-4 h-4" />,
+                gradient: 'from-amber-500 to-orange-500',
+                bgColor: 'bg-amber-500/10',
+                borderColor: 'border-amber-500/30'
+              },
+              {
+                title: 'Approved',
+                value: stats.approvedGoals,
+                icon: <BsCheck2Circle className="w-4 h-4" />,
+                gradient: 'from-emerald-500 to-teal-500',
+                bgColor: 'bg-emerald-500/10',
+                borderColor: 'border-emerald-500/30'
+              },
+              {
+                title: 'Rejected',
+                value: stats.rejectedGoals,
+                icon: <BsXCircle className="w-4 h-4" />,
+                gradient: 'from-red-500 to-rose-500',
+                bgColor: 'bg-red-500/10',
+                borderColor: 'border-red-500/30'
+              },
+              {
+                title: 'Completed',
+                value: stats.completedGoals,
+                icon: <BsCheckCircle className="w-4 h-4" />,
+                gradient: 'from-green-500 to-lime-500',
+                bgColor: 'bg-green-500/10',
+                borderColor: 'border-green-500/30'
+              }
+            ];
+            return <StatsSection stats={statItems} variant="auto" />;
+          })()}
         </div>
 
         <Filters

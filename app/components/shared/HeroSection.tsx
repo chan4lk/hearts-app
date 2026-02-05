@@ -2,6 +2,8 @@
 
 import { motion } from 'framer-motion';
 import { ReactNode } from 'react';
+import { Button } from '@/app/components/ui/button';
+import { BsPlus, BsCollection } from 'react-icons/bs';
 
 interface HeroSectionProps {
   title?: string;
@@ -10,6 +12,8 @@ interface HeroSectionProps {
   gradient?: string; // e.g., 'from-teal-600 to-cyan-600'
   children?: ReactNode;
   useSessionName?: boolean; // if true, requires useSession hook
+  onCreateClick?: () => void;
+  onBulkCreateClick?: () => void;
 }
 
 export default function HeroSection({
@@ -18,7 +22,9 @@ export default function HeroSection({
   userName,
   gradient = 'from-teal-600 to-cyan-600',
   children,
-  useSessionName = false
+  useSessionName = false,
+  onCreateClick,
+  onBulkCreateClick
 }: HeroSectionProps) {
   // If useSessionName is true, the parent component should pass userName
   const displayName = userName || 'User';
@@ -57,7 +63,28 @@ export default function HeroSection({
             </p>
           )}
         </div>
-        {children}
+        <div className="flex items-center gap-3">
+          {onBulkCreateClick && (
+            <Button 
+              onClick={onBulkCreateClick} 
+              variant="outline" 
+              className="bg-white/10 border-white/20 text-white hover:bg-white/20 border-0"
+            >
+              <BsCollection className="mr-2 h-4 w-4" />
+              Bulk Create
+            </Button>
+          )}
+          {onCreateClick && (
+            <Button 
+              onClick={onCreateClick} 
+              className="bg-white text-teal-600 hover:bg-white/90 border-0"
+            >
+              <BsPlus className="mr-2 h-4 w-4" />
+              Create Goal
+            </Button>
+          )}
+          {children}
+        </div>
       </div>
     </motion.div>
   );
