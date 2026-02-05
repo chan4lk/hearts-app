@@ -128,11 +128,11 @@ export default function BrowseEventsPage() {
 
   const getEventTypeColor = (type: string) => {
     const colors: Record<string, string> = {
-      TOASTMASTERS: 'bg-purple-500/20 text-purple-300',
+      TOASTMASTERS: 'bg-cyan-500/20 text-cyan-300',
       CODECRUNCH: 'bg-orange-500/20 text-orange-300',
       HEART_TALKS: 'bg-pink-500/20 text-pink-300',
       BISTEC_CLUB: 'bg-cyan-500/20 text-cyan-300',
-      WORKSHOP: 'bg-indigo-500/20 text-indigo-300',
+      WORKSHOP: 'bg-teal-500/20 text-teal-300',
       TRAINING: 'bg-green-500/20 text-green-300',
       default: 'bg-white/10 text-white',
     };
@@ -222,7 +222,7 @@ export default function BrowseEventsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
                 whileHover={{ scale: 1.02, y: -5 }}
-                className="group rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/2 p-5 backdrop-blur-xl hover:border-indigo-500/50 hover:shadow-lg hover:shadow-indigo-500/10 transition-all cursor-default"
+                className="group rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/2 p-5 backdrop-blur-xl hover:border-teal-500/50 hover:shadow-lg hover:shadow-teal-500/10 transition-all cursor-default"
               >
                 {/* Event Type Badge */}
                 <div className="flex items-start justify-between mb-3">
@@ -241,7 +241,7 @@ export default function BrowseEventsPage() {
                 </div>
 
                 {/* Title */}
-                <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-indigo-300 transition">
+                <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-teal-300 transition">
                   {event.title}
                 </h3>
 
@@ -278,7 +278,7 @@ export default function BrowseEventsPage() {
                       className={`h-2 rounded-full transition-all ${
                         isCapacityFull(event)
                           ? 'bg-red-500'
-                          : 'bg-gradient-to-r from-indigo-500 to-purple-500'
+                          : 'bg-gradient-to-r from-teal-500 to-cyan-500'
                       }`}
                     />
                   </div>
@@ -294,7 +294,7 @@ export default function BrowseEventsPage() {
                     className={`w-full rounded-lg px-4 py-2 font-semibold transition-all ${
                       isCapacityFull(event)
                         ? 'bg-gray-500/20 text-gray-300 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50 shadow-lg shadow-purple-500/20'
+                        : 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white hover:from-teal-600 hover:to-cyan-700 disabled:opacity-50 shadow-lg shadow-cyan-500/20'
                     }`}
                   >
                     {registering === event.id ? (
@@ -335,8 +335,8 @@ export default function BrowseEventsPage() {
               animate={{ opacity: 1, y: 0 }}
               className="rounded-xl border border-white/10 bg-white/5 p-12 text-center backdrop-blur-xl"
             >
-              <div className="inline-flex p-4 bg-indigo-500/10 rounded-full mb-4">
-                <BsArrowRight className="text-5xl text-indigo-400/50" />
+              <div className="inline-flex p-4 bg-teal-500/10 rounded-full mb-4">
+                <BsArrowRight className="text-5xl text-teal-400/50" />
               </div>
               <h3 className="text-xl font-semibold text-white mb-2">No events found</h3>
               <p className="text-white/60">
@@ -370,7 +370,7 @@ export default function BrowseEventsPage() {
                       onClick={() => setPage(p)}
                       className={`rounded-lg px-3 py-1 text-sm font-medium transition-all ${
                         page === p
-                          ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-purple-500/30'
+                          ? 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-lg shadow-cyan-500/30'
                           : 'border border-white/20 text-white hover:bg-white/10'
                       }`}
                     >

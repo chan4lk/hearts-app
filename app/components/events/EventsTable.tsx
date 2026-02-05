@@ -49,11 +49,11 @@ export const EventsTable = ({
 
   const getEventTypeColor = (type: string) => {
     const colors: Record<string, string> = {
-      TOASTMASTERS: 'bg-purple-500/20 text-purple-300',
+      TOASTMASTERS: 'bg-cyan-500/20 text-cyan-300',
       CODECRUNCH: 'bg-orange-500/20 text-orange-300',
       HEART_TALKS: 'bg-pink-500/20 text-pink-300',
       BISTEC_CLUB: 'bg-cyan-500/20 text-cyan-300',
-      WORKSHOP: 'bg-indigo-500/20 text-indigo-300',
+      WORKSHOP: 'bg-teal-500/20 text-teal-300',
       TRAINING: 'bg-green-500/20 text-green-300',
       default: 'bg-white/10 text-white',
     };
@@ -112,7 +112,7 @@ export const EventsTable = ({
               </td>
               <td className="px-4 py-3 text-sm text-white/70">
                 <div className="flex items-center gap-1">
-                  <BsCalendar className="text-indigo-400" />
+                  <BsCalendar className="text-teal-400" />
                   {new Date(event.startDate).toLocaleDateString()} -{' '}
                   {formatDistanceToNow(new Date(event.startDate), {
                     addSuffix: true,
@@ -143,10 +143,10 @@ export const EventsTable = ({
                   </button>
                   <button
                     onClick={() => onEdit(event)}
-                    className="rounded-lg p-2 hover:bg-indigo-500/20 transition"
+                    className="rounded-lg p-2 hover:bg-teal-500/20 transition"
                     title="Edit event"
                   >
-                    <BsEdit className="text-indigo-400" />
+                    <BsEdit className="text-teal-400" />
                   </button>
                   <button
                     onClick={() => onDelete(event.id)}

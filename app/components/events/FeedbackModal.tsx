@@ -82,7 +82,7 @@ export const FeedbackModal = ({
                     }
                     className="flex-1"
                   />
-                  <span className="text-lg font-bold text-indigo-400 min-w-16">
+                  <span className="text-lg font-bold text-teal-400 min-w-16">
                     {formData.hoursContributed}h
                   </span>
                 </div>

@@ -139,7 +139,7 @@ export default function EmployeeEventsPage() {
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-4xl font-bold text-indigo-400">
+                <div className="text-4xl font-bold text-teal-400">
                   {participations.length}
                 </div>
                 <p className="text-sm text-white/60">Events</p>
@@ -174,7 +174,7 @@ export default function EmployeeEventsPage() {
               className="rounded-xl border border-teal-500/30 bg-gradient-to-br from-teal-500/10 to-teal-500/5 p-4 backdrop-blur-xl hover:border-teal-500/50 transition-all"
             >
               <p className="text-sm text-white/60 mb-2">Total Hours</p>
-              <p className="text-3xl font-bold text-indigo-300">
+              <p className="text-3xl font-bold text-teal-300">
                 {participations.reduce((sum, p) => sum + (p.hoursContributed || 0), 0)}h
               </p>
             </motion.div>
@@ -224,8 +224,8 @@ export default function EmployeeEventsPage() {
               className="mb-8"
             >
               <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
-                <div className="p-2 bg-indigo-500/20 rounded-lg">
-                  <BsCalendarPlus className="text-indigo-400" />
+                <div className="p-2 bg-teal-500/20 rounded-lg">
+                  <BsCalendarPlus className="text-teal-400" />
                 </div>
                 Upcoming Events
               </h2>
@@ -276,8 +276,8 @@ export default function EmployeeEventsPage() {
               animate={{ opacity: 1, y: 0 }}
               className="rounded-xl border border-white/10 bg-white/5 p-12 text-center backdrop-blur-xl"
             >
-              <div className="inline-flex p-4 bg-indigo-500/10 rounded-full mb-4">
-                <BsCalendarPlus className="text-5xl text-indigo-400/50" />
+              <div className="inline-flex p-4 bg-teal-500/10 rounded-full mb-4">
+                <BsCalendarPlus className="text-5xl text-teal-400/50" />
               </div>
               <h3 className="text-xl font-semibold text-white mb-2">No events yet</h3>
               <p className="text-white/60 mb-6">

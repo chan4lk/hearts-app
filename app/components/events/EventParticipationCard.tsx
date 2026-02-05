@@ -61,7 +61,7 @@ export const EventParticipationCard = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/2 p-5 backdrop-blur-xl hover:border-indigo-500/50 transition"
+      className="rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/2 p-5 backdrop-blur-xl hover:border-teal-500/50 transition"
     >
       <div className="mb-4 flex items-start justify-between">
         <div className="flex-1">
@@ -84,7 +84,7 @@ export const EventParticipationCard = ({
 
       {/* Date and Time */}
       <div className="mb-4 flex items-center gap-2 text-sm text-white/70">
-        <BsCalendar className="text-indigo-400" />
+        <BsCalendar className="text-teal-400" />
         <span>
           {new Date(event.startDate).toLocaleDateString()} at{' '}
           {new Date(event.startDate).toLocaleTimeString([], {
@@ -103,9 +103,9 @@ export const EventParticipationCard = ({
       {isPastEvent && (
         <div className="mb-4 space-y-3">
           {hoursContributed && (
-            <div className="rounded-lg bg-indigo-500/10 border border-indigo-500/20 p-3">
+            <div className="rounded-lg bg-teal-500/10 border border-teal-500/20 p-3">
               <p className="text-xs text-white/60 mb-1">Hours Contributed</p>
-              <p className="text-lg font-bold text-indigo-300">{hoursContributed}h</p>
+              <p className="text-lg font-bold text-teal-300">{hoursContributed}h</p>
             </div>
           )}
 

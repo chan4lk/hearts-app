@@ -68,8 +68,8 @@ export const EventDetailsModal = ({
               </div>
 
               {/* Date & Time */}
-              <div className="flex items-start gap-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20 p-3">
-                <BsCalendar className="text-indigo-400 mt-1 flex-shrink-0" />
+              <div className="flex items-start gap-3 rounded-lg bg-teal-500/10 border border-teal-500/20 p-3">
+                <BsCalendar className="text-teal-400 mt-1 flex-shrink-0" />
                 <div>
                   <p className="text-xs text-white/60 mb-1">Date & Time</p>
                   <p className="text-white font-medium">
@@ -99,7 +99,7 @@ export const EventDetailsModal = ({
                   <p className="text-xs text-white/60 mb-1 flex items-center gap-1">
                     <BsPeople /> Participants
                   </p>
-                  <p className="text-2xl font-bold text-indigo-400">
+                  <p className="text-2xl font-bold text-teal-400">
                     {event.participations?.length || 0}
                   </p>
                 </div>
