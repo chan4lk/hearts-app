@@ -30,7 +30,9 @@ import {
   BsSearch,
   BsList,
   BsX,
-  BsCalendarCheck
+  BsCalendarCheck,
+  BsCalendarEvent as BsCalendar,
+  BsCheckCircle as BsCheckEvent
 } from 'react-icons/bs';
 import dynamic from 'next/dynamic';
 import { useSettings } from '@/app/providers';
@@ -122,6 +124,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       { href: '/dashboard/admin/users', label: 'Manage Users', icon: BsPeople },
       { href: '/dashboard/admin/all-goals', label: 'All Goals', icon: BsBullseye },
       { href: '/dashboard/admin/review-cycles', label: 'Review Cycles', icon: BsCalendarCheck },
+      { href: '/dashboard/admin/events', label: 'Event Management', icon: BsCalendar },
       { href: '/dashboard/analytics?context=admin', label: 'Analytics', icon: BsBarChart },
     ];
 
@@ -137,6 +140,8 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       { href: '/dashboard/employee', label: 'Overview', icon: BsPerson },
       { href: '/dashboard/employee/goals/create', label: 'My Goals', icon: BsBullseye },
       { href: '/dashboard/employee/self-rating', label: 'Self Rating', icon: BsStar },
+      { href: '/dashboard/employee/events', label: 'My Events', icon: BsCheckEvent },
+      { href: '/dashboard/employee/events/browse', label: 'Browse Events', icon: BsCalendar },
       { href: '/dashboard/analytics?context=employee', label: 'Analytics', icon: BsBarChart },
     ];
 
