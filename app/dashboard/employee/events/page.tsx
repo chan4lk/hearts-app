@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { BsSearch, BsCalendarPlus, BsArrowRight, BsFilter, BsCheckLg } from 'react-icons/bs';
+import { BsSearch, BsCalendarPlus, BsArrowRight, BsFilter, BsCheckLg, BsArrowCounterclockwise } from 'react-icons/bs';
 import { toast } from 'react-toastify';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { EventParticipationCard } from '@/app/components/events/EventParticipationCard';
 import { FeedbackModal } from '@/app/components/events/FeedbackModal';
+import Filters from '@/app/components/shared/Filters';
 
 interface Participation {
   id: string;
@@ -230,35 +231,24 @@ export default function EmployeeEventsPage() {
           {/* Filters - Fixed */}
           <div className="flex-shrink-0 pb-3">
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 border-2 border-gray-700/50">
-              <div className="grid grid-cols-1 md:grid-cols-1 gap-3">
-                {/* Status Filter */}
-                <div className="relative max-w-xs">
-                  <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none z-10">
-                    <div className="p-1.5 rounded-md bg-gradient-to-r from-teal-500 to-cyan-600">
-                      <BsFilter className="w-3 h-3 text-white" />
-                    </div>
-                  </div>
-                  <select
-                    value={status}
-                    onChange={(e) => {
-                      setStatus(e.target.value);
-                      setPage(1);
-                    }}
-                    className="w-full pl-10 pr-8 py-2.5 bg-gray-900/50 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-teal-500 focus:border-teal-500 text-sm font-medium appearance-none cursor-pointer transition-all duration-200 hover:border-opacity-70 hover:shadow-sm"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 12 12'%3E%3Cpath fill='%239CA3AF' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                      backgroundRepeat: 'no-repeat',
-                      backgroundPosition: 'right 0.75rem center'
-                    }}
-                  >
-                    <option value="" style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}>All Participation Status</option>
-                    <option value="REGISTERED" style={{ backgroundColor: '#1f2937', color: '#93c5fd' }}>Registered</option>
-                    <option value="ATTENDED" style={{ backgroundColor: '#1f2937', color: '#86efac' }}>Attended</option>
-                    <option value="NO_SHOW" style={{ backgroundColor: '#1f2937', color: '#fca5a5' }}>No Show</option>
-                    <option value="CANCELLED" style={{ backgroundColor: '#1f2937', color: '#fca5a5' }}>Cancelled</option>
-                  </select>
-                </div>
-              </div>
+              <Filters
+                selectedStatus={status}
+                onStatusChange={(value: string) => {
+                  setStatus(value);
+                  setPage(1);
+                }}
+                statusOptions={[
+                  { value: '', label: 'All Participation Status' },
+                  { value: 'REGISTERED', label: 'Registered' },
+                  { value: 'ATTENDED', label: 'Attended' },
+                  { value: 'NO_SHOW', label: 'No Show' },
+                  { value: 'CANCELLED', label: 'Cancelled' }
+                ]}
+                onClear={() => {
+                  setStatus('');
+                  setPage(1);
+                }}
+              />
             </div>
           </div>
 

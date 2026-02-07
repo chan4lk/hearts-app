@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { useSession } from 'next-auth/react';
-import Filters from './components/Filters';
+import Filters from '@/app/components/shared/Filters';
 import GoalsSection from './components/GoalsSection';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { Pagination } from '@/app/components/shared/Pagination';
@@ -291,21 +291,27 @@ export default function ManagerDashboard() {
           {/* Filters Section */}
           <Filters
             selectedStatus={selectedStatus}
-            setSelectedStatus={(status) => {
+            onStatusChange={(status) => {
               setSelectedStatus(status);
               setPage(1); // Reset to first page on filter change
             }}
             selectedEmployee={selectedEmployee}
-            setSelectedEmployee={(employee) => {
+            onEmployeeChange={(employee) => {
               setSelectedEmployee(employee);
               setPage(1); // Reset to first page on filter change
             }}
             selectedPriority={selectedPriority}
-            setSelectedPriority={(priority) => {
+            onPriorityChange={(priority) => {
               setSelectedPriority(priority);
               setPage(1); // Reset to first page on filter change
             }}
             employees={employees}
+            onClear={() => {
+              setSelectedStatus('');
+              setSelectedEmployee('all');
+              setSelectedPriority('');
+              setPage(1);
+            }}
           />
 
           {/* AI Insights Toggle */}

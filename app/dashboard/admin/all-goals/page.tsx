@@ -356,6 +356,15 @@ function AllGoalsPageContent() {
               selectedCategory={selectedCategory}
               onCategoryChange={setSelectedCategory}
               users={users}
+              onClear={() => {
+                setSelectedUser('all');
+                setSelectedStatus('all');
+                setSelectedPriority('');
+                setSelectedCategory('all');
+                setPage(1);
+                // Also update URL params
+                router.push('/dashboard/admin/all-goals');
+              }}
             />
           </motion.div>
 

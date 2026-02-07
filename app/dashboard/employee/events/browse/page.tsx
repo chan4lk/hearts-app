@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { BsSearch, BsPlus, BsX, BsCheckLg, BsArrowRight, BsCalendar, BsFilter } from 'react-icons/bs';
 import { toast } from 'react-toastify';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
+import Filters from '@/app/components/shared/Filters';
 
 interface Event {
   id: string;
@@ -251,12 +252,12 @@ export default function BrowseEventsPage() {
             </div>
           </div>
 
-          {/* Filters - Fixed */}
+          {/* Filters */}
           <div className="flex-shrink-0 pb-3">
             <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 border-2 border-gray-700/50">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="flex gap-3 items-start justify-between">
                 {/* Search Input */}
-                <div className="relative">
+                <div className="relative flex-1 max-w-md w-full">
                   <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none z-10">
                     <div className="p-1.5 rounded-md bg-gradient-to-r from-blue-500 to-indigo-500">
                       <BsSearch className="w-3 h-3 text-white" />
@@ -274,48 +275,31 @@ export default function BrowseEventsPage() {
                   />
                 </div>
 
-                {/* Event Type Select */}
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none z-10">
-                    <div className="p-1.5 rounded-md bg-gradient-to-r from-teal-500 to-cyan-600">
-                      <BsCalendar className="w-3 h-3 text-white" />
-                    </div>
-                  </div>
-                  <select
-                    value={eventType}
-                    onChange={(e) => {
-                      setEventType(e.target.value);
-                      setPage(1);
-                    }}
-                    className="w-full pl-10 pr-8 py-2.5 bg-gray-900/50 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-teal-500 focus:border-teal-500 text-sm font-medium appearance-none cursor-pointer transition-all duration-200 hover:border-opacity-70 hover:shadow-sm"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 12 12'%3E%3Cpath fill='%239CA3AF' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                      backgroundRepeat: 'no-repeat',
-                      backgroundPosition: 'right 0.75rem center'
-                    }}
-                  >
-                    <option value="" style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}>All Event Types</option>
-                    {eventTypes.map((type) => (
-                      <option key={type} value={type} style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}>
-                        {type.replace(/_/g, ' ')}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Clear Filters Button */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => {
+                {/* Shared Filters */}
+                <Filters
+                  filters={[
+                    {
+                      id: 'eventType',
+                      label: 'Event Type',
+                      value: eventType,
+                      onChange: (value: string) => {
+                        setEventType(value);
+                        setPage(1);
+                      },
+                      options: [
+                        { value: '', label: 'All Event Types' },
+                        ...eventTypes.map(type => ({ value: type, label: type.replace(/_/g, ' ') }))
+                      ],
+                      icon: <BsCalendar className="w-3 h-3 text-white" />,
+                      gradient: 'from-teal-500 to-cyan-600'
+                    }
+                  ]}
+                  onClear={() => {
                     setSearch('');
                     setEventType('');
                     setPage(1);
                   }}
-                  className="rounded-lg border border-gray-700 px-3 py-2.5 text-white hover:bg-gray-700/50 transition-all text-sm font-medium"
-                >
-                  Clear Filters
-                </motion.button>
+                />
               </div>
             </div>
           </div>

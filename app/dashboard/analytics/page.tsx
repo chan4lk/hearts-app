@@ -385,6 +385,16 @@ export default function AnalyticsPage() {
     fetchAnalytics().finally(() => setRefreshing(false));
   }, [fetchAnalytics]);
 
+  // Handle clear filters
+  const handleClearFilters = useCallback(() => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - 3);
+    setStartDate(date.toISOString().split('T')[0]);
+    setEndDate(new Date().toISOString().split('T')[0]);
+    setSelectedEmployee('all');
+    setSelectedDepartment('all');
+  }, []);
+
   const handleExport = async (format: 'pdf'): Promise<void> => {
     if (!analyticsData) {
       alert('No data available to export');
@@ -528,6 +538,7 @@ export default function AnalyticsPage() {
             userRole={session?.user?.role}
             onRefresh={handleRefresh}
             refreshing={refreshing}
+            onClear={handleClearFilters}
           />
 
           {/* No Data Message */}

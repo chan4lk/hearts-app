@@ -42,7 +42,7 @@
     "jspdf": "^3.0.4",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.487.0",
-    "next": "^14.1.0",
+    "next": "^14.2.21",
     "next-auth": "^4.24.11",
     "openai": "^4.96.0",
     "postcss": "^8.4.35",
@@ -65,7 +65,7 @@
   "devDependencies": {
     "@types/xlsx": "^0.0.36",
     "eslint": "^8.56.0",
-    "eslint-config-next": "14.1.0",
+    "eslint-config-next": "14.2.21",
     "prisma": "^6.10.1",
     "ts-node": "^10.9.2"
   }

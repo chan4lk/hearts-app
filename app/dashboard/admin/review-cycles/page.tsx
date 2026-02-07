@@ -12,7 +12,7 @@ import ReviewCycleTable from './components/ReviewCycleTable';
 import ReviewCycleForm from './components/ReviewCycleForm';
 import ImportExcelModal from './components/ImportExcelModal';
 import { Pagination } from '@/app/components/shared/Pagination';
-import { BsArrowLeft, BsUser, BsCheckCircle, BsClock, BsClipboardList } from 'react-icons/bs';
+import { BsArrowLeft, BsPerson, BsCheckCircle, BsClock, BsClipboardPlus } from 'react-icons/bs';
 import Link from 'next/link';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 
@@ -230,7 +230,7 @@ export default function ReviewCyclesPage() {
                 {
                   title: 'Total Cycles',
                   value: pagination?.total || reviewCycles.length,
-                  icon: <BsClipboardList className="w-4 h-4" />,
+                  icon: <BsClipboardPlus className="w-4 h-4" />,
                   gradient: 'from-blue-500 to-cyan-500',
                   bgColor: 'bg-blue-500/10',
                   borderColor: 'border-blue-500/30'
@@ -254,7 +254,7 @@ export default function ReviewCyclesPage() {
                 {
                   title: 'Users',
                   value: new Set(reviewCycles.map(c => c.userId)).size,
-                  icon: <BsUser className="w-4 h-4" />,
+                  icon: <BsPerson className="w-4 h-4" />,
                   gradient: 'from-purple-500 to-pink-500',
                   bgColor: 'bg-purple-500/10',
                   borderColor: 'border-purple-500/30'

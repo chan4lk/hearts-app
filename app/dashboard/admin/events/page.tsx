@@ -8,7 +8,8 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
 import HeroSection from '@/app/components/shared/HeroSection';
-import { BsPlus, BsSearch, BsX, BsCalendarEvent, BsFilter, BsCheckCircle, BsClock } from 'react-icons/bs';
+import Filters from '@/app/components/shared/Filters';
+import { BsPlus, BsSearch, BsCalendarEvent, BsFilter, BsCheckCircle, BsClock, BsArrowCounterclockwise } from 'react-icons/bs';
 import { EventFormModal } from '@/app/components/events/EventFormModal';
 import { EventsTable } from '@/app/components/events/EventsTable';
 import { EventDetailsModal } from '@/app/components/events/EventDetailsModal';
@@ -238,9 +239,8 @@ export default function AdminEventsPage() {
               animate={{ opacity: 1, y: 0 }}
               className="rounded-xl border-2 border-teal-500/20 bg-gradient-to-r from-teal-500/5 via-cyan-500/5 to-teal-500/5 p-4 backdrop-blur-xl"
           >
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-              {/* Search Input */}
-              <div className="relative">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+              <div className="relative flex-1 max-w-md w-full">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
                   <div className="p-1.5 rounded-md bg-gradient-to-r from-indigo-500 to-purple-600">
                     <BsSearch className="w-3.5 h-3.5 text-white" />
@@ -257,73 +257,42 @@ export default function AdminEventsPage() {
                   className="w-full pl-10 pr-3 py-2.5 bg-gray-900/50 text-white rounded-lg border border-gray-700 hover:border-indigo-500/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder-gray-400 transition-all duration-200 text-sm font-medium"
                 />
               </div>
-
-              {/* Event Type Select */}
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                  <div className="p-1.5 rounded-md bg-gradient-to-r from-purple-500 to-pink-600">
-                    <BsCalendarEvent className="w-3.5 h-3.5 text-white" />
-                  </div>
-                </div>
-                <select
-                  value={eventType}
-                  onChange={(e) => {
-                    setEventType(e.target.value);
-                    setPage(1);
-                  }}
-                  className="w-full pl-10 pr-8 py-2.5 bg-gray-900/50 text-white rounded-lg border border-gray-700 hover:border-purple-500/30 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500 transition-all duration-200 text-sm font-medium appearance-none cursor-pointer"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 12 12'%3E%3Cpath fill='%239CA3AF' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 0.75rem center'
-                  }}
-                >
-                  <option value="" style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}>All Event Types</option>
-                  {eventTypes.map((type) => (
-                    <option key={type} value={type} style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}>
-                      {type.replace(/_/g, ' ')}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Status Select */}
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                  <div className="p-1.5 rounded-md bg-gradient-to-r from-amber-500 to-orange-600">
-                    <BsFilter className="w-3.5 h-3.5 text-white" />
-                  </div>
-                </div>
-                <select
-                  value={status}
-                  onChange={(e) => {
-                    setStatus(e.target.value);
-                    setPage(1);
-                  }}
-                  className="w-full pl-10 pr-8 py-2.5 bg-gray-900/50 text-white rounded-lg border border-gray-700 hover:border-amber-500/30 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-all duration-200 text-sm font-medium appearance-none cursor-pointer"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 12 12'%3E%3Cpath fill='%239CA3AF' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'right 0.75rem center'
-                  }}
-                >
-                  <option value="" style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}>All Statuses</option>
-                  <option value="SCHEDULED" style={{ backgroundColor: '#1f2937', color: '#93c5fd' }}>Scheduled</option>
-                  <option value="ONGOING" style={{ backgroundColor: '#1f2937', color: '#86efac' }}>Ongoing</option>
-                  <option value="COMPLETED" style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}>Completed</option>
-                  <option value="CANCELLED" style={{ backgroundColor: '#1f2937', color: '#fca5a5' }}>Cancelled</option>
-                </select>
-              </div>
-
-              {/* Clear Button */}
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleClearFilters}
-                className="rounded-lg border border-white/20 px-4 py-2.5 text-white hover:bg-white/10 hover:border-white/30 transition-all font-medium text-sm"
-              >
-                Clear Filters
-              </motion.button>
+              <Filters
+                selectedStatus={status}
+                onStatusChange={(value: string) => {
+                  setStatus(value);
+                  setPage(1);
+                }}
+                statusOptions={[
+                  { value: '', label: 'All Statuses' },
+                  { value: 'SCHEDULED', label: 'Scheduled' },
+                  { value: 'ONGOING', label: 'Ongoing' },
+                  { value: 'COMPLETED', label: 'Completed' },
+                  { value: 'CANCELLED', label: 'Cancelled' }
+                ]}
+                filters={[
+                  {
+                    id: 'eventType',
+                    label: 'Event Type',
+                    value: eventType,
+                    onChange: (value: string) => {
+                      setEventType(value);
+                      setPage(1);
+                    },
+                    options: [
+                      { value: '', label: 'All Event Types' },
+                      ...eventTypes.map(type => ({ value: type, label: type.replace(/_/g, ' ') }))
+                    ],
+                    gradient: 'from-purple-500 to-pink-600'
+                  }
+                ]}
+                onClear={() => {
+                  setSearch('');
+                  setStatus('');
+                  setEventType('');
+                  setPage(1);
+                }}
+              />
             </div>
           </motion.div>
           </div>

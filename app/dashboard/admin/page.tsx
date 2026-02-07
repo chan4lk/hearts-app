@@ -87,6 +87,7 @@ export default function AdminDashboard() {
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [goalsLoading, setGoalsLoading] = useState(false);
   const [showGoals, setShowGoals] = useState(false);
+  const [showGoalFilters, setShowGoalFilters] = useState(true);
   const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [goalsToBulkDelete, setGoalsToBulkDelete] = useState<string[]>([]);
@@ -542,24 +543,31 @@ export default function AdminDashboard() {
                       selectedUser={selectedUser}
                       onUserChange={(value) => {
                         setSelectedUser(value);
-                        setGoalsPage(1); // Reset to first page on filter change
+                        setGoalsPage(1);
                       }}
                       selectedStatus={selectedStatus}
                       onStatusChange={(value) => {
                         setSelectedStatus(value);
-                        setGoalsPage(1); // Reset to first page on filter change
+                        setGoalsPage(1);
                       }}
                       selectedPriority={selectedPriority}
                       onPriorityChange={(value) => {
                         setSelectedPriority(value);
-                        setGoalsPage(1); // Reset to first page on filter change
+                        setGoalsPage(1);
                       }}
                       selectedCategory={selectedCategory}
                       onCategoryChange={(value) => {
                         setSelectedCategory(value);
-                        setGoalsPage(1); // Reset to first page on filter change
+                        setGoalsPage(1);
                       }}
                       users={users}
+                      onClear={() => {
+                        setSelectedUser('all');
+                        setSelectedStatus('all');
+                        setSelectedPriority('');
+                        setSelectedCategory('all');
+                        setGoalsPage(1);
+                      }}
                     />
                   </motion.div>
                 )}

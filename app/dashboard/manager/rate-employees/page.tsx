@@ -401,9 +401,16 @@ export default function RateEmployeesPage() {
       if (!goal.employee) return false;
       // Rating filter is client-side only (not supported by API)
       if (filterRating !== 'all' && (goal.rating?.managerScore || goal.rating?.score) !== parseInt(filterRating)) return false;
-      return true;
+      return false;
     });
   }, [goals, filterRating]);
+
+  const handleClearFilters = () => {
+    setSelectedStatus('');
+    setSelectedPriority('');
+    setPage(1);
+  };
+
   return (
     <DashboardLayout type="manager">
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -469,14 +476,55 @@ export default function RateEmployeesPage() {
 
           <Filters
             selectedStatus={selectedStatus}
-            onStatusChange={(status: string) => {
-              setSelectedStatus(status);
-              setPage(1); // Reset to first page on filter change
+            onStatusChange={(value) => {
+              setSelectedStatus(value);
+              setPage(1);
             }}
             selectedPriority={selectedPriority}
-            onPriorityChange={(priority: string) => {
-              setSelectedPriority(priority);
-              setPage(1); // Reset to first page on filter change
+            onPriorityChange={(value) => {
+              setSelectedPriority(value);
+              setPage(1);
+            }}
+            filters={[
+              {
+                id: 'employee',
+                label: 'Employee',
+                value: filterEmployee,
+                onChange: (value) => {
+                  setFilterEmployee(value);
+                  setPage(1);
+                },
+                options: [
+                  { value: 'all', label: 'All Employees' },
+                  ...employeeStats.map(emp => ({ value: emp.id, label: emp.name }))
+                ],
+                gradient: 'from-blue-500 to-indigo-500'
+              },
+              {
+                id: 'rating',
+                label: 'Rating',
+                value: filterRating,
+                onChange: (value) => {
+                  setFilterRating(value);
+                  setPage(1);
+                },
+                options: [
+                  { value: 'all', label: 'All Ratings' },
+                  { value: '1', label: '1' },
+                  { value: '2', label: '2' },
+                  { value: '3', label: '3' },
+                  { value: '4', label: '4' },
+                  { value: '5', label: '5' }
+                ],
+                gradient: 'from-amber-500 to-orange-500'
+              }
+            ]}
+            onClear={() => {
+              setFilterEmployee('all');
+              setFilterRating('all');
+              setSelectedStatus('');
+              setSelectedPriority('');
+              setPage(1);
             }}
           />
 

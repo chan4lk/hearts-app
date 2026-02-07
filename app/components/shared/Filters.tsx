@@ -1,6 +1,6 @@
 'use client';
 
-import { BsFilter, BsPerson, BsFlag, BsFolder2Open, BsCalendar, BsDownload, BsArrowClockwise, BsBuilding } from 'react-icons/bs';
+import { BsFilter, BsPerson, BsFlag, BsFolder2Open, BsCalendar, BsDownload, BsArrowClockwise, BsArrowCounterclockwise, BsBuilding, BsXCircle } from 'react-icons/bs';
 import { motion } from 'framer-motion';
 import { ReactNode } from 'react';
 
@@ -144,6 +144,8 @@ export interface FiltersProps {
   userRole?: string;
   onRefresh?: () => void;
   refreshing?: boolean;
+  onClear?: () => void;
+  onClose?: () => void;
 }
 
 const getColorConfig = (value: string, config: any) => {
@@ -250,13 +252,14 @@ export default function Filters({
   onExport,
   userRole,
   onRefresh,
-  refreshing = false
+  refreshing = false,
+  onClear,
+  onClose
 }: FiltersProps) {
   const statusColorConfig = getColorConfig(selectedStatus, STATUS_CONFIG);
   const priorityColorConfig = getColorConfig(selectedPriority, PRIORITY_CONFIG);
   
-  // Determine grid columns based on active filters
-  let gridColsClass = 'lg:grid-cols-2';
+  // Determine grid columns based on active filters (similar to StatsSection auto-grid)
   const activeFiltersCount = [
     onStartDateChange,
     onUserChange,
@@ -267,8 +270,16 @@ export default function Filters({
     onCategoryChange
   ].filter(Boolean).length + filters.length;
 
-  if (activeFiltersCount >= 4) gridColsClass = 'lg:grid-cols-4 xl:grid-cols-4';
-  else if (activeFiltersCount === 3) gridColsClass = 'lg:grid-cols-3';
+  const getAutoGridClass = (count: number) => {
+    if (count <= 2) return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3';
+    if (count === 3) return 'grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-3';
+    if (count === 4) return 'grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3';
+    if (count === 5) return 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3';
+    if (count === 6) return 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3';
+    return 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-auto gap-3 auto-cols-fr';
+  };
+
+  const gridColsClass = getAutoGridClass(activeFiltersCount);
 
   // Merge employees lists if needed
   const employeeOptions = employees.length > 0 
@@ -308,124 +319,138 @@ export default function Filters({
       transition={{ delay: 0.1 }}
       className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border-2 border-gray-700/50 space-y-4"
     >
-      <div className={`grid grid-cols-1 md:grid-cols-2 ${gridColsClass} gap-3`}>
-        {/* Date Range Filter */}
-        {onStartDateChange && onEndDateChange && (
-          <div className="flex space-x-2">
-             <div className="relative flex-1">
-               <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none z-10">
-                 <div className="p-1.5 rounded-md bg-gradient-to-r from-blue-500 to-indigo-500">
-                   <BsCalendar className="w-3 h-3 text-white" />
-                 </div>
-               </div>
-               <input
-                 type="date"
-                 value={startDate}
-                 onChange={(e) => onStartDateChange(e.target.value)}
-                 className="w-full pl-10 pr-3 py-2.5 bg-gray-900/50 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all duration-200 hover:border-opacity-70 hover:shadow-sm"
-               />
-             </div>
-             <div className="relative flex-1">
-               <input
-                 type="date"
-                 value={endDate}
-                 onChange={(e) => onEndDateChange(e.target.value)}
-                 className="w-full pl-3 pr-3 py-2.5 bg-gray-900/50 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all duration-200 hover:border-opacity-70 hover:shadow-sm"
-               />
-             </div>
-          </div>
-        )}
+      <div className="flex gap-2 items-start">
+        <div className={`flex-1 ${gridColsClass}`}>
+          {/* Date Range Filter */}
+          {onStartDateChange && onEndDateChange && (
+            <div className="flex space-x-2">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none z-10">
+                  <div className="p-1.5 rounded-md bg-gradient-to-r from-blue-500 to-indigo-500">
+                    <BsCalendar className="w-3 h-3 text-white" />
+                  </div>
+                </div>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => onStartDateChange(e.target.value)}
+                  className="w-full pl-10 pr-3 py-2.5 bg-gray-900/50 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all duration-200 hover:border-opacity-70 hover:shadow-sm"
+                />
+              </div>
+              <div className="relative flex-1">
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => onEndDateChange(e.target.value)}
+                  className="w-full pl-3 pr-3 py-2.5 bg-gray-900/50 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all duration-200 hover:border-opacity-70 hover:shadow-sm"
+                />
+              </div>
+            </div>
+          )}
 
-        {/* User Filter */}
-        {onUserChange && users.length > 0 && (
-          <FilterSelect
-            value={selectedUser}
-            onChange={onUserChange}
-            options={users
-              .filter(u => u.role !== 'ADMIN')
-              .map(u => ({ value: u.id, label: `${u.name} (${u.role})` }))}
-            icon={<BsPerson className="w-3 h-3 text-white" />}
-            gradient="from-blue-500 to-indigo-500"
-            focusRing="focus:ring-blue-500 focus:border-blue-500"
-          />
-        )}
+          {/* User Filter */}
+          {onUserChange && users.length > 0 && (
+            <FilterSelect
+              value={selectedUser}
+              onChange={onUserChange}
+              options={users
+                .filter(u => u.role !== 'ADMIN')
+                .map(u => ({ value: u.id, label: `${u.name} (${u.role})` }))}
+              icon={<BsPerson className="w-3 h-3 text-white" />}
+              gradient="from-blue-500 to-indigo-500"
+              focusRing="focus:ring-blue-500 focus:border-blue-500"
+            />
+          )}
 
-        {/* Employee Filter */}
-        {onEmployeeChange && employeeOptions.length > 0 && (
-          <FilterSelect
-            value={selectedEmployee}
-            onChange={onEmployeeChange}
-            options={employeeOptions}
-            icon={<BsPerson className="w-3 h-3 text-white" />}
-            gradient="from-blue-500 to-indigo-500"
-            focusRing="focus:ring-blue-500 focus:border-blue-500"
-          />
-        )}
+          {/* Employee Filter */}
+          {onEmployeeChange && employeeOptions.length > 0 && (
+            <FilterSelect
+              value={selectedEmployee}
+              onChange={onEmployeeChange}
+              options={employeeOptions}
+              icon={<BsPerson className="w-3 h-3 text-white" />}
+              gradient="from-blue-500 to-indigo-500"
+              focusRing="focus:ring-blue-500 focus:border-blue-500"
+            />
+          )}
 
-        {/* Department Filter */}
-        {onDepartmentChange && departments.length > 0 && (
-           <FilterSelect
-             value={selectedDepartment}
-             onChange={onDepartmentChange}
-             options={departments.map(d => ({ value: d, label: d }))}
-             icon={<BsBuilding className="w-3 h-3 text-white" />}
-             gradient="from-indigo-500 to-purple-500"
-             focusRing="focus:ring-indigo-500 focus:border-indigo-500"
-           />
-        )}
+          {/* Department Filter */}
+          {onDepartmentChange && departments.length > 0 && (
+            <FilterSelect
+              value={selectedDepartment}
+              onChange={onDepartmentChange}
+              options={departments.map(d => ({ value: d, label: d }))}
+              icon={<BsBuilding className="w-3 h-3 text-white" />}
+              gradient="from-indigo-500 to-purple-500"
+              focusRing="focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          )}
 
-        {/* Status Filter */}
-        {onStatusChange && (
-          <FilterSelect
-            value={selectedStatus}
-            onChange={onStatusChange}
-            options={defaultStatusOptions}
-            icon={<BsFilter className="w-3 h-3 text-white" />}
-            gradient={statusColorConfig.gradient}
-            bgColor={statusColorConfig.bgColor}
-            borderColor={statusColorConfig.borderColor}
-            focusRing="focus:ring-amber-500 focus:border-amber-500"
-          />
-        )}
+          {/* Status Filter */}
+          {onStatusChange && (
+            <FilterSelect
+              value={selectedStatus}
+              onChange={onStatusChange}
+              options={defaultStatusOptions}
+              icon={<BsFilter className="w-3 h-3 text-white" />}
+              gradient={statusColorConfig.gradient}
+              bgColor={statusColorConfig.bgColor}
+              borderColor={statusColorConfig.borderColor}
+              focusRing="focus:ring-amber-500 focus:border-amber-500"
+            />
+          )}
 
-        {/* Priority Filter */}
-        {onPriorityChange && (
-          <FilterSelect
-            value={selectedPriority}
-            onChange={onPriorityChange}
-            options={defaultPriorityOptions}
-            icon={<BsFlag className="w-3 h-3 text-white" />}
-            gradient={priorityColorConfig.gradient}
-            bgColor={priorityColorConfig.bgColor}
-            borderColor={priorityColorConfig.borderColor}
-            focusRing="focus:ring-violet-500 focus:border-violet-500"
-          />
-        )}
+          {/* Priority Filter */}
+          {onPriorityChange && (
+            <FilterSelect
+              value={selectedPriority}
+              onChange={onPriorityChange}
+              options={defaultPriorityOptions}
+              icon={<BsFlag className="w-3 h-3 text-white" />}
+              gradient={priorityColorConfig.gradient}
+              bgColor={priorityColorConfig.bgColor}
+              borderColor={priorityColorConfig.borderColor}
+              focusRing="focus:ring-violet-500 focus:border-violet-500"
+            />
+          )}
 
-        {/* Category Filter */}
-        {onCategoryChange && (
-          <FilterSelect
-            value={selectedCategory}
-            onChange={onCategoryChange}
-            options={defaultCategoryOptions}
-            icon={<BsFolder2Open className="w-3 h-3 text-white" />}
-            gradient="from-purple-500 to-indigo-500"
-            focusRing="focus:ring-purple-500 focus:border-purple-500"
-          />
-        )}
+          {/* Category Filter */}
+          {onCategoryChange && (
+            <FilterSelect
+              value={selectedCategory}
+              onChange={onCategoryChange}
+              options={defaultCategoryOptions}
+              icon={<BsFolder2Open className="w-3 h-3 text-white" />}
+              gradient="from-purple-500 to-indigo-500"
+              focusRing="focus:ring-purple-500 focus:border-purple-500"
+            />
+          )}
 
-        {/* Generic Filters */}
-        {filters.map((filter) => (
-          <FilterSelect
-            key={filter.id}
-            value={filter.value}
-            onChange={filter.onChange}
-            options={filter.options}
-            icon={filter.icon || undefined}
-            gradient={filter.gradient || 'from-blue-500 to-indigo-500'}
-            focusRing="focus:ring-blue-500 focus:border-blue-500"
-          />
-        ))}
+          {/* Generic Filters */}
+          {filters.map((filter) => (
+            <FilterSelect
+              key={filter.id}
+              value={filter.value}
+              onChange={filter.onChange}
+              options={filter.options}
+              icon={filter.icon || undefined}
+              gradient={filter.gradient || 'from-blue-500 to-indigo-500'}
+              focusRing="focus:ring-blue-500 focus:border-blue-500"
+            />
+          ))}
+        </div>
+
+        {onClear && (
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={onClear}
+            className="shrink-0 px-3 py-2 rounded-lg bg-gray-700/50 text-gray-300 hover:text-white hover:bg-gray-600/60 border border-transparent transition-all duration-200 flex items-center gap-2"
+            title="Clear Filters"
+          >
+            <BsArrowCounterclockwise className="w-5 h-5" />
+          </motion.button>
+        )}
       </div>
 
       {/* Action Buttons */}

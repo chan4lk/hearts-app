@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { Goal } from '@/app/components/shared/types';
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import { Pagination } from '@/app/components/shared/Pagination';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface GoalsSectionProps {
   goals: Goal[];
@@ -47,7 +47,7 @@ export default function GoalsSection({
   onLimitChange,
 }: GoalsSectionProps) {
   const router = useRouter();
-  const [activeView, setActiveView] = useState<ViewType>(userRole === 'ADMIN' ? 'created' : 'assigned');
+  const [activeView, setActiveView] = useState<ViewType>('created');
 
   // Separate assigned and self-created goals
   const assignedGoals = goals.filter(goal => 
@@ -60,6 +60,11 @@ export default function GoalsSection({
     (!goal.manager || goal.manager.id === goal.employee.id)
   );
 
+  useEffect(() => {
+    if (activeView === 'assigned' && assignedGoals.length === 0 && selfCreatedGoals.length > 0) {
+      setActiveView('created');
+    }
+  }, [activeView, assignedGoals.length, selfCreatedGoals.length]);
   const currentGoals = activeView === 'assigned' ? assignedGoals : selfCreatedGoals;
   const filteredGoals = currentGoals.filter(goal => 
     (!selectedStatus || goal.status === selectedStatus) &&

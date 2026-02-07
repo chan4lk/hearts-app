@@ -1,6 +1,5 @@
 import { Role } from '.prisma/client';
 
-
 export interface UserManager {
   id: string;
   name: string;
@@ -230,6 +229,9 @@ export interface Filters {
   manager: string;
   status: string;
 }
+
+// Alias for Filters - used in admin user management
+export type UserFilters = Filters;
 export interface GoalWithRatingExtended {
   id: string;
   title: string;

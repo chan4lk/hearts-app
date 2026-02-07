@@ -6,14 +6,14 @@ import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import UserTable from './components/UserTable';
-import UserFilters from './components/Filters';
 import HeroSection from '@/app/components/shared/HeroSection';
+import Filters from '@/app/components/shared/Filters';
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
 import { BsPeople, BsGraphUp, BsShieldExclamation } from 'react-icons/bs';
 import { Pagination } from '@/app/components/shared/Pagination';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
-import { User, Filters } from '@/app/components/shared/types';
+import { User, UserFilters } from '@/app/components/shared/types';
 import { Role } from '.prisma/client';
 
 interface RawUser {
@@ -41,7 +41,7 @@ function UsersPageContent() {
   const searchParams = useSearchParams();
   
   // Initialize filters from URL params
-  const getInitialFilters = (searchParams: URLSearchParams): Filters => {
+  const getInitialFilters = (searchParams: URLSearchParams): UserFilters => {
     const roleParam = searchParams.get('role');
     const validRoles = ['EMPLOYEE', 'MANAGER', 'ADMIN'];
     return {
@@ -74,7 +74,7 @@ function UsersPageContent() {
     admins: 0
   });
 
-  const [filters, setFilters] = useState<Filters>(() => getInitialFilters(searchParams));
+  const [filters, setFilters] = useState<UserFilters>(() => getInitialFilters(searchParams));
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
@@ -102,14 +102,14 @@ function UsersPageContent() {
     if (roleParam) {
       const validRoles = ['EMPLOYEE', 'MANAGER', 'ADMIN'];
       if (validRoles.includes(roleParam) && filters.role !== roleParam) {
-        setFilters(prev => ({
+        setFilters((prev: UserFilters) => ({
           ...prev,
           role: roleParam
         }));
       }
     } else if (filters.role !== '') {
       // Clear role filter if not in URL
-      setFilters(prev => ({
+      setFilters((prev: UserFilters) => ({
         ...prev,
         role: ''
       }));
@@ -323,7 +323,7 @@ function UsersPageContent() {
   // Handle stat card clicks to filter
   const handleStatFilter = (filterType: 'role' | 'clear', value?: string) => {
     if (filterType === 'clear') {
-      setFilters(prev => ({
+      setFilters((prev: UserFilters) => ({
         ...prev,
         role: ''
       }));
@@ -332,7 +332,7 @@ function UsersPageContent() {
       params.delete('role');
       router.push(`/dashboard/admin/users?${params.toString()}`);
     } else if (filterType === 'role' && value) {
-      setFilters(prev => ({
+      setFilters((prev: UserFilters) => ({
         ...prev,
         role: value
       }));
@@ -405,15 +405,57 @@ function UsersPageContent() {
             })()}
           </div>
 
-          {/* Filters - Fixed */}
+          {/* Filters - Using shared Filters component with search */}
           <div className="flex-shrink-0 pb-3">
-            <UserFilters
-              onFilterChangeAction={setFilters}
-              onSearchAction={setSearchTerm}
-              currentUserRole={session?.user?.role as Role}
-              initialFilters={filters}
-              initialSearchTerm={searchTerm}
-            />
+            <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 shadow-xl">
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                {/* Search Input */}
+                <div className="relative flex-1 max-w-md w-full">
+                  <input
+                    type="text"
+                    placeholder="Search users by name or email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full px-4 py-2 bg-gray-900/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all duration-200"
+                  />
+                </div>
+                
+                {/* Shared Filters Component */}
+                <Filters
+                  selectedStatus={filters.status}
+                  onStatusChange={(value) => setFilters((prev: UserFilters) => ({ ...prev, status: value }))}
+                  statusOptions={[
+                    { value: '', label: 'All Status' },
+                    { value: 'ACTIVE', label: 'Active' },
+                    { value: 'INACTIVE', label: 'Inactive' }
+                  ]}
+                  selectedUser={''}
+                  onUserChange={() => {}}
+                  selectedDepartment={''}
+                  onDepartmentChange={() => {}}
+                  userRole={session?.user?.role as Role}
+                  onClear={() => {
+                    setFilters({ role: '', status: '', manager: '' });
+                    setSearchTerm('');
+                  }}
+                  filters={[
+                    {
+                      id: 'role',
+                      label: 'Role',
+                      value: filters.role,
+                      onChange: (value) => setFilters((prev: UserFilters) => ({ ...prev, role: value })),
+                      options: [
+                        { value: '', label: 'All Roles' },
+                        { value: 'EMPLOYEE', label: 'Employee' },
+                        { value: 'MANAGER', label: 'Manager' },
+                        { value: 'ADMIN', label: 'Admin' }
+                      ],
+                      gradient: 'from-purple-500 to-pink-500'
+                    }
+                  ]}
+                />
+              </div>
+            </div>
           </div>
 
           {/* User Table - Scrollable Container */}

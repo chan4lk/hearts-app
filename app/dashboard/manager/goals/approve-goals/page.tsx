@@ -338,6 +338,12 @@ export default function ApproveGoalsPage() {
     });
   };
 
+  const handleClearFilters = () => {
+    setSelectedStatus('');
+    setSelectedPriority('');
+    setPage(1);
+  };
+
   // Server-side filtering is done, but we keep client-side filtering for view switching if needed
   const filteredGoals = goals;
   return (
@@ -365,6 +371,7 @@ export default function ApproveGoalsPage() {
                   setSelectedPriority(priority);
                   setPage(1); // Reset to first page on filter change
                 }}
+                onClear={handleClearFilters}
               />
             </div>
 

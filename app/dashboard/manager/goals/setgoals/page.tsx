@@ -494,6 +494,7 @@ function ManagerGoalSettingPageContent() {
           })()}
         </div>
 
+        {/* Filters */}
         <Filters
           selectedEmployee={selectedEmployee}
           onEmployeeChange={(employee) => {
@@ -511,6 +512,12 @@ function ManagerGoalSettingPageContent() {
             setPage(1); // Reset to first page on filter change
           }}
           assignedEmployees={assignedEmployees}
+          onClear={() => {
+            setSelectedEmployee('all');
+            setSelectedStatus('');
+            setSelectedPriority('');
+            setPage(1);
+          }}
         />
 
         {/* Goal Templates Section */}

@@ -111,7 +111,7 @@ function GoalsPageContent() {
         ...(selectedPriority && { priority: selectedPriority })
       });
       
-      const response = await fetch(`/api/goals?${params}`);
+      const response = await fetch(`/api/goals?${params}`, { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         setGoals(data.goals || []);
@@ -120,6 +120,9 @@ function GoalsPageContent() {
         if (data.pagination) {
           setPagination(data.pagination);
         }
+      } else {
+        setGoals([]);
+        setPagination(null);
       }
     } catch (error) {
       console.error('Error fetching goals:', error);
@@ -294,6 +297,13 @@ function GoalsPageContent() {
     setRefreshing(false);
   };
 
+  const handleClearFilters = () => {
+    setSelectedStatus('all');
+    setSelectedCategory('all');
+    setSelectedPriority('');
+    setPage(1);
+  };
+
   // Calculate completed goals for HeroSection
   const completedGoals = goals.filter(g => g.status === 'APPROVED').length;
 
@@ -463,6 +473,7 @@ function GoalsPageContent() {
               onCategoryChange={setSelectedCategory}
               selectedPriority={selectedPriority}
               onPriorityChange={setSelectedPriority}
+              onClear={handleClearFilters}
             />
           </motion.div>
 

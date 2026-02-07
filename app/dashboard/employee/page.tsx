@@ -154,10 +154,12 @@ export default function EmployeeDashboard() {
       ...(searchQuery && { search: searchQuery })
     });
 
-    const response = await fetch(`/api/goals?${params}`);
+    const response = await fetch(`/api/goals?${params}`, { credentials: 'include' });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch goals');
+      setGoals([]);
+      setPagination(null);
+      return [];
     }
 
     const data = await response.json();
@@ -668,6 +670,11 @@ export default function EmployeeDashboard() {
               onPriorityChange={(priority) => {
                 setSelectedPriority(priority);
                 setPage(1); // Reset to first page on filter change
+              }}
+              onClear={() => {
+                setSelectedStatus('');
+                setSelectedPriority('');
+                setPage(1);
               }}
             />
           </motion.div>

@@ -46,10 +46,10 @@ export const GoalsList = ({
   const { data: session } = useSession();
   const userId = session?.user?.id;
 
-  // Only show goals created by the current user
-  const userCreatedGoals = goals.filter(goal => goal.createdBy?.id === userId);
+  // Show all goals belonging to the current user (self-created or manager-assigned)
+  const userGoals = goals.filter(goal => goal.employeeId === userId);
 
-  const filteredGoals = userCreatedGoals.filter(goal => {
+  const filteredGoals = userGoals.filter(goal => {
     const matchesStatus = selectedStatus === 'all' || goal.status === selectedStatus;
     const matchesCategory = selectedCategory === 'all' || goal.category === selectedCategory;
     const matchesPriority = !selectedPriority || goal.priority === selectedPriority;

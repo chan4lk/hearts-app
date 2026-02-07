@@ -1,7 +1,7 @@
 'use client';
 
 import { formatDistanceToNow } from 'date-fns';
-import { BsEye, BsTrash, BsEdit, BsCalendar, BsGeo } from 'react-icons/bs';
+import { BsEye, BsTrash, BsPencilSquare, BsCalendar, BsGeoAlt } from 'react-icons/bs';
 
 interface Event {
   id: string;
@@ -96,7 +96,7 @@ export const EventsTable = ({
                   <p className="font-medium text-white">{event.title}</p>
                   {event.location && (
                     <p className="flex items-center gap-1 text-xs text-white/60">
-                      <BsGeo /> {event.location}
+                      <BsGeoAlt /> {event.location}
                     </p>
                   )}
                 </div>
@@ -146,7 +146,7 @@ export const EventsTable = ({
                     className="rounded-lg p-2 hover:bg-teal-500/20 transition"
                     title="Edit event"
                   >
-                    <BsEdit className="text-teal-400" />
+                    <BsPencilSquare className="text-teal-400" />
                   </button>
                   <button
                     onClick={() => onDelete(event.id)}
