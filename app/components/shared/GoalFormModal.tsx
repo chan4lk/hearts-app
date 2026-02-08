@@ -5,7 +5,7 @@ import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
-import { BsListTask, BsPeople, BsCalendar, BsX, BsArrowCounterclockwise, BsRobot } from 'react-icons/bs';
+import { BsListTask, BsPeople, BsCalendar, BsX, BsArrowCounterclockwise } from 'react-icons/bs';
 import { User } from '@/app/components/shared/types';
 import { CATEGORIES, DEPARTMENTS, PRIORITIES } from './constants';
 import { AIGoalSuggestions } from './AIGoalSuggestions';
@@ -34,6 +34,8 @@ interface GoalFormModalProps {
   onTemplateClick?: () => void;
 }
 
+const selectContentClass = 'bg-[#1a1b1e] border-gray-800/50 z-[100] max-h-[min(14rem,45vh)]';
+
 export function GoalFormModal({
   isOpen,
   onClose,
@@ -49,205 +51,186 @@ export function GoalFormModal({
   onReset,
   onTemplateClick
 }: GoalFormModalProps) {
-  // Force re-render when modal opens in edit mode
+  // Lock body scroll when modal is open
   React.useEffect(() => {
-    // Form data changes handled by state updates
-  }, [isOpen, isEditMode, formData]);
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-1 sm:p-3">
-      <div className="bg-gradient-to-br from-[#1a1b1e] to-[#2a2b2e] rounded-lg sm:rounded-xl w-full max-w-full sm:max-w-sm shadow-2xl border border-gray-800/50 p-1 sm:p-0 max-h-[90vh]">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-3 overflow-hidden">
+      <div className="bg-gradient-to-br from-[#1a1b1e] to-[#2a2b2e] rounded-xl w-full max-w-md shadow-2xl border border-gray-800/50 flex flex-col max-h-[90vh] min-h-0">
         {/* Header */}
-        <div className="flex items-center justify-between px-1 py-1 sm:px-3 sm:py-2 border-b border-gray-800/50 bg-black/20">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800/50 bg-black/20 shrink-0">
           <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 p-1 rounded-lg sm:p-1.5">
-              <BsListTask className="w-3 h-3 text-amber-400 sm:w-3.5 sm:h-3.5" />
+            <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 p-1.5 rounded-lg">
+              <BsListTask className="w-4 h-4 text-amber-400" />
             </div>
-            <h2 className="text-[11px] sm:text-sm font-medium text-white">{isEditMode ? 'Update Goal' : 'Create Goal'}</h2>
+            <h2 className="text-sm font-semibold text-white">{isEditMode ? 'Update Goal' : 'Create Goal'}</h2>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="text-white/40 hover:text-white/70 transition-colors"
+            className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+            aria-label="Close"
           >
-            <BsX className="h-4 w-4" />
+            <BsX className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={onSubmit} className="p-1 sm:p-3 space-y-1 sm:space-y-3 max-h-[80vh] overflow-y-auto">
-          {/* Title & Category Row */}
-          <div className="space-y-2">
-            <div>
-              <label className="block text-[11px] sm:text-xs font-medium text-white/70 mb-1">Goal Title</label>
-              <Input
-                value={formData.title}
-                onChange={(e) => onFormDataChange('title', e.target.value)}
-                placeholder="Enter goal title"
-                className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20"
-              />
-              {errors.title && (
-                <div className="text-red-400 text-[10px] mt-1 font-semibold animate-pulse">{errors.title}</div>
-              )}
+        <form onSubmit={onSubmit} className="flex flex-col min-h-0 flex-1 flex-nowrap">
+          {/* FIXED SECTION: All dropdowns live here – no scroll, so dropdowns never get clipped */}
+          <div className="shrink-0 px-4 py-3 border-b border-gray-800/50 bg-black/10 space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-white/80 mb-1">Category</label>
+                <Select
+                  value={formData.category}
+                  onValueChange={(v) => onFormDataChange('category', v)}
+                >
+                  <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-9 rounded-lg">
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent className={selectContentClass}>
+                    {CATEGORIES.map((c) => (
+                      <SelectItem key={c.value} value={c.value} className="text-white text-xs">
+                        <span className="flex items-center gap-2">
+                          {React.createElement(c.icon, { className: c.iconColor })}
+                          {c.label}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.category && <p className="text-red-400 text-[10px] mt-0.5">{errors.category}</p>}
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-white/80 mb-1">Department</label>
+                <Select
+                  value={formData.department}
+                  onValueChange={(v) => onFormDataChange('department', v)}
+                >
+                  <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-9 rounded-lg">
+                    <SelectValue placeholder="Department" />
+                  </SelectTrigger>
+                  <SelectContent className={selectContentClass}>
+                    {DEPARTMENTS.map((d) => (
+                      <SelectItem key={d.value} value={d.value} className="text-white text-xs">
+                        <span className="flex items-center gap-2">
+                          {React.createElement(d.icon, { className: d.iconColor })}
+                          {d.label}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.department && <p className="text-red-400 text-[10px] mt-0.5">{errors.department}</p>}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-white/80 mb-1">Priority</label>
+                <Select
+                  value={formData.priority}
+                  onValueChange={(v) => onFormDataChange('priority', v)}
+                >
+                  <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-9 rounded-lg">
+                    <SelectValue placeholder="Priority" />
+                  </SelectTrigger>
+                  <SelectContent className={selectContentClass}>
+                    {PRIORITIES.map((p) => (
+                      <SelectItem key={p.value} value={p.value} className="text-white text-xs">
+                        <span className="flex items-center gap-2">
+                          {React.createElement(p.icon, { className: p.iconColor })}
+                          {p.label}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.priority && <p className="text-red-400 text-[10px] mt-0.5">{errors.priority}</p>}
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-white/80 mb-1">Employee</label>
+                <Select
+                  value={formData.employeeId}
+                  onValueChange={(v) => onFormDataChange('employeeId', v)}
+                >
+                  <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-9 rounded-lg">
+                    <SelectValue placeholder="Select employee" />
+                  </SelectTrigger>
+                  <SelectContent className={selectContentClass}>
+                    {assignedEmployees.map((e) => (
+                      <SelectItem key={e.id} value={e.id} className="text-white text-xs">
+                        <span className="flex items-center gap-2">
+                          <BsPeople className="h-3 w-3 text-amber-400/70" />
+                          {e.name}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.employeeId && <p className="text-red-400 text-[10px] mt-0.5">{errors.employeeId}</p>}
+              </div>
             </div>
             <div>
-              <label className="block text-[11px] sm:text-xs font-medium text-white/70 mb-1">Category</label>
-              <Select
-                key={`category-${formData.category}`}
-                value={formData.category}
-                onValueChange={(value) => onFormDataChange('category', value)}
-              >
-                <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20">
-                  <SelectValue placeholder="Select category">
-                    {CATEGORIES.find(c => c.value === formData.category)?.label || 'Select category'}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="bg-[#1a1b1e] border-gray-800/50 z-[70]">
-                  {CATEGORIES.map((category) => (
-                    <SelectItem key={category.value} value={category.value} className="text-white text-xs">
-                      <div className="flex items-center gap-1.5">
-                        {React.createElement(category.icon, { className: category.iconColor })}
-                        <span>{category.label}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.category && (
-                <div className="text-red-400 text-[10px] mt-1 font-semibold animate-pulse">{errors.category}</div>
-              )}
-            </div>
-            <div>
-              <label className="block text-[11px] sm:text-xs font-medium text-white/70 mb-1">Department</label>
-              <Select
-                key={`department-${formData.department}`}
-                value={formData.department}
-                onValueChange={(value) => onFormDataChange('department', value)}
-              >
-                <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20">
-                  <SelectValue placeholder="Select department">
-                    {DEPARTMENTS.find(d => d.value === formData.department)?.label || 'Select department'}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="bg-[#1a1b1e] border-gray-800/50 z-[70]">
-                  {DEPARTMENTS.map((department) => (
-                    <SelectItem key={department.value} value={department.value} className="text-white text-xs">
-                      <div className="flex items-center gap-1.5">
-                        {React.createElement(department.icon, { className: department.iconColor })}
-                        <span>{department.label}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.department && (
-                <div className="text-red-400 text-[10px] mt-1 font-semibold animate-pulse">{errors.department}</div>
-              )}
-            </div>
-            <div>
-              <label className="block text-[11px] sm:text-xs font-medium text-white/70 mb-1">Priority</label>
-              <Select
-                key={`priority-${formData.priority}`}
-                value={formData.priority}
-                onValueChange={(value) => onFormDataChange('priority', value)}
-              >
-                <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20">
-                  <SelectValue placeholder="Select priority">
-                    {PRIORITIES.find(p => p.value === formData.priority)?.label || 'Select priority'}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="bg-[#1a1b1e] border-gray-800/50 z-[70]">
-                  {PRIORITIES.map((priority) => (
-                    <SelectItem key={priority.value} value={priority.value} className="text-white text-xs">
-                      <div className="flex items-center gap-1.5">
-                        {React.createElement(priority.icon, { className: priority.iconColor })}
-                        <span>{priority.label}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.priority && (
-                <div className="text-red-400 text-[10px] mt-1 font-semibold animate-pulse">{errors.priority}</div>
-              )}
-            </div>
-          </div>
-
-          {/* Date & Employee Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <div>
-              <label className="block text-[11px] sm:text-xs font-medium text-white/70 mb-1">Due Date</label>
+              <label className="block text-xs font-medium text-white/80 mb-1">Due Date</label>
               <div className="relative">
+                <BsCalendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-amber-400/70 pointer-events-none" />
                 <Input
                   type="date"
                   value={formData.dueDate}
                   onChange={(e) => onFormDataChange('dueDate', e.target.value)}
-                  className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg pl-7 focus:border-amber-500/50 focus:ring-amber-500/20"
+                  className="bg-black/20 border-gray-800/50 text-white text-xs h-9 rounded-lg pl-9"
                 />
-                <BsCalendar className="absolute left-2 top-1/2 transform -translate-y-1/2 text-amber-400/70 h-3 w-3" />
               </div>
             </div>
+          </div>
+
+          {/* SCROLLABLE SECTION: Only title + description (no dropdowns here) */}
+          <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 space-y-3">
             <div>
-              <label className="block text-[11px] sm:text-xs font-medium text-white/70 mb-1">
-                Employee
-              </label>
-              <Select
-                key={`employee-${formData.employeeId}-${isEditMode}`}
-                value={formData.employeeId}
-                onValueChange={(value) => onFormDataChange('employeeId', value)}
-              >
-                <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20">
-                  <SelectValue>{assignedEmployees.find(e => e.id === formData.employeeId)?.name || 'Select'}</SelectValue>
-                </SelectTrigger>
-                <SelectContent className="bg-[#1a1b1e] border-gray-800/50 max-h-40 z-[70]">
-                  {assignedEmployees.map((employee) => (
-                    <SelectItem key={employee.id} value={employee.id} className="text-white text-xs">
-                      <div className="flex items-center gap-1.5">
-                        <BsPeople className="h-2.5 w-2.5 text-amber-400/70" />
-                        <span className="truncate">{employee.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.employeeId && (
-                <div className="text-red-400 text-[10px] mt-1 font-semibold animate-pulse">{errors.employeeId}</div>
-              )}
-              
+              <label className="block text-xs font-medium text-white/80 mb-1">Goal Title</label>
+              <Input
+                value={formData.title}
+                onChange={(e) => onFormDataChange('title', e.target.value)}
+                placeholder="Enter goal title"
+                className="bg-black/20 border-gray-800/50 text-white text-xs h-9 rounded-lg"
+              />
+              {errors.title && <p className="text-red-400 text-[10px] mt-0.5">{errors.title}</p>}
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-white/80 mb-1">Description</label>
+              <Textarea
+                value={formData.description}
+                onChange={(e) => onFormDataChange('description', e.target.value)}
+                placeholder="Describe the goal details..."
+                className="bg-black/20 border-gray-800/50 text-white text-xs min-h-[80px] rounded-lg resize-none"
+              />
+              <AIGoalSuggestions
+                category={formData.category}
+                context={context}
+                onSuggestionSelect={(s) => {
+                  onFormDataChange('title', s.title);
+                  onFormDataChange('description', s.description);
+                }}
+              />
             </div>
           </div>
 
-          {/* Description */}
-          <div>
-            <label className="block text-[11px] sm:text-xs font-medium text-white/70 mb-1 flex items-center gap-1">
-              <BsListTask className="h-2.5 w-2.5" /> Description
-            </label>
-            <Textarea
-              value={formData.description}
-              onChange={(e) => onFormDataChange('description', e.target.value)}
-              placeholder="Describe the goal details..."
-              className="bg-black/20 border-gray-800/50 text-white text-xs min-h-[50px] rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20 resize-none mb-2"
-            />
-            <AIGoalSuggestions
-              category={formData.category}
-              context={context}
-              onSuggestionSelect={(suggestion) => {
-                onFormDataChange('title', suggestion.title);
-                onFormDataChange('description', suggestion.description);
-              }}
-            />
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-1 sm:gap-1.5 pt-2 border-t border-gray-800/50">
+          {/* Fixed footer */}
+          <div className="shrink-0 px-4 py-3 border-t border-gray-800/50 bg-black/10 flex flex-wrap gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={onReset}
-              className="flex-1 bg-black/20 hover:bg-black/30 border-gray-800/50 text-white/70 text-[11px] sm:text-xs h-8 sm:h-7 rounded-lg transition-colors"
+              className="bg-black/20 hover:bg-black/30 border-gray-800/50 text-white/80 text-xs h-9 rounded-lg"
             >
-              <BsArrowCounterclockwise className="h-3 w-3 mr-1 hidden sm:inline" />
+              <BsArrowCounterclockwise className="h-3.5 w-3.5 mr-1.5" />
               Reset
             </Button>
             {!isEditMode && onTemplateClick && (
@@ -255,40 +238,40 @@ export function GoalFormModal({
                 type="button"
                 variant="outline"
                 onClick={onTemplateClick}
-                className="flex-1 bg-black/20 hover:bg-black/30 border-gray-800/50 text-white/70 text-[11px] sm:text-xs h-8 sm:h-7 rounded-lg transition-colors"
+                className="bg-black/20 hover:bg-black/30 border-gray-800/50 text-white/80 text-xs h-9 rounded-lg"
               >
-                <BsListTask className="h-3 w-3 mr-1 hidden sm:inline" />
+                <BsListTask className="h-3.5 w-3.5 mr-1.5" />
                 Templates
               </Button>
             )}
             <Button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-gradient-to-r from-[#4c49ed]/90 to-[#6366f1]/90 hover:from-[#4644e5] hover:to-[#5b5be6] text-white text-[11px] sm:text-xs h-8 sm:h-7 rounded-lg font-medium transition-all duration-200"
+              className="flex-1 min-w-[120px] bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-xs h-9 rounded-lg font-medium"
             >
               {loading ? (
-                <div className="flex items-center gap-1">
-                  <div className="w-2.5 h-2.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span className="flex items-center gap-2">
+                  <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   {isEditMode ? 'Updating...' : 'Creating...'}
-                </div>
+                </span>
               ) : (
-                <div className="flex items-center gap-1">
-                  <BsListTask className="h-2.5 w-2.5" />
+                <span className="flex items-center gap-2">
+                  <BsListTask className="h-3.5 w-3.5" />
                   {isEditMode ? 'Update Goal' : 'Create Goal'}
-                </div>
+                </span>
               )}
             </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="bg-black/20 hover:bg-black/30 border-gray-800/50 text-white/80 text-xs h-9 rounded-lg"
+            >
+              Cancel
+            </Button>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            className="w-full bg-black/20 hover:bg-black/30 border-gray-800/50 text-white/70 text-[11px] sm:text-xs h-8 sm:h-7 rounded-lg transition-colors mt-1"
-          >
-            Cancel
-          </Button>
         </form>
       </div>
     </div>
   );
-} 
+}

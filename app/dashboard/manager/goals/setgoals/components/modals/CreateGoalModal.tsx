@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { User, GoalFormData } from '@/app/components/shared/types';
-import { AIGoalSuggestions } from '@/app/components/shared/AIGoalSuggestions';
 import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
 import React from 'react';
 
@@ -35,9 +34,17 @@ export function CreateGoalModal({
   const [errors, setErrors] = useState<{ title?: string; category?: string; employeeId?: string; department?: string; priority?: string }>({});
   const [justSubmitted, setJustSubmitted] = useState<'create' | 'update' | null>(null);
 
+  // When opening in edit mode, sync form from initialData so modal always shows correct data
+  useEffect(() => {
+    if (isOpen && mode === 'edit' && initialData) {
+      setFormData({ ...initialData });
+      setInitialEditData({ ...initialData });
+    }
+  }, [isOpen, mode, initialData]);
+
   useEffect(() => {
     if (mode === 'edit') {
-      setInitialEditData({ ...formData });
+      setInitialEditData(prev => (prev ? { ...formData } : null));
     } else {
       setInitialEditData(null);
     }
@@ -126,6 +133,8 @@ export function CreateGoalModal({
 
   const handleFormDataChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear validation error for this field when user edits
+    setErrors(prev => ({ ...prev, [field]: undefined }));
   };
 
   const handleReset = () => {
@@ -147,31 +156,19 @@ export function CreateGoalModal({
   };
 
   return (
-    <>
-      <GoalFormModal
-        isOpen={isOpen}
-        onClose={onClose}
-        onSubmit={handleSubmit}
-        assignedEmployees={assignedEmployees}
-        loading={loading}
-        formData={formData}
-        onFormDataChange={handleFormDataChange}
-        errors={errors}
-        isEditMode={mode === 'edit'}
-        context={context}
-        onContextChange={setContext}
-        onReset={handleReset}
-      />
-      {/* AI Suggestions */}
-      {isOpen && (
-        <div className="bg-gradient-to-r from-blue-500/5 to-purple-500/5 rounded-lg p-2 border border-blue-500/20">
-          <AIGoalSuggestions
-            category={formData.category}
-            context={context}
-            onSuggestionSelect={(suggestion: { title: string; description: string }) => setFormData(prev => ({ ...prev, title: suggestion.title, description: suggestion.description }))}
-          />
-        </div>
-      )}
-    </>
+    <GoalFormModal
+      isOpen={isOpen}
+      onClose={onClose}
+      onSubmit={handleSubmit}
+      assignedEmployees={assignedEmployees}
+      loading={loading}
+      formData={formData}
+      onFormDataChange={handleFormDataChange}
+      errors={errors}
+      isEditMode={mode === 'edit'}
+      context={context}
+      onContextChange={setContext}
+      onReset={handleReset}
+    />
   );
 }

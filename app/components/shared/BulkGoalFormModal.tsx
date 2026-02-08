@@ -1,12 +1,16 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, GoalFormData } from './types';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { CATEGORIES, DEPARTMENTS, PRIORITIES, GOAL_TEMPLATES } from './constants';
+
+const selectContentClass = 'bg-[#1a1b1e] border border-gray-700 text-white z-[100] max-h-[min(14rem,45vh)]';
+const selectTriggerClass = 'bg-black/20 border border-gray-800/50 text-white text-xs h-9 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20';
+const nativeSelectClass = selectTriggerClass;
 
 interface BulkGoalFormData extends Omit<GoalFormData, 'employeeId'> {
   id: string;
@@ -44,11 +48,36 @@ export function BulkGoalFormModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'manual' | 'templates'>('manual');
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+  const hasInitialized = useRef(false);
+  const openSelectCountRef = useRef(0);
+  const [anySelectOpen, setAnySelectOpen] = useState(false);
 
-  // Initialize with one empty goal form
+  const handleSelectOpenChange = useCallback((open: boolean) => {
+    openSelectCountRef.current += open ? 1 : -1;
+    openSelectCountRef.current = Math.max(0, openSelectCountRef.current);
+    setAnySelectOpen(openSelectCountRef.current > 0);
+  }, []);
+
+  // Lock body scroll when modal is open
   useEffect(() => {
-    if (isOpen && goals.length === 0) {
-      addNewGoal();
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [isOpen]);
+
+  // Initialize with one empty goal form when modal opens (once per open)
+  useEffect(() => {
+    if (isOpen) {
+      if (!hasInitialized.current && goals.length === 0) {
+        setGoals([{
+          ...defaultGoalForm,
+          id: `goal-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`
+        }]);
+        hasInitialized.current = true;
+      }
+    } else {
+      hasInitialized.current = false;
     }
   }, [isOpen]);
 
@@ -130,11 +159,10 @@ export function BulkGoalFormModal({
     return !hasErrors;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault?.();
 
     if (!validateGoals()) {
-      // Error toast removed
       return;
     }
 
@@ -221,7 +249,7 @@ export function BulkGoalFormModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-1 sm:p-3">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-1 sm:p-3 overflow-hidden">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -272,8 +300,8 @@ export function BulkGoalFormModal({
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-3 overflow-y-auto max-h-[calc(90vh-140px)]">
+        {/* Content - lock scroll when a dropdown is open so dark dropdown stays visible */}
+        <div className={`p-3 max-h-[calc(90vh-140px)] ${anySelectOpen ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           {activeTab === 'templates' ? (
             <div className="space-y-4">
               {/* Employee Selection for Templates */}
@@ -317,7 +345,7 @@ export function BulkGoalFormModal({
               </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form id="bulk-goal-form" onSubmit={handleSubmit} className="space-y-3">
             {/* Goals List */}
             <AnimatePresence>
               {goals.map((goal, index) => (
@@ -379,17 +407,16 @@ export function BulkGoalFormModal({
                         <label className="block text-[11px] font-medium text-white/70 mb-1">Employee *</label>
                         <Select
                           value={goal.employeeId}
-                          onValueChange={(value) => updateGoal(goal.id, 'employeeId', value)}
+                          onValueChange={(v) => updateGoal(goal.id, 'employeeId', v)}
+                          onOpenChange={handleSelectOpenChange}
                         >
-                          <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20">
-                            <SelectValue placeholder="Select employee">
-                              {assignedEmployees.find(e => e.id === goal.employeeId)?.name || 'Select employee'}
-                            </SelectValue>
+                          <SelectTrigger className={selectTriggerClass}>
+                            <SelectValue placeholder="Select employee" />
                           </SelectTrigger>
-                          <SelectContent className="bg-[#1a1b1e] border-gray-800/50">
-                            {assignedEmployees.map((employee) => (
-                              <SelectItem key={employee.id} value={employee.id} className="text-white text-xs">
-                                {employee.name}
+                          <SelectContent className={selectContentClass}>
+                            {assignedEmployees.map((emp) => (
+                              <SelectItem key={emp.id} value={emp.id} className="text-white focus:bg-white/10 focus:text-white">
+                                {emp.name}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -400,23 +427,22 @@ export function BulkGoalFormModal({
                       </div>
                     </div>
 
-                    {/* Category, Department, Priority Row */}
+                    {/* Category, Department, Priority - dark dropdown for clear view */}
                     <div className="grid grid-cols-3 gap-2">
                       <div>
                         <label className="block text-[11px] font-medium text-white/70 mb-1">Category</label>
                         <Select
                           value={goal.category}
-                          onValueChange={(value) => updateGoal(goal.id, 'category', value)}
+                          onValueChange={(v) => updateGoal(goal.id, 'category', v)}
+                          onOpenChange={handleSelectOpenChange}
                         >
-                          <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20">
-                            <SelectValue>
-                              {CATEGORIES.find(c => c.value === goal.category)?.label || 'Select'}
-                            </SelectValue>
+                          <SelectTrigger className={selectTriggerClass}>
+                            <SelectValue placeholder="Category" />
                           </SelectTrigger>
-                          <SelectContent className="bg-[#1a1b1e] border-gray-800/50">
-                            {CATEGORIES.map((category) => (
-                              <SelectItem key={category.value} value={category.value} className="text-white text-xs">
-                                {category.label}
+                          <SelectContent className={selectContentClass}>
+                            {CATEGORIES.map((c) => (
+                              <SelectItem key={c.value} value={c.value} className="text-white focus:bg-white/10 focus:text-white">
+                                {c.label}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -426,17 +452,16 @@ export function BulkGoalFormModal({
                         <label className="block text-[11px] font-medium text-white/70 mb-1">Department</label>
                         <Select
                           value={goal.department}
-                          onValueChange={(value) => updateGoal(goal.id, 'department', value)}
+                          onValueChange={(v) => updateGoal(goal.id, 'department', v)}
+                          onOpenChange={handleSelectOpenChange}
                         >
-                          <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20">
-                            <SelectValue>
-                              {DEPARTMENTS.find(d => d.value === goal.department)?.label || 'Select'}
-                            </SelectValue>
+                          <SelectTrigger className={selectTriggerClass}>
+                            <SelectValue placeholder="Department" />
                           </SelectTrigger>
-                          <SelectContent className="bg-[#1a1b1e] border-gray-800/50">
-                            {DEPARTMENTS.map((department) => (
-                              <SelectItem key={department.value} value={department.value} className="text-white text-xs">
-                                {department.label}
+                          <SelectContent className={selectContentClass}>
+                            {DEPARTMENTS.map((d) => (
+                              <SelectItem key={d.value} value={d.value} className="text-white focus:bg-white/10 focus:text-white">
+                                {d.label}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -446,17 +471,16 @@ export function BulkGoalFormModal({
                         <label className="block text-[11px] font-medium text-white/70 mb-1">Priority</label>
                         <Select
                           value={goal.priority}
-                          onValueChange={(value) => updateGoal(goal.id, 'priority', value)}
+                          onValueChange={(v) => updateGoal(goal.id, 'priority', v)}
+                          onOpenChange={handleSelectOpenChange}
                         >
-                          <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20">
-                            <SelectValue>
-                              {PRIORITIES.find(p => p.value === goal.priority)?.label || 'Select'}
-                            </SelectValue>
+                          <SelectTrigger className={selectTriggerClass}>
+                            <SelectValue placeholder="Priority" />
                           </SelectTrigger>
-                          <SelectContent className="bg-[#1a1b1e] border-gray-800/50">
-                            {PRIORITIES.map((priority) => (
-                              <SelectItem key={priority.value} value={priority.value} className="text-white text-xs">
-                                {priority.label}
+                          <SelectContent className={selectContentClass}>
+                            {PRIORITIES.map((p) => (
+                              <SelectItem key={p.value} value={p.value} className="text-white focus:bg-white/10 focus:text-white">
+                                {p.label}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -522,7 +546,8 @@ export function BulkGoalFormModal({
                 Cancel
               </button>
               <button
-                onClick={handleSubmit}
+                type="submit"
+                form="bulk-goal-form"
                 disabled={isSubmitting || loading || goals.length === 0}
                 className="px-4 py-1.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-lg hover:bg-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 text-xs font-medium"
               >
