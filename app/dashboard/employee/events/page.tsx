@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { BsSearch, BsCalendarPlus, BsArrowRight, BsFilter, BsCheckLg, BsArrowCounterclockwise } from 'react-icons/bs';
@@ -20,7 +20,7 @@ interface Participation {
   event: any;
 }
 
-export default function EmployeeEventsPage() {
+function EmployeeEventsContent() {
   const searchParams = useSearchParams();
   const [participations, setParticipations] = useState<Participation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -394,5 +394,19 @@ export default function EmployeeEventsPage() {
         />
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function EmployeeEventsPage() {
+  return (
+    <Suspense fallback={
+      <DashboardLayout type="employee">
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="text-white/60">Loading events...</div>
+        </div>
+      </DashboardLayout>
+    }>
+      <EmployeeEventsContent />
+    </Suspense>
   );
 }

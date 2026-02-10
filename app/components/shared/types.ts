@@ -1,4 +1,8 @@
 import { Role } from '.prisma/client';
+import { DESIGNATIONS, JOB_CATEGORIES } from './constants';
+
+export type Designation = (typeof DESIGNATIONS)[number];
+export type JobCategory = (typeof JOB_CATEGORIES)[number];
 
 export interface UserManager {
   id: string;

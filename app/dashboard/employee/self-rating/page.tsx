@@ -12,8 +12,8 @@
  import { BsStarFill, BsClipboardData, BsCheckCircle, BsPercent } from 'react-icons/bs';
  import { GoalWithRating } from '@/app/components/shared/types';
  import { Pagination } from '@/app/components/shared/Pagination';
- import { GoalCard } from './components/GoalCard';
- import { BackgroundElements } from './components/BackgroundElements';
+import RatingGoalCard from '@/app/components/shared/RatingGoalCard';
+import BackgroundElements from '@/app/components/shared/BackgroundElements';
  
  export default function SelfRatingPage() {
    const { data: session, status } = useSession();
@@ -214,12 +214,13 @@
            </div>
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
              {filteredGoals.map(goal => (
-               <GoalCard
+               <RatingGoalCard
                  key={goal.id}
                  goal={goal}
+                 onRatingChange={handleSelfRating}
                  submitting={submittingMap}
-                 handleSelfRating={handleSelfRating}
                  viewMode="grid"
+                 variant="self"
                />
              ))}
            </div>

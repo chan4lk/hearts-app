@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -28,7 +28,7 @@ interface Event {
   participations: any[];
 }
 
-export default function AdminEventsPage() {
+function AdminEventsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [events, setEvents] = useState<Event[]>([]);
@@ -384,5 +384,19 @@ export default function AdminEventsPage() {
         />
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function AdminEventsPage() {
+  return (
+    <Suspense fallback={
+      <DashboardLayout type="admin">
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="text-white/60">Loading events...</div>
+        </div>
+      </DashboardLayout>
+    }>
+      <AdminEventsContent />
+    </Suspense>
   );
 }

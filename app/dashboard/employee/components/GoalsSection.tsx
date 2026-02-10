@@ -1,5 +1,6 @@
-import { BsListUl, BsShield, BsStars, BsPlus } from 'react-icons/bs';
-import { useRouter } from 'next/navigation';
+'use client';
+
+import { BsListUl, BsShield, BsStars } from 'react-icons/bs';
 import { Goal } from '@/app/components/shared/types';
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import { Pagination } from '@/app/components/shared/Pagination';
@@ -30,7 +31,6 @@ interface GoalsSectionProps {
 
 type ViewType = 'assigned' | 'created';
 
-
 export default function GoalsSection({
   goals,
   searchQuery,
@@ -46,18 +46,18 @@ export default function GoalsSection({
   onPageChange,
   onLimitChange,
 }: GoalsSectionProps) {
-  const router = useRouter();
   const [activeView, setActiveView] = useState<ViewType>('created');
 
-  // Separate assigned and self-created goals
-  const assignedGoals = goals.filter(goal => 
-    goal.manager && 
-    goal.employee && 
-    goal.manager.id !== goal.employee.id
+  const assignedGoals = goals.filter(
+    (goal) =>
+      goal.manager &&
+      goal.employee &&
+      goal.manager.id !== goal.employee.id
   );
-  const selfCreatedGoals = goals.filter(goal => 
-    goal.employee && 
-    (!goal.manager || goal.manager.id === goal.employee.id)
+  const selfCreatedGoals = goals.filter(
+    (goal) =>
+      goal.employee &&
+      (!goal.manager || goal.manager.id === goal.employee.id)
   );
 
   useEffect(() => {
@@ -65,17 +65,18 @@ export default function GoalsSection({
       setActiveView('created');
     }
   }, [activeView, assignedGoals.length, selfCreatedGoals.length]);
+
   const currentGoals = activeView === 'assigned' ? assignedGoals : selfCreatedGoals;
-  const filteredGoals = currentGoals.filter(goal => 
-    (!selectedStatus || goal.status === selectedStatus) &&
-    (goal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-     goal.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredGoals = currentGoals.filter(
+    (goal) =>
+      (!selectedStatus || goal.status === selectedStatus) &&
+      (goal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        goal.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
     <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl border border-white/20 dark:border-gray-700/50 overflow-hidden shadow-lg">
       <div className="p-4">
-        {/* Header Section */}
         <div className="px-4 py-3 border-b border-gray-700/50 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -84,8 +85,6 @@ export default function GoalsSection({
               </div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Goals Overview</h2>
             </div>
-
-            {/* View Toggle Buttons */}
             <div className="flex gap-2 p-1 bg-gray-800/50 rounded-lg backdrop-blur-sm">
               <button
                 onClick={() => setActiveView('assigned')}
@@ -119,10 +118,7 @@ export default function GoalsSection({
               </button>
             </div>
           </div>
-          
         </div>
-
-        {/* Goals Table */}
         <div className="mt-6">
           <GoalsTable
             goals={filteredGoals}
@@ -136,8 +132,6 @@ export default function GoalsSection({
             onStatusUpdate={onStatusUpdate}
             showActions={false}
           />
-          
-          {/* Pagination */}
           {pagination && onPageChange && onLimitChange && (
             <div className="mt-6 pt-4 border-t border-gray-700/50">
               <Pagination
@@ -156,4 +150,4 @@ export default function GoalsSection({
       </div>
     </div>
   );
-} 
+}

@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev -p 3000 -H 127.0.0.1",
     "build": "next build",
+    "clean": "node -e \"try { require('fs').rmSync('.next', { recursive: true, force: true }); console.log('Cleaned .next'); } catch (e) { console.warn('Clean:', e.message); }\"",
+    "build:clean": "npm run clean && npm run build",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",

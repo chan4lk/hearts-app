@@ -311,6 +311,20 @@ export const STATUS_COLORS = {
   MODIFIED: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400'
 } as const;
 
+/** Shared status badge styles for GoalsTable and AdminGoalsTable. Use for consistent goal status UI. */
+export const GOAL_STATUS_BADGE_CONFIG: Record<string, { bg: string; text: string }> = {
+  APPROVED: { bg: 'bg-emerald-500/20', text: 'text-emerald-400' },
+  REJECTED: { bg: 'bg-rose-500/20', text: 'text-rose-400' },
+  PENDING: { bg: 'bg-amber-500/20', text: 'text-amber-400' },
+  MODIFIED: { bg: 'bg-blue-500/20', text: 'text-blue-400' },
+  COMPLETED: { bg: 'bg-green-500/20', text: 'text-green-400' },
+  DRAFT: { bg: 'bg-gray-500/20', text: 'text-gray-400' },
+  IN_PROGRESS: { bg: 'bg-blue-500/20', text: 'text-blue-400' },
+  NOT_STARTED: { bg: 'bg-gray-500/20', text: 'text-gray-400' },
+  ON_HOLD: { bg: 'bg-amber-500/20', text: 'text-amber-400' },
+  BLOCKED: { bg: 'bg-red-500/20', text: 'text-red-400' },
+};
+
 export const DEPARTMENTS = [
   {
     value: 'ENGINEERING',
@@ -405,5 +419,130 @@ export const PRIORITIES = [
   }
 ] as const;
 
+// ─── Theme / UI colors (shared; was manager/setgoals/styles/colors) ───
+export const THEME_COLORS = {
+  primary: {
+    gradient: 'from-indigo-600/90 via-purple-600/90 to-pink-600/90',
+    text: 'text-indigo-600 dark:text-indigo-400',
+    bg: 'bg-indigo-500/10',
+    border: 'border-indigo-500/50',
+    hover: 'hover:bg-indigo-500/20',
+  },
+  secondary: {
+    gradient: 'from-blue-500/10 to-blue-600/10',
+    text: 'text-blue-600 dark:text-blue-400',
+    bg: 'bg-blue-500/10',
+    border: 'border-blue-200/20 dark:border-blue-600/20',
+  },
+  success: {
+    gradient: 'from-emerald-500/10 to-emerald-600/10',
+    text: 'text-emerald-600 dark:text-emerald-400',
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-200/20 dark:border-emerald-600/20',
+  },
+  warning: {
+    gradient: 'from-amber-500/10 to-amber-600/10',
+    text: 'text-amber-600 dark:text-amber-400',
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-200/20 dark:border-amber-600/20',
+  },
+  background: {
+    primary: 'bg-white/80 dark:bg-gray-800/80',
+    secondary: 'bg-gray-50/80 dark:bg-gray-700/80',
+    gradient: 'from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900',
+  },
+  border: {
+    light: 'border-white/20 dark:border-gray-700/50',
+  },
+  text: {
+    primary: 'text-gray-900 dark:text-white',
+    secondary: 'text-gray-600 dark:text-gray-400',
+  },
+} as const;
 
+// ─── Designations & job categories (single source; was app/constants/) ───
+
+/** Predefined designations for employees. */
+export const DESIGNATIONS = [
+  'Senior Software Engineer',
+  'Software Engineer',
+  'QA Lead',
+  'Tech Lead',
+  'Senior Tech Lead',
+  'Associate Tech Lead',
+  'Accountant',
+  'Senior Accountant',
+  'Consultant - Senior',
+  'Manager - IT Security',
+  'Security Manager - GCN',
+  'Security Engineer',
+  'Project Manager',
+  'Graphic Designer',
+  'Learning and Development Coordinator',
+  'Operations Executive',
+  'Senior Finance Executive',
+  'Administrative Assistant',
+  'Talent Acquisition Specialist',
+  'Business Analyst',
+  'Lead - Client Operations',
+  'Associate QA Engineer',
+  'Finance Executive',
+  'BTG Consultant - Security Engineer',
+  'System Engineer',
+  'BTG Consultant - Junior Process Analyst',
+  'Associate Software Engineer',
+  'BTG Consultant - Accounting Practice Lead',
+  'Senior Power Platform Developer',
+  'BTG Consultant - Tech Lead',
+  'Sales Executive',
+  'Senior Medical Marketing Executive',
+  'Customer Success Officer',
+  'Senior Quality Assurance Engineer',
+  'Senior QA Engineer',
+  'BTG Consultant - SharePoint',
+  'Consultant - Tech Lead',
+  'BTG Consultant - PM Trainee',
+  'Associate BI Engineer',
+  'Practice Lead',
+  'Accounts Executive',
+  'Associate Project Manager',
+  'Senior Digital Marketing Executive',
+  'People & Culture Executive',
+  'Technical Security Specialist - Information Assurance',
+  'UI Lead',
+  'Finance Trainee',
+  'Senior Data Engineer',
+  'Senior Draughtsman',
+  'BTG Consultant',
+  'Senior Network Engineer',
+  'Event Management Executive'
+] as const;
+
+/** Predefined job categories for employees. */
+export const JOB_CATEGORIES = [
+  'Executive',
+  'Senior Executive',
+  'Sub Contractor',
+  'Intern'
+] as const;
+
+export function getDesignations(): string[] {
+  return [...DESIGNATIONS].sort();
+}
+
+export function searchDesignations(keyword: string): string[] {
+  if (!keyword.trim()) return getDesignations();
+  const lowerKeyword = keyword.toLowerCase();
+  return DESIGNATIONS.filter(d => d.toLowerCase().includes(lowerKeyword)).sort();
+}
+
+export function getJobCategories(): string[] {
+  return [...JOB_CATEGORIES].sort();
+}
+
+export function searchJobCategories(keyword: string): string[] {
+  if (!keyword.trim()) return getJobCategories();
+  const lowerKeyword = keyword.toLowerCase();
+  return JOB_CATEGORIES.filter(c => c.toLowerCase().includes(lowerKeyword)).sort();
+}
 

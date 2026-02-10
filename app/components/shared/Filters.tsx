@@ -105,7 +105,7 @@ export interface FiltersProps {
   // Employee filter (alias for User filter but specific for Analytics/Manager views)
   selectedEmployee?: string;
   onEmployeeChange?: (value: string) => void;
-  employees?: Array<{ id: string; name: string; email: string; department: string | null }>;
+  employees?: Array<{ id: string; name: string; email: string; department?: string | null }>;
   assignedEmployees?: Array<{ id: string; name: string; role: string }>; // For Manager Set Goals
 
   // Department filter

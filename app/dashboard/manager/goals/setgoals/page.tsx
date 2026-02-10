@@ -26,7 +26,7 @@ import { BulkGoalFormModal } from '@/app/components/shared/BulkGoalFormModal';
 import { CATEGORIES } from '@/app/components/shared/constants';
 
 // Styles and Types
-import { colors } from './components/styles/colors';
+import { THEME_COLORS } from '@/app/components/shared/constants';
 import { GoalFormData, GoalStats, User, Goal } from '@/app/components/shared/types';
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
@@ -430,7 +430,7 @@ function ManagerGoalSettingPageContent() {
   }
   return (
     <DashboardLayout type="manager">
-      <div className={`min-h-screen bg-gradient-to-br ${colors.background.gradient}`}>
+      <div className={`min-h-screen bg-gradient-to-br ${THEME_COLORS.background.gradient}`}>
 
       <div className="relative z-10 p-4 space-y-4">
         <HeroSection
@@ -543,8 +543,8 @@ function ManagerGoalSettingPageContent() {
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className={`${colors.background.primary} backdrop-blur-xl rounded-2xl p-6 shadow-lg border ${colors.border.light}`}>
-                  <h3 className={`text-xl font-bold ${colors.text.primary} mb-4`}>Goal Templates</h3>
+                <div className={`${THEME_COLORS.background.primary} backdrop-blur-xl rounded-2xl p-6 shadow-lg border ${THEME_COLORS.border.light}`}>
+                  <h3 className={`text-xl font-bold ${THEME_COLORS.text.primary} mb-4`}>Goal Templates</h3>
                   <GoalTemplates onSelect={(template) => {
                     setFormData(prev => ({
                       ...prev,

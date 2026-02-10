@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { BsX, BsCalendar, BsPerson, BsBriefcase, BsSearch, BsChevronDown } from 'react-icons/bs';
-import { searchDesignations } from '@/app/constants/designations';
-import { searchJobCategories } from '@/app/constants/jobCategories';
+import { searchDesignations, searchJobCategories } from '@/app/components/shared/constants';
 
 interface ReviewCycle {
   id: string;

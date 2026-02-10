@@ -1,9 +1,25 @@
 import { z } from 'zod';
+import { validatePasswordStrength } from './securityUtils';
 
 /**
  * VALIDATION SCHEMAS - Add to lib/validation.ts or use directly in endpoints
  * These schemas prevent SQL injection, XSS, and data type errors
  */
+
+// ============================================
+// PASSWORD VALIDATION (used by admin/users, users, password API routes)
+// ============================================
+
+/**
+ * Validate password strength. Returns { valid, error } for API responses.
+ */
+export function validatePassword(password: string): { valid: boolean; error?: string } {
+  const result = validatePasswordStrength(password);
+  return {
+    valid: result.isValid,
+    error: result.isValid ? undefined : result.errors.join(' '),
+  };
+}
 
 // ============================================
 // GOAL ENDPOINTS VALIDATION
