@@ -324,6 +324,170 @@ Generate reports (JSON or PDF data).
 - **Body:** `{ reportType: "dashboard"|"performance"|"goals", analyticsData?, format: "json"|"pdf", options? }`
 - **Response:** `{ success, report, format }`
 
+### GET /api/reports/employee-review
+Comprehensive employee review report aggregating all performance data.
+- **Auth:** MANAGER or ADMIN
+- **Params:** `employeeId` (required)
+- **Response:** `{ success, report: { employee, goals, ratings, feedbackRounds, meetingMinutes, surveys, exitInterviews, summary } }`
+- **Features:** Aggregates goals with ratings, 360 feedback rounds with reviews, meeting minutes history, surveys, exit interviews. Summary includes totalGoals, completedGoals, avgSelfScore, avgManagerScore, avgFeedbackScore, totalMeetings.
+
+---
+
+## 360 Feedback (`/api/feedback-rounds/`, `/api/feedback-reviews/`)
+
+### GET /api/feedback-rounds
+List feedback rounds (scoped by role).
+- **Auth:** MANAGER or ADMIN
+- **Response:** `{ rounds: Array<{ id, type, status, employee, initiatedBy, reviewCount, submittedCount, createdAt }> }`
+- **Scoping:** Manager sees own-initiated rounds; Admin sees all
+
+### POST /api/feedback-rounds
+Create a new 360 feedback round.
+- **Auth:** MANAGER or ADMIN
+- **Body:** `{ employeeId: string, type: "THREE_MONTH"|"ANNUAL", reviewerIds: string[] }`
+- **Response:** `{ success, round, reviews }` (201)
+- **Validation:** Min 1 reviewer, employee cannot review self, no duplicate reviewers
+- **Notifications:** FEEDBACK_ROUND_CREATED to employee, FEEDBACK_REVIEW_REQUESTED to each reviewer
+
+### GET /api/feedback-rounds/[roundId]
+Get feedback round detail with all reviews.
+- **Auth:** Round initiator, employee, or ADMIN
+- **Response:** `{ round: { id, type, status, employee, initiatedBy, reviews[], aggregated: { avgScore, totalReviews, submittedCount } } }`
+
+### DELETE /api/feedback-rounds/[roundId]
+Cancel a feedback round.
+- **Auth:** Round initiator or ADMIN
+- **Validation:** Cannot cancel already completed rounds
+- **Features:** Sets status to CANCELLED
+
+### GET /api/feedback-rounds/[roundId]/reviews
+Get all reviews for a specific round.
+- **Auth:** Round initiator, employee, or ADMIN
+- **Response:** `{ reviews: Array<{ id, reviewer, status, score, comments, strengths, improvements, submittedAt }> }`
+
+### GET /api/feedback-rounds/reviewers
+Get eligible reviewers for an employee.
+- **Auth:** MANAGER or ADMIN
+- **Params:** `employeeId` (required)
+- **Response:** `{ reviewers: Array<{ id, name, email, department, position }> }`
+- **Features:** Excludes the employee themselves from the list
+
+### GET /api/feedback-reviews/[reviewId]
+Get feedback review detail (for reviewer to view/submit).
+- **Auth:** Assigned reviewer or ADMIN
+- **Response:** `{ id, roundId, reviewerId, status, score, comments, strengths, improvements, submittedAt, round: { id, type, status, employee } }`
+
+### PUT /api/feedback-reviews/[reviewId]
+Submit a feedback review.
+- **Auth:** Assigned reviewer only
+- **Body:** `{ score: number (1-5), comments: string (min 10 chars), strengths?: string, improvements?: string }`
+- **Response:** `{ success, message, review, roundCompleted: boolean }`
+- **Features:** Auto-updates round status (PENDING→IN_PROGRESS), auto-completes round when all reviews submitted
+- **Notifications:** FEEDBACK_REVIEW_SUBMITTED to initiator; FEEDBACK_ROUND_COMPLETED to initiator + employee when all done
+
+---
+
+## Meetings (`/api/meetings/`)
+
+### GET /api/meetings
+List meeting minutes (scoped by role).
+- **Auth:** MANAGER or ADMIN
+- **Params:** `employeeId` (optional filter)
+- **Response:** `{ meetings: Array<{ id, type, date, employee, manager, notes, actionItems, nextSteps, feedbackRoundId }> }`
+
+### POST /api/meetings
+Create meeting minutes.
+- **Auth:** MANAGER or ADMIN
+- **Body:** `{ employeeId: string, type: MeetingType, date: string (ISO), notes: string, actionItems?: string, nextSteps?: string, feedbackRoundId?: string }`
+- **Response:** `{ success, meeting }` (201)
+- **Notifications:** MEETING_MINUTES_CREATED to employee
+
+### GET /api/meetings/[meetingId]
+Get meeting detail.
+- **Auth:** Meeting manager, employee, or ADMIN
+- **Response:** `{ meeting: { id, type, date, notes, actionItems, nextSteps, employee, manager, feedbackRoundId } }`
+
+### PUT /api/meetings/[meetingId]
+Update meeting minutes.
+- **Auth:** Meeting manager or ADMIN
+- **Body:** `{ type?, date?, notes?, actionItems?, nextSteps? }`
+- **Response:** `{ success, meeting }`
+
+### DELETE /api/meetings/[meetingId]
+Delete meeting minutes.
+- **Auth:** Meeting manager or ADMIN
+- **Response:** `{ success, message }`
+
+---
+
+## Surveys (`/api/surveys/`)
+
+### GET /api/surveys
+List surveys (scoped by role).
+- **Auth:** Authenticated
+- **Response:** `{ surveys: Array<{ id, type, status, employee, submittedAt, createdAt }> }`
+- **Scoping:** Employee sees own surveys; Manager/Admin sees all
+
+### POST /api/surveys
+Create a survey for an employee.
+- **Auth:** MANAGER or ADMIN
+- **Body:** `{ employeeId: string, type: "NEW_JOINER_FEEDBACK" }`
+- **Response:** `{ success, survey }` (201)
+- **Notifications:** SURVEY_REQUESTED to employee
+
+### GET /api/surveys/[surveyId]
+Get survey detail.
+- **Auth:** Survey employee, their manager, or ADMIN
+- **Response:** `{ survey: { id, type, status, responses, employee, submittedAt } }`
+
+### PUT /api/surveys/[surveyId]
+Submit survey responses.
+- **Auth:** Survey employee only
+- **Body:** `{ responses: Array<{ question: string, answer: string }> }`
+- **Validation:** responses must be a non-empty array with question and answer strings
+- **Response:** `{ success, survey }`
+- **Notifications:** SURVEY_SUBMITTED to employee's manager
+
+---
+
+## Exit Interviews (`/api/exit-interviews/`)
+
+### GET /api/exit-interviews
+List exit interviews (scoped by role).
+- **Auth:** MANAGER or ADMIN
+- **Response:** `{ interviews: Array<{ id, status, departureDate, reason, employee, manager, conductedAt }> }`
+
+### POST /api/exit-interviews
+Create (flag) an exit interview.
+- **Auth:** MANAGER or ADMIN
+- **Body:** `{ employeeId: string, departureDate: string (ISO), reason?: string }`
+- **Response:** `{ success, interview }` (201)
+- **Notifications:** EXIT_INTERVIEW_CREATED to employee
+
+### GET /api/exit-interviews/[interviewId]
+Get exit interview detail.
+- **Auth:** Interview manager, employee, or ADMIN
+- **Response:** `{ interview: { ...exitInterview, managerNotes } }`
+- **Note:** `notes` field mapped to `managerNotes` in response
+
+### PUT /api/exit-interviews/[interviewId]
+Update/complete exit interview.
+- **Auth:** Interview manager or ADMIN
+- **Body:** `{ responses?: JSON, notes?: string, managerNotes?: string, status?: "SCHEDULED"|"COMPLETED"|"CANCELLED" }`
+- **Response:** `{ success, message, interview }`
+- **Features:** Sets conductedAt when status=COMPLETED
+- **Notifications:** EXIT_INTERVIEW_COMPLETED to employee when completed
+
+---
+
+## Review Lifecycle (`/api/review-lifecycle/`)
+
+### GET /api/review-lifecycle/check
+Idempotent lifecycle milestone check.
+- **Auth:** MANAGER or ADMIN
+- **Response:** `{ success, checked, reminders: { sent, details[] } }`
+- **Features:** Checks all review cycles, calculates months since dateOfAppointment, sends 2-week advance reminders for 6-month ratings and goal renewals. Deduplicates notifications to avoid spam.
+
 ---
 
 ## Notifications (`/api/notifications/`)
@@ -359,16 +523,16 @@ System health and environment check.
 
 | Metric | Count |
 |---|---|
-| **Total Endpoints** | 50 |
-| **Route Groups** | 10 (auth, admin, users, employees, goals, ratings, ai, notifications, analytics, health) |
-| **GET endpoints** | 24 |
-| **POST endpoints** | 17 |
-| **PUT endpoints** | 5 |
+| **Total Endpoints** | 72 |
+| **Route Groups** | 16 (auth, admin, users, employees, goals, ratings, ai, notifications, analytics, health, feedback-rounds, feedback-reviews, meetings, surveys, exit-interviews, review-lifecycle) |
+| **GET endpoints** | 36 |
+| **POST endpoints** | 22 |
+| **PUT endpoints** | 10 |
 | **PATCH endpoints** | 4 |
-| **DELETE endpoints** | 4 |
+| **DELETE endpoints** | 6 |
 | **Public endpoints** | 4 (register, login, health, seed) |
 | **Rate-limited endpoints** | 12 |
-| **Notification-triggering** | 15+ |
+| **Notification-triggering** | 25+ |
 
 ## Common Error Responses
 

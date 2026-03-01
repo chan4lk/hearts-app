@@ -1,6 +1,6 @@
 # Bistec AspireHub - Component Inventory
 
-**Generated:** 2026-02-28 | **Total Components:** 41 files | **Total Pages:** 16 files
+**Generated:** 2026-03-01 | **Total Components:** 48 files | **Total Pages:** 24 files
 
 ## Component Architecture
 
@@ -59,6 +59,7 @@ Reusable across all dashboard roles:
 | BulkGoalTemplates | `shared/BulkGoalTemplates.tsx` | Pre-defined goal templates for bulk creation |
 | AIGoalSuggestions | `shared/AIGoalSuggestions.tsx` | AI-powered goal suggestions from /api/ai/personalized-goals |
 | GoalTemplates | `shared/GoalTemplates.tsx` | Library of goal templates by category |
+| RatingJustificationModal | `shared/RatingJustificationModal.tsx` | Modal requiring written justification (min 10 chars) when rating goals. Shows star display, required textarea, submit/cancel. Dark glassmorphism style. |
 
 ## Goal-Specific Components (`app/components/goals/`)
 
@@ -132,6 +133,13 @@ Reusable across all dashboard roles:
 | CreateGoalModal | `manager/goals/setgoals/components/modals/CreateGoalModal.tsx` | Modal for creating goal for employee |
 | **Rate Employees** | `manager/rate-employees/page.tsx` | Rate completed goals |
 | EmployeeFilter | `manager/rate-employees/components/EmployeeFilter.tsx` | Select employee to rate |
+| **360 Feedback** | `manager/feedback/page.tsx` | 360 feedback management - list rounds, initiate new reviews |
+| InitiateFeedbackModal | `manager/feedback/components/InitiateFeedbackModal.tsx` | 3-step modal: select employee → choose type → pick reviewers |
+| **Feedback Round Detail** | `manager/feedback/[roundId]/page.tsx` | Round detail with reviewer statuses, aggregated scores, individual feedback |
+| **Meeting Minutes** | `manager/meetings/page.tsx` | Meeting minutes list with inline create/edit forms |
+| MeetingForm | `manager/meetings/components/MeetingForm.tsx` | Reusable form: employee selector, meeting type, date, notes, action items, next steps |
+| **Exit Interviews** | `manager/exit-interviews/page.tsx` | Exit interview list with "Flag Departure" button |
+| **Exit Interview Detail** | `manager/exit-interviews/[interviewId]/page.tsx` | Interview form with 5-question template, responses, manager notes |
 
 ### Employee Dashboard (`app/dashboard/employee/`)
 
@@ -143,8 +151,15 @@ Reusable across all dashboard roles:
 | GoalsSection | `employee/components/GoalsSection.tsx` | Grid/card view of own goals |
 | ManagerRatingBadge | `employee/components/ManagerRatingBadge.tsx` | Badge showing manager's rating |
 | **Create Goal** | `employee/goals/create/page.tsx` | Create new goal with AI suggestions |
-| **Self Rating** | `employee/self-rating/page.tsx` | Self-rate completed goals |
+| **Self Rating** | `employee/self-rating/page.tsx` | Self-rate completed goals (with justification modal) |
 | SelfRatingGoalCard | `employee/self-rating/components/GoalCard.tsx` | Goal card with rating selector |
+| **Survey** | `employee/survey/page.tsx` | Employee survey form with 5 predefined questions (onboarding, expectations, communication, suggestions, culture) |
+
+### Feedback Review (`app/dashboard/feedback/`)
+
+| Page/Component | File | Description |
+|---|---|---|
+| **Review Submission** | `feedback/review/[reviewId]/page.tsx` | Reviewer submission form: score (1-5 stars), comments (required, min 10 chars), strengths, improvements. Shows employee info and round context. |
 
 ### Analytics Dashboard (`app/dashboard/analytics/`)
 

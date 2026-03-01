@@ -57,9 +57,10 @@ Bistec AspireHub is a full-stack performance management system built as a Next.j
 ├────────────────────────────────────────────────────┤
 │              Data Layer                             │
 │  ┌──────────────────────────────────────────────┐  │
-│  │  PostgreSQL 15 (via Prisma ORM)              │  │
+│  │  PostgreSQL 17 (via Prisma ORM)              │  │
 │  │  Tables: User, Goal, Rating, Notification,   │  │
-│  │          ReviewCycle                          │  │
+│  │  ReviewCycle, FeedbackRound, FeedbackReview,  │  │
+│  │  MeetingMinutes, EmployeeSurvey, ExitInterview│  │
 │  └──────────────────────────────────────────────┘  │
 ├────────────────────────────────────────────────────┤
 │              External Services                      │
@@ -81,7 +82,7 @@ Bistec AspireHub is a full-stack performance management system built as a Next.j
 | Component Primitives | Radix UI | Various | Accessible, unstyled component primitives |
 | Animations | Framer Motion | 10.18.0 | Declarative React animations |
 | ORM | Prisma | 6.10.1 | Type-safe database access, migrations, schema-first |
-| Database | PostgreSQL | 15 | Reliable RDBMS, rich feature set |
+| Database | PostgreSQL | 17 | Reliable RDBMS, rich feature set |
 | Authentication | NextAuth.js | 4.24.11 | Multi-provider auth, session management |
 | Identity | Azure AD | - | Enterprise SSO, organizational directory |
 | AI | OpenAI | 4.96.0 | Goal suggestions, risk analysis, performance insights |
@@ -124,7 +125,12 @@ User → Login Page → Azure AD OAuth / Credentials
 |---|---|---|---|
 | /dashboard/admin/* | Full access | No access | No access |
 | /dashboard/manager/* | Full access | Full access | No access |
+| /dashboard/manager/feedback/* | Full access | Full access | No access |
+| /dashboard/manager/meetings/* | Full access | Full access | No access |
+| /dashboard/manager/exit-interviews/* | Full access | Full access | No access |
 | /dashboard/employee/* | Full access | Full access | Full access |
+| /dashboard/employee/survey/* | Full access | Full access | Full access |
+| /dashboard/feedback/review/* | Full access | Full access | Full access |
 | /dashboard/analytics/* | Full access | Full access | Full access |
 | /api/* | Full access | Scoped to team | Scoped to self |
 
@@ -135,9 +141,14 @@ See [Data Models](./data-models.md) for full schema documentation.
 ### Core Entities
 - **User** - Employees, managers, admins with self-referencing manager relationship
 - **Goal** - Performance goals with status workflow, categories, priorities
-- **Rating** - 1:1 with Goal, dual scoring (self + manager)
-- **Notification** - Event-driven notifications tied to goals
+- **Rating** - 1:1 with Goal, dual scoring (self + manager) with required justification
+- **Notification** - Event-driven notifications (23 event types)
 - **ReviewCycle** - Periodic review scheduling per user
+- **FeedbackRound** - 360 feedback round with type (3-month/annual) and status tracking
+- **FeedbackReview** - Individual reviewer feedback within a round (score, comments, strengths, improvements)
+- **MeetingMinutes** - Manager-employee meeting records with action items
+- **EmployeeSurvey** - Employee survey responses (new joiner feedback)
+- **ExitInterview** - Departure tracking with structured interview responses
 
 ### Key Relationships
 ```
@@ -147,6 +158,12 @@ User (1) ──owns────> (N) Goal (as employee)
 Goal (1) ──has──────> (1) Rating
 Goal (1) ──triggers─> (N) Notification
 User (1) ──has──────> (1) ReviewCycle
+User (1) ──reviewed in──> (N) FeedbackRound (as employee)
+User (1) ──initiates──> (N) FeedbackRound (as manager)
+FeedbackRound (1) ──has──> (N) FeedbackReview
+FeedbackRound (1) ──has──> (N) MeetingMinutes (optional link)
+User (1) ──has──> (N) EmployeeSurvey
+User (1) ──has──> (N) ExitInterview (as employee or manager)
 ```
 
 ## 6. API Design
@@ -164,9 +181,15 @@ All API routes use Next.js App Router conventions (`app/api/[domain]/route.ts`).
 | `/api/ai/*` | AI-powered features | Yes |
 | `/api/analytics/*` | Dashboard analytics | Yes |
 | `/api/ratings/*` | Goal ratings | Yes |
-| `/api/reports/*` | Report generation | Yes |
+| `/api/reports/*` | Report generation + employee review reports | Yes |
 | `/api/employees/*` | Employee data | Yes (MANAGER+) |
 | `/api/notifications/*` | User notifications | Yes |
+| `/api/feedback-rounds/*` | 360 feedback round management | Yes (MANAGER+) |
+| `/api/feedback-reviews/*` | Individual feedback review submission | Yes |
+| `/api/meetings/*` | Meeting minutes CRUD | Yes (MANAGER+) |
+| `/api/surveys/*` | Employee survey management | Yes |
+| `/api/exit-interviews/*` | Exit interview management | Yes (MANAGER+) |
+| `/api/review-lifecycle/*` | Automated lifecycle checks | Yes (MANAGER+) |
 | `/api/health` | Health check | No |
 
 ## 7. State Management

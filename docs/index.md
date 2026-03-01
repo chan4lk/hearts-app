@@ -1,6 +1,6 @@
 # Bistec AspireHub - Project Documentation Index
 
-**Generated:** 2026-02-28 | **Workflow:** initial_scan (deep) | **Version:** 1.2.0
+**Generated:** 2026-03-01 | **Workflow:** initial_scan (deep) | **Version:** 2.0.0
 
 ## Project Overview
 
@@ -12,7 +12,7 @@
 ## Quick Reference
 
 - **Framework:** Next.js 14 (App Router) + React 18
-- **Database:** PostgreSQL 15 (Prisma ORM)
+- **Database:** PostgreSQL 17 (Prisma ORM)
 - **Auth:** NextAuth.js (Azure AD SSO + Credentials)
 - **AI:** OpenAI (GPT-3.5-turbo, GPT-4o-mini)
 - **Styling:** Tailwind CSS + Radix UI + Framer Motion
@@ -63,6 +63,11 @@ npm run dev                    # Start dev server → http://localhost:3000
 | `/dashboard/manager` | Manager dashboard |
 | `/dashboard/employee` | Employee dashboard |
 | `/dashboard/analytics` | Analytics (all roles) |
+| `/dashboard/manager/feedback` | 360 Feedback (manager) |
+| `/dashboard/manager/meetings` | Meeting Minutes (manager) |
+| `/dashboard/manager/exit-interviews` | Exit Interviews (manager) |
+| `/dashboard/employee/survey` | Employee Survey |
+| `/dashboard/feedback/review/[id]` | Submit Feedback Review |
 | `/api/health` | Health check |
 
 ## For AI-Assisted Development

@@ -4,7 +4,7 @@
 
 ## Database Schema Overview
 
-The application uses 5 core tables with a self-referencing user hierarchy and comprehensive indexing for performance.
+The application uses 10 core tables with a self-referencing user hierarchy, 360 feedback system, meeting/survey tracking, and comprehensive indexing for performance.
 
 ## Entity Relationship Diagram
 
@@ -52,6 +52,51 @@ The application uses 5 core tables with a self-referencing user hierarchy and co
 │ updatedAt         │
 │ updatedById (FK)  │
 └───────────────────┘
+
+┌──────────────────┐     ┌──────────────────┐
+│  FeedbackRound   │────<│  FeedbackReview  │
+│                  │     │                  │
+│ id (PK)          │     │ id (PK)          │
+│ type (enum)      │     │ feedbackRoundId  │
+│ employeeId (FK)  │     │ reviewerId (FK)  │
+│ initiatedById    │     │ score (1-5)      │
+│ status (enum)    │     │ comments         │
+│ completedAt      │     │ strengths        │
+│ createdAt        │     │ improvements     │
+│ updatedAt        │     │ status (enum)    │
+└──────────────────┘     │ submittedAt      │
+                         │ @@unique(round+  │
+                         │  reviewer)       │
+                         └──────────────────┘
+
+┌──────────────────┐     ┌──────────────────┐
+│ MeetingMinutes   │     │ EmployeeSurvey   │
+│                  │     │                  │
+│ id (PK)          │     │ id (PK)          │
+│ type (enum)      │     │ employeeId (FK)  │
+│ employeeId (FK)  │     │ type (enum)      │
+│ managerId (FK)   │     │ responses (JSON) │
+│ feedbackRoundId  │     │ status (enum)    │
+│ date             │     │ submittedAt      │
+│ notes            │     │ createdAt        │
+│ actionItems      │     │ updatedAt        │
+│ nextSteps        │     └──────────────────┘
+│ createdAt        │
+│ updatedAt        │     ┌──────────────────┐
+└──────────────────┘     │  ExitInterview   │
+                         │                  │
+                         │ id (PK)          │
+                         │ employeeId (FK)  │
+                         │ managerId (FK)   │
+                         │ departureDate    │
+                         │ reason           │
+                         │ status (enum)    │
+                         │ responses (JSON) │
+                         │ notes            │
+                         │ conductedAt      │
+                         │ createdAt        │
+                         │ updatedAt        │
+                         └──────────────────┘
 ```
 
 ## Table Definitions
@@ -90,6 +135,12 @@ The application uses 5 core tables with a self-referencing user hierarchy and co
 - `notifications` → Notification[]
 - `selfRatings`, `managerRatings` → Rating[]
 - `reviewCycle` → ReviewCycle (1:1)
+- `feedbackRoundsAsEmployee` → FeedbackRound[] (rounds where user is the employee)
+- `feedbackRoundsInitiated` → FeedbackRound[] (rounds initiated by this user)
+- `feedbackReviews` → FeedbackReview[] (reviews written by this user)
+- `meetingsAsEmployee`, `meetingsAsManager` → MeetingMinutes[]
+- `surveys` → EmployeeSurvey[]
+- `exitInterviewsAsEmployee`, `exitInterviewsAsManager` → ExitInterview[]
 
 ---
 
@@ -194,6 +245,107 @@ The application uses 5 core tables with a self-referencing user hierarchy and co
 
 ---
 
+### FeedbackRound
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| id | String (CUID) | PK | Unique identifier |
+| type | FeedbackRoundType (enum) | NOT NULL | THREE_MONTH or ANNUAL |
+| employeeId | String | FK → User.id, NOT NULL | Employee being reviewed |
+| initiatedById | String | FK → User.id, NOT NULL | Manager who initiated |
+| status | FeedbackRoundStatus (enum) | DEFAULT PENDING | Round status |
+| completedAt | DateTime | NULL | When round was completed |
+| createdAt | DateTime | DEFAULT now() | Created timestamp |
+| updatedAt | DateTime | Auto-updated | Last update timestamp |
+
+**Indexes:** `@@index([employeeId])`, `@@index([initiatedById])`, `@@index([status])`
+
+**Relations:**
+- `employee` → User (many-to-one)
+- `initiatedBy` → User (many-to-one)
+- `reviews` → FeedbackReview[] (one-to-many, cascade delete)
+- `meetingMinutes` → MeetingMinutes[] (one-to-many)
+
+---
+
+### FeedbackReview
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| id | String (CUID) | PK | Unique identifier |
+| feedbackRoundId | String | FK → FeedbackRound.id, NOT NULL | Parent round |
+| reviewerId | String | FK → User.id, NOT NULL | Reviewer |
+| score | Int | NULL | Rating score (1-5) |
+| comments | String | NULL | Reviewer comments |
+| strengths | String | NULL | Employee strengths noted |
+| improvements | String | NULL | Areas for improvement |
+| status | FeedbackReviewStatus (enum) | DEFAULT PENDING | Review status |
+| submittedAt | DateTime | NULL | Submission timestamp |
+| createdAt | DateTime | DEFAULT now() | Created timestamp |
+| updatedAt | DateTime | Auto-updated | Last update timestamp |
+
+**Indexes:** `@@index([feedbackRoundId])`, `@@index([reviewerId])`, `@@index([status])`
+**Unique Constraint:** `@@unique([feedbackRoundId, reviewerId])` - One review per reviewer per round
+
+---
+
+### MeetingMinutes
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| id | String (CUID) | PK | Unique identifier |
+| type | MeetingType (enum) | NOT NULL | Meeting category |
+| employeeId | String | FK → User.id, NOT NULL | Employee discussed |
+| managerId | String | FK → User.id, NOT NULL | Meeting conductor |
+| feedbackRoundId | String | FK → FeedbackRound.id, NULL | Linked feedback round |
+| date | DateTime | NOT NULL | Meeting date |
+| notes | String | NOT NULL | Meeting notes |
+| actionItems | String | NULL | Action items from meeting |
+| nextSteps | String | NULL | Planned next steps |
+| createdAt | DateTime | DEFAULT now() | Created timestamp |
+| updatedAt | DateTime | Auto-updated | Last update timestamp |
+
+**Indexes:** `@@index([employeeId])`, `@@index([managerId])`, `@@index([feedbackRoundId])`, `@@index([date])`
+
+---
+
+### EmployeeSurvey
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| id | String (CUID) | PK | Unique identifier |
+| employeeId | String | FK → User.id, NOT NULL | Survey respondent |
+| type | SurveyType (enum) | NOT NULL | NEW_JOINER_FEEDBACK |
+| responses | Json | NULL | Survey response data |
+| status | SurveyStatus (enum) | DEFAULT PENDING | Submission status |
+| submittedAt | DateTime | NULL | Submission timestamp |
+| createdAt | DateTime | DEFAULT now() | Created timestamp |
+| updatedAt | DateTime | Auto-updated | Last update timestamp |
+
+**Indexes:** `@@index([employeeId])`, `@@index([status])`, `@@index([type])`
+
+---
+
+### ExitInterview
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| id | String (CUID) | PK | Unique identifier |
+| employeeId | String | FK → User.id, NOT NULL | Departing employee |
+| managerId | String | FK → User.id, NOT NULL | Conducting manager |
+| departureDate | DateTime | NOT NULL | Expected departure date |
+| reason | String | NULL | Departure reason |
+| status | ExitInterviewStatus (enum) | DEFAULT PENDING | Interview status |
+| responses | Json | NULL | Interview responses |
+| notes | String | NULL | Manager notes |
+| conductedAt | DateTime | NULL | Interview completion date |
+| createdAt | DateTime | DEFAULT now() | Created timestamp |
+| updatedAt | DateTime | Auto-updated | Last update timestamp |
+
+**Indexes:** `@@index([employeeId])`, `@@index([managerId])`, `@@index([status])`
+
+---
+
 ## Enums
 
 ### Role
@@ -209,7 +361,28 @@ The application uses 5 core tables with a self-referencing user hierarchy and co
 `NOT_STARTED` | `IN_PROGRESS` | `ON_HOLD` | `BLOCKED` | `COMPLETED`
 
 ### NotificationType
-`GOAL_CREATED` | `GOAL_UPDATED` | `GOAL_APPROVED` | `GOAL_REJECTED` | `GOAL_MODIFIED` | `GOAL_COMPLETED` | `GOAL_DELETED` | `RATING_RECEIVED` | `REVIEW_CYCLE_CREATED` | `REVIEW_CYCLE_UPDATED` | `REVIEW_CYCLE_DELETED`
+`GOAL_CREATED` | `GOAL_UPDATED` | `GOAL_APPROVED` | `GOAL_REJECTED` | `GOAL_MODIFIED` | `GOAL_COMPLETED` | `GOAL_DELETED` | `RATING_RECEIVED` | `REVIEW_CYCLE_CREATED` | `REVIEW_CYCLE_UPDATED` | `REVIEW_CYCLE_DELETED` | `FEEDBACK_ROUND_CREATED` | `FEEDBACK_REVIEW_REQUESTED` | `FEEDBACK_REVIEW_SUBMITTED` | `FEEDBACK_ROUND_COMPLETED` | `MEETING_MINUTES_CREATED` | `SURVEY_REQUESTED` | `SURVEY_SUBMITTED` | `RATING_CYCLE_REMINDER` | `RATING_CYCLE_COMPLETE` | `GOAL_RENEWAL_DUE` | `EXIT_INTERVIEW_CREATED` | `EXIT_INTERVIEW_COMPLETED`
+
+### FeedbackRoundType
+`THREE_MONTH` | `ANNUAL`
+
+### FeedbackRoundStatus
+`PENDING` | `IN_PROGRESS` | `COMPLETED` | `CANCELLED`
+
+### FeedbackReviewStatus
+`PENDING` | `SUBMITTED`
+
+### MeetingType
+`THREE_MONTH_REVIEW` | `SIX_MONTH_REVIEW` | `ANNUAL_REVIEW` | `FEEDBACK_DISCUSSION` | `GENERAL`
+
+### SurveyType
+`NEW_JOINER_FEEDBACK`
+
+### SurveyStatus
+`PENDING` | `SUBMITTED`
+
+### ExitInterviewStatus
+`PENDING` | `SCHEDULED` | `COMPLETED` | `CANCELLED`
 
 ## Migrations History
 
@@ -220,6 +393,7 @@ The application uses 5 core tables with a self-referencing user hierarchy and co
 | 20250410044946 | 2025-04-10 | Add user activity fields |
 | 20250410060836 | 2025-04-10 | Add system settings |
 | 20250620173158 | 2025-06-20 | Fix goal relation |
+| 20260301072600 | 2026-03-01 | Add feedback rounds, reviews, meeting minutes, surveys, exit interviews |
 
 ## Seed Data
 

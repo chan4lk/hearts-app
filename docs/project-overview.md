@@ -51,9 +51,39 @@ Bistec AspireHub (hearts-app) is a comprehensive **Performance Management System
 - Bulk goal creation and goal templates
 
 ### Performance Ratings
-- Employee self-rating (1-5 stars with comments)
-- Manager rating of employee goals (1-5 stars with feedback)
+- Employee self-rating (1-5 stars with mandatory justification)
+- Manager rating of employee goals (1-5 stars with mandatory justification)
+- Rating justification required: minimum 10 characters when rating > 0
 - Rating labels: Needs Improvement → Outstanding
+- Top performers dashboard with rank badges (gold/silver/bronze for top 3)
+
+### 360 Feedback System
+- Manager-initiated feedback rounds (THREE_MONTH or ANNUAL)
+- Select multiple peer reviewers for an employee
+- Reviewers submit score (1-5), comments (required), strengths, and improvements
+- Auto-round completion when all reviewers submit
+- Aggregated results view with average scores and individual feedback
+- Notification flow: round created → review requested → review submitted → round completed
+
+### Meeting Minutes
+- Create meeting minutes for employee review discussions
+- Meeting types: THREE_MONTH_REVIEW, SIX_MONTH_REVIEW, ANNUAL_REVIEW, FEEDBACK_DISCUSSION, GENERAL
+- Track notes, action items, and next steps per meeting
+- Link meetings to feedback rounds for context
+- Manager-employee meeting history
+
+### Employee Surveys
+- New joiner feedback surveys with predefined questions
+- 5 standard questions covering onboarding, expectations, communication, suggestions, and culture
+- Manager-initiated, employee-submitted workflow
+- Structured response tracking with timestamps
+
+### Exit Interviews
+- Flag employee departures with departure date tracking
+- 5 predefined exit interview questions (job satisfaction, management, career growth, culture, improvements)
+- Manager conducts interview and records responses + notes
+- Status workflow: PENDING → SCHEDULED → COMPLETED/CANCELLED
+- Departure reason tracking
 
 ### AI-Powered Features
 - Personalized goal suggestions based on role and profile
@@ -66,9 +96,18 @@ Bistec AspireHub (hearts-app) is a comprehensive **Performance Management System
 - Role-aware analytics dashboard (Admin sees all, Manager sees team, Employee sees self)
 - Breakdowns by status, category, priority, department
 - Monthly trend analysis
-- Employee performance rankings
+- Employee performance rankings with top performers section
+- Top performers widget on manager and admin dashboards
+- Comprehensive employee review report (goals, ratings, 360 feedback, meeting minutes)
 - PDF report generation (dashboard, performance, goals reports)
 - JSON data export
+
+### Review Lifecycle Automation
+- Automatic milestone detection based on ReviewCycle dateOfAppointment
+- 6-month rating cycle reminders (2 weeks in advance) for employee + manager
+- Rating cycle completion detection (all goals rated by both self and manager)
+- Goal renewal reminders at annual milestones
+- Idempotent lifecycle checks triggered on dashboard load
 
 ### User Management (Admin)
 - User CRUD with role assignment (ADMIN, MANAGER, EMPLOYEE)
@@ -89,6 +128,10 @@ Bistec AspireHub (hearts-app) is a comprehensive **Performance Management System
 ### Notifications
 - Real-time notification system with 5-second polling
 - Event types: goal created/updated/approved/rejected/completed/deleted, rating received, review cycle events
+- 360 feedback events: round created, review requested, review submitted, round completed
+- Meeting and survey events: meeting minutes created, survey requested, survey submitted
+- Lifecycle events: rating cycle reminder, rating cycle complete, goal renewal due
+- Exit interview events: interview created, interview completed
 
 ## Architecture Overview
 

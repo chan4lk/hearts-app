@@ -47,7 +47,27 @@ hearts-app/                          # Project root (Next.js 14 monolith)
 │   │   ├── notifications/          # Notification CRUD
 │   │   ├── ratings/                # Goal ratings
 │   │   ├── reports/                # Report generation
-│   │   │   └── generate/           # PDF/JSON report generation
+│   │   │   ├── generate/           # PDF/JSON report generation
+│   │   │   └── employee-review/    # Comprehensive employee review report
+│   │   ├── feedback-rounds/        # 360 Feedback round management
+│   │   │   ├── route.ts            # GET (list), POST (create)
+│   │   │   ├── [roundId]/          # Single round operations
+│   │   │   │   ├── route.ts        # GET (detail), DELETE (cancel)
+│   │   │   │   └── reviews/        # GET reviews for round
+│   │   │   └── reviewers/          # GET eligible reviewers
+│   │   ├── feedback-reviews/       # Individual feedback review
+│   │   │   └── [reviewId]/         # GET (detail), PUT (submit)
+│   │   ├── meetings/               # Meeting minutes management
+│   │   │   ├── route.ts            # GET (list), POST (create)
+│   │   │   └── [meetingId]/        # GET, PUT, DELETE
+│   │   ├── surveys/                # Employee survey management
+│   │   │   ├── route.ts            # GET (list), POST (create)
+│   │   │   └── [surveyId]/         # GET, PUT (submit)
+│   │   ├── exit-interviews/        # Exit interview management
+│   │   │   ├── route.ts            # GET (list), POST (create)
+│   │   │   └── [interviewId]/      # GET, PUT (update/complete)
+│   │   ├── review-lifecycle/       # Review lifecycle automation
+│   │   │   └── check/              # GET (idempotent lifecycle check)
 │   │   ├── users/                  # User lookup
 │   │   ├── health/                 # Health check endpoint
 │   │   └── utils/                  # API utilities
@@ -87,7 +107,8 @@ hearts-app/                          # Project root (Next.js 14 monolith)
 │   │   │   ├── BulkGoalFormModal.tsx
 │   │   │   ├── BulkGoalTemplates.tsx
 │   │   │   ├── AIGoalSuggestions.tsx
-│   │   │   └── GoalTemplates.tsx
+│   │   │   ├── GoalTemplates.tsx
+│   │   │   └── RatingJustificationModal.tsx # Rating justification (min 10 chars)
 │   │   └── ui/                    # Shadcn/Radix UI primitives
 │   │       ├── button.tsx
 │   │       ├── input.tsx
@@ -117,24 +138,44 @@ hearts-app/                          # Project root (Next.js 14 monolith)
 │   │   │       ├── page.tsx
 │   │   │       └── components/
 │   │   ├── manager/                # Manager dashboard
-│   │   │   ├── page.tsx            # Team overview
+│   │   │   ├── page.tsx            # Team overview + top performers widget
 │   │   │   ├── components/         # Manager-specific components
 │   │   │   ├── goals/
 │   │   │   │   ├── approve-goals/  # Goal approval workflow
 │   │   │   │   └── setgoals/       # Set goals for employees
-│   │   │   └── rate-employees/     # Rate employee goals
-│   │   │       ├── page.tsx
-│   │   │       └── components/
+│   │   │   ├── rate-employees/     # Rate employee goals
+│   │   │   │   ├── page.tsx
+│   │   │   │   └── components/
+│   │   │   ├── feedback/           # 360 Feedback management
+│   │   │   │   ├── page.tsx        # Feedback rounds list
+│   │   │   │   ├── components/
+│   │   │   │   │   └── InitiateFeedbackModal.tsx
+│   │   │   │   └── [roundId]/      # Round detail + results
+│   │   │   │       └── page.tsx
+│   │   │   ├── meetings/           # Meeting minutes
+│   │   │   │   ├── page.tsx        # List + create/edit
+│   │   │   │   └── components/
+│   │   │   │       └── MeetingForm.tsx
+│   │   │   └── exit-interviews/    # Exit interview management
+│   │   │       ├── page.tsx        # List + flag departure
+│   │   │       └── [interviewId]/
+│   │   │           └── page.tsx    # Interview detail form
 │   │   ├── employee/               # Employee dashboard
 │   │   │   ├── page.tsx            # Personal dashboard
 │   │   │   ├── components/         # Employee-specific components
 │   │   │   ├── goals/
 │   │   │   │   └── create/         # Create new goal
-│   │   │   └── self-rating/        # Self-rate goals
-│   │   │       ├── page.tsx
-│   │   │       └── components/
+│   │   │   ├── self-rating/        # Self-rate goals (with justification)
+│   │   │   │   ├── page.tsx
+│   │   │   │   └── components/
+│   │   │   └── survey/             # Employee survey form
+│   │   │       └── page.tsx        # 5-question new joiner feedback
+│   │   ├── feedback/               # Cross-role feedback pages
+│   │   │   └── review/
+│   │   │       └── [reviewId]/     # Reviewer submission form
+│   │   │           └── page.tsx
 │   │   └── analytics/              # Analytics (all roles)
-│   │       ├── page.tsx
+│   │       ├── page.tsx            # + Top performers + generate report
 │   │       └── components/
 │   │
 │   ├── constants/                   # Application constants
@@ -171,7 +212,7 @@ hearts-app/                          # Project root (Next.js 14 monolith)
 │   └── utils.ts                    # cn() utility
 │
 ├── prisma/                          # 🗄️ Database layer
-│   ├── schema.prisma               # Database schema (5 models, 5 enums)
+│   ├── schema.prisma               # Database schema (10 models, 13 enums)
 │   ├── seed.ts                     # Test data seeding (3 users)
 │   ├── tsconfig.json               # Prisma TypeScript config
 │   └── migrations/                 # Schema migration history
@@ -179,7 +220,8 @@ hearts-app/                          # Project root (Next.js 14 monolith)
 │       ├── 20250410024224_update_feedback_model/
 │       ├── 20250410044946_add_user_activity_fields/
 │       ├── 20250410060836_add_system_settings/
-│       └── 20250620173158_fix_goal_relation/
+│       ├── 20250620173158_fix_goal_relation/
+│       └── 20260301072600_add_feedback_meetings_surveys_exit_interviews/
 │
 ├── types/                           # TypeScript type definitions
 │   └── next-auth.d.ts              # NextAuth type extensions (role)
@@ -218,12 +260,12 @@ hearts-app/                          # Project root (Next.js 14 monolith)
 
 | Folder | Purpose | Key Files |
 |---|---|---|
-| `app/api/` | All backend logic (13 route domains) | ~30 route.ts files |
-| `app/components/shared/` | Reusable UI components | 15 components |
+| `app/api/` | All backend logic (19 route domains) | ~42 route.ts files |
+| `app/components/shared/` | Reusable UI components | 16 components |
 | `app/components/ui/` | Base UI primitives | 12 components |
-| `app/dashboard/` | Role-based pages | 4 dashboard types |
+| `app/dashboard/` | Role-based pages | 5 dashboard types (admin, manager, employee, analytics, feedback) |
 | `lib/` | Cross-cutting utilities | auth, prisma, openai, logger |
-| `prisma/` | Database schema + migrations | schema.prisma, 5 migrations |
+| `prisma/` | Database schema + migrations | schema.prisma, 6 migrations |
 | `infra/` | Azure infrastructure (Pulumi) | index.ts |
 
 ## Entry Points
