@@ -12,6 +12,7 @@ import Filters from "./components/Filters";
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { Pagination } from '@/app/components/shared/Pagination';
+import { RatingJustificationModal } from '@/app/components/shared/RatingJustificationModal';
 
 export default function RateEmployeesPage() {
   const { data: session } = useSession();
@@ -26,7 +27,16 @@ export default function RateEmployeesPage() {
   const [selectedPriority, setSelectedPriority] = useState('');
   const [employeeStats, setEmployeeStats] = useState<EmployeeStats[]>([]);
   const [selectedGoal, setSelectedGoal] = useState<GoalWithRatingExtended | null>(null);
-  
+
+  // Justification modal state
+  const [justificationModal, setJustificationModal] = useState<{
+    isOpen: boolean;
+    goalId: string;
+    score: number;
+    goalTitle: string;
+    existingComments: string;
+  }>({ isOpen: false, goalId: '', score: 0, goalTitle: '', existingComments: '' });
+
   // Pagination state
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
@@ -142,7 +152,37 @@ export default function RateEmployeesPage() {
 
   const handleRatingChange = async (goalId: string, value: number) => {
     if (isNaN(value) || !goalId) return;
-    
+
+    // If assigning a rating (not clearing), show justification modal
+    if (value > 0) {
+      const goal = goals.find(g => g.id === goalId);
+      if (!goal) {
+        toast.error('Goal not found');
+        return;
+      }
+      setJustificationModal({
+        isOpen: true,
+        goalId,
+        score: value,
+        goalTitle: goal.title,
+        existingComments: goal.rating?.managerComments || '',
+      });
+      return;
+    }
+
+    // For clearing ratings (value === 0), proceed directly
+    await submitManagerRating(goalId, value, '');
+  };
+
+  const handleJustificationSubmit = async (comments: string) => {
+    const { goalId, score } = justificationModal;
+    setJustificationModal(prev => ({ ...prev, isOpen: false }));
+    await submitManagerRating(goalId, score, comments);
+  };
+
+  const submitManagerRating = async (goalId: string, value: number, ratingComments: string) => {
+    if (isNaN(value) || !goalId) return;
+
     // Handle "Not Rated" (0) - remove the rating
     if (value === 0) {
       const currentGoal = goals.find(g => g.id === goalId);
@@ -316,13 +356,13 @@ export default function RateEmployeesPage() {
 
       const response = await fetch(`/api/goals/${goalId}/manager-rating`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         body: JSON.stringify({
           score: value,
-          comments: '' // Allow empty comments
+          comments: ratingComments
         })
       });
 
@@ -477,6 +517,17 @@ export default function RateEmployeesPage() {
               )}
             </div>
           </div>
+
+          {/* Rating Justification Modal */}
+          <RatingJustificationModal
+            isOpen={justificationModal.isOpen}
+            onClose={() => setJustificationModal(prev => ({ ...prev, isOpen: false }))}
+            onSubmit={handleJustificationSubmit}
+            score={justificationModal.score}
+            goalTitle={justificationModal.goalTitle}
+            isSubmitting={submittingRatingId === justificationModal.goalId}
+            existingComments={justificationModal.existingComments}
+          />
 
           {/* Goal Detail Modal */}
           {selectedGoal && (

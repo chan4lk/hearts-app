@@ -367,16 +367,19 @@ export const authOptions: NextAuthOptions = {
   },
   logger: {
     error(code, ...message) {
-      logger.error(new Error(`NextAuth: ${code} - ${message.join(' ')}`));
+      const details = message.map(m => typeof m === 'object' ? JSON.stringify(m, null, 2) : String(m)).join(' ');
+      logger.error(new Error(`NextAuth: ${code} - ${details}`));
     },
     warn(code, ...message) {
       if (process.env.NODE_ENV === 'development') {
-        logger.log(`NextAuth Warning: ${code}`, 'Warning', { message: message.join(' ') });
+        const details = message.map(m => typeof m === 'object' ? JSON.stringify(m) : String(m)).join(' ');
+        logger.log(`NextAuth Warning: ${code}`, 'Warning', { message: details });
       }
     },
     debug(code, ...message) {
       if (process.env.NODE_ENV === 'development') {
-        logger.log(`NextAuth Debug: ${code}`, 'Verbose', { message: message.join(' ') });
+        const details = message.map(m => typeof m === 'object' ? JSON.stringify(m) : String(m)).join(' ');
+        logger.log(`NextAuth Debug: ${code}`, 'Verbose', { message: details });
       }
     },
   },

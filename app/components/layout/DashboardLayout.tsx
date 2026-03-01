@@ -9,8 +9,8 @@ import Image from 'next/image';
 import { IconType } from 'react-icons';
 import { hasAccess, getNavItemsByRole } from '@/app/utils/roleAccess';
 
-import { 
-  BsGrid1X2Fill as BsGrid, 
+import {
+  BsGrid1X2Fill as BsGrid,
   BsBullseye,
   BsStar,
   BsChatDots as BsChat,
@@ -30,7 +30,11 @@ import {
   BsSearch,
   BsList,
   BsX,
-  BsCalendarCheck
+  BsCalendarCheck,
+  BsArrowRepeat,
+  BsJournalText,
+  BsBoxArrowInRight,
+  BsClipboard2Check
 } from 'react-icons/bs';
 import dynamic from 'next/dynamic';
 import { useSettings } from '@/app/providers';
@@ -130,6 +134,9 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       { href: '/dashboard/manager/goals/approve-goals', label: 'Goal Approvals', icon: BsClipboardData },
       { href: '/dashboard/manager/goals/setgoals', label: 'Set Team Goals', icon: BsBullseye },
       { href: '/dashboard/manager/rate-employees', label: 'Rate Team', icon: BsStar },
+      { href: '/dashboard/manager/feedback', label: '360 Feedback', icon: BsArrowRepeat },
+      { href: '/dashboard/manager/meetings', label: 'Meetings', icon: BsJournalText },
+      { href: '/dashboard/manager/exit-interviews', label: 'Exit Interviews', icon: BsBoxArrowInRight },
       { href: '/dashboard/analytics?context=manager', label: 'Analytics', icon: BsBarChart },
     ];
 
@@ -137,6 +144,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       { href: '/dashboard/employee', label: 'Overview', icon: BsPerson },
       { href: '/dashboard/employee/goals/create', label: 'My Goals', icon: BsBullseye },
       { href: '/dashboard/employee/self-rating', label: 'Self Rating', icon: BsStar },
+      { href: '/dashboard/employee/survey', label: 'Surveys', icon: BsClipboard2Check },
       { href: '/dashboard/analytics?context=employee', label: 'Analytics', icon: BsBarChart },
     ];
 

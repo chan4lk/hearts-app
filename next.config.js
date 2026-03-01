@@ -64,6 +64,14 @@ const nextConfig = {
       };
     }
     
+    // Mark optional Azure packages as externals for server builds
+    // @azure/functions-core is optionally required by @azure/monitor-opentelemetry
+    // and is only needed in Azure Functions environments
+    if (isServer) {
+      config.externals = config.externals || [];
+      config.externals.push('@azure/functions-core');
+    }
+
     // Improve chunk loading
     config.optimization = {
       ...config.optimization,

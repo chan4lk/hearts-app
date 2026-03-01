@@ -38,6 +38,20 @@ model User {
   reportingPersonFor  ReviewCycle[]  @relation("ReviewCycleReportingPerson")
   updatedReviewCycles ReviewCycle[]  @relation("ReviewCycleUpdater")
 
+  // 360 Feedback
+  feedbackRoundsAsEmployee  FeedbackRound[]   @relation("FeedbackRoundEmployee")
+  feedbackRoundsInitiated   FeedbackRound[]   @relation("FeedbackRoundInitiator")
+  feedbackReviews           FeedbackReview[]  @relation("FeedbackReviewer")
+
+  // Meetings & Surveys
+  meetingsAsEmployee        MeetingMinutes[]  @relation("MeetingEmployee")
+  meetingsAsManager         MeetingMinutes[]  @relation("MeetingManager")
+  surveys                   EmployeeSurvey[]  @relation("SurveyEmployee")
+
+  // Exit Interviews
+  exitInterviewsAsEmployee  ExitInterview[]   @relation("ExitInterviewEmployee")
+  exitInterviewsAsManager   ExitInterview[]   @relation("ExitInterviewManager")
+
   // Foreign key and login-related indexes
   @@index([managerId])
   @@index([lastLoginAt])
@@ -203,6 +217,22 @@ enum NotificationType {
   REVIEW_CYCLE_CREATED
   REVIEW_CYCLE_UPDATED
   REVIEW_CYCLE_DELETED
+  // 360 Feedback
+  FEEDBACK_ROUND_CREATED
+  FEEDBACK_REVIEW_REQUESTED
+  FEEDBACK_REVIEW_SUBMITTED
+  FEEDBACK_ROUND_COMPLETED
+  // Meeting & Surveys
+  MEETING_MINUTES_CREATED
+  SURVEY_REQUESTED
+  SURVEY_SUBMITTED
+  // Lifecycle Automation
+  RATING_CYCLE_REMINDER
+  RATING_CYCLE_COMPLETE
+  GOAL_RENEWAL_DUE
+  // Exit Interviews
+  EXIT_INTERVIEW_CREATED
+  EXIT_INTERVIEW_COMPLETED
 }
 
 enum GoalCategory {
@@ -242,4 +272,154 @@ model ReviewCycle {
   @@index([userId])
   @@index([updatedById])
   @@index([reportingPersonId])
+}
+
+// ============ Phase 2: 360 Feedback ============
+
+enum FeedbackRoundType {
+  THREE_MONTH
+  ANNUAL
+}
+
+enum FeedbackRoundStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum FeedbackReviewStatus {
+  PENDING
+  SUBMITTED
+}
+
+model FeedbackRound {
+  id            String              @id @default(cuid())
+  type          FeedbackRoundType
+  employeeId    String
+  initiatedById String
+  status        FeedbackRoundStatus @default(PENDING)
+  completedAt   DateTime?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  employee      User                @relation("FeedbackRoundEmployee", fields: [employeeId], references: [id])
+  initiatedBy   User                @relation("FeedbackRoundInitiator", fields: [initiatedById], references: [id])
+  reviews       FeedbackReview[]
+  meetingMinutes MeetingMinutes[]
+
+  @@index([employeeId])
+  @@index([initiatedById])
+  @@index([status])
+}
+
+model FeedbackReview {
+  id              String               @id @default(cuid())
+  feedbackRoundId String
+  reviewerId      String
+  score           Int?                 // 1-5
+  comments        String?
+  strengths       String?
+  improvements    String?
+  status          FeedbackReviewStatus @default(PENDING)
+  submittedAt     DateTime?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  feedbackRound   FeedbackRound        @relation(fields: [feedbackRoundId], references: [id], onDelete: Cascade)
+  reviewer        User                 @relation("FeedbackReviewer", fields: [reviewerId], references: [id])
+
+  @@unique([feedbackRoundId, reviewerId])
+  @@index([feedbackRoundId])
+  @@index([reviewerId])
+  @@index([status])
+}
+
+// ============ Phase 3: Meetings & Surveys ============
+
+enum MeetingType {
+  THREE_MONTH_REVIEW
+  SIX_MONTH_REVIEW
+  ANNUAL_REVIEW
+  FEEDBACK_DISCUSSION
+  GENERAL
+}
+
+enum SurveyType {
+  NEW_JOINER_FEEDBACK
+}
+
+enum SurveyStatus {
+  PENDING
+  SUBMITTED
+}
+
+model MeetingMinutes {
+  id              String         @id @default(cuid())
+  type            MeetingType
+  employeeId      String
+  managerId       String
+  feedbackRoundId String?
+  date            DateTime
+  notes           String
+  actionItems     String?
+  nextSteps       String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  employee        User           @relation("MeetingEmployee", fields: [employeeId], references: [id])
+  manager         User           @relation("MeetingManager", fields: [managerId], references: [id])
+  feedbackRound   FeedbackRound? @relation(fields: [feedbackRoundId], references: [id])
+
+  @@index([employeeId])
+  @@index([managerId])
+  @@index([feedbackRoundId])
+  @@index([date])
+}
+
+model EmployeeSurvey {
+  id          String       @id @default(cuid())
+  employeeId  String
+  type        SurveyType
+  responses   Json?
+  status      SurveyStatus @default(PENDING)
+  submittedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  employee    User         @relation("SurveyEmployee", fields: [employeeId], references: [id])
+
+  @@index([employeeId])
+  @@index([status])
+  @@index([type])
+}
+
+// ============ Phase 4: Exit Interviews ============
+
+enum ExitInterviewStatus {
+  PENDING
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+model ExitInterview {
+  id            String              @id @default(cuid())
+  employeeId    String
+  managerId     String
+  departureDate DateTime
+  reason        String?
+  status        ExitInterviewStatus @default(PENDING)
+  responses     Json?
+  notes         String?
+  conductedAt   DateTime?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  employee      User                @relation("ExitInterviewEmployee", fields: [employeeId], references: [id])
+  manager       User                @relation("ExitInterviewManager", fields: [managerId], references: [id])
+
+  @@index([employeeId])
+  @@index([managerId])
+  @@index([status])
 }

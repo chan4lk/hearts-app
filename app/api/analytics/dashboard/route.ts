@@ -270,6 +270,7 @@ export async function GET(req: Request) {
       employeeId: string;
       employeeName: string;
       employeeEmail: string;
+      department: string | null;
       totalGoals: number;
       completedGoals: number;
       averageRating: number;
@@ -330,6 +331,7 @@ export async function GET(req: Request) {
         employeeId: empId,
         employeeName: employee.name,
         employeeEmail: employee.email,
+        department: employee.department || null,
         totalGoals: employeeGoals.length,
         completedGoals: completed,
         averageRating: avgRating,

@@ -19,7 +19,8 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts';
-import { BsBarChart, BsStarFill } from 'react-icons/bs';
+import { BsBarChart, BsStarFill, BsTrophy, BsFileEarmarkText } from 'react-icons/bs';
+import Link from 'next/link';
 import HeroSection from './components/HeroSection';
 import StatsSection from './components/StatsSection';
 import Filters from './components/Filters';
@@ -47,6 +48,7 @@ interface AnalyticsData {
   employeePerformance: Array<{
     employeeId: string;
     employeeName: string;
+    department?: string | null;
     totalGoals: number;
     completedGoals: number;
     averageRating: number;
@@ -566,6 +568,106 @@ export default function AnalyticsPage() {
                 />
               </motion.div>
 
+              {/* Top Performers Section - Above charts */}
+              {analyticsData.employeePerformance.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                  className="mb-2"
+                >
+                  <div className="mb-4">
+                    <h2 className="text-xl font-bold text-white mb-1 flex items-center gap-2">
+                      <BsTrophy className="text-yellow-400" />
+                      {session?.user?.role === 'EMPLOYEE' ? 'My Performance' : 'Top Performers'}
+                    </h2>
+                    <p className="text-sm text-gray-400">
+                      {session?.user?.role === 'EMPLOYEE' ? 'Your performance metrics' : 'Highest rated employees by average rating'}
+                    </p>
+                  </div>
+                  <div className="overflow-x-auto bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl border border-gray-700/50 shadow-xl">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b-2 border-gray-700/50">
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300 uppercase tracking-wider">Rank</th>
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300 uppercase tracking-wider">Employee</th>
+                          <th className="text-left py-3 px-4 text-sm font-semibold text-gray-300 uppercase tracking-wider">Department</th>
+                          <th className="text-center py-3 px-4 text-sm font-semibold text-gray-300 uppercase tracking-wider">Goals</th>
+                          <th className="text-center py-3 px-4 text-sm font-semibold text-gray-300 uppercase tracking-wider">Completed</th>
+                          <th className="text-center py-3 px-4 text-sm font-semibold text-gray-300 uppercase tracking-wider">Rate</th>
+                          <th className="text-center py-3 px-4 text-sm font-semibold text-gray-300 uppercase tracking-wider">Rating</th>
+                          {(session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER') && (
+                            <th className="text-center py-3 px-4 text-sm font-semibold text-gray-300 uppercase tracking-wider">Report</th>
+                          )}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-800/50">
+                        {analyticsData.employeePerformance.map((emp, index) => {
+                          const rankBadge = index === 0 ? { emoji: '', bg: 'bg-yellow-500/20', border: 'border-yellow-500/40', text: 'text-yellow-400' }
+                            : index === 1 ? { emoji: '', bg: 'bg-gray-400/20', border: 'border-gray-400/40', text: 'text-gray-300' }
+                            : index === 2 ? { emoji: '', bg: 'bg-amber-600/20', border: 'border-amber-600/40', text: 'text-amber-500' }
+                            : null;
+                          return (
+                            <motion.tr
+                              key={emp.employeeId}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.2 + index * 0.05 }}
+                              className={`hover:bg-gray-800/40 transition-all duration-200 ${rankBadge ? rankBadge.bg : ''}`}
+                            >
+                              <td className="py-3 px-4">
+                                {rankBadge ? (
+                                  <div className={`inline-flex items-center justify-center w-8 h-8 rounded-full ${rankBadge.bg} border ${rankBadge.border}`}>
+                                    <span className={`text-sm font-bold ${rankBadge.text}`}>#{index + 1}</span>
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-500 font-medium ml-2">#{index + 1}</span>
+                                )}
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className="text-white font-medium">{emp.employeeName}</span>
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className="text-gray-400 text-sm">{emp.department || '-'}</span>
+                              </td>
+                              <td className="py-3 px-4 text-center">
+                                <span className="text-gray-200 font-medium">{emp.totalGoals}</span>
+                              </td>
+                              <td className="py-3 px-4 text-center">
+                                <span className="text-green-400 font-medium">{emp.completedGoals}</span>
+                              </td>
+                              <td className="py-3 px-4 text-center">
+                                <span className={`font-semibold ${emp.completionRate >= 80 ? 'text-green-400' : emp.completionRate >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                  {emp.completionRate.toFixed(1)}%
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 text-center">
+                                <div className="flex items-center justify-center gap-1">
+                                  <span className="text-yellow-400 font-medium">{emp.averageRating.toFixed(1)}</span>
+                                  <BsStarFill className="w-3 h-3 text-yellow-400" />
+                                </div>
+                              </td>
+                              {(session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER') && (
+                                <td className="py-3 px-4 text-center">
+                                  <Link
+                                    href={`/api/reports/employee-review?employeeId=${emp.employeeId}`}
+                                    target="_blank"
+                                    className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-400 hover:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 rounded-lg transition-all"
+                                  >
+                                    <BsFileEarmarkText className="w-3 h-3" />
+                                    Report
+                                  </Link>
+                                </td>
+                              )}
+                            </motion.tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </motion.div>
+              )}
+
               {/* Charts */}
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -692,84 +794,6 @@ export default function AnalyticsPage() {
                 </div>
               </motion.div>
 
-              {/* Employee Performance Table - Show for Admin, Manager, and Employee */}
-              {analyticsData.employeePerformance.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="mt-2"
-                >
-              <ChartCard 
-                title={
-                  session?.user?.role === 'EMPLOYEE' 
-                    ? 'My Performance' 
-                    : session?.user?.role === 'MANAGER' 
-                      ? 'Team Performance' 
-                      : 'Top Performers'
-                }
-                description={
-                  session?.user?.role === 'EMPLOYEE' 
-                    ? 'Your performance metrics breakdown' 
-                    : session?.user?.role === 'MANAGER' 
-                      ? 'Performance overview of your team' 
-                      : 'Top performing employees'
-                }
-              >
-                <div className="overflow-x-auto -mx-2 px-2">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b-2 border-gray-700/50">
-                        <th className="text-left py-3 px-3 text-sm font-semibold text-gray-300 uppercase tracking-wider">Employee</th>
-                        <th className="text-center py-3 px-3 text-sm font-semibold text-gray-300 uppercase tracking-wider">Total</th>
-                        <th className="text-center py-3 px-3 text-sm font-semibold text-gray-300 uppercase tracking-wider">Completed</th>
-                        <th className="text-center py-3 px-3 text-sm font-semibold text-gray-300 uppercase tracking-wider">Rate</th>
-                        <th className="text-center py-3 px-3 text-sm font-semibold text-gray-300 uppercase tracking-wider">Rating</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-800/50">
-                      {analyticsData.employeePerformance.map((emp, index) => {
-                        const isHighPerformer = emp.completionRate >= 80 && emp.averageRating >= 4.0;
-                        return (
-                          <motion.tr
-                            key={emp.employeeId}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.4 + index * 0.05 }}
-                            className={`border-b border-gray-800/30 hover:bg-gray-800/40 transition-all duration-200 ${isHighPerformer ? 'bg-green-500/5' : ''}`}
-                          >
-                            <td className="py-3 px-3">
-                              <div className="flex items-center gap-2">
-                                <div className={`w-2 h-2 rounded-full ${isHighPerformer ? 'bg-green-500' : 'bg-gray-600'}`}></div>
-                                <span className="text-white font-medium">{emp.employeeName}</span>
-                              </div>
-                            </td>
-                            <td className="py-3 px-3 text-center">
-                              <span className="text-gray-200 font-medium">{emp.totalGoals}</span>
-                            </td>
-                            <td className="py-3 px-3 text-center">
-                              <span className="text-green-400 font-medium">{emp.completedGoals}</span>
-                            </td>
-                            <td className="py-3 px-3 text-center">
-                              <span className={`font-semibold ${emp.completionRate >= 80 ? 'text-green-400' : emp.completionRate >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
-                                {emp.completionRate.toFixed(1)}%
-                              </span>
-                            </td>
-                            <td className="py-3 px-3 text-center">
-                              <div className="flex items-center justify-center gap-1">
-                                <span className="text-yellow-400 font-medium">{emp.averageRating.toFixed(1)}</span>
-                                <BsStarFill className="w-3 h-3 text-yellow-400" />
-                              </div>
-                            </td>
-                          </motion.tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </ChartCard>
-              </motion.div>
-              )}
             </>
           )}
         </div>

@@ -105,6 +105,14 @@ export async function POST(
       );
     }
 
+    // Require justification comments when submitting a rating
+    if (!comments || typeof comments !== 'string' || comments.trim().length < 10) {
+      return NextResponse.json(
+        { error: 'Rating justification is required (minimum 10 characters)' },
+        { status: 400 }
+      );
+    }
+
     const goal = await prisma.goal.findUnique({
       where: {
         id: goalId,

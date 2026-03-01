@@ -39,7 +39,8 @@ next-env.d.ts
 
 # Database
 /prisma/*.db
-/prisma/migrations/
 
 # Docker
 .docker/
+.playwright-mcp/
+*.dump

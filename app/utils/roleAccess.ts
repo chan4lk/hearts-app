@@ -182,11 +182,17 @@ const ROLE_ACCESS: Record<Role, {
       '/dashboard/manager/goals/approve-goals',
       '/dashboard/manager/goals/setgoals',
       '/dashboard/manager/rate-employees',
+      '/dashboard/manager/feedback',
+      '/dashboard/manager/meetings',
+      '/dashboard/manager/exit-interviews',
       // Employee paths - full access
       '/dashboard/employee',
       '/dashboard/employee/goals',
       '/dashboard/employee/goals/create',
       '/dashboard/employee/self-rating',
+      '/dashboard/employee/survey',
+      // Feedback review (accessible to any reviewer)
+      '/dashboard/feedback',
       // Analytics - accessible to all
       '/dashboard/analytics'
     ],
@@ -200,11 +206,17 @@ const ROLE_ACCESS: Record<Role, {
       '/dashboard/manager/goals/approve-goals',
       '/dashboard/manager/goals/setgoals',
       '/dashboard/manager/rate-employees',
+      '/dashboard/manager/feedback',
+      '/dashboard/manager/meetings',
+      '/dashboard/manager/exit-interviews',
       // Employee paths - full access
       '/dashboard/employee',
       '/dashboard/employee/goals',
       '/dashboard/employee/goals/create',
       '/dashboard/employee/self-rating',
+      '/dashboard/employee/survey',
+      // Feedback review (accessible to any reviewer)
+      '/dashboard/feedback',
       // Analytics - accessible to all
       '/dashboard/analytics'
     ],
@@ -217,6 +229,9 @@ const ROLE_ACCESS: Record<Role, {
       '/dashboard/employee/goals',
       '/dashboard/employee/goals/create',
       '/dashboard/employee/self-rating',
+      '/dashboard/employee/survey',
+      // Feedback review (accessible to any reviewer)
+      '/dashboard/feedback',
       // Analytics - accessible to all
       '/dashboard/analytics'
     ],

@@ -1,8 +1,8 @@
 'use client';
 
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import { 
-  BsClock, 
+import {
+  BsClock,
   BsCheckCircle,
   BsExclamationTriangle,
   BsXCircle,
@@ -11,7 +11,9 @@ import {
   BsPeople,
   BsBullseye,
   BsEye,
-  BsEyeSlash
+  BsEyeSlash,
+  BsTrophy,
+  BsStarFill
 } from 'react-icons/bs';
 import HeroSection from './components/HeroSection';
 import StatsSection from './components/StatsSection';
@@ -90,7 +92,8 @@ export default function AdminDashboard() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [goalsToBulkDelete, setGoalsToBulkDelete] = useState<string[]>([]);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
-  
+  const [topPerformers, setTopPerformers] = useState<Array<{ employeeId: string; employeeName: string; department?: string | null; averageRating: number; completionRate: number }>>([]);
+
   // Pagination state for goals section
   const [goalsPage, setGoalsPage] = useState(1);
   const [goalsLimit, setGoalsLimit] = useState(20);
@@ -132,6 +135,26 @@ export default function AdminDashboard() {
       setStats(statsData);
       setActivities(activitiesData);
       setUsers(usersData.users || []);
+
+      // Fetch top performers
+      try {
+        const date = new Date();
+        date.setMonth(date.getMonth() - 6);
+        const analyticsParams = new URLSearchParams({
+          startDate: date.toISOString().split('T')[0],
+          endDate: new Date().toISOString().split('T')[0],
+          context: 'admin'
+        });
+        const analyticsRes = await fetch(`/api/analytics/dashboard?${analyticsParams}`);
+        if (analyticsRes.ok) {
+          const analyticsData = await analyticsRes.json();
+          if (analyticsData.employeePerformance) {
+            setTopPerformers(analyticsData.employeePerformance.slice(0, 5));
+          }
+        }
+      } catch {
+        // Non-critical
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -323,6 +346,39 @@ export default function AdminDashboard() {
           >
             <StatsSection stats={stats} />
           </motion.div>
+
+          {/* Top Performers Widget */}
+          {topPerformers.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl shadow-2xl p-4"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <BsTrophy className="w-5 h-5 text-yellow-400" />
+                <h3 className="text-lg font-bold text-white">Top Performers</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                {topPerformers.map((emp, index) => {
+                  const rankColors = index === 0 ? 'border-yellow-500/50 bg-yellow-500/10' : index === 1 ? 'border-gray-400/50 bg-gray-400/10' : index === 2 ? 'border-amber-600/50 bg-amber-600/10' : 'border-gray-700/50 bg-gray-800/50';
+                  return (
+                    <div key={emp.employeeId} className={`rounded-lg p-3 border ${rankColors} transition-all hover:scale-[1.02]`}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold text-gray-400">#{index + 1}</span>
+                        <span className="text-sm font-semibold text-white truncate">{emp.employeeName}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <BsStarFill className="w-3 h-3 text-yellow-400" />
+                        <span className="text-sm font-medium text-yellow-400">{emp.averageRating.toFixed(1)}</span>
+                        <span className="text-xs text-gray-500 ml-1">{emp.completionRate.toFixed(0)}% done</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
 
                      {/* Main Content Grid */}
            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

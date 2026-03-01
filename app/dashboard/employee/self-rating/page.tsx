@@ -15,6 +15,7 @@ import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { Pagination } from '@/app/components/shared/Pagination';
 import { Goal, FilterStatus, RatingStatus, FilterRating } from "@/app/components/shared/types";
 import { BsX, BsPersonCheck, BsStarFill, BsArrowRight, BsStar } from 'react-icons/bs';
+import { RatingJustificationModal } from '@/app/components/shared/RatingJustificationModal';
 
 export default function SelfRatingPage() {
   const { data: session, status } = useSession();
@@ -33,7 +34,16 @@ export default function SelfRatingPage() {
   const [ratingStatus, setRatingStatus] = useState<RatingStatus>('all');
   const [selectedPriority, setSelectedPriority] = useState('');
   const [showSelfRatingsModal, setShowSelfRatingsModal] = useState(false);
-  
+
+  // Justification modal state
+  const [justificationModal, setJustificationModal] = useState<{
+    isOpen: boolean;
+    goalId: string;
+    score: number;
+    goalTitle: string;
+    existingComments: string;
+  }>({ isOpen: false, goalId: '', score: 0, goalTitle: '', existingComments: '' });
+
   // Pagination state
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
@@ -134,6 +144,39 @@ export default function SelfRatingPage() {
 
     const isClearingRating = value === 0;
 
+    // If assigning a rating (not clearing), show justification modal
+    if (!isClearingRating) {
+      setJustificationModal({
+        isOpen: true,
+        goalId,
+        score: value,
+        goalTitle: currentGoal.title,
+        existingComments: ratingComments[goalId] || currentGoal.rating?.selfComments || '',
+      });
+      return;
+    }
+
+    // For clearing ratings, proceed directly
+    await submitSelfRating(goalId, value, null);
+  };
+
+  const handleJustificationSubmit = async (comments: string) => {
+    const { goalId, score } = justificationModal;
+    setJustificationModal(prev => ({ ...prev, isOpen: false }));
+    // Store comments for the optimistic update
+    setRatingComments(prev => ({ ...prev, [goalId]: comments }));
+    await submitSelfRating(goalId, score, comments);
+  };
+
+  const submitSelfRating = async (goalId: string, value: number, commentsOverride: string | null) => {
+    if (submittingRatingId === goalId) return;
+
+    const currentGoal = goals.find(g => g.id === goalId);
+    if (!currentGoal) return;
+
+    const isClearingRating = value === 0;
+    const comments = commentsOverride ?? ratingComments[goalId] ?? '';
+
     // OPTIMISTIC UPDATE: Update UI immediately before API call
     const optimisticRating = isClearingRating ? {
       ...(currentGoal.rating || {}),
@@ -150,8 +193,8 @@ export default function SelfRatingPage() {
       id: currentGoal.rating?.id || 'temp',
       selfScore: value,
       score: value, // Keep for backward compatibility
-      selfComments: ratingComments[goalId] || currentGoal.rating?.selfComments || '',
-      comments: ratingComments[goalId] || currentGoal.rating?.comments || '',
+      selfComments: comments || currentGoal.rating?.selfComments || '',
+      comments: comments || currentGoal.rating?.comments || '',
       selfRatedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       goalId: goalId
@@ -177,7 +220,7 @@ export default function SelfRatingPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           score: isClearingRating ? 0 : value,
-          comments: isClearingRating ? null : (ratingComments[goalId] || '')
+          comments: isClearingRating ? null : comments
         })
       });
 
@@ -407,6 +450,17 @@ export default function SelfRatingPage() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Rating Justification Modal */}
+          <RatingJustificationModal
+            isOpen={justificationModal.isOpen}
+            onClose={() => setJustificationModal(prev => ({ ...prev, isOpen: false }))}
+            onSubmit={handleJustificationSubmit}
+            score={justificationModal.score}
+            goalTitle={justificationModal.goalTitle}
+            isSubmitting={submittingRatingId === justificationModal.goalId}
+            existingComments={justificationModal.existingComments}
+          />
 
           {/* Self Ratings Modal */}
           <AnimatePresence>

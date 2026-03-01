@@ -9,7 +9,7 @@ import GoalsSection from './components/GoalsSection';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { Pagination } from '@/app/components/shared/Pagination';
 import AIPerformanceInsights from '@/app/components/ai/AIPerformanceInsights';
-import { BsStars, BsLightbulb } from 'react-icons/bs';
+import { BsStars, BsLightbulb, BsTrophy, BsStarFill } from 'react-icons/bs';
 
 import { Goal, EmployeeStats, DashboardStats } from '@/app/components/shared/types';
 
@@ -23,6 +23,7 @@ export default function ManagerDashboard() {
   const [employeeCounts, setEmployeeCounts] = useState({ total: 0, active: 0 });
   const [selectedGoalDetails, setSelectedGoalDetails] = useState<Goal | null>(null);
   const [showAIInsights, setShowAIInsights] = useState(false);
+  const [topPerformers, setTopPerformers] = useState<Array<{ employeeId: string; employeeName: string; department?: string | null; averageRating: number; completionRate: number }>>([]);
   const { data: session } = useSession();
   
   // Pagination state
@@ -147,6 +148,26 @@ export default function ManagerDashboard() {
         if (goalData.pagination) {
           setPagination(goalData.pagination);
         }
+
+        // Fetch top performers from analytics
+        try {
+          const date = new Date();
+          date.setMonth(date.getMonth() - 6);
+          const analyticsParams = new URLSearchParams({
+            startDate: date.toISOString().split('T')[0],
+            endDate: new Date().toISOString().split('T')[0],
+            context: 'manager'
+          });
+          const analyticsRes = await fetch(`/api/analytics/dashboard?${analyticsParams}`);
+          if (analyticsRes.ok) {
+            const analyticsData = await analyticsRes.json();
+            if (analyticsData.employeePerformance) {
+              setTopPerformers(analyticsData.employeePerformance.slice(0, 5));
+            }
+          }
+        } catch {
+          // Non-critical, ignore errors
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
         setGoals([]);
@@ -251,6 +272,34 @@ export default function ManagerDashboard() {
             }}
             employees={employees}
           />
+
+          {/* Top Performers Widget */}
+          {topPerformers.length > 0 && (
+            <div className="bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl p-4 border border-gray-700/50 shadow-xl">
+              <div className="flex items-center gap-2 mb-3">
+                <BsTrophy className="w-5 h-5 text-yellow-400" />
+                <h3 className="text-lg font-bold text-white">Top Performers</h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                {topPerformers.map((emp, index) => {
+                  const rankColors = index === 0 ? 'border-yellow-500/50 bg-yellow-500/10' : index === 1 ? 'border-gray-400/50 bg-gray-400/10' : index === 2 ? 'border-amber-600/50 bg-amber-600/10' : 'border-gray-700/50 bg-gray-800/50';
+                  return (
+                    <div key={emp.employeeId} className={`rounded-lg p-3 border ${rankColors} transition-all hover:scale-[1.02]`}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold text-gray-400">#{index + 1}</span>
+                        <span className="text-sm font-semibold text-white truncate">{emp.employeeName}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <BsStarFill className="w-3 h-3 text-yellow-400" />
+                        <span className="text-sm font-medium text-yellow-400">{emp.averageRating.toFixed(1)}</span>
+                        <span className="text-xs text-gray-500 ml-1">{emp.completionRate.toFixed(0)}% done</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* AI Insights Toggle */}
           <div className="flex justify-end">

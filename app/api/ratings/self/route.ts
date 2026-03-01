@@ -20,6 +20,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid ratings data" }, { status: 400 });
     }
 
+    // Validate all ratings have justification comments
+    for (const rating of ratings) {
+      if (rating.score > 0 && (!rating.comments || typeof rating.comments !== 'string' || rating.comments.trim().length < 10)) {
+        return NextResponse.json(
+          { error: `Rating justification is required for each rating (minimum 10 characters)` },
+          { status: 400 }
+        );
+      }
+    }
+
     // Process each rating using upsert (one rating per goal)
     const results = await Promise.all(
       ratings.map(async (rating) => {
