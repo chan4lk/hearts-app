@@ -103,7 +103,7 @@ export default function ExitInterviewsPage() {
       const response = await fetch('/api/exit-interviews');
       if (!response.ok) throw new Error('Failed to fetch exit interviews');
       const data = await response.json();
-      setInterviews(data.interviews || data || []);
+      setInterviews(data.exitInterviews || data.interviews || data || []);
     } catch (error) {
       console.error('Error fetching exit interviews:', error);
       toast.error('Failed to load exit interviews');
