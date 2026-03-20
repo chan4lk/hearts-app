@@ -3,7 +3,7 @@
 import { ReactNode } from 'react';
 
 const wrapperClass =
-  'bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl border border-theme overflow-hidden shadow-lg';
+  'bg-surface-elevated rounded-xl border border-theme overflow-hidden';
 const paginationBorderClass = 'mt-6 pt-4 border-t border-theme';
 
 /**

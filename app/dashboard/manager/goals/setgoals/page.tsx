@@ -432,7 +432,7 @@ function ManagerGoalSettingPageContent() {
   return (
     <DashboardLayout type="manager">
       <div className="max-w-7xl mx-auto space-y-5">
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-4 border border-white/20 dark:border-gray-700/50 space-y-4">
+        <div className="bg-surface-elevated rounded-xl p-4 border border-theme space-y-4">
           {(() => {
             const statItems: StatItem[] = [
               {
@@ -563,10 +563,10 @@ function ManagerGoalSettingPageContent() {
           {/* View Templates Button */}
           <motion.button
             onClick={() => setShowTemplates(!showTemplates)}
-            className="w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 
-              shadow-md border border-white/10 dark:border-gray-700/30 
+            className="w-full bg-surface-elevated rounded-xl p-4 
+              shadow-md border border-theme 
               hover:bg-white/90 dark:hover:bg-gray-700/80 transition-all duration-300
-              text-gray-900 dark:text-white font-medium flex items-center justify-center gap-2"
+              text-primary font-medium flex items-center justify-center gap-2"
           >
             {showTemplates ? 'Hide Templates' : 'Create Goals Using Templates'}
             <BsArrowUpRight className={`transform transition-transform duration-300 ${showTemplates ? 'rotate-180' : ''}`} />
@@ -580,7 +580,7 @@ function ManagerGoalSettingPageContent() {
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className={`${THEME_COLORS.background.primary} backdrop-blur-xl rounded-2xl p-6 shadow-lg border ${THEME_COLORS.border.light}`}>
+                <div className={`${THEME_COLORS.background.primary} backdrop-blur-xl rounded-2xl p-6 border ${THEME_COLORS.border.light}`}>
                   <h3 className={`text-xl font-bold ${THEME_COLORS.text.primary} mb-4`}>Goal Templates</h3>
                   <GoalTemplates onSelect={(template) => {
                     setFormData(prev => ({

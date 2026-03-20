@@ -143,7 +143,7 @@ export function AIGoalSuggestions({
                     <BsLightning className="h-4 w-4 text-yellow-400" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white group-hover:text-transparent 
+                    <h4 className="font-semibold text-primary group-hover:text-transparent 
                       group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400
                       transition-all duration-300">{suggestion.title}</h4>
                     <p className="text-sm text-gray-700 dark:text-gray-300 mt-1 leading-relaxed">

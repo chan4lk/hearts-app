@@ -821,7 +821,7 @@ export default function EmployeeDashboard() {
                   {/* Compact Header - Sticky */}
                   <div className="sticky top-0 z-10 bg-gradient-to-r from-amber-900/40 via-amber-800/40 to-orange-900/40 backdrop-blur-md border-b-2 border-amber-500/50 px-4 py-3 flex items-center justify-between flex-shrink-0">
                     <div className="flex items-center gap-2.5">
-                      <div className="p-1.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg shadow-lg">
+                      <div className="p-1.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg">
                         <BsPersonCheck className="w-4 h-4 text-white" />
                       </div>
                       <div>

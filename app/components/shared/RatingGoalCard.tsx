@@ -97,7 +97,7 @@ export default function RatingGoalCard({
         <div className={`flex items-start justify-between gap-4 ${isGridView ? 'mb-3' : ''}`}>
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div
-              className={`p-2 rounded-lg ${categoryConfig.iconColor} bg-opacity-20 backdrop-blur-xl ring-1 ring-white/20 shadow-lg transform transition-transform duration-300 ${
+              className={`p-2 rounded-lg ${categoryConfig.iconColor} bg-opacity-20 backdrop-blur-xl ring-1 ring-white/20 transform transition-transform duration-300 ${
                 isGridView ? 'group-hover:scale-110 group-hover:rotate-[10deg]' : ''
               }`}
             >
@@ -109,7 +109,7 @@ export default function RatingGoalCard({
                   className={`text-base font-medium truncate ${
                     isGridView
                       ? 'text-white group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-white/70'
-                      : 'text-gray-900 dark:text-white'
+                      : 'text-primary'
                   }`}
                 >
                   {titleDisplay}
@@ -242,7 +242,7 @@ export default function RatingGoalCard({
               <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700">
                 <div className="space-y-4">
                   <div>
-                    <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">Details</h4>
+                    <h4 className="text-sm font-medium text-primary mb-1">Details</h4>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm">
                         <BsCalendar className="w-4 h-4 text-gray-400" />
@@ -260,7 +260,7 @@ export default function RatingGoalCard({
                   </div>
                   {comments && (
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">Comments</h4>
+                      <h4 className="text-sm font-medium text-primary mb-1">Comments</h4>
                       <p className="text-sm text-gray-600 dark:text-gray-300">{comments}</p>
                     </div>
                   )}

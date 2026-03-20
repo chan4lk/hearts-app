@@ -415,7 +415,7 @@ export default function RateEmployeesPage() {
   return (
     <DashboardLayout type="manager">
       <div className="max-w-7xl mx-auto space-y-5">
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-4 border border-white/20 dark:border-gray-700/50 space-y-4">
+          <div className="bg-surface-elevated rounded-xl p-4 border border-theme space-y-4">
             {(() => {
               const ratedCount = goals.filter(g => g.rating?.managerScore || g.rating?.score).length;
               const unratedCount = goals.length - ratedCount;
@@ -534,7 +534,7 @@ export default function RateEmployeesPage() {
           </PageToolbar>
 
           {/* Goals Table */}
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl border border-white/20 dark:border-gray-700/50 overflow-hidden shadow-lg">
+          <div className="bg-surface-elevated rounded-xl border border-theme overflow-hidden">
             <div className="p-4">
               <GoalsTable
                 goals={filteredGoals}

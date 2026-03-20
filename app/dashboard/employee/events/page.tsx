@@ -154,7 +154,7 @@ function EmployeeEventsContent() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="relative overflow-hidden rounded-xl p-4 shadow-lg bg-gradient-to-r from-teal-600 to-cyan-600"
+              className="relative overflow-hidden rounded-xl p-4 bg-gradient-to-r from-teal-600 to-cyan-600"
             >
               {/* Animated Background Elements */}
               <div className="absolute inset-0 overflow-hidden">
@@ -184,7 +184,7 @@ function EmployeeEventsContent() {
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
                 <div className="relative flex items-center gap-3 w-full">
-                  <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg flex-shrink-0">
+                  <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 text-white flex-shrink-0">
                     <BsFilter className="w-4 h-4" />
                   </div>
                   <div className="flex flex-col">
@@ -202,7 +202,7 @@ function EmployeeEventsContent() {
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
                 <div className="relative flex items-center gap-3 w-full">
-                  <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg flex-shrink-0">
+                  <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 text-white flex-shrink-0">
                     <BsSearch className="w-4 h-4" />
                   </div>
                   <div className="flex flex-col">
@@ -220,7 +220,7 @@ function EmployeeEventsContent() {
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-teal-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
                 <div className="relative flex items-center gap-3 w-full">
-                  <div className="p-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg flex-shrink-0">
+                  <div className="p-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-white flex-shrink-0">
                     <BsCalendarPlus className="w-4 h-4" />
                   </div>
                   <div className="flex flex-col">
@@ -238,7 +238,7 @@ function EmployeeEventsContent() {
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-teal-500 to-cyan-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
                 <div className="relative flex items-center gap-3 w-full">
-                  <div className="p-2 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg flex-shrink-0">
+                  <div className="p-2 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-500 text-white flex-shrink-0">
                     <BsCalendarPlus className="w-4 h-4" />
                   </div>
                   <div className="flex flex-col">
@@ -357,7 +357,7 @@ function EmployeeEventsContent() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => window.location.href = '/dashboard/employee/events/browse'}
-                    className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-600 px-6 py-3 font-semibold text-white hover:from-teal-600 hover:to-cyan-700 shadow-lg shadow-cyan-500/30 transition-all"
+                    className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-600 px-6 py-3 font-semibold text-white hover:from-teal-600 hover:to-cyan-700 shadow-cyan-500/30 transition-all"
                   >
                     Browse Events
                     <BsArrowRight className="text-lg" />
@@ -392,7 +392,7 @@ function EmployeeEventsContent() {
                           onClick={() => setPage(p)}
                           className={`rounded-lg px-3 py-1 text-sm font-medium transition-all ${
                             page === p
-                              ? 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-lg shadow-cyan-500/30'
+                              ? 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-cyan-500/30'
                               : 'border border-white/20 text-white hover:bg-white/10'
                           }`}
                         >

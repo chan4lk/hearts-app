@@ -306,7 +306,7 @@ function AdminEventsContent() {
                             onClick={() => setPage(p)}
                             className={`rounded-lg px-3 py-1 text-sm font-medium transition-all ${
                               page === p
-                                ? 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-lg shadow-cyan-500/30'
+                                ? 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-cyan-500/30'
                                 : 'border border-white/20 text-white hover:bg-white/10'
                             }`}
                           >

@@ -6,9 +6,10 @@ export interface StatItem {
   title: string;
   value: number | string;
   icon: ReactNode;
-  gradient: string;
-  bgColor: string;
-  borderColor: string;
+  gradient: string;    // kept for API compat — ignored in rendering
+  bgColor: string;     // kept for API compat — ignored in rendering
+  borderColor: string; // kept for API compat — ignored in rendering
+  iconColor?: string;  // e.g. 'text-indigo-600 dark:text-indigo-400'
   onClick?: () => void;
   clickable?: boolean;
   tooltip?: string;
@@ -39,22 +40,22 @@ export default function StatsSection({ stats = [], variant = 'auto', columns, ch
         <div
           key={stat.title}
           onClick={stat.onClick}
-          className={`group flex items-center gap-3 p-3.5 rounded-xl bg-surface-elevated border border-theme transition-all duration-200 ${
-            stat.clickable !== false && stat.onClick ? 'cursor-pointer hover:shadow-theme-sm hover:border-[rgba(var(--color-accent),0.2)]' : ''
+          className={`group flex items-center gap-3.5 px-4 py-3.5 rounded-xl bg-surface-elevated border border-theme transition-colors duration-150 ${
+            stat.clickable !== false && stat.onClick ? 'cursor-pointer hover:bg-surface-secondary' : ''
           }`}
           tabIndex={stat.clickable !== false && stat.onClick ? 0 : -1}
           role={stat.clickable !== false && stat.onClick ? 'button' : undefined}
           aria-label={stat.tooltip || `${stat.title}: ${stat.value}`}
           title={stat.tooltip}
         >
-          {/* Icon */}
-          <div className={`flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br ${stat.gradient} flex items-center justify-center text-white shadow-sm`}>
+          {/* Flat icon */}
+          <div className={`flex-shrink-0 w-10 h-10 rounded-lg bg-surface-secondary flex items-center justify-center ${stat.iconColor || 'text-indigo-600 dark:text-indigo-400'}`}>
             {stat.icon}
           </div>
 
           {/* Value + Title */}
           <div className="min-w-0">
-            <div className="text-lg font-bold text-primary leading-tight">{stat.value}</div>
+            <div className="text-[18px] font-bold text-primary leading-tight">{stat.value}</div>
             <div className="text-[12px] font-medium text-secondary truncate">{stat.title}</div>
           </div>
         </div>

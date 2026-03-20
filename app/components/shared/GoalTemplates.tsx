@@ -51,7 +51,7 @@ export default function GoalTemplates({ onSelect }: GoalTemplatesProps) {
           onClick={() => setSelectedCategory('all')}
           className={`relative px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300
             ${selectedCategory === 'all' 
-              ? 'text-white bg-gradient-to-r from-blue-500/90 to-purple-500/90 shadow-lg shadow-purple-500/20' 
+              ? 'text-white bg-gradient-to-r from-blue-500/90 to-purple-500/90 shadow-purple-500/20' 
               : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
         >
           <span className="relative z-10">All Templates</span>
@@ -68,7 +68,7 @@ export default function GoalTemplates({ onSelect }: GoalTemplatesProps) {
             onClick={() => setSelectedCategory(category)}
             className={`relative px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300
               ${selectedCategory === category 
-                ? 'text-white bg-gradient-to-r from-blue-500/90 to-purple-500/90 shadow-lg shadow-purple-500/20' 
+                ? 'text-white bg-gradient-to-r from-blue-500/90 to-purple-500/90 shadow-purple-500/20' 
                 : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
           >
             <span className="relative z-10">{category}</span>
@@ -108,7 +108,7 @@ export default function GoalTemplates({ onSelect }: GoalTemplatesProps) {
                 <div className="relative">
                   <div className="flex items-center gap-4 mb-4">
                     <div className={`p-3 rounded-xl ${template.iconColor} bg-opacity-20 backdrop-blur-xl
-                      ring-1 ring-white/20 shadow-lg transform transition-transform duration-300
+                      ring-1 ring-white/20 transform transition-transform duration-300
                       group-hover:scale-110 group-hover:rotate-[10deg]`}>
                       <Icon className="w-6 h-6" />
                     </div>

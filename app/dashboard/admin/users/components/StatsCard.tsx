@@ -15,7 +15,7 @@ export default function StatsCard({ icon: Icon, title, value, total, color, dela
   
   return (
     <motion.div variants={itemVariants} className="group">
-      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-2.5 shadow-sm border border-white/10 dark:border-gray-700/30 relative overflow-hidden">
+      <div className="bg-surface-elevated rounded-lg p-2.5 shadow-sm border border-theme relative overflow-hidden">
         <div className="flex items-center gap-2 mb-1.5">
           <div className={`p-1.5 bg-gradient-to-br ${color} rounded-md`}>
             <Icon className="text-sm text-white" />
@@ -24,7 +24,7 @@ export default function StatsCard({ icon: Icon, title, value, total, color, dela
         </div>
         
         <div className="flex items-end gap-2">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white">{value}</h3>
+          <h3 className="text-lg font-bold text-primary">{value}</h3>
           <div className="flex-1 h-4 flex items-end">
             <div className="w-full h-1 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
               <motion.div 

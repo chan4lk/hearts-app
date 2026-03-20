@@ -341,7 +341,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Fixed Header - Brand Teal Color */}
-      <div className="flex-shrink-0 px-6 py-4 bg-gradient-to-r from-teal-600 to-cyan-600 border-b border-teal-500/30 z-10 shadow-lg rounded-t-xl">
+      <div className="flex-shrink-0 px-6 py-4 bg-gradient-to-r from-teal-600 to-cyan-600 border-b border-teal-500/30 z-10 rounded-t-xl">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-white" style={{ color: '#ffffff' }}>
             Review Cycle
@@ -407,7 +407,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
               </button>
             </div>
             {showEmployeeDropdown && (
-              <div className="absolute z-50 w-full mt-1 bg-surface-elevated border border-theme rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute z-50 w-full mt-1 bg-surface-elevated border border-theme rounded-lg max-h-60 overflow-y-auto">
                 {loadingUsers ? (
                   <div className="px-4 py-8 text-center text-secondary text-sm">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-500 mx-auto mb-2"></div>
@@ -485,7 +485,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
               </button>
             </div>
             {showReportingPersonDropdown && (
-              <div className="absolute z-50 w-full mt-1 bg-surface-elevated border border-theme rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute z-50 w-full mt-1 bg-surface-elevated border border-theme rounded-lg max-h-60 overflow-y-auto">
                 {loadingEmployees ? (
                   <div className="px-4 py-8 text-center text-secondary text-sm">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-500 mx-auto mb-2"></div>
@@ -558,7 +558,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
               </button>
             </div>
             {showJobCategoryDropdown && (
-              <div className="absolute z-50 w-full mt-1 bg-surface-elevated border border-theme rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute z-50 w-full mt-1 bg-surface-elevated border border-theme rounded-lg max-h-60 overflow-y-auto">
                 {filteredJobCategories.length > 0 ? (
                   filteredJobCategories.map((category) => (
                     <div
@@ -629,7 +629,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
               </button>
             </div>
             {showDesignationDropdown && (
-              <div className="absolute z-50 w-full mt-1 bg-surface-elevated border border-theme rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute z-50 w-full mt-1 bg-surface-elevated border border-theme rounded-lg max-h-60 overflow-y-auto">
                 {filteredDesignations.length > 0 ? (
                   filteredDesignations.map((designation) => (
                     <div

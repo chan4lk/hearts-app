@@ -131,7 +131,7 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
       {/* Employee Selection */}
       <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h3 className="text-lg font-semibold text-primary">
             Select Employees ({selectedEmployees.length}/{assignedEmployees.length})
           </h3>
           <button
@@ -164,7 +164,7 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
 
       {/* Goal Templates */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        <h3 className="text-lg font-semibold text-primary mb-4">
           Goal Templates
         </h3>
         
@@ -179,7 +179,7 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
               <div className="flex items-start gap-3">
                 <div className="text-2xl">{template.icon}</div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1 truncate">
+                  <h4 className="font-semibold text-primary mb-1 truncate">
                     {template.name}
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
@@ -219,7 +219,7 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
 
       {/* Quick Actions */}
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+        <h3 className="text-lg font-semibold text-primary mb-3">
           Quick Actions
         </h3>
         
