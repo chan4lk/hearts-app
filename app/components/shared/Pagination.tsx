@@ -95,10 +95,10 @@ export function Pagination({
   return (
     <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 ${className}`}>
       {/* Results info */}
-      <div className="text-sm text-gray-400">
-        Showing <span className="font-medium text-white">{start}</span> to{' '}
-        <span className="font-medium text-white">{end}</span> of{' '}
-        <span className="font-medium text-white">{total}</span> results
+      <div className="text-sm text-secondary">
+        Showing <span className="font-medium text-primary">{start}</span> to{' '}
+        <span className="font-medium text-primary">{end}</span> of{' '}
+        <span className="font-medium text-primary">{total}</span> results
       </div>
 
       {/* Pagination controls */}

@@ -232,13 +232,13 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-2 w-96 bg-gray-900/95 backdrop-blur-xl rounded-xl shadow-2xl border border-gray-700/50 overflow-hidden z-50 max-h-[500px] flex flex-col"
+            className="absolute right-0 mt-2 w-96 bg-surface-elevated backdrop-blur-xl rounded-xl shadow-2xl border border-theme overflow-hidden z-50 max-h-[500px] flex flex-col"
           >
             {/* Header */}
-            <div className="px-4 py-3 border-b border-gray-700/50 flex items-center justify-between bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10">
+            <div className="px-4 py-3 border-b border-theme flex items-center justify-between bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10">
               <div className="flex items-center gap-2">
                 <BsBell className="w-4 h-4 text-indigo-400" />
-                <h3 className="text-sm font-semibold text-white">Notifications</h3>
+                <h3 className="text-sm font-semibold text-primary">Notifications</h3>
                 {unreadCount > 0 && (
                   <span className="text-xs font-medium bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full">
                     {unreadCount} new
@@ -362,7 +362,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
 
             {/* Footer */}
             {notifications.length > 0 && (
-              <div className="px-4 py-3 border-t border-gray-700/50 bg-gradient-to-r from-gray-800/40 to-gray-900/40 flex items-center justify-between gap-2">
+              <div className="px-4 py-3 border-t border-theme bg-gradient-to-r from-gray-800/40 to-gray-900/40 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => {

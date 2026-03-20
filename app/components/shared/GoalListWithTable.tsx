@@ -3,8 +3,8 @@
 import { ReactNode } from 'react';
 
 const wrapperClass =
-  'bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl border border-white/20 dark:border-gray-700/50 overflow-hidden shadow-lg';
-const paginationBorderClass = 'mt-6 pt-4 border-t border-gray-700/50';
+  'bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl border border-theme overflow-hidden shadow-lg';
+const paginationBorderClass = 'mt-6 pt-4 border-t border-theme';
 
 /**
  * Shared wrapper: same card style as GoalsSection, with a slot for content (GoalsTable + optional Pagination).

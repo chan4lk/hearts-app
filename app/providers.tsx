@@ -1,12 +1,23 @@
 'use client';
 
 import { SessionProvider } from 'next-auth/react';
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-// 1. Create Settings Context
+// ─── Theme Types ──────────────────────────────────────────────────
+type Theme = 'light' | 'dark' | 'system';
+type ResolvedTheme = 'light' | 'dark';
+
+interface ThemeContextType {
+  theme: Theme;
+  resolvedTheme: ResolvedTheme;
+  setTheme: (theme: Theme) => void;
+}
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+// ─── Settings Types ───────────────────────────────────────────────
 interface Settings {
   systemName: string;
-  theme: 'dark';  // Force theme to always be dark
 }
 
 interface SettingsContextType {
@@ -16,19 +27,76 @@ interface SettingsContextType {
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
-// 2. Create a Settings Provider
+// ─── Theme Provider ───────────────────────────────────────────────
+function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setThemeState] = useState<Theme>('system');
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>('dark');
+
+  const applyTheme = useCallback((resolved: ResolvedTheme) => {
+    setResolvedTheme(resolved);
+    const root = document.documentElement;
+    if (resolved === 'dark') {
+      root.classList.add('dark');
+      root.style.colorScheme = 'dark';
+    } else {
+      root.classList.remove('dark');
+      root.style.colorScheme = 'light';
+    }
+  }, []);
+
+  const setTheme = useCallback((newTheme: Theme) => {
+    setThemeState(newTheme);
+    localStorage.setItem('aspirehub-theme', newTheme);
+
+    if (newTheme === 'system') {
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      applyTheme(systemDark ? 'dark' : 'light');
+    } else {
+      applyTheme(newTheme);
+    }
+  }, [applyTheme]);
+
+  // Initialize theme from localStorage or system
+  useEffect(() => {
+    const stored = localStorage.getItem('aspirehub-theme') as Theme | null;
+    const initial = stored || 'system';
+    setThemeState(initial);
+
+    if (initial === 'system') {
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      applyTheme(systemDark ? 'dark' : 'light');
+    } else {
+      applyTheme(initial);
+    }
+
+    // Listen for system theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      const currentTheme = localStorage.getItem('aspirehub-theme') as Theme | null;
+      if (!currentTheme || currentTheme === 'system') {
+        applyTheme(e.matches ? 'dark' : 'light');
+      }
+    };
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [applyTheme]);
+
+  return (
+    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+// ─── Settings Provider ────────────────────────────────────────────
 function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [settings] = useState<Settings>({
     systemName: 'Bistec AspireHub',
-    theme: 'dark',
   });
-  const [loading, setLoading] = useState(false);
+  const [loading] = useState(false);
 
-  // Force dark theme on mount
   useEffect(() => {
-    document.documentElement.classList.add('dark');
     document.title = settings.systemName;
-    setLoading(false);
   }, [settings.systemName]);
 
   return (
@@ -38,20 +106,26 @@ function SettingsProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// 3. Create a custom hook for easy consumption
-export function useSettings() {
-  const context = useContext(SettingsContext);
-  if (context === undefined) {
-    throw new Error('useSettings must be used within a SettingsProvider');
-  }
+// ─── Hooks ────────────────────────────────────────────────────────
+export function useTheme() {
+  const context = useContext(ThemeContext);
+  if (!context) throw new Error('useTheme must be used within ThemeProvider');
   return context;
 }
 
-// 4. Update the main Providers component
+export function useSettings() {
+  const context = useContext(SettingsContext);
+  if (!context) throw new Error('useSettings must be used within SettingsProvider');
+  return context;
+}
+
+// ─── Root Provider ────────────────────────────────────────────────
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
-      <SettingsProvider>{children}</SettingsProvider>
+      <ThemeProvider>
+        <SettingsProvider>{children}</SettingsProvider>
+      </ThemeProvider>
     </SessionProvider>
   );
-} 
+}

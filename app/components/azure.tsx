@@ -37,8 +37,8 @@ export function AzureIntegration() {
   return (
     <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 relative overflow-hidden">
       {/* Background Elements */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0B1120] via-[#132145] to-[#1E1B4B] opacity-95"></div>
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10"></div>
+      <div className="absolute inset-0 bg-surface-primary"></div>
+      <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(rgba(99,102,241,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.5) 1px, transparent 1px)', backgroundSize: '80px 80px' }}></div>
       
       {/* Animated Background */}
       <div className="absolute top-1/4 -right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse-slow"></div>

@@ -201,9 +201,9 @@ export default function ManagerDashboard() {
   };
   return (
     <DashboardLayout type="manager">
-      <div className="min-h-screen bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800">
+      <div className="min-h-screen bg-surface-primary">
         {/* Subtle Background Pattern */}
-        <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
+        <div className="fixed inset-0 pointer-events-none bg-grid" />
         
         <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
           {/* Hero Section */}
@@ -333,8 +333,8 @@ export default function ManagerDashboard() {
                   <BsLightbulb className="w-5 h-5 text-purple-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">AI Performance Insights</h3>
-                  <p className="text-sm text-gray-400">
+                  <h3 className="text-lg font-bold text-primary">AI Performance Insights</h3>
+                  <p className="text-sm text-secondary">
                     AI-powered analysis for {employees.find(e => e.email === selectedEmployee)?.name || 'selected employee'}
                   </p>
                 </div>
@@ -350,8 +350,8 @@ export default function ManagerDashboard() {
           {showAIInsights && selectedEmployee === 'all' && (
             <div className="bg-gradient-to-br from-blue-900/20 via-indigo-900/20 to-purple-900/20 backdrop-blur-sm rounded-xl p-8 border border-blue-500/20 text-center">
               <BsLightbulb className="w-12 h-12 text-blue-400 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-white mb-2">Select an Employee</h3>
-              <p className="text-gray-400">
+              <h3 className="text-xl font-bold text-primary mb-2">Select an Employee</h3>
+              <p className="text-secondary">
                 Choose a specific employee from the filter above to view their AI-powered performance insights
               </p>
             </div>

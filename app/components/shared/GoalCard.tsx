@@ -141,13 +141,13 @@ export default function GoalCard({
               <Icon className="w-5 h-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="text-base font-semibold text-white group-hover:text-transparent 
+              <h3 className="text-base font-semibold text-primary group-hover:text-transparent
                 group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400
                 transition-all duration-300 truncate">{goal.title}</h3>
               
               {/* Show employee name for manager/admin views */}
               {showEmployee && (
-                <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-1">
+                <div className="flex items-center gap-1.5 text-xs text-secondary mt-1">
                   <BsPerson className="w-3 h-3" />
                   <span>{getEmployeeName()}</span>
                 </div>
@@ -160,7 +160,7 @@ export default function GoalCard({
           </div>
 
           {/* Description */}
-          <p className="text-gray-400 text-sm leading-relaxed line-clamp-2 mb-auto">{goal.description}</p>
+          <p className="text-secondary text-sm leading-relaxed line-clamp-2 mb-auto">{goal.description}</p>
 
           {/* Progress Bar and Status for DRAFT, PENDING, and APPROVED goals */}
           {['DRAFT', 'PENDING', 'APPROVED'].includes(goal.status) && (
@@ -196,13 +196,13 @@ export default function GoalCard({
           )}
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-2 border-t border-white/10 mt-2">
+          <div className="flex items-center justify-between pt-2 border-t border-theme mt-2">
             <div className="flex items-center gap-4 text-xs">
-              <div className="flex items-center gap-1.5 text-gray-400">
+              <div className="flex items-center gap-1.5 text-secondary">
                 <BsCalendar className="w-3 h-3" />
                 <span>Due: {formatDate(goal.dueDate)}</span>
               </div>
-              <div className="flex items-center gap-1.5 text-gray-400">
+              <div className="flex items-center gap-1.5 text-secondary">
                 <BsTag className="w-3 h-3" />
                 <span>{goal.category}</span>
               </div>

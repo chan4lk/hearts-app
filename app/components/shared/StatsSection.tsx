@@ -83,13 +83,13 @@ export default function StatsSection({
             backdrop-blur-sm
             rounded-xl
             p-3
-            border-2
+            border
             ${stat.borderColor}
             hover:border-opacity-60
             transition-all
             duration-300
             group
-            ${stat.clickable !== false && stat.onClick ? 'cursor-pointer hover:shadow-xl hover:scale-105' : ''}
+            ${stat.clickable !== false && stat.onClick ? 'cursor-pointer hover:shadow-lg hover:scale-[1.03]' : ''}
             flex items-center gap-3
           `}
           tabIndex={stat.clickable !== false && stat.onClick ? 0 : -1}
@@ -111,10 +111,10 @@ export default function StatsSection({
 
             {/* Value and Title */}
             <div className="flex flex-col">
-              <div className="text-xl font-bold text-white group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:text-transparent group-hover:from-white group-hover:to-gray-200 transition-all duration-300">
+              <div className="text-xl font-bold text-primary group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:text-transparent group-hover:from-white group-hover:to-gray-200 transition-all duration-300">
                 {stat.value}
               </div>
-              <div className="text-xs font-medium text-gray-400">
+              <div className="text-xs font-medium text-secondary">
                 {stat.title}
               </div>
             </div>

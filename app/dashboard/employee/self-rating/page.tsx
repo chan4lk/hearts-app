@@ -161,7 +161,7 @@ import BackgroundElements from '@/app/components/shared/BackgroundElements';
  
    return (
      <DashboardLayout type="employee">
-       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+       <div className="min-h-screen bg-surface-primary">
          <BackgroundElements />
          <div className="relative z-10 p-4 space-y-4">
            <HeroSection

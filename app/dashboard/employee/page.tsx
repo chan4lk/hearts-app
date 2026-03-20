@@ -454,9 +454,9 @@ export default function EmployeeDashboard() {
 
   return (
     <DashboardLayout type="employee">
-      <div className="min-h-screen bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800">
+      <div className="min-h-screen bg-surface-primary">
         {/* Subtle Background Pattern */}
-        <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
+        <div className="fixed inset-0 pointer-events-none bg-grid" />
         
         <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
           {/* Hero Section */}
@@ -557,8 +557,8 @@ export default function EmployeeDashboard() {
                   <BsPlus className="w-6 h-6 text-green-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-bold text-white mb-1">Create New Goal</h3>
-                  <p className="text-sm text-gray-400">Set a new personal or professional goal</p>
+                  <h3 className="text-lg font-bold text-primary mb-1">Create New Goal</h3>
+                  <p className="text-sm text-secondary">Set a new personal or professional goal</p>
                 </div>
               </div>
             </motion.button>
@@ -575,8 +575,8 @@ export default function EmployeeDashboard() {
                   <BsStars className="w-6 h-6 text-purple-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-bold text-white mb-1">AI Goal Suggestions</h3>
-                  <p className="text-sm text-gray-400">Get AI-powered goal recommendations</p>
+                  <h3 className="text-lg font-bold text-primary mb-1">AI Goal Suggestions</h3>
+                  <p className="text-sm text-secondary">Get AI-powered goal recommendations</p>
                 </div>
               </div>
             </motion.button>
@@ -593,8 +593,8 @@ export default function EmployeeDashboard() {
                   <BsLightbulb className="w-6 h-6 text-blue-400" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-bold text-white mb-1">Performance Insights</h3>
-                  <p className="text-sm text-gray-400">AI-powered analysis of your performance trends and recommendations</p>
+                  <h3 className="text-lg font-bold text-primary mb-1">Performance Insights</h3>
+                  <p className="text-sm text-secondary">AI-powered analysis of your performance trends and recommendations</p>
                 </div>
               </div>
             </motion.button>
@@ -636,8 +636,8 @@ export default function EmployeeDashboard() {
                         <BsLightbulb className="w-6 h-6 text-blue-400" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-white">AI Performance Insights</h3>
-                        <p className="text-sm text-gray-400">Data-driven analysis of your performance</p>
+                        <h3 className="text-xl font-bold text-primary">AI Performance Insights</h3>
+                        <p className="text-sm text-secondary">Data-driven analysis of your performance</p>
                       </div>
                     </div>
                     <button
@@ -729,7 +729,7 @@ export default function EmployeeDashboard() {
                   initial={{ scale: 0.95, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.95, opacity: 0 }}
-                  className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-2xl border border-white/10"
+                  className="bg-surface-elevated backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-2xl border border-theme"
                 >
                   <GoalDetailModal
                     goal={selectedGoal}

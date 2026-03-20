@@ -310,9 +310,9 @@ export default function AdminDashboard() {
 
   return (
     <DashboardLayout type="admin">
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-surface-primary">
         {/* Subtle Background Pattern */}
-        <div className="fixed inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
+        <div className="fixed inset-0 pointer-events-none bg-grid" />
         
         <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
           {/* Hero Section */}
@@ -391,11 +391,11 @@ export default function AdminDashboard() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-                             className="lg:col-span-2 backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl shadow-2xl overflow-hidden"
+                             className="lg:col-span-2 card-glass rounded-xl shadow-2xl overflow-hidden"
             >
-                             <div className="p-4 border-b border-white/10">
+                             <div className="p-4 border-b border-theme">
                  <div className="flex items-center justify-between">
-                   <h2 className="text-lg font-semibold text-white">Role Distribution</h2>
+                   <h2 className="text-lg font-semibold text-primary">Role Distribution</h2>
                   <Link
                     href="/dashboard/admin/users"
                     className="inline-flex items-center gap-2 text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors"
@@ -419,17 +419,17 @@ export default function AdminDashboard() {
                                <BsPeople className="w-4 h-4 text-gray-300" />
                              </div>
                              <div>
-                               <p className="text-sm font-medium text-white capitalize">
+                               <p className="text-sm font-medium text-primary capitalize">
                                  {role.role.toLowerCase()}
                                </p>
-                               <p className="text-xs text-gray-400">
+                               <p className="text-xs text-secondary">
                                  {role._count.role} {role._count.role === 1 ? 'user' : 'users'}
                                </p>
                              </div>
                            </div>
                            <div className="text-right">
-                             <p className="text-lg font-bold text-white">{role._count.role}</p>
-                             <p className="text-xs text-gray-400">{percentage.toFixed(1)}%</p>
+                             <p className="text-lg font-bold text-primary">{role._count.role}</p>
+                             <p className="text-xs text-secondary">{percentage.toFixed(1)}%</p>
                            </div>
                          </div>
                          <div className="w-full bg-gray-700/30 rounded-full h-2">
@@ -450,11 +450,11 @@ export default function AdminDashboard() {
                initial={{ opacity: 0, x: 20 }}
                animate={{ opacity: 1, x: 0 }}
                transition={{ duration: 0.6, delay: 0.4 }}
-               className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl shadow-2xl"
+               className="card-glass rounded-xl shadow-2xl"
             >
-              <div className="p-6 border-b border-white/10">
+              <div className="p-6 border-b border-theme">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-white">Recent Users</h2>
+                  <h2 className="text-xl font-semibold text-primary">Recent Users</h2>
                   <Link
                     href="/dashboard/admin/users"
                     className="inline-flex items-center gap-2 text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors"
@@ -472,11 +472,11 @@ export default function AdminDashboard() {
                         <BsPeople className="w-5 h-5 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white truncate">{user.name}</p>
-                        <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                        <p className="text-sm font-medium text-primary truncate">{user.name}</p>
+                        <p className="text-xs text-secondary truncate">{user.email}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-secondary">
                           {new Date(user.updatedAt).toLocaleTimeString('en-US', { 
                             hour: '2-digit', 
                             minute: '2-digit' 
@@ -497,17 +497,17 @@ export default function AdminDashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+            className="card-glass rounded-2xl shadow-2xl overflow-hidden"
           >
-            <div className="p-6 border-b border-white/10">
+            <div className="p-6 border-b border-theme">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
                     <BsBullseye className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-white">All Users Goals</h2>
-                    <p className="text-sm text-gray-400">View and manage goals across all users</p>
+                    <h2 className="text-xl font-semibold text-primary">All Users Goals</h2>
+                    <p className="text-sm text-secondary">View and manage goals across all users</p>
                   </div>
                 </div>
                 <motion.button

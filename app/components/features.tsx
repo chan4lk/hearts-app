@@ -86,9 +86,9 @@ const employeeFeatures = [
 
 export function Features() {
   return (
-    <section id="features" className="py-12 md:py-20 lg:py-28 bg-gradient-to-b from-[#0B1120] via-[#132145] to-[#1E1B4B] relative overflow-hidden">
+    <section id="features" className="py-12 md:py-20 lg:py-28 bg-surface-primary relative overflow-hidden">
       {/* Background Elements */}
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:radial-gradient(ellipse_at_center,white,transparent)] opacity-20"></div>
+      <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(rgba(99,102,241,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.5) 1px, transparent 1px)', backgroundSize: '80px 80px', maskImage: 'radial-gradient(ellipse at center, white, transparent)', WebkitMaskImage: 'radial-gradient(ellipse at center, white, transparent)' }}></div>
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-gray-200/10 to-transparent"></div>
       
       <div className="container mx-auto px-4 sm:px-6 relative">

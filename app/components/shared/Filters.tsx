@@ -317,7 +317,7 @@ export default function Filters({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border-2 border-gray-700/50 space-y-4"
+      className="bg-surface-elevated backdrop-blur-sm rounded-xl p-4 border-2 border-theme space-y-4"
     >
       <div className="flex gap-2 items-start">
         <div className={`flex-1 ${gridColsClass}`}>
@@ -455,7 +455,7 @@ export default function Filters({
 
       {/* Action Buttons */}
       {(onExport || onRefresh) && (
-        <div className="flex justify-end gap-3 pt-2 border-t border-gray-700/50">
+        <div className="flex justify-end gap-3 pt-2 border-t border-theme">
            {onRefresh && (
              <button
                onClick={onRefresh}

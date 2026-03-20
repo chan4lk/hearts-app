@@ -447,16 +447,16 @@ export const THEME_COLORS = {
     border: 'border-amber-200/20 dark:border-amber-600/20',
   },
   background: {
-    primary: 'bg-white/80 dark:bg-gray-800/80',
-    secondary: 'bg-gray-50/80 dark:bg-gray-700/80',
-    gradient: 'from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900',
+    primary: 'bg-slate-900/80',
+    secondary: 'bg-slate-800/50',
+    gradient: 'from-[#0B1120] via-[#0B1120] to-[#0B1120]',
   },
   border: {
-    light: 'border-white/20 dark:border-gray-700/50',
+    light: 'border-slate-800/60',
   },
   text: {
-    primary: 'text-gray-900 dark:text-white',
-    secondary: 'text-gray-600 dark:text-gray-400',
+    primary: 'text-white',
+    secondary: 'text-slate-400',
   },
 } as const;
 

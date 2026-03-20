@@ -142,9 +142,9 @@ function EmployeeEventsContent() {
 
   return (
     <DashboardLayout type="employee">
-      <div className="fixed inset-0 top-16 left-0 md:left-64 right-0 bottom-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col overflow-hidden z-0">
+      <div className="fixed inset-0 top-16 left-0 md:left-64 right-0 bottom-0 bg-surface-primary flex flex-col overflow-hidden z-0">
         {/* Subtle Background Pattern */}
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
+        <div className="absolute inset-0 pointer-events-none bg-grid" />
         
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
           {/* Header - Fixed */}
@@ -334,7 +334,7 @@ function EmployeeEventsContent() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="rounded-xl border border-white/10 bg-white/5 p-12 text-center backdrop-blur-xl"
+                  className="rounded-xl border border-theme bg-surface-elevated p-12 text-center backdrop-blur-xl"
                 >
                   <div className="inline-flex p-4 bg-teal-500/10 rounded-full mb-4">
                     <BsCalendarPlus className="text-5xl text-teal-400/50" />

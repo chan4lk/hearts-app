@@ -37,6 +37,7 @@ import {
 import dynamic from 'next/dynamic';
 import { useSettings } from '@/app/providers';
 import NotificationsDropdown from '@/app/components/shared/NotificationsDropdown';
+import ThemeToggle from '@/app/components/ui/ThemeToggle';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -217,7 +218,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
   };
 
   return (
-    <div className="min-h-screen bg-[#0f1117]">
+    <div className="min-h-screen bg-surface-primary">
       {/* Sidebar */}
       <AnimatePresence>
         {isMobileMenuOpen && (
@@ -227,7 +228,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed left-0 top-0 h-full w-64 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 z-30 md:hidden"
+            className="fixed left-0 top-0 h-full w-64 bg-surface-sidebar border-r border-theme z-30 md:hidden"
           >
             <div className="p-6">
               <div className="flex items-center justify-between mb-8">
@@ -356,7 +357,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       </AnimatePresence>
 
       {/* Desktop Sidebar */}
-      <div className="fixed left-0 top-0 h-full w-64 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 hidden md:flex flex-col justify-between z-30 mt-2o">
+      <div className="fixed left-0 top-0 h-full w-64 bg-surface-sidebar border-r border-theme hidden md:flex flex-col justify-between z-30">
         <div className="p-2 flex-1 flex flex-col">
           <div className="flex items-center space-x-3 mb-6">
             <div className="w-14 h-14 rounded-full  flex items-center justify-center">
@@ -460,7 +461,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       </div>
 
       {/* Header */}
-      <header className="fixed top-0 right-0 left-0 h-16 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 md:pl-64 z-20">
+      <header className="fixed top-0 right-0 left-0 h-16 bg-surface-header/95 backdrop-blur-md border-b border-theme md:pl-64 z-20">
         <div className="flex items-center justify-between h-full px-4">
           {/* Left side: Mobile menu, Logo, and System Name */}
           <div className="flex items-center space-x-4">
@@ -493,7 +494,9 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
             </div>
           </div>
           {/* Right side: User Menu - Visible on both mobile and desktop */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
+            {/* Theme Toggle */}
+            <ThemeToggle />
             {/* Notifications Bell */}
             {session?.user?.id && (
               <NotificationsDropdown userId={session.user.id} />
@@ -525,7 +528,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                   initial={{ opacity: 0, scale: 0.95, y: -10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                  className="absolute right-0 mt-1.5 w-64 backdrop-blur-xl bg-white/10 dark:bg-gray-800/40 rounded-xl shadow-2xl z-50 border border-white/20 dark:border-gray-700/30 overflow-hidden"
+                  className="absolute right-0 mt-1.5 w-64 bg-surface-elevated backdrop-blur-xl rounded-xl shadow-theme-xl z-50 border border-theme overflow-hidden"
                 >
                   {/* Decorative top bar */}
                   <div className="h-1 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-indigo-500"></div>

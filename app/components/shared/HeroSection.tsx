@@ -9,9 +9,9 @@ interface HeroSectionProps {
   title?: string;
   subtitle?: string;
   userName?: string;
-  gradient?: string; // e.g., 'from-teal-600 to-cyan-600'
+  gradient?: string;
   children?: ReactNode;
-  useSessionName?: boolean; // if true, requires useSession hook
+  useSessionName?: boolean;
   onCreateClick?: () => void;
   onBulkCreateClick?: () => void;
 }
@@ -20,13 +20,12 @@ export default function HeroSection({
   title,
   subtitle = "Manage your organization's goals and users",
   userName,
-  gradient = 'from-teal-600 to-cyan-600',
+  gradient = 'from-indigo-600 to-purple-600',
   children,
   useSessionName = false,
   onCreateClick,
   onBulkCreateClick
 }: HeroSectionProps) {
-  // If useSessionName is true, the parent component should pass userName
   const displayName = userName || 'User';
 
   return (
@@ -38,11 +37,22 @@ export default function HeroSection({
     >
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-        <div 
-          className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse" 
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/[0.07] rounded-full blur-3xl animate-pulse-slow" />
+        <div
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/[0.07] rounded-full blur-3xl animate-pulse-slow"
           style={{ animationDelay: '1s' }}
-        ></div>
+        />
+        {/* Subtle grid lines */}
+        <div
+          className="absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)
+            `,
+            backgroundSize: '40px 40px',
+          }}
+        />
       </div>
 
       {/* Content */}
@@ -58,16 +68,16 @@ export default function HeroSection({
             </h2>
           )}
           {subtitle && (
-            <p className="text-white/90 text-sm">
+            <p className="text-white/80 text-sm">
               {subtitle}
             </p>
           )}
         </div>
         <div className="flex items-center gap-3">
           {onBulkCreateClick && (
-            <Button 
-              onClick={onBulkCreateClick} 
-              variant="outline" 
+            <Button
+              onClick={onBulkCreateClick}
+              variant="outline"
               className="bg-white/10 border-white/20 text-white hover:bg-white/20 border-0"
             >
               <BsCollection className="mr-2 h-4 w-4" />
@@ -75,9 +85,9 @@ export default function HeroSection({
             </Button>
           )}
           {onCreateClick && (
-            <Button 
-              onClick={onCreateClick} 
-              className="bg-white text-teal-600 hover:bg-white/90 border-0"
+            <Button
+              onClick={onCreateClick}
+              className="bg-white text-indigo-600 hover:bg-white/90 border-0"
             >
               <BsPlus className="mr-2 h-4 w-4" />
               Create Goal

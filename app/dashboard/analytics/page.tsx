@@ -506,7 +506,7 @@ export default function AnalyticsPage() {
 
   return (
     <DashboardLayout type={dashboardType}>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="min-h-screen bg-surface-primary">
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           {/* Hero Section */}
@@ -552,8 +552,8 @@ export default function AnalyticsPage() {
                 <div className="p-4 bg-gray-800/50 rounded-full mb-4">
                   <BsBarChart className="w-16 h-16 text-gray-500" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">No Analytics Data Available</h3>
-                <p className="text-gray-400 text-sm max-w-md">
+                <h3 className="text-xl font-semibold text-primary mb-2">No Analytics Data Available</h3>
+                <p className="text-secondary text-sm max-w-md">
                   There's no data to display for the selected filters. Try adjusting your date range or filters to see analytics.
                 </p>
               </div>
@@ -572,8 +572,8 @@ export default function AnalyticsPage() {
                 className="mb-2"
               >
                 <div className="mb-4">
-                  <h2 className="text-xl font-bold text-white mb-1">Key Metrics</h2>
-                  <p className="text-sm text-gray-400">Overview of performance indicators</p>
+                  <h2 className="text-xl font-bold text-primary mb-1">Key Metrics</h2>
+                  <p className="text-sm text-secondary">Overview of performance indicators</p>
                 </div>
                 {(() => {
                   const summary = analyticsData.summary;
@@ -623,8 +623,8 @@ export default function AnalyticsPage() {
                 className="mb-6"
               >
                 <div className="mb-4">
-                  <h2 className="text-xl font-bold text-white mb-1">Status Breakdown</h2>
-                  <p className="text-sm text-gray-400">Detailed breakdown of goals by status</p>
+                  <h2 className="text-xl font-bold text-primary mb-1">Status Breakdown</h2>
+                  <p className="text-sm text-secondary">Detailed breakdown of goals by status</p>
                 </div>
                 {(() => {
                   const byStatus = analyticsData.breakdowns.byStatus || {};
@@ -690,8 +690,8 @@ export default function AnalyticsPage() {
                 className="mb-2"
               >
                 <div className="mb-4">
-                  <h2 className="text-xl font-bold text-white mb-1">Visual Analytics</h2>
-                  <p className="text-sm text-gray-400">Charts and visualizations of your data</p>
+                  <h2 className="text-xl font-bold text-primary mb-1">Visual Analytics</h2>
+                  <p className="text-sm text-secondary">Charts and visualizations of your data</p>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Goals by Status */}
@@ -900,14 +900,14 @@ function ChartCard({ title, children, description }: { title: string; children: 
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl p-6 border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-gray-600/50"
+      className="relative bg-surface-elevated backdrop-blur-xl rounded-xl p-6 border border-theme shadow-xl hover:shadow-2xl transition-all duration-300"
     >
       <div className="mb-5">
-        <h3 className="text-xl font-bold text-white mb-1 flex items-center gap-2">
+        <h3 className="text-xl font-bold text-primary mb-1 flex items-center gap-2">
           {title}
         </h3>
         {description && (
-          <p className="text-xs text-gray-400">{description}</p>
+          <p className="text-xs text-secondary">{description}</p>
         )}
       </div>
       <div className="relative">

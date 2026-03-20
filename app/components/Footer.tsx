@@ -4,9 +4,9 @@ import { Goal, Twitter, Linkedin, Github, Mail, ArrowUpRight } from 'lucide-reac
 
 export default function Footer() {
   return (
-    <footer className="relative bg-gradient-to-b from-[#0B1120] via-[#132145] to-[#1E1B4B] overflow-hidden">
+    <footer className="relative bg-surface-primary overflow-hidden">
       {/* Background Elements */}
-      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:radial-gradient(ellipse_at_center,white,transparent)] opacity-10"></div>
+      <div className="absolute inset-0 opacity-[0.015]" style={{ backgroundImage: 'linear-gradient(rgba(99,102,241,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.5) 1px, transparent 1px)', backgroundSize: '80px 80px', maskImage: 'radial-gradient(ellipse at center, white, transparent)', WebkitMaskImage: 'radial-gradient(ellipse at center, white, transparent)' }}></div>
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent"></div>
       
       <div className="container mx-auto px-4 sm:px-6 py-12 sm:py-16 relative z-10">

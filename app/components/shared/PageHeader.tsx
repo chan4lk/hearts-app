@@ -17,9 +17,9 @@ export function PageHeader({ title, description, children }: PageHeaderProps) {
       className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
     >
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">{title}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2">{title}</h1>
         {description && (
-          <p className="text-gray-400">{description}</p>
+          <p className="text-secondary">{description}</p>
         )}
       </div>
       {children && (

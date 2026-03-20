@@ -320,7 +320,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                 {departmentConfig.label}
               </Badge>
             </div>
-            <h2 className="text-sm sm:text-base font-medium text-white truncate pr-10 sm:pr-12 leading-tight">{currentGoal.title}</h2>
+            <h2 className="text-sm sm:text-base font-medium text-primary truncate pr-10 sm:pr-12 leading-tight">{currentGoal.title}</h2>
           </div>
           
           {/* Action Buttons */}

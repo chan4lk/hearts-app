@@ -206,13 +206,13 @@ export default function ReviewCyclesPage() {
   };
   return (
     <DashboardLayout type="admin">
-      <div className="fixed inset-0 top-16 left-0 md:left-64 right-0 bottom-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex flex-col overflow-hidden z-0">
+      <div className="fixed inset-0 top-16 left-0 md:left-64 right-0 bottom-0 bg-surface-primary flex flex-col overflow-hidden z-0">
         {/* Subtle Background Pattern */}
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
+        <div className="absolute inset-0 pointer-events-none bg-grid" />
         
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
           {/* Hero Section - Fixed */}
-          <div className="flex-shrink-0 pt-3 pb-3 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 z-10 relative">
+          <div className="flex-shrink-0 pt-3 pb-3 bg-surface-primary z-10 relative">
             <HeroSection 
               title="Review Cycles"
               subtitle="Manage performance review cycles for your organization"
@@ -285,7 +285,7 @@ export default function ReviewCyclesPage() {
             
             {/* Pagination - Fixed at bottom */}
             {pagination && (
-              <div className="flex-shrink-0 pt-4 pb-3 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-t border-gray-700/50">
+              <div className="flex-shrink-0 pt-4 pb-3 bg-surface-primary border-t border-gray-700/50">
                 <Pagination
                   page={pagination.page}
                   limit={pagination.limit}
