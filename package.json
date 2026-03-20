@@ -9,9 +9,11 @@
     "build:clean": "npm run clean && npm run build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
+    "postinstall": "npx prisma generate",
+    "prisma:generate": "npx prisma generate",
+    "prisma:migrate": "npx prisma migrate dev",
+    "prisma:migrate:deploy": "npx prisma migrate deploy",
+    "db:migrate": "node scripts/run-event-migration.js",
     "prisma:seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "prisma": {

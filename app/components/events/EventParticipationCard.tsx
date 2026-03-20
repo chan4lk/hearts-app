@@ -9,10 +9,19 @@ import {
   BsXCircle,
   BsClockHistory,
 } from 'react-icons/bs';
+import {
+  EVENT_CATEGORIES,
+  TOASTMASTER_ROLES,
+  HEARTS_TALK_ROLES,
+} from '@/app/components/shared/constants';
 
 interface EventParticipationCardProps {
   participation: any;
   onUpdateStatus: (eventId: string, status: string) => void;
+  onUpdateRole?: (
+    eventId: string,
+    data: { toastmasterRole?: string; heartsTalkRole?: string }
+  ) => void;
   onAddFeedback: (eventId: string) => void;
   isLoading?: boolean;
 }
@@ -20,11 +29,18 @@ interface EventParticipationCardProps {
 export const EventParticipationCard = ({
   participation,
   onUpdateStatus,
+  onUpdateRole,
   onAddFeedback,
   isLoading = false,
 }: EventParticipationCardProps) => {
-  const { event, participationStatus, hoursContributed, feedback } =
-    participation;
+  const {
+    event,
+    participationStatus,
+    hoursContributed,
+    feedback,
+    toastmasterRole,
+    heartsTalkRole,
+  } = participation;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -56,6 +72,15 @@ export const EventParticipationCard = ({
 
   const isPastEvent = new Date(event.endDate) < new Date();
   const eventStatus = event.status;
+
+  const categoryLabel =
+    event.eventType === 'OTHER' && event.categoryLabel
+      ? event.categoryLabel
+      : EVENT_CATEGORIES.find((c) => c.value === event.eventType)?.label ??
+        event.eventType.replace(/_/g, ' ');
+
+  const isToastmasters = event.eventType === 'TOASTMASTERS';
+  const isHeartsTalk = event.eventType === 'HEART_TALKS';
 
   return (
     <motion.div
@@ -98,6 +123,60 @@ export const EventParticipationCard = ({
       <p className="mb-4 text-sm text-white/70 line-clamp-2">
         {event.description}
       </p>
+
+      {/* Toastmaster role selection */}
+      {isToastmasters && onUpdateRole && (
+        <div className="mb-4">
+          <label className="block text-xs text-white/60 mb-1">
+            Toastmaster role
+          </label>
+          <select
+            value={toastmasterRole ?? ''}
+            onChange={(e) => {
+              const v = e.target.value;
+              onUpdateRole(event.id, {
+                toastmasterRole: v || undefined,
+              });
+            }}
+            disabled={isLoading}
+            className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm text-white focus:border-teal-500 focus:outline-none disabled:opacity-50"
+          >
+            <option value="">Select role…</option>
+            {TOASTMASTER_ROLES.map((role) => (
+              <option key={role} value={role}>
+                {role}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Hearts Talk – Participant or Facilitator */}
+      {isHeartsTalk && onUpdateRole && (
+        <div className="mb-4">
+          <label className="block text-xs text-white/60 mb-1">
+            Hearts Talk – Participant or Facilitator
+          </label>
+          <select
+            value={heartsTalkRole ?? ''}
+            onChange={(e) => {
+              const v = e.target.value;
+              onUpdateRole(event.id, {
+                heartsTalkRole: (v as 'PARTICIPANT' | 'FACILITATOR') || undefined,
+              });
+            }}
+            disabled={isLoading}
+            className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm text-white focus:border-teal-500 focus:outline-none disabled:opacity-50"
+          >
+            <option value="">Select…</option>
+            {HEARTS_TALK_ROLES.map((r) => (
+              <option key={r.value} value={r.value}>
+                {r.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Participation Details */}
       {isPastEvent && (
@@ -155,11 +234,9 @@ export const EventParticipationCard = ({
         )}
       </div>
 
-      {/* Event Status Badge */}
+      {/* Event Status Badge & Category */}
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs text-white/50">
-          {event.eventType.replace(/_/g, ' ')}
-        </span>
+        <span className="text-xs text-white/50">{categoryLabel}</span>
         <span className="inline-flex px-2 py-1 rounded text-xs font-medium bg-white/10 text-white/70">
           {event.status}
         </span>

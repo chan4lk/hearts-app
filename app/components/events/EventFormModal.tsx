@@ -1,9 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BsX, BsCalendarEvent } from 'react-icons/bs';
 import { toast } from 'react-toastify';
+import {
+  EVENT_CATEGORIES_FORM,
+  EVENT_STATUS_OPTIONS,
+} from '@/app/components/shared/constants';
+
+function toDateInput(d: Date | string): string {
+  const date = typeof d === 'string' ? new Date(d) : d;
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function toTimeInput(d: Date | string): string {
+  const date = typeof d === 'string' ? new Date(d) : d;
+  const h = String(date.getHours()).padStart(2, '0');
+  const min = String(date.getMinutes()).padStart(2, '0');
+  return `${h}:${min}`;
+}
 
 interface EventFormModalProps {
   isOpen: boolean;
@@ -21,29 +40,31 @@ export const EventFormModal = ({
   isLoading = false,
 }: EventFormModalProps) => {
   const [formData, setFormData] = useState({
-    title: initialData?.title || '',
-    description: initialData?.description || '',
-    eventType: initialData?.eventType || 'TOASTMASTERS',
-    location: initialData?.location || '',
-    startDate: initialData?.startDate || '',
-    endDate: initialData?.endDate || '',
-    capacity: initialData?.capacity || '',
-    registrationDeadline: initialData?.registrationDeadline || '',
-    status: initialData?.status || 'SCHEDULED',
+    title: '',
+    eventType: 'TOASTMASTERS',
+    date: '',
+    time: '09:00',
+    status: 'SCHEDULED',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const eventTypes = [
-    'TOASTMASTERS',
-    'CODECRUNCH',
-    'HEART_TALKS',
-    'BISTEC_CLUB',
-    'WORKSHOP',
-    'TRAINING',
-    'SEMINAR',
-    'NETWORKING',
-    'TEAM_BUILDING',
-    'OTHER',
-  ];
+  useEffect(() => {
+    if (initialData) {
+      const eventType =
+        initialData.eventType && initialData.eventType !== 'OTHER'
+          ? initialData.eventType
+          : 'TOASTMASTERS';
+      const date = initialData.startDate ? toDateInput(initialData.startDate) : '';
+      const time = initialData.startDate ? toTimeInput(initialData.startDate) : '09:00';
+      setFormData({
+        title: initialData.title || '',
+        eventType,
+        date,
+        time,
+        status: initialData.status || 'SCHEDULED',
+      });
+    }
+  }, [initialData]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -56,22 +77,42 @@ export const EventFormModal = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
-      await onSubmit(formData);
+      const [hours = 9, minutes = 0] = (formData.time || '09:00').split(':').map(Number);
+      const start = formData.date
+        ? new Date(formData.date)
+        : new Date();
+      start.setHours(hours, minutes, 0, 0);
+      const dateMs = start.getTime();
+      const startDate = new Date(dateMs).toISOString();
+      const endDate = new Date(dateMs + 60 * 60 * 1000).toISOString();
+      const registrationDeadline = new Date(dateMs).toISOString();
+
+      await onSubmit({
+        title: formData.title,
+        description: initialData?.description || '—',
+        eventType: formData.eventType,
+        location: undefined,
+        capacity: undefined,
+        startDate,
+        endDate,
+        registrationDeadline,
+        status: formData.status,
+      });
       setFormData({
         title: '',
-        description: '',
         eventType: 'TOASTMASTERS',
-        location: '',
-        startDate: '',
-        endDate: '',
-        capacity: '',
-        registrationDeadline: '',
+        date: '',
+        time: '09:00',
         status: 'SCHEDULED',
       });
       onClose();
     } catch (error) {
       toast.error('Failed to save event');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -92,7 +133,6 @@ export const EventFormModal = ({
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header with gradient background */}
             <div className="border-b border-teal-500/20 bg-gradient-to-r from-teal-500/10 via-cyan-500/10 to-teal-500/10 px-6 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -115,128 +155,86 @@ export const EventFormModal = ({
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-white/80 mb-2">
-                    Event Title *
-                  </label>
-                  <input
-                    type="text"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleChange}
-                    required
-                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white placeholder-gray-400 hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
-                    placeholder="e.g., Toastmasters Conference"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white/80 mb-2">
-                    Event Type *
-                  </label>
-                  <select
-                    name="eventType"
-                    value={formData.eventType}
-                    onChange={handleChange}
-                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
-                  >
-                    {eventTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type.replace(/_/g, ' ')}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
               <div>
                 <label className="block text-sm font-medium text-white/80 mb-2">
-                  Description *
+                  Event Name *
                 </label>
-                <textarea
-                  name="description"
-                  value={formData.description}
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
                   onChange={handleChange}
                   required
-                  rows={3}
-                  className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white placeholder-gray-400 hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors resize-none"
-                  placeholder="Event details and agenda..."
+                  className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white placeholder-gray-400 hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
+                  placeholder="e.g., Toastmasters Conference"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-white/80 mb-2">
-                    Location
-                  </label>
-                  <input
-                    type="text"
-                    name="location"
-                    value={formData.location}
-                    onChange={handleChange}
-                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white placeholder-gray-400 hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
-                    placeholder="e.g., Conference Room A"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white/80 mb-2">
-                    Capacity
-                  </label>
-                  <input
-                    type="number"
-                    name="capacity"
-                    value={formData.capacity}
-                    onChange={handleChange}
-                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white placeholder-gray-400 hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
-                    placeholder="Number of participants"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-white/80 mb-2">
-                    Start Date & Time *
-                  </label>
-                  <input
-                    type="datetime-local"
-                    name="startDate"
-                    value={formData.startDate}
-                    onChange={handleChange}
-                    required
-                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-white/80 mb-2">
-                    End Date & Time *
-                  </label>
-                  <input
-                    type="datetime-local"
-                    name="endDate"
-                    value={formData.endDate}
-                    onChange={handleChange}
-                    required
-                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
-                  />
-                </div>
-              </div>
-
               <div>
                 <label className="block text-sm font-medium text-white/80 mb-2">
-                  Registration Deadline *
+                  Category *
                 </label>
-                <input
-                  type="datetime-local"
-                  name="registrationDeadline"
-                  value={formData.registrationDeadline}
+                <select
+                  name="eventType"
+                  value={formData.eventType}
                   onChange={handleChange}
                   required
                   className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
-                />
+                >
+                  {EVENT_CATEGORIES_FORM.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-white/80 mb-2">
+                    Date *
+                  </label>
+                  <input
+                    type="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={handleChange}
+                    required
+                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-white/80 mb-2">
+                    Time *
+                  </label>
+                  <input
+                    type="time"
+                    name="time"
+                    value={formData.time}
+                    onChange={handleChange}
+                    required
+                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white/80 mb-2">
+                  Status *
+                </label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
+                >
+                  {EVENT_STATUS_OPTIONS.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="flex gap-3 pt-4 border-t border-white/10">
@@ -244,10 +242,10 @@ export const EventFormModal = ({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || isSubmitting}
                   className="flex-1 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-600 py-2.5 font-semibold text-white hover:from-teal-600 hover:to-cyan-700 disabled:opacity-50 shadow-lg shadow-cyan-500/20 transition-all"
                 >
-                  {isLoading ? 'Saving...' : 'Save Event'}
+                  {isLoading || isSubmitting ? 'Saving...' : 'Save Event'}
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.02 }}

@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
               title: true,
               description: true,
               eventType: true,
+              categoryLabel: true,
               location: true,
               startDate: true,
               endDate: true,
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { eventId, participationStatus, hoursContributed, feedback } = body;
+    const { eventId, participationStatus, hoursContributed, feedback, toastmasterRole, heartsTalkRole } = body;
 
     if (!eventId) {
       return NextResponse.json(
@@ -124,9 +125,11 @@ export async function POST(request: NextRequest) {
             },
           },
           data: {
-            participationStatus: participationStatus || existingParticipation.participationStatus,
-            hoursContributed: hoursContributed || existingParticipation.hoursContributed,
-            feedback: feedback || existingParticipation.feedback,
+            participationStatus: participationStatus ?? existingParticipation.participationStatus,
+            hoursContributed: hoursContributed ?? existingParticipation.hoursContributed,
+            feedback: feedback ?? existingParticipation.feedback,
+            toastmasterRole: toastmasterRole !== undefined ? (toastmasterRole || null) : existingParticipation.toastmasterRole,
+            heartsTalkRole: heartsTalkRole !== undefined ? (heartsTalkRole || null) : existingParticipation.heartsTalkRole,
           },
           include: { event: true, user: { select: { name: true, email: true } } },
         })
@@ -135,6 +138,8 @@ export async function POST(request: NextRequest) {
             eventId,
             userId: session.user.id,
             participationStatus: participationStatus || 'REGISTERED',
+            toastmasterRole: toastmasterRole || null,
+            heartsTalkRole: heartsTalkRole || null,
             hoursContributed,
             feedback,
           },

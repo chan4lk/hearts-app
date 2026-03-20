@@ -262,6 +262,7 @@ model Event {
   title             String
   description       String
   eventType         EventType
+  categoryLabel     String?               // Custom category when eventType is OTHER
   location          String?
   startDate         DateTime
   endDate           DateTime
@@ -288,6 +289,8 @@ model EventParticipation {
   eventId           String
   userId            String
   participationStatus ParticipationStatus @default(REGISTERED)
+  toastmasterRole   String?   // For TOASTMASTERS: President, Toastmaster, Table Topics Master, etc.
+  heartsTalkRole    String?   // For HEART_TALKS: PARTICIPANT | FACILITATOR
   hoursContributed  Float?
   feedback          String?
   registeredAt      DateTime  @default(now())
@@ -306,10 +309,11 @@ model EventParticipation {
 enum EventType {
   TOASTMASTERS
   CODECRUNCH
+  RBT_TRAINING
+  TRAINING
   HEART_TALKS
   BISTEC_CLUB
   WORKSHOP
-  TRAINING
   SEMINAR
   NETWORKING
   TEAM_BUILDING

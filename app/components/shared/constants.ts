@@ -546,3 +546,48 @@ export function searchJobCategories(keyword: string): string[] {
   return JOB_CATEGORIES.filter(c => c.toLowerCase().includes(lowerKeyword)).sort();
 }
 
+// ─── Event categories & roles (Admin event form, Employee participation) ───
+
+/** Primary event categories – dropdown + "Other" for custom. Maps to EventType. */
+export const EVENT_CATEGORIES = [
+  { value: 'TOASTMASTERS', label: 'Toastmaster' },
+  { value: 'CODECRUNCH', label: 'Code Crunch' },
+  { value: 'RBT_TRAINING', label: 'RBT Training' },
+  { value: 'TRAINING', label: 'Trainings' },
+  { value: 'HEART_TALKS', label: 'Hearts Talks' },
+  { value: 'OTHER', label: 'Other (enter below)' },
+] as const;
+
+/** Toastmaster role selection for participation. */
+export const TOASTMASTER_ROLES = [
+  'President',
+  'Toastmaster',
+  'Table Topics Master',
+  'Round Robin Master',
+  'Timer',
+  'Ah Counter',
+  'General Evaluator',
+  'Prepared Speech Evaluator',
+  'Table Topics Evaluator',
+  'Grammarian',
+  'Prepared Speech',
+] as const;
+
+/** Hearts Talk participation type. */
+export const HEARTS_TALK_ROLES = [
+  { value: 'PARTICIPANT', label: 'Participant' },
+  { value: 'FACILITATOR', label: 'Facilitator' },
+] as const;
+
+/** Event status options for admin form (no Other). */
+export const EVENT_STATUS_OPTIONS = [
+  { value: 'SCHEDULED', label: 'Scheduled' },
+  { value: 'ONGOING', label: 'Ongoing' },
+  { value: 'COMPLETED', label: 'Completed' },
+  { value: 'CANCELLED', label: 'Cancelled' },
+] as const;
+
+/** Event categories for form dropdown (excludes Other). */
+export const EVENT_CATEGORIES_FORM = EVENT_CATEGORIES.filter(
+  (c) => c.value !== 'OTHER'
+);

@@ -70,11 +70,32 @@ function EmployeeEventsContent() {
 
       if (!response.ok) throw new Error('Failed to update status');
 
-      toast.success(`Participation updated to ${newStatus}`);
+      toast.success(`Attendance updated to ${newStatus}`);
       fetchParticipations();
     } catch (error) {
       console.error('Error updating status:', error);
       toast.error('Failed to update participation status');
+    }
+  };
+
+  const handleUpdateRole = async (
+    eventId: string,
+    data: { toastmasterRole?: string; heartsTalkRole?: string }
+  ) => {
+    try {
+      const response = await fetch('/api/events/participation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId, ...data }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update role');
+
+      toast.success('Role updated');
+      fetchParticipations();
+    } catch (error) {
+      console.error('Error updating role:', error);
+      toast.error('Failed to update role');
     }
   };
 
@@ -275,6 +296,7 @@ function EmployeeEventsContent() {
                         key={participation.id}
                         participation={participation}
                         onUpdateStatus={handleUpdateStatus}
+                        onUpdateRole={handleUpdateRole}
                         onAddFeedback={handleAddFeedback}
                         isLoading={isLoading}
                       />
@@ -298,6 +320,7 @@ function EmployeeEventsContent() {
                         key={participation.id}
                         participation={participation}
                         onUpdateStatus={handleUpdateStatus}
+                        onUpdateRole={handleUpdateRole}
                         onAddFeedback={handleAddFeedback}
                         isLoading={isLoading}
                       />
