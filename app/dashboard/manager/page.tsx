@@ -294,6 +294,14 @@ export default function ManagerDashboard() {
               setSearchQuery('');
               setPage(1);
             }}
+            actions={[
+              {
+                label: showAIInsights ? 'Hide AI Insights' : 'AI Insights',
+                onClick: () => setShowAIInsights(!showAIInsights),
+                variant: showAIInsights ? 'secondary' : 'primary',
+                icon: <BsStars className="w-3.5 h-3.5" />,
+              },
+            ]}
           >
             <FilterSelect
               value={selectedEmployee}
@@ -335,28 +343,17 @@ export default function ManagerDashboard() {
             />
           </PageToolbar>
 
-          {/* AI Insights Toggle */}
-          <div className="flex justify-end">
-            <button
-              onClick={() => setShowAIInsights(!showAIInsights)}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg transition-all shadow-md"
-            >
-              <BsStars className="w-4 h-4" />
-              <span>{showAIInsights ? 'Hide' : 'Show'} AI Insights</span>
-            </button>
-          </div>
-
           {/* AI Performance Insights for Selected Employee */}
           {showAIInsights && selectedEmployee !== 'all' && (
-            <div className="bg-gradient-to-br from-purple-900/20 via-indigo-900/20 to-blue-900/20 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20">
+            <div className="bg-surface-elevated rounded-xl p-5 border border-theme shadow-theme-sm">
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-purple-500/20 rounded-lg">
-                  <BsLightbulb className="w-5 h-5 text-purple-400" />
+                <div className="w-9 h-9 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                  <BsLightbulb className="w-4 h-4 text-indigo-500" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-primary">AI Performance Insights</h3>
-                  <p className="text-sm text-secondary">
-                    AI-powered analysis for {employees.find(e => e.email === selectedEmployee)?.name || 'selected employee'}
+                  <h3 className="text-[14px] font-semibold text-primary">AI Performance Insights</h3>
+                  <p className="text-[12px] text-secondary">
+                    Analysis for {employees.find(e => e.email === selectedEmployee)?.name || 'selected employee'}
                   </p>
                 </div>
               </div>
@@ -369,12 +366,12 @@ export default function ManagerDashboard() {
 
           {/* AI Insights Prompt (when no employee selected) */}
           {showAIInsights && selectedEmployee === 'all' && (
-            <div className="bg-gradient-to-br from-blue-900/20 via-indigo-900/20 to-purple-900/20 backdrop-blur-sm rounded-xl p-8 border border-blue-500/20 text-center">
-              <BsLightbulb className="w-12 h-12 text-blue-400 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-primary mb-2">Select an Employee</h3>
-              <p className="text-secondary">
-                Choose a specific employee from the filter above to view their AI-powered performance insights
-              </p>
+            <div className="bg-surface-elevated rounded-xl p-8 border border-theme shadow-theme-sm text-center">
+              <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center mx-auto mb-3">
+                <BsLightbulb className="w-5 h-5 text-indigo-500" />
+              </div>
+              <h3 className="text-[14px] font-semibold text-primary mb-1">Select an Employee</h3>
+              <p className="text-[12px] text-secondary">Choose a specific employee from the filter above to view AI insights</p>
             </div>
           )}
 

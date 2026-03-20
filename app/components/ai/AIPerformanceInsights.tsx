@@ -1,17 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  BsLightbulb, 
-  BsCheckCircle, 
-  BsExclamationTriangle, 
-  BsXCircle, 
-  BsStars,
-  BsArrowUp,
-  BsArrowDown,
-  BsDash
-} from 'react-icons/bs';
+import { BsLightbulb, BsCheckCircle, BsExclamationTriangle, BsXCircle, BsStars, BsArrowUp, BsArrowDown, BsDash } from 'react-icons/bs';
 
 interface PerformanceInsight {
   type: 'success' | 'warning' | 'risk' | 'opportunity';
@@ -27,37 +17,46 @@ interface AIPerformanceInsightsProps {
   className?: string;
 }
 
-export default function AIPerformanceInsights({ 
-  userId, 
-  autoLoad = false,
-  className = '' 
-}: AIPerformanceInsightsProps) {
+const INSIGHT_ICON: Record<string, JSX.Element> = {
+  success: <BsCheckCircle className="w-4 h-4 text-emerald-500" />,
+  warning: <BsExclamationTriangle className="w-4 h-4 text-amber-500" />,
+  risk: <BsXCircle className="w-4 h-4 text-red-500" />,
+  opportunity: <BsLightbulb className="w-4 h-4 text-blue-500" />,
+};
+
+const INSIGHT_BG: Record<string, string> = {
+  success: 'bg-emerald-50 dark:bg-emerald-500/5',
+  warning: 'bg-amber-50 dark:bg-amber-500/5',
+  risk: 'bg-red-50 dark:bg-red-500/5',
+  opportunity: 'bg-blue-50 dark:bg-blue-500/5',
+};
+
+const PRIORITY_STYLE: Record<string, string> = {
+  high: 'bg-red-500/10 text-red-600 dark:text-red-400',
+  medium: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  low: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+};
+
+export default function AIPerformanceInsights({ userId, autoLoad = false, className = '' }: AIPerformanceInsightsProps) {
   const [loading, setLoading] = useState(false);
   const [insights, setInsights] = useState<PerformanceInsight[]>([]);
   const [metrics, setMetrics] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (autoLoad) {
-      loadInsights();
-    }
+    if (autoLoad) loadInsights();
   }, [autoLoad, userId]);
 
   const loadInsights = async () => {
     setLoading(true);
     setError(null);
-    
     try {
       const response = await fetch('/api/ai/performance-insights', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId })
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to load insights');
-      }
-
+      if (!response.ok) throw new Error('Failed to load insights');
       const data = await response.json();
       setInsights(data.insights || []);
       setMetrics(data.metrics);
@@ -68,158 +67,82 @@ export default function AIPerformanceInsights({
     }
   };
 
-  const getInsightIcon = (type: string) => {
-    switch (type) {
-      case 'success':
-        return <BsCheckCircle className="w-5 h-5 text-emerald-400" />;
-      case 'warning':
-        return <BsExclamationTriangle className="w-5 h-5 text-amber-400" />;
-      case 'risk':
-        return <BsXCircle className="w-5 h-5 text-red-400" />;
-      case 'opportunity':
-        return <BsLightbulb className="w-5 h-5 text-blue-400" />;
-      default:
-        return <BsStars className="w-5 h-5 text-purple-400" />;
-    }
-  };
-
-  const getInsightColor = (type: string) => {
-    switch (type) {
-      case 'success':
-        return 'from-emerald-500/20 to-green-500/20 border-emerald-500/30';
-      case 'warning':
-        return 'from-amber-500/20 to-orange-500/20 border-amber-500/30';
-      case 'risk':
-        return 'from-red-500/20 to-rose-500/20 border-red-500/30';
-      case 'opportunity':
-        return 'from-blue-500/20 to-indigo-500/20 border-blue-500/30';
-      default:
-        return 'from-purple-500/20 to-indigo-500/20 border-purple-500/30';
-    }
-  };
-
-  const getPriorityBadge = (priority: string) => {
-    const colors = {
-      high: 'bg-red-500/20 text-red-400 border-red-500/30',
-      medium: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-      low: 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-    };
-    return colors[priority as keyof typeof colors] || colors.medium;
-  };
-
-  const getTrendIcon = (trend: string) => {
-    switch (trend) {
-      case 'improving':
-        return <BsArrowUp className="w-4 h-4 text-emerald-400" />;
-      case 'declining':
-        return <BsArrowDown className="w-4 h-4 text-red-400" />;
-      default:
-        return <BsDash className="w-4 h-4 text-secondary" />;
-    }
-  };
-
   return (
     <div className={className}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <BsStars className="w-6 h-6 text-purple-400" />
-          <h3 className="text-xl font-bold text-primary">AI Performance Insights</h3>
-        </div>
-        {!autoLoad && (
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={loadInsights}
-            disabled={loading}
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm disabled:opacity-50"
-          >
-            {loading ? 'Loading...' : 'Refresh Insights'}
-          </motion.button>
-        )}
-      </div>
-
-      {/* Metrics Summary */}
+      {/* Metrics */}
       {metrics && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-surface-secondary rounded-lg p-4 border border-theme">
-            <p className="text-secondary text-xs mb-1">Total Goals</p>
-            <p className="text-2xl font-bold text-primary">{metrics.totalGoals}</p>
-          </div>
-          <div className="bg-surface-secondary rounded-lg p-4 border border-theme">
-            <p className="text-secondary text-xs mb-1">Completion Rate</p>
-            <p className="text-2xl font-bold text-emerald-400">{metrics.completionRate}%</p>
-          </div>
-          <div className="bg-surface-secondary rounded-lg p-4 border border-theme">
-            <p className="text-secondary text-xs mb-1">Avg Rating</p>
-            <p className="text-2xl font-bold text-purple-400">{metrics.averageRating}/5</p>
-          </div>
-          <div className="bg-surface-secondary rounded-lg p-4 border border-theme">
-            <p className="text-secondary text-xs mb-1">Trend</p>
-            <div className="flex items-center gap-2">
-              {getTrendIcon(metrics.recentTrend)}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+          {[
+            { label: 'Total Goals', value: metrics.totalGoals, color: 'text-primary' },
+            { label: 'Completion Rate', value: `${metrics.completionRate}%`, color: 'text-emerald-600 dark:text-emerald-400' },
+            { label: 'Avg Rating', value: `${metrics.averageRating}/5`, color: 'text-indigo-600 dark:text-indigo-400' },
+          ].map((m, i) => (
+            <div key={i} className="bg-surface-secondary rounded-lg px-4 py-3">
+              <p className="text-[11px] text-secondary uppercase tracking-wider mb-1">{m.label}</p>
+              <p className={`text-xl font-bold ${m.color}`}>{m.value}</p>
+            </div>
+          ))}
+          <div className="bg-surface-secondary rounded-lg px-4 py-3">
+            <p className="text-[11px] text-secondary uppercase tracking-wider mb-1">Trend</p>
+            <div className="flex items-center gap-1.5">
+              {metrics.recentTrend === 'improving' ? <BsArrowUp className="w-4 h-4 text-emerald-500" /> :
+               metrics.recentTrend === 'declining' ? <BsArrowDown className="w-4 h-4 text-red-500" /> :
+               <BsDash className="w-4 h-4 text-secondary" />}
               <p className="text-lg font-bold text-primary capitalize">{metrics.recentTrend}</p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Error State */}
+      {/* Error */}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6">
-          <p className="text-red-400">{error}</p>
+        <div className="bg-red-50 dark:bg-red-500/5 rounded-lg px-4 py-3 mb-5">
+          <p className="text-[13px] text-red-600 dark:text-red-400">{error}</p>
         </div>
       )}
 
-      {/* Loading State */}
+      {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <BsStars className="w-8 h-8 text-purple-400 animate-spin" />
+          <BsStars className="w-6 h-6 text-indigo-500 animate-spin" />
         </div>
       )}
 
-      {/* Insights List */}
+      {/* Insights */}
       {!loading && insights.length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {insights.map((insight, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className={`bg-gradient-to-r ${getInsightColor(insight.type)} rounded-lg p-5 border`}
-            >
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 mt-1">
-                  {getInsightIcon(insight.type)}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <h4 className="text-primary font-semibold">{insight.title}</h4>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getPriorityBadge(insight.priority)}`}>
-                      {insight.priority.toUpperCase()}
+            <div key={index} className={`rounded-lg p-4 ${INSIGHT_BG[insight.type] || INSIGHT_BG.opportunity}`}>
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 shrink-0">{INSIGHT_ICON[insight.type] || INSIGHT_ICON.opportunity}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 mb-1.5">
+                    <h4 className="text-[13px] font-semibold text-primary">{insight.title}</h4>
+                    <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${PRIORITY_STYLE[insight.priority] || PRIORITY_STYLE.medium}`}>
+                      {insight.priority}
                     </span>
                   </div>
-                  <p className="text-secondary text-sm mb-3">{insight.description}</p>
-                  <div className="bg-black/20 rounded-lg p-3 border border-white/10">
-                    <p className="text-xs text-secondary mb-1">RECOMMENDATION</p>
-                    <p className="text-primary text-sm">{insight.recommendation}</p>
+                  <p className="text-[12px] text-secondary mb-2.5 leading-relaxed">{insight.description}</p>
+                  <div className="bg-surface-secondary rounded-lg px-3 py-2.5">
+                    <p className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Recommendation</p>
+                    <p className="text-[12px] text-primary leading-relaxed">{insight.recommendation}</p>
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       )}
 
-      {/* Empty State */}
+      {/* Empty */}
       {!loading && insights.length === 0 && !error && (
-        <div className="text-center py-12">
-          <BsLightbulb className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-          <p className="text-secondary">No insights available yet. Click "Refresh Insights" to generate.</p>
+        <div className="text-center py-10">
+          <div className="w-12 h-12 rounded-xl bg-surface-secondary flex items-center justify-center mx-auto mb-3">
+            <BsLightbulb className="w-5 h-5 text-secondary" />
+          </div>
+          <p className="text-[13px] text-secondary">No insights available yet</p>
         </div>
       )}
     </div>
   );
 }
-

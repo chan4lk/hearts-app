@@ -19,6 +19,7 @@ import { RATING_LABELS } from '@/app/components/shared/constants';
 import { useSession } from 'next-auth/react';
 import AIGoalSuggestions from '@/app/components/ai/AIGoalSuggestions';
 import AIPerformanceInsights from '@/app/components/ai/AIPerformanceInsights';
+import { ModalShell } from '@/app/components/ui/form-primitives';
 
 
 export default function EmployeeDashboard() {
@@ -603,46 +604,15 @@ export default function EmployeeDashboard() {
           )}
 
           {/* AI Performance Insights Modal */}
-          <AnimatePresence>
-            {showAIInsights && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-                onClick={() => setShowAIInsights(false)}
-              >
-                <motion.div
-                  initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.95, opacity: 0 }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="modal-content rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-blue-500/30"
-                >
-                  <div className="sticky top-0 bg-surface-elevated backdrop-blur-sm border-b border-blue-500/30 p-6 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-500/20 rounded-lg">
-                        <BsLightbulb className="w-6 h-6 text-blue-400" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-primary">AI Performance Insights</h3>
-                        <p className="text-sm text-secondary">Data-driven analysis of your performance</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setShowAIInsights(false)}
-                      className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-                    >
-                      <BsX className="w-6 h-6 text-gray-400 hover:text-white" />
-                    </button>
-                  </div>
-                  <div className="p-6">
-                    <AIPerformanceInsights autoLoad={true} />
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <ModalShell
+            open={showAIInsights}
+            onClose={() => setShowAIInsights(false)}
+            title="AI Performance Insights"
+            icon={<BsLightbulb className="w-4 h-4" />}
+            maxWidth="max-w-4xl"
+          >
+            <AIPerformanceInsights autoLoad={true} />
+          </ModalShell>
              {/* Toolbar + Filters */}
              <motion.div
             initial={{ opacity: 0, y: 10 }}
