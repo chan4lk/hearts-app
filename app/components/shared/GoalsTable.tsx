@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Goal, GoalWithRatingExtended } from './types';
-import { BsSearch, BsFilter, BsEye, BsPencil, BsTrash, BsCheckCircle, BsXCircle, BsClock, BsGear, BsFlag, BsPlayCircle, BsCircle, BsPauseCircle, BsStar, BsStarFill, BsChevronDown, BsArrowUp, BsArrowDown, BsArrowsExpand, BsBullseye, BsCalendar } from 'react-icons/bs';
+import { BsEye, BsPencil, BsTrash, BsCheckCircle, BsXCircle, BsClock, BsGear, BsFlag, BsPlayCircle, BsCircle, BsPauseCircle, BsStar, BsStarFill, BsBullseye, BsCalendar } from 'react-icons/bs';
+import { TABLE_STYLES, TableEmptyState } from '@/app/components/ui/table-primitives';
 import { Badge } from '@/app/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { useSession } from 'next-auth/react';
@@ -905,10 +906,10 @@ export default function GoalsTable({
       <div className="flex-1 flex flex-col overflow-hidden min-h-0">
         <div className="overflow-x-auto overflow-y-auto flex-1 min-h-0">
           <table className="w-full table-fixed min-w-full">
-            <thead className="sticky top-0 z-20 bg-surface-secondary border-b border-theme">
+            <thead className={TABLE_STYLES.thead}>
               <tr>
               <th
-                className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
+                className={TABLE_STYLES.thSortable}
                 style={{ width: '20%' }}
                 onClick={() => handleSort('title')}
               >
@@ -918,7 +919,7 @@ export default function GoalsTable({
                 </div>
               </th>
               <th
-                className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
+                className={TABLE_STYLES.thSortable}
                 style={{ width: '12%' }}
                 onClick={() => handleSort('status')}
               >
@@ -928,7 +929,7 @@ export default function GoalsTable({
                 </div>
               </th>
               <th
-                className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
+                className={TABLE_STYLES.thSortable}
                 style={{ width: '10%' }}
                 onClick={() => handleSort('priority')}
               >
@@ -938,7 +939,7 @@ export default function GoalsTable({
                 </div>
               </th>
               <th
-                className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
+                className={TABLE_STYLES.thSortable}
                 style={{ width: '12%' }}
                 onClick={() => handleSort('dueDate')}
               >
@@ -949,7 +950,7 @@ export default function GoalsTable({
               </th>
               {showEmployee && (
                 <th
-                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
+                  className={TABLE_STYLES.thSortable}
                   style={{ width: '12%' }}
                   onClick={() => handleSort('employee')}
                 >
@@ -961,7 +962,7 @@ export default function GoalsTable({
               )}
               {showManager && (
                 <th
-                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
+                  className={TABLE_STYLES.thSortable}
                   style={{ width: '12%' }}
                   onClick={() => handleSort('manager')}
                 >
@@ -972,7 +973,7 @@ export default function GoalsTable({
                 </th>
               )}
               <th
-                className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
+                className={TABLE_STYLES.thSortable}
                 style={{ width: '10%' }}
                 onClick={() => handleSort('category')}
               >
@@ -983,7 +984,7 @@ export default function GoalsTable({
               </th>
               {showRating && (
                 <th
-                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider whitespace-nowrap"
+                  className={TABLE_STYLES.th}
                   style={{ width: '10%' }}
                 >
                   Rating
@@ -991,7 +992,7 @@ export default function GoalsTable({
               )}
               {showActions && (
                 <th
-                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider whitespace-nowrap"
+                  className={TABLE_STYLES.th}
                   style={{ width: '10%' }}
                 >
                   Actions
@@ -1001,28 +1002,17 @@ export default function GoalsTable({
           </thead>
           <tbody>
             {sortedGoals.length === 0 ? (
-              <tr>
-                <td 
-                  colSpan={5 + (showEmployee ? 1 : 0) + (showManager ? 1 : 0) + (showRating ? 1 : 0) + (showActions ? 1 : 0)} 
-                  className="py-12 text-center text-secondary"
-                >
-                  <div className="flex flex-col items-center justify-center py-8">
-                    <div className="relative mb-4">
-                      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full blur-xl"></div>
-                      <div className="relative w-16 h-16 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-full flex items-center justify-center border-2 border-indigo-500/30">
-                        <BsBullseye className="w-8 h-8 text-indigo-400" />
-                      </div>
-                    </div>
-                    <p className="text-lg font-medium text-secondary mb-1">No goals found</p>
-                    <p className="text-sm text-tertiary">Try adjusting your filters to see more results</p>
-                  </div>
-                </td>
-              </tr>
+              <TableEmptyState
+                colSpan={5 + (showEmployee ? 1 : 0) + (showManager ? 1 : 0) + (showRating ? 1 : 0) + (showActions ? 1 : 0)}
+                icon={<BsBullseye className="w-5 h-5 text-secondary" />}
+                title="No goals found"
+                subtitle="Try adjusting your filters to see more results"
+              />
             ) : (
               sortedGoals.map((goal) => (
                 <tr
                   key={goal.id}
-                  className="border-b border-theme hover:bg-surface-secondary/50 transition-colors cursor-pointer"
+                  className={TABLE_STYLES.row}
                   onClick={() => onGoalClick?.(goal)}
                 >
                   <td className="py-2.5 px-3 text-[13px]">

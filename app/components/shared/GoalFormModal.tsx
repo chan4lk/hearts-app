@@ -6,6 +6,7 @@ import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { BsListTask, BsPeople, BsCalendar, BsX, BsArrowCounterclockwise } from 'react-icons/bs';
+import { FORM_STYLES } from '@/app/components/ui/form-primitives';
 import { User } from '@/app/components/shared/types';
 import { CATEGORIES, DEPARTMENTS, PRIORITIES } from './constants';
 import { AIGoalSuggestions } from './AIGoalSuggestions';
@@ -247,7 +248,7 @@ export function GoalFormModal({
             <Button
               type="submit"
               disabled={loading}
-              className="flex-1 min-w-[120px] bg-indigo-600 hover:bg-indigo-700 text-white text-[13px] font-medium h-9 px-4 rounded-lg"
+              className={`flex-1 min-w-[120px] ${FORM_STYLES.btnPrimary}`}
             >
               {loading ? (
                 <span className="flex items-center gap-2">

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { BsPerson, BsGear, BsArrowUp, BsArrowDown, BsArrowsExpand, BsChevronDown } from 'react-icons/bs';
+import { BsPerson, BsGear, BsChevronDown } from 'react-icons/bs';
+import { TABLE_STYLES, useTableSelection, SortIcon, SelectionBanner, CheckboxHeader, CheckboxCell, TableEmptyState } from '@/app/components/ui/table-primitives';
 import { User } from '@/app/components/shared/types';
 import { Role } from '.prisma/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
@@ -14,6 +15,7 @@ interface UserTableProps {
   onStatusUpdate?: (userId: string, newStatus: string, updatedUser: User) => void;
   onManagerUpdate?: (userId: string, newManagerId: string | null, updatedUser: User) => void;
   onDeleteAction?: (userId: string) => void;
+  onBulkDelete?: (ids: string[]) => void;
 }
 
 type SortColumn = 'name' | 'email' | 'role' | 'status' | 'manager';
@@ -25,7 +27,8 @@ export default function UserTable({
   onRoleUpdate,
   onStatusUpdate,
   onManagerUpdate,
-  onDeleteAction
+  onDeleteAction,
+  onBulkDelete
 }: UserTableProps) {
   const [updatingRole, setUpdatingRole] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
@@ -33,6 +36,7 @@ export default function UserTable({
   const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [managerSelectorOpen, setManagerSelectorOpen] = useState<string | null>(null);
+  const { selectedIds, toggleSelect, toggleSelectAll, clearSelection, isAllSelected, isPartialSelected } = useTableSelection(users);
 
   // Get role config for dropdown styling
   const getRoleConfig = (role: string | undefined) => {
@@ -287,96 +291,76 @@ export default function UserTable({
     });
   }, [users, sortColumn, sortDirection]);
 
-  // Get sort icon for a column
-  const getSortIcon = (column: SortColumn) => {
-    if (sortColumn !== column) {
-      return <span className="text-secondary text-xs">⇅</span>;
-    }
-    if (sortDirection === 'asc') {
-      return <span className="text-indigo-500 font-bold text-sm">↑</span>;
-    }
-    if (sortDirection === 'desc') {
-      return <span className="text-indigo-500 font-bold text-sm">↓</span>;
-    }
-    return <span className="text-secondary text-xs">⇅</span>;
-  };
-
   return (
-    <div className="relative flex flex-col flex-1 overflow-hidden min-h-0">
+    <div className="relative flex flex-col flex-1 overflow-hidden min-h-0 gap-2">
+      <SelectionBanner
+        count={selectedIds.size}
+        onBulkDelete={onBulkDelete ? () => onBulkDelete(Array.from(selectedIds)) : undefined}
+        onClear={clearSelection}
+      />
+
       {/* Table Container with Fixed Header */}
       <div className="flex-1 flex flex-col overflow-hidden min-h-0">
         <div className="overflow-x-auto overflow-y-auto flex-1 min-h-0">
           <table className="w-full table-fixed min-w-full">
-            <thead className="sticky top-0 z-20 bg-surface-secondary border-b border-theme">
+            <thead className={TABLE_STYLES.thead}>
               <tr>
+                <CheckboxHeader isAllSelected={isAllSelected} isPartialSelected={isPartialSelected} onToggle={toggleSelectAll} />
                 <th
-                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
-                  style={{ width: '20%' }}
+                  className={TABLE_STYLES.thSortable}
+                  style={{ width: '18%' }}
                   onClick={() => handleSort('name')}
                 >
                   <div className="flex items-center gap-1.5">
                     <span>Name</span>
-                    {getSortIcon('name')}
+                    <SortIcon column="name" sortKey={sortColumn} sortDir={sortDirection} />
                   </div>
                 </th>
                 <th
-                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
+                  className={TABLE_STYLES.thSortable}
                   style={{ width: '25%' }}
                   onClick={() => handleSort('email')}
                 >
                   <div className="flex items-center gap-1.5">
                     <span>Email</span>
-                    {getSortIcon('email')}
+                    <SortIcon column="email" sortKey={sortColumn} sortDir={sortDirection} />
                   </div>
                 </th>
                 <th
-                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
+                  className={TABLE_STYLES.thSortable}
                   style={{ width: '12%' }}
                   onClick={() => handleSort('role')}
                 >
                   <div className="flex items-center gap-1.5">
                     <span>Role</span>
-                    {getSortIcon('role')}
+                    <SortIcon column="role" sortKey={sortColumn} sortDir={sortDirection} />
                   </div>
                 </th>
                 <th
-                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
+                  className={TABLE_STYLES.thSortable}
                   style={{ width: '12%' }}
                   onClick={() => handleSort('status')}
                 >
                   <div className="flex items-center gap-1.5">
                     <span>Status</span>
-                    {getSortIcon('status')}
+                    <SortIcon column="status" sortKey={sortColumn} sortDir={sortDirection} />
                   </div>
                 </th>
                 <th
-                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
+                  className={TABLE_STYLES.thSortable}
                   style={{ width: '18%' }}
                   onClick={() => handleSort('manager')}
                 >
                   <div className="flex items-center gap-1.5">
                     <span>Manager</span>
-                    {getSortIcon('manager')}
+                    <SortIcon column="manager" sortKey={sortColumn} sortDir={sortDirection} />
                   </div>
                 </th>
           </tr>
         </thead>
         <tbody>
           {users.length === 0 ? (
-            <tr>
-              <td colSpan={5} className="py-12 text-center text-secondary">
-                <div className="flex flex-col items-center justify-center py-8">
-                  <div className="relative mb-4">
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full blur-xl"></div>
-                    <div className="relative w-16 h-16 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-full flex items-center justify-center border-2 border-indigo-500/30">
-                      <BsPerson className="w-8 h-8 text-indigo-400" />
-                    </div>
-                  </div>
-                  <p className="text-lg font-medium text-secondary mb-1">No users found</p>
-                  <p className="text-sm text-tertiary">Try adjusting your filters to see more results</p>
-                </div>
-              </td>
-            </tr>
+            <TableEmptyState colSpan={6} icon={<BsPerson className="w-5 h-5 text-secondary" />} title="No users found" subtitle="Try adjusting your filters to see more results" />
           ) : (
             sortedUsers.map((user) => {
               const roleConfig = getRoleConfig(user.role);
@@ -385,8 +369,9 @@ export default function UserTable({
               return (
                 <tr
                   key={user.id}
-                  className="border-b border-theme hover:bg-surface-secondary transition-colors"
+                  className={`border-b border-theme hover:bg-surface-secondary/50 transition-colors ${selectedIds.has(user.id) ? 'bg-indigo-500/5' : ''}`}
                 >
+                  <CheckboxCell checked={selectedIds.has(user.id)} onToggle={() => toggleSelect(user.id)} />
                   <td className="py-2.5 px-3 text-[13px]">
                     <div className="flex items-center gap-2.5">
                       <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${

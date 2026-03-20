@@ -1,27 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { BsX, BsCalendarEvent } from 'react-icons/bs';
+import { BsCalendarEvent } from 'react-icons/bs';
 import { toast } from 'react-toastify';
-import {
-  EVENT_CATEGORIES_FORM,
-  EVENT_STATUS_OPTIONS,
-} from '@/app/components/shared/constants';
+import { EVENT_CATEGORIES_FORM, EVENT_STATUS_OPTIONS } from '@/app/components/shared/constants';
+import { ModalShell, FORM_STYLES, FormField, FormActions } from '@/app/components/ui/form-primitives';
 
 function toDateInput(d: Date | string): string {
   const date = typeof d === 'string' ? new Date(d) : d;
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
 function toTimeInput(d: Date | string): string {
   const date = typeof d === 'string' ? new Date(d) : d;
-  const h = String(date.getHours()).padStart(2, '0');
-  const min = String(date.getMinutes()).padStart(2, '0');
-  return `${h}:${min}`;
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
 interface EventFormModalProps {
@@ -32,13 +24,8 @@ interface EventFormModalProps {
   isLoading?: boolean;
 }
 
-export const EventFormModal = ({
-  isOpen,
-  onClose,
-  onSubmit,
-  initialData,
-  isLoading = false,
-}: EventFormModalProps) => {
+export const EventFormModal = ({ isOpen, onClose, onSubmit, initialData, isLoading = false }: EventFormModalProps) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     eventType: 'TOASTMASTERS',
@@ -46,31 +33,17 @@ export const EventFormModal = ({
     time: '09:00',
     status: 'SCHEDULED',
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (initialData) {
-      const eventType =
-        initialData.eventType && initialData.eventType !== 'OTHER'
-          ? initialData.eventType
-          : 'TOASTMASTERS';
       const date = initialData.startDate ? toDateInput(initialData.startDate) : '';
       const time = initialData.startDate ? toTimeInput(initialData.startDate) : '09:00';
-      setFormData({
-        title: initialData.title || '',
-        eventType,
-        date,
-        time,
-        status: initialData.status || 'SCHEDULED',
-      });
+      const eventType = initialData.eventType || 'TOASTMASTERS';
+      setFormData({ title: initialData.title || '', eventType, date, time, status: initialData.status || 'SCHEDULED' });
     }
   }, [initialData]);
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -81,14 +54,9 @@ export const EventFormModal = ({
     setIsSubmitting(true);
     try {
       const [hours = 9, minutes = 0] = (formData.time || '09:00').split(':').map(Number);
-      const start = formData.date
-        ? new Date(formData.date)
-        : new Date();
+      const start = formData.date ? new Date(formData.date) : new Date();
       start.setHours(hours, minutes, 0, 0);
       const dateMs = start.getTime();
-      const startDate = new Date(dateMs).toISOString();
-      const endDate = new Date(dateMs + 60 * 60 * 1000).toISOString();
-      const registrationDeadline = new Date(dateMs).toISOString();
 
       await onSubmit({
         title: formData.title,
@@ -96,18 +64,12 @@ export const EventFormModal = ({
         eventType: formData.eventType,
         location: undefined,
         capacity: undefined,
-        startDate,
-        endDate,
-        registrationDeadline,
+        startDate: new Date(dateMs).toISOString(),
+        endDate: new Date(dateMs + 60 * 60 * 1000).toISOString(),
+        registrationDeadline: new Date(dateMs).toISOString(),
         status: formData.status,
       });
-      setFormData({
-        title: '',
-        eventType: 'TOASTMASTERS',
-        date: '',
-        time: '09:00',
-        status: 'SCHEDULED',
-      });
+      setFormData({ title: '', eventType: 'TOASTMASTERS', date: '', time: '09:00', status: 'SCHEDULED' });
       onClose();
     } catch (error) {
       toast.error('Failed to save event');
@@ -117,146 +79,40 @@ export const EventFormModal = ({
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-        >
-          <motion.div
-            className="relative w-full max-w-2xl rounded-xl border border-teal-500/30 bg-surface-elevated shadow-2xl shadow-teal-500/10 backdrop-blur-xl overflow-hidden"
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="border-b border-teal-500/20 bg-gradient-to-r from-teal-500/10 via-cyan-500/10 to-teal-500/10 px-6 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-r from-teal-500 to-cyan-600 rounded-lg shadow-lg">
-                    <BsCalendarEvent className="text-xl text-white" />
-                  </div>
-                  <h2 className="text-xl font-bold text-primary">
-                    {initialData ? 'Edit Event' : 'Create New Event'}
-                  </h2>
-                </div>
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={onClose}
-                  className="p-2 hover:bg-surface-secondary rounded-lg transition-colors text-secondary hover:text-primary"
-                >
-                  <BsX className="text-xl" />
-                </motion.button>
-              </div>
-            </div>
+    <ModalShell
+      open={isOpen}
+      onClose={onClose}
+      title={initialData ? 'Edit Event' : 'Create New Event'}
+      icon={<BsCalendarEvent className="w-4 h-4" />}
+      maxWidth="max-w-2xl"
+      footer={<FormActions onCancel={onClose} submitLabel={isLoading || isSubmitting ? 'Saving...' : 'Save Event'} loading={isLoading || isSubmitting} formId="event-form" />}
+    >
+      <form id="event-form" onSubmit={handleSubmit} className="space-y-4">
+        <FormField label="Event Name" required>
+          <input type="text" name="title" value={formData.title} onChange={handleChange} required placeholder="e.g., Toastmasters Conference" className={FORM_STYLES.input} />
+        </FormField>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-              <div>
-                <label className="block text-sm font-medium text-secondary mb-2">
-                  Event Name *
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  required
-                  className="w-full rounded-lg border border-theme bg-surface-secondary px-4 py-2 text-primary placeholder-tertiary hover:border-teal-500/50 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
-                  placeholder="e.g., Toastmasters Conference"
-                />
-              </div>
+        <FormField label="Category" required>
+          <select name="eventType" value={formData.eventType} onChange={handleChange} required className={FORM_STYLES.select}>
+            {EVENT_CATEGORIES_FORM.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+          </select>
+        </FormField>
 
-              <div>
-                <label className="block text-sm font-medium text-secondary mb-2">
-                  Category *
-                </label>
-                <select
-                  name="eventType"
-                  value={formData.eventType}
-                  onChange={handleChange}
-                  required
-                  className="w-full rounded-lg border border-theme bg-surface-secondary px-4 py-2 text-primary hover:border-teal-500/50 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
-                >
-                  {EVENT_CATEGORIES_FORM.map((c) => (
-                    <option key={c.value} value={c.value}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+        <div className="grid grid-cols-2 gap-4">
+          <FormField label="Date" required>
+            <input type="date" name="date" value={formData.date} onChange={handleChange} required className={FORM_STYLES.input} />
+          </FormField>
+          <FormField label="Time" required>
+            <input type="time" name="time" value={formData.time} onChange={handleChange} required className={FORM_STYLES.input} />
+          </FormField>
+        </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-secondary mb-2">
-                    Date *
-                  </label>
-                  <input
-                    type="date"
-                    name="date"
-                    value={formData.date}
-                    onChange={handleChange}
-                    required
-                    className="w-full rounded-lg border border-theme bg-surface-secondary px-4 py-2 text-primary hover:border-teal-500/50 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-secondary mb-2">
-                    Time *
-                  </label>
-                  <input
-                    type="time"
-                    name="time"
-                    value={formData.time}
-                    onChange={handleChange}
-                    required
-                    className="w-full rounded-lg border border-theme bg-surface-secondary px-4 py-2 text-primary hover:border-teal-500/50 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-secondary mb-2">
-                  Status *
-                </label>
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  required
-                  className="w-full rounded-lg border border-theme bg-surface-secondary px-4 py-2 text-primary hover:border-teal-500/50 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
-                >
-                  {EVENT_STATUS_OPTIONS.map((s) => (
-                    <option key={s.value} value={s.value}>
-                      {s.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex gap-3 pt-4 border-t border-theme">
-                <button
-                  type="submit"
-                  disabled={isLoading || isSubmitting}
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[13px] font-medium h-9 px-4 rounded-lg disabled:opacity-50 transition-colors"
-                >
-                  {isLoading || isSubmitting ? 'Saving...' : 'Save Event'}
-                </button>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary text-[13px] font-medium h-9 px-4 rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        <FormField label="Status" required>
+          <select name="status" value={formData.status} onChange={handleChange} required className={FORM_STYLES.select}>
+            {EVENT_STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+          </select>
+        </FormField>
+      </form>
+    </ModalShell>
   );
 };

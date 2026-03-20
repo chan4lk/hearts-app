@@ -1,8 +1,7 @@
 'use client';
 
-import { Button } from '@/app/components/ui/button';
 import { BsExclamationTriangle } from 'react-icons/bs';
-import { motion, AnimatePresence } from 'framer-motion';
+import { ModalShell, FORM_STYLES } from '@/app/components/ui/form-primitives';
 
 interface DeleteConfirmationModalProps {
   isOpen: boolean;
@@ -23,69 +22,21 @@ export function DeleteConfirmationModal({
   confirmText = 'Delete',
   cancelText = 'Cancel'
 }: DeleteConfirmationModalProps) {
-  if (!isOpen) return null;
-
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 modal-overlay"
-            onClick={onClose}
-          />
-          
-          {/* Modal */}
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            className="relative z-10 modal-content border border-rose-500/20 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl"
-          >
-            <div className="flex items-start gap-4">
-              {/* Icon */}
-              <div className="bg-gradient-to-br from-rose-500/20 to-rose-600/20 p-3 rounded-xl border border-rose-500/30">
-                <BsExclamationTriangle className="w-6 h-6 text-rose-400" />
-              </div>
-              
-              {/* Content */}
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-primary mb-2">
-                  {title}
-                </h3>
-                <p className="text-secondary text-sm leading-relaxed">
-                  {message}
-                </p>
-                
-                {/* Buttons */}
-                <div className="flex justify-end gap-3 mt-6">
-                  <Button
-                    variant="outline"
-                    onClick={onClose}
-                    className="bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary text-[13px] font-medium h-9 px-4 rounded-lg"
-                  >
-                    {cancelText}
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      onConfirm();
-                      onClose();
-                    }}
-                    className="bg-red-600 hover:bg-red-700 text-white text-[13px] font-medium h-9 px-4 rounded-lg"
-                  >
-                    {confirmText}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+    <ModalShell
+      open={isOpen}
+      onClose={onClose}
+      title={title}
+      icon={<BsExclamationTriangle className="w-4 h-4" />}
+      maxWidth="max-w-md"
+      footer={
+        <>
+          <button type="button" onClick={onClose} className={FORM_STYLES.btnSecondary}>{cancelText}</button>
+          <button type="button" onClick={() => { onConfirm(); onClose(); }} className={FORM_STYLES.btnDanger}>{confirmText}</button>
+        </>
+      }
+    >
+      <p className="text-secondary text-[13px] leading-relaxed">{message}</p>
+    </ModalShell>
   );
 }
-

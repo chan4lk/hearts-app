@@ -2,26 +2,9 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Goal } from '@/app/components/shared/types';
-import { 
-  BsSquare, 
-  BsCheckSquare, 
-  BsTrash, 
-  BsFlag,
-  BsCheckCircle,
-  BsXCircle,
-  BsClock,
-  BsGear,
-  BsPlayCircle,
-  BsCircle,
-  BsPauseCircle,
-  BsBullseye,
-  BsInbox,
-  BsArrowUp,
-  BsArrowDown,
-  BsArrowsExpand
-} from 'react-icons/bs';
+import { BsTrash, BsFlag, BsCheckCircle, BsXCircle, BsClock, BsGear, BsPlayCircle, BsCircle, BsPauseCircle, BsBullseye } from 'react-icons/bs';
 import { Badge } from '@/app/components/ui/badge';
-import { motion, AnimatePresence } from 'framer-motion';
+import { TABLE_STYLES, useTableSelection, SortIcon, SelectionBanner, CheckboxHeader, CheckboxCell, TableEmptyState } from '@/app/components/ui/table-primitives';
 
 type SortColumn = 'title' | 'status' | 'priority' | 'dueDate' | 'employee' | 'manager' | 'category';
 type SortDirection = 'asc' | 'desc' | null;
@@ -47,62 +30,9 @@ export default function AdminGoalsTable({
   showEmployee = true,
   showManager = true
 }: AdminGoalsTableProps) {
-  const [selectedGoalIds, setSelectedGoalIds] = useState<Set<string>>(new Set());
-  const [selectAll, setSelectAll] = useState(false);
+  const { selectedIds: selectedGoalIds, toggleSelect, toggleSelectAll, clearSelection, isAllSelected, isPartialSelected } = useTableSelection(goals);
   const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
-
-  useEffect(() => {
-    // Update selectAll state when goals change
-    if (goals.length === 0) {
-      setSelectAll(false);
-    } else {
-      setSelectAll(selectedGoalIds.size === goals.length && goals.length > 0);
-    }
-  }, [selectedGoalIds, goals]);
-
-  const handleGoalSelect = (goalId: string, selected: boolean) => {
-    setSelectedGoalIds(prev => {
-      const newSet = new Set(prev);
-      if (selected) {
-        newSet.add(goalId);
-      } else {
-        newSet.delete(goalId);
-      }
-      return newSet;
-    });
-  };
-
-  const handleSelectAll = (selected: boolean) => {
-    if (selected) {
-      // Select all goals (we'll filter by sorted goals in the display)
-      setSelectedGoalIds(new Set(goals.map(g => g.id)));
-      setSelectAll(true);
-    } else {
-      setSelectedGoalIds(new Set());
-      setSelectAll(false);
-    }
-  };
-
-  const handleBulkDelete = () => {
-    if (onBulkDelete && selectedGoalIds.size > 0) {
-      onBulkDelete(Array.from(selectedGoalIds));
-      // Don't clear selection here - parent will handle after confirmation
-    }
-  };
-
-  // Clear selection when goals change externally (e.g., after deletion)
-  useEffect(() => {
-    // Clear selection if selected goals no longer exist
-    if (selectedGoalIds.size > 0) {
-      const existingGoalIds = new Set(goals.map(g => g.id));
-      const filteredSelection = Array.from(selectedGoalIds).filter(id => existingGoalIds.has(id));
-      if (filteredSelection.length !== selectedGoalIds.size) {
-        setSelectedGoalIds(new Set(filteredSelection));
-        setSelectAll(false);
-      }
-    }
-  }, [goals]);
 
   // Get status badge with colorful styling
   const getStatusBadge = (status: string) => {
@@ -218,158 +148,100 @@ export default function AdminGoalsTable({
     });
   }, [goals, sortColumn, sortDirection]);
 
-  // Get sort icon for a column
-  const getSortIcon = (column: SortColumn) => {
-    if (sortColumn !== column) {
-      return <span className="text-secondary text-xs">⇅</span>;
-    }
-    if (sortDirection === 'asc') {
-      return <span className="text-indigo-500 font-bold text-sm">↑</span>;
-    }
-    if (sortDirection === 'desc') {
-      return <span className="text-indigo-500 font-bold text-sm">↓</span>;
-    }
-    return <span className="text-secondary text-xs">⇅</span>;
-  };
-
   return (
-    <div className="relative flex flex-col flex-1 overflow-hidden min-h-0">
-      {/* Bulk Delete Button */}
-      <AnimatePresence>
-        {selectedGoalIds.size > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="mb-3 flex items-center justify-between p-2 bg-rose-500/10 border border-rose-500/30 rounded-lg flex-shrink-0"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-primary font-medium">
-                {selectedGoalIds.size} goal{selectedGoalIds.size !== 1 ? 's' : ''} selected
-              </span>
-            </div>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleBulkDelete}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg transition-colors text-xs font-medium"
-            >
-              <BsTrash className="w-3 h-3" />
-              Delete Selected
-            </motion.button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <div className="relative flex flex-col flex-1 overflow-hidden min-h-0 gap-2">
+      <SelectionBanner
+        count={selectedGoalIds.size}
+        onBulkDelete={onBulkDelete ? () => onBulkDelete(Array.from(selectedGoalIds)) : undefined}
+        onClear={clearSelection}
+      />
 
-      {/* Custom Table with Checkboxes */}
       <div className="flex-1 flex flex-col overflow-hidden min-h-0">
         <div className="overflow-x-auto overflow-y-auto flex-1 min-h-0">
           <table className="w-full table-fixed min-w-full">
-            <thead className="sticky top-0 z-20 bg-surface-secondary border-b border-theme">
+            <thead className={TABLE_STYLES.thead}>
               <tr>
-                <th className="text-left py-2.5 px-3 w-12" style={{ width: '3%' }}>
-                  <button
-                    onClick={() => handleSelectAll(!selectAll)}
-                    className="p-1 hover:bg-surface-tertiary rounded transition-colors"
-                  >
-                    {selectAll ? (
-                      <BsCheckSquare className="w-4 h-4 text-indigo-600" />
-                    ) : (
-                      <BsSquare className="w-4 h-4 text-secondary" />
-                    )}
-                  </button>
-                </th>
+                <CheckboxHeader isAllSelected={isAllSelected} isPartialSelected={isPartialSelected} onToggle={toggleSelectAll} />
                 <th
-                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
+                  className={TABLE_STYLES.thSortable}
                   style={{ width: '18%' }}
                   onClick={() => handleSort('title')}
                 >
                   <div className="flex items-center gap-1.5">
                     <span>Title</span>
-                    {getSortIcon('title')}
+                    <SortIcon column="title" sortKey={sortColumn} sortDir={sortDirection} />
                   </div>
                 </th>
                 <th
-                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
+                  className={TABLE_STYLES.thSortable}
                   style={{ width: '10%' }}
                   onClick={() => handleSort('status')}
                 >
                   <div className="flex items-center gap-1.5">
                     <span>Status</span>
-                    {getSortIcon('status')}
+                    <SortIcon column="status" sortKey={sortColumn} sortDir={sortDirection} />
                   </div>
                 </th>
                 <th
-                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
+                  className={TABLE_STYLES.thSortable}
                   style={{ width: '8%' }}
                   onClick={() => handleSort('priority')}
                 >
                   <div className="flex items-center gap-1.5">
                     <span>Priority</span>
-                    {getSortIcon('priority')}
+                    <SortIcon column="priority" sortKey={sortColumn} sortDir={sortDirection} />
                   </div>
                 </th>
                 <th
-                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
+                  className={TABLE_STYLES.thSortable}
                   style={{ width: '9%' }}
                   onClick={() => handleSort('dueDate')}
                 >
                   <div className="flex items-center gap-1.5">
                     <span>Due Date</span>
-                    {getSortIcon('dueDate')}
+                    <SortIcon column="dueDate" sortKey={sortColumn} sortDir={sortDirection} />
                   </div>
                 </th>
                 {showEmployee && (
                   <th
-                    className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
+                    className={TABLE_STYLES.thSortable}
                     style={{ width: '12%' }}
                     onClick={() => handleSort('employee')}
                   >
                     <div className="flex items-center gap-1.5">
                       <span>Employee</span>
-                      {getSortIcon('employee')}
+                      <SortIcon column="employee" sortKey={sortColumn} sortDir={sortDirection} />
                     </div>
                   </th>
                 )}
                 {showManager && (
                   <th
-                    className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
+                    className={TABLE_STYLES.thSortable}
                     style={{ width: '12%' }}
                     onClick={() => handleSort('manager')}
                   >
                     <div className="flex items-center gap-1.5">
                       <span>Manager</span>
-                      {getSortIcon('manager')}
+                      <SortIcon column="manager" sortKey={sortColumn} sortDir={sortDirection} />
                     </div>
                   </th>
                 )}
                 <th
-                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
+                  className={TABLE_STYLES.thSortable}
                   style={{ width: '10%' }}
                   onClick={() => handleSort('category')}
                 >
                   <div className="flex items-center gap-1.5">
                     <span>Category</span>
-                    {getSortIcon('category')}
+                    <SortIcon column="category" sortKey={sortColumn} sortDir={sortDirection} />
                   </div>
                 </th>
-                <th className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider whitespace-nowrap" style={{ width: '7%' }}>Actions</th>
+                <th className={TABLE_STYLES.th} style={{ width: '7%' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {goals.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={7 + (showEmployee ? 1 : 0) + (showManager ? 1 : 0)}
-                    className="py-12 text-center"
-                  >
-                    <div className="flex flex-col items-center justify-center">
-                      <BsBullseye className="w-10 h-10 text-secondary mb-2" />
-                      <p className="text-xs font-medium text-primary mb-1">No goals found</p>
-                      <p className="text-[10px] text-secondary">Try adjusting your filters to see more results</p>
-                    </div>
-                  </td>
-                </tr>
+                <TableEmptyState colSpan={7 + (showEmployee ? 1 : 0) + (showManager ? 1 : 0)} icon={<BsBullseye className="w-5 h-5 text-secondary" />} title="No goals found" subtitle="Try adjusting your filters to see more results" />
               ) : (
                 sortedGoals.map((goal) => {
                   const isSelected = selectedGoalIds.has(goal.id);
@@ -380,21 +252,7 @@ export default function AdminGoalsTable({
                         isSelected ? 'bg-indigo-500/5 border-l-4 border-l-indigo-500' : ''
                       }`}
                     >
-                      <td className="py-2 px-3">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleGoalSelect(goal.id, !isSelected);
-                          }}
-                          className="p-1 hover:bg-surface-secondary rounded transition-colors"
-                        >
-                          {isSelected ? (
-                            <BsCheckSquare className="w-3 h-3 text-indigo-600" />
-                          ) : (
-                            <BsSquare className="w-3 h-3 text-secondary" />
-                          )}
-                        </button>
-                      </td>
+                      <CheckboxCell checked={isSelected} onToggle={() => toggleSelect(goal.id)} />
                       <td
                         className="py-2 px-3 cursor-pointer"
                         onClick={() => onGoalClick?.(goal)}

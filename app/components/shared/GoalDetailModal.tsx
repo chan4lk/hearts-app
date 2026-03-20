@@ -3,6 +3,7 @@ import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, B
 import { Goal, GoalWithRatingExtended } from '@/app/components/shared/types';
 import { IconType } from 'react-icons';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FORM_STYLES } from '@/app/components/ui/form-primitives';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
@@ -614,7 +615,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
             ) && (
               <Button
                 onClick={handleEdit}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white text-[13px] font-medium h-9 px-4 rounded-lg"
+                className={FORM_STYLES.btnPrimary}
               >
                 <BsPencil className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5" />
                 <span>Edit</span>
@@ -630,7 +631,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
             ) && (
               <Button
                 onClick={handleDelete}
-                className="bg-red-600 hover:bg-red-700 text-white text-[13px] font-medium h-9 px-4 rounded-lg"
+                className={FORM_STYLES.btnDanger}
               >
                 <BsTrash className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5" />
                 <span>Delete</span>
@@ -646,7 +647,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                 <Button
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-[13px] font-medium h-9 px-4 rounded-lg"
+                  className={FORM_STYLES.btnPrimary}
                 >
                   {isSubmitting ? (
                     <>
