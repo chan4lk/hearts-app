@@ -236,15 +236,29 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
 
       {/* Header */}
       <header className="fixed top-0 right-0 left-0 h-14 bg-surface-header/80 backdrop-blur-xl border-b border-theme md:pl-60 z-20">
-        <div className="flex items-center justify-between h-full px-4">
-          {/* Left */}
+        <div className="flex items-center justify-between h-full px-4 sm:px-6">
+          {/* Left — page title */}
           <div className="flex items-center gap-3">
             <button onClick={() => setIsMobileMenuOpen(true)} className="text-secondary hover:text-primary md:hidden" aria-label="Open menu">
               <BsList className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2 md:hidden">
               <Image src="/logo.png" alt="Logo" width={80} height={28} className="h-7 w-auto object-contain" />
-              <span className="text-sm font-semibold text-primary">AspireHub</span>
+            </div>
+            {/* Page title from current nav item */}
+            <div className="hidden md:flex items-center gap-2">
+              {(() => {
+                const activeItem = navItems.find(item => isPathActive(item.href));
+                const ActiveIcon = activeItem?.icon;
+                return activeItem ? (
+                  <>
+                    {ActiveIcon && <ActiveIcon className="w-4 h-4 text-secondary" />}
+                    <h1 className="text-[15px] font-semibold text-primary">{activeItem.label}</h1>
+                  </>
+                ) : (
+                  <h1 className="text-[15px] font-semibold text-primary">{portalLabel} Dashboard</h1>
+                );
+              })()}
             </div>
           </div>
 

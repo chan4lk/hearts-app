@@ -10,10 +10,10 @@ import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmat
 import { Pagination } from '@/app/components/shared/Pagination';
 import { Goal, User as UserType } from '@/app/components/shared/types';
 import { motion } from 'framer-motion';
-import HeroSection from '@/app/components/shared/HeroSection';
+
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 import Filters from '@/app/components/shared/Filters';
-import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
+
 import { BsClipboardData, BsPencil, BsCheckCircle, BsXCircle } from 'react-icons/bs';
 import { PageContainer } from '@/app/components/shared/PageContainer';
 
@@ -245,15 +245,6 @@ function AllGoalsPageContent() {
         <div className="absolute inset-0 pointer-events-none bg-grid" />
         
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
-          {/* Hero Section - Fixed */}
-          <div className="flex-shrink-0 mb-3 relative z-10">
-            <HeroSection 
-              title="All Goals"
-              subtitle="View and manage all goals across the organization"
-              gradient={HERO_GRADIENTS.ADMIN}
-            />
-          </div>
-
           {/* Stats Section - Fixed */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}

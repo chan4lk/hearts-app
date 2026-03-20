@@ -13,10 +13,10 @@ import {
   BsEye,
   BsEyeSlash
 } from 'react-icons/bs';
-import HeroSection from '@/app/components/shared/HeroSection';
+
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 import Filters from '@/app/components/shared/Filters';
-import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
+
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -310,18 +310,7 @@ export default function AdminDashboard() {
 
   return (
     <DashboardLayout type="admin">
-      <div className="min-h-screen bg-surface-primary">
-        {/* Subtle Background Pattern */}
-        <div className="fixed inset-0 pointer-events-none bg-grid" />
-        
-        <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
-          {/* Hero Section */}
-          <HeroSection 
-            userName={session?.user?.name || 'Admin'}
-            subtitle="Manage your organization's goals and users"
-            gradient={HERO_GRADIENTS.ADMIN}
-          />
-
+      <div className="max-w-7xl mx-auto space-y-5">
           {/* Stats Section */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -629,7 +618,6 @@ export default function AdminDashboard() {
               )}
             </AnimatePresence>
           </motion.div>
-        </div>
       </div>
 
       {/* Goal Detail Modal */}

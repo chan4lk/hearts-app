@@ -6,10 +6,10 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import { GoalWithRatingExtended, EmployeeStats } from "@/app/components/shared/types";
-import HeroSection from "@/app/components/shared/HeroSection";
+
 import StatsSection, { StatItem } from "@/app/components/shared/StatsSection";
 import Filters from "@/app/components/shared/Filters";
-import { HERO_GRADIENTS } from "@/app/components/shared/filterConfig";
+
 import { BsClipboardData, BsCheckCircle, BsPercent, BsStarFill as BsStarIcon } from 'react-icons/bs';
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
@@ -413,21 +413,7 @@ export default function RateEmployeesPage() {
 
   return (
     <DashboardLayout type="manager">
-      <div className="min-h-screen bg-surface-primary">
-        {/* Floating Background Elements */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
-        </div>
-
-        <div className="relative z-10 p-4 space-y-4">
-          <HeroSection 
-            title="Rate Employees"
-            subtitle="Provide performance ratings for employee goals"
-            gradient={HERO_GRADIENTS.MANAGER}
-          />
-
+      <div className="max-w-7xl mx-auto space-y-5">
           <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-4 border border-white/20 dark:border-gray-700/50 space-y-4">
             {(() => {
               const ratedCount = goals.filter(g => g.rating?.managerScore || g.rating?.score).length;
@@ -573,7 +559,6 @@ export default function RateEmployeesPage() {
               onClose={() => setSelectedGoal(null)}
             />
           )}
-        </div>
       </div>
     </DashboardLayout>
   );

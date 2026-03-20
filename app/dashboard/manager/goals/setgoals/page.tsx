@@ -12,11 +12,11 @@ import { Button } from '@/app/components/ui/button';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 
 // Components
-import HeroSection from '@/app/components/shared/HeroSection';
+
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 import { GoalList } from './components/sections/GoalList';
 import Filters from '@/app/components/shared/Filters';
-import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
+
 import { CreateGoalModal } from './components/modals/CreateGoalModal';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
@@ -430,14 +430,7 @@ function ManagerGoalSettingPageContent() {
   }
   return (
     <DashboardLayout type="manager">
-      <div className={`min-h-screen bg-gradient-to-br ${THEME_COLORS.background.gradient}`}>
-
-      <div className="relative z-10 p-4 space-y-4">
-        <HeroSection
-          onCreateClick={() => setIsCreateModalOpen(true)}
-          onBulkCreateClick={() => setIsBulkCreateModalOpen(true)}
-        />
-
+      <div className="max-w-7xl mx-auto space-y-5">
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-4 border border-white/20 dark:border-gray-700/50 space-y-4">
           {(() => {
             const statItems: StatItem[] = [
@@ -655,7 +648,6 @@ function ManagerGoalSettingPageContent() {
           cancelText="Cancel"
         />
       </div>
-    </div>
     </DashboardLayout>
   );
 }

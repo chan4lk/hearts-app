@@ -7,11 +7,11 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { PageContainer } from '@/app/components/shared/PageContainer';
 import { BsPlus, BsArrowUpRight, BsStars } from 'react-icons/bs';
 import GoalTemplates from '@/app/components/shared/GoalTemplates';
-import HeroSection from '@/app/components/shared/HeroSection';
+
 import { GoalsList } from './components/GoalsList';
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 import Filters from '@/app/components/shared/Filters';
-import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
+
 import { BsClipboardData, BsCheckCircle, BsPencil, BsXCircle } from 'react-icons/bs';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
@@ -304,23 +304,9 @@ function GoalsPageContent() {
     setPage(1);
   };
 
-  // Calculate completed goals for HeroSection
-  const completedGoals = goals.filter(g => g.status === 'APPROVED').length;
-
   return (
     <DashboardLayout type="employee">
-      <div className="min-h-screen bg-surface-primary">
-        {/* Subtle Background Pattern */}
-        <div className="fixed inset-0 pointer-events-none bg-grid" />
-        
-        <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
-          {/* Hero Section */}
-          <HeroSection
-            title="Create Goals"
-            subtitle="Set and track your personal goals"
-            gradient={HERO_GRADIENTS.EMPLOYEE}
-          />
-
+      <div className="max-w-7xl mx-auto space-y-5">
           {/* Stats Section */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -525,7 +511,6 @@ function GoalsPageContent() {
               }}
             />
           </motion.div>
-        </div>
       </div>
 
       {/* Modals */}

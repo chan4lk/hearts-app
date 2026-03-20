@@ -1,7 +1,6 @@
 'use client';
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/app/components/ui/button';
 
 interface PaginationProps {
   page: number;
@@ -26,160 +25,86 @@ export function Pagination({
   hasPrev,
   onPageChange,
   onLimitChange,
-  limitOptions = [10, 20, 50, 100],
+  limitOptions = [20, 50, 100],
   showLimitSelector = true,
   className = ''
 }: PaginationProps) {
-  const start = total === 0 ? 0 : (page - 1) * limit + 1;
+  // Only show pagination when there are more items than the limit
+  if (total <= limit && page === 1) return null;
+  if (total === 0) return null;
+
+  const start = (page - 1) * limit + 1;
   const end = Math.min(page * limit, total);
 
-  const handlePrevious = () => {
-    if (hasPrev) {
-      onPageChange(page - 1);
-    }
-  };
-
-  const handleNext = () => {
-    if (hasNext) {
-      onPageChange(page + 1);
-    }
-  };
-
-  const handlePageClick = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      onPageChange(newPage);
-    }
-  };
-
-  // Generate page numbers to show
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
-    const maxVisible = 7;
-
-    if (totalPages <= maxVisible) {
-      // Show all pages if total is small
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
-      // Always show first page
       pages.push(1);
-
-      if (page > 3) {
-        pages.push('...');
-      }
-
-      // Show pages around current page
-      const startPage = Math.max(2, page - 1);
-      const endPage = Math.min(totalPages - 1, page + 1);
-
-      for (let i = startPage; i <= endPage; i++) {
-        pages.push(i);
-      }
-
-      if (page < totalPages - 2) {
-        pages.push('...');
-      }
-
-      // Always show last page
+      if (page > 3) pages.push('...');
+      for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) pages.push(i);
+      if (page < totalPages - 2) pages.push('...');
       pages.push(totalPages);
     }
-
     return pages;
   };
 
-  if (total === 0) {
-    return null;
-  }
-
   return (
-    <div className={`flex flex-col sm:flex-row items-center justify-between gap-4 ${className}`}>
-      {/* Results info */}
-      <div className="text-sm text-secondary">
-        Showing <span className="font-medium text-primary">{start}</span> to{' '}
-        <span className="font-medium text-primary">{end}</span> of{' '}
-        <span className="font-medium text-primary">{total}</span> results
+    <div className={`flex flex-col sm:flex-row items-center justify-between gap-3 ${className}`}>
+      <div className="text-[13px] text-secondary">
+        <span className="font-medium text-primary">{start}-{end}</span> of <span className="font-medium text-primary">{total}</span>
       </div>
 
-      {/* Pagination controls */}
-      <div className="flex items-center gap-2">
-        {/* Limit selector */}
+      <div className="flex items-center gap-1.5">
         {showLimitSelector && onLimitChange && (
-          <div className="flex items-center gap-2 mr-4">
-            <label className="text-sm text-gray-400">Show:</label>
-            <select
-              value={limit}
-              onChange={(e) => onLimitChange(parseInt(e.target.value))}
-              className="px-2 py-1 bg-gray-800 border border-gray-700 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {limitOptions.map((opt) => (
-                <option key={opt} value={opt} className="bg-gray-800">
-                  {opt}
-                </option>
-              ))}
-            </select>
-          </div>
+          <select
+            value={limit}
+            onChange={(e) => onLimitChange(parseInt(e.target.value))}
+            className="h-8 px-2 text-[12px] bg-surface-secondary border border-theme rounded-lg text-primary cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500 mr-2"
+          >
+            {limitOptions.map((opt) => (
+              <option key={opt} value={opt}>{opt} / page</option>
+            ))}
+          </select>
         )}
 
-        {/* Previous button */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handlePrevious}
+        <button
+          onClick={() => hasPrev && onPageChange(page - 1)}
           disabled={!hasPrev}
-          className="bg-gray-800 border-gray-700 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="h-8 w-8 flex items-center justify-center rounded-lg border border-theme text-secondary hover:text-primary hover:bg-surface-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           <ChevronLeft className="h-4 w-4" />
-          <span className="hidden sm:inline ml-1">Previous</span>
-        </Button>
+        </button>
 
-        {/* Page numbers */}
-        <div className="flex items-center gap-1">
-          {getPageNumbers().map((pageNum, index) => {
-            if (pageNum === '...') {
-              return (
-                <span
-                  key={`ellipsis-${index}`}
-                  className="px-3 py-1 text-gray-400"
-                >
-                  ...
-                </span>
-              );
-            }
+        {getPageNumbers().map((pageNum, index) => {
+          if (pageNum === '...') {
+            return <span key={`e-${index}`} className="px-1.5 text-tertiary text-[12px]">...</span>;
+          }
+          const n = pageNum as number;
+          return (
+            <button
+              key={n}
+              onClick={() => onPageChange(n)}
+              className={`h-8 min-w-[2rem] px-2 text-[12px] font-medium rounded-lg transition-colors cursor-pointer ${
+                n === page
+                  ? 'bg-indigo-600 text-white'
+                  : 'border border-theme text-secondary hover:text-primary hover:bg-surface-secondary'
+              }`}
+            >
+              {n}
+            </button>
+          );
+        })}
 
-            const pageNumber = pageNum as number;
-            const isActive = pageNumber === page;
-
-            return (
-              <button
-                key={pageNumber}
-                onClick={() => handlePageClick(pageNumber)}
-                className={`px-3 py-1 min-w-[2.5rem] text-sm rounded transition-colors ${
-                  isActive
-                    ? 'bg-blue-600 text-white font-medium'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
-                }`}
-              >
-                {pageNumber}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Next button */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleNext}
+        <button
+          onClick={() => hasNext && onPageChange(page + 1)}
           disabled={!hasNext}
-          className="bg-gray-800 border-gray-700 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="h-8 w-8 flex items-center justify-center rounded-lg border border-theme text-secondary hover:text-primary hover:bg-surface-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
-          <span className="hidden sm:inline mr-1">Next</span>
           <ChevronRight className="h-4 w-4" />
-        </Button>
+        </button>
       </div>
     </div>
   );
 }
-
-

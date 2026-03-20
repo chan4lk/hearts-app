@@ -136,12 +136,12 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
       REJECTED: { bgColor: 'bg-rose-500/20', textColor: 'text-rose-400', icon: BsXCircle, label: 'Rejected' },
       COMPLETED: { bgColor: 'bg-green-500/20', textColor: 'text-green-400', icon: BsCheckCircle, label: 'Completed' },
       IN_PROGRESS: { bgColor: 'bg-blue-500/20', textColor: 'text-blue-400', icon: BsPlayCircle, label: 'In Progress' },
-      NOT_STARTED: { bgColor: 'bg-gray-500/20', textColor: 'text-gray-400', icon: BsCircle, label: 'Not Started' },
+      NOT_STARTED: { bgColor: 'bg-slate-500/20', textColor: 'text-slate-400', icon: BsCircle, label: 'Not Started' },
       ON_HOLD: { bgColor: 'bg-amber-500/20', textColor: 'text-amber-400', icon: BsPauseCircle, label: 'On Hold' },
       BLOCKED: { bgColor: 'bg-red-500/20', textColor: 'text-red-400', icon: BsFlag, label: 'Blocked' },
       MODIFIED: { bgColor: 'bg-amber-500/20', textColor: 'text-amber-400', icon: BsClock, label: 'Modified' },
       PENDING: { bgColor: 'bg-amber-500/20', textColor: 'text-amber-400', icon: BsClock, label: 'Pending' },
-      DRAFT: { bgColor: 'bg-gray-500/20', textColor: 'text-gray-400', icon: BsGear, label: 'Draft' }
+      DRAFT: { bgColor: 'bg-slate-500/20', textColor: 'text-slate-400', icon: BsGear, label: 'Draft' }
     };
     return configs[status] || configs.PENDING;
   };
@@ -614,7 +614,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
             ) && (
               <Button
                 onClick={handleEdit}
-                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 h-9 sm:h-10 touch-manipulation"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white text-[13px] font-medium h-9 px-4 rounded-lg"
               >
                 <BsPencil className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5" />
                 <span>Edit</span>
@@ -630,7 +630,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
             ) && (
               <Button
                 onClick={handleDelete}
-                className="bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 h-9 sm:h-10 touch-manipulation"
+                className="bg-red-600 hover:bg-red-700 text-white text-[13px] font-medium h-9 px-4 rounded-lg"
               >
                 <BsTrash className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5" />
                 <span>Delete</span>
@@ -646,7 +646,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                 <Button
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 h-9 sm:h-10 touch-manipulation"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-[13px] font-medium h-9 px-4 rounded-lg"
                 >
                   {isSubmitting ? (
                     <>
@@ -664,7 +664,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
             <Button
               variant="ghost"
               onClick={handleClose}
-              className="text-secondary hover:text-primary hover:bg-white/10 text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 h-9 sm:h-10 touch-manipulation"
+              className="bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary text-[13px] font-medium h-9 px-4 rounded-lg"
             >
               Close
             </Button>

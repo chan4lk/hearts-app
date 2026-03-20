@@ -110,14 +110,14 @@ export const FeedbackModal = ({
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-600 py-2 font-semibold text-white hover:from-teal-600 hover:to-cyan-700 disabled:opacity-50 transition"
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[13px] font-medium h-9 px-4 rounded-lg disabled:opacity-50 transition-colors"
                 >
                   {isLoading ? 'Saving...' : 'Save Feedback'}
                 </button>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 rounded-lg border border-theme py-2 font-semibold text-primary hover:bg-surface-secondary transition"
+                  className="flex-1 bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary text-[13px] font-medium h-9 px-4 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>

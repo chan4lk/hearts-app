@@ -65,7 +65,7 @@ export function DeleteConfirmationModal({
                   <Button
                     variant="outline"
                     onClick={onClose}
-                    className="bg-transparent border-theme hover:bg-surface-secondary text-secondary hover:text-primary transition-all"
+                    className="bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary text-[13px] font-medium h-9 px-4 rounded-lg"
                   >
                     {cancelText}
                   </Button>
@@ -75,7 +75,7 @@ export function DeleteConfirmationModal({
                       onConfirm();
                       onClose();
                     }}
-                    className="bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white shadow-lg shadow-rose-500/20 transition-all"
+                    className="bg-red-600 hover:bg-red-700 text-white text-[13px] font-medium h-9 px-4 rounded-lg"
                   >
                     {confirmText}
                   </Button>

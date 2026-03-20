@@ -92,7 +92,7 @@ export function GoalFormModal({
                   value={formData.category}
                   onValueChange={(v) => onFormDataChange('category', v)}
                 >
-                  <SelectTrigger className="bg-black/20 border-theme text-primary text-xs h-9 rounded-lg">
+                  <SelectTrigger className="bg-surface-secondary border border-theme text-primary text-xs h-9 rounded-lg">
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
                   <SelectContent className={selectContentClass}>
@@ -114,7 +114,7 @@ export function GoalFormModal({
                   value={formData.department}
                   onValueChange={(v) => onFormDataChange('department', v)}
                 >
-                  <SelectTrigger className="bg-black/20 border-theme text-primary text-xs h-9 rounded-lg">
+                  <SelectTrigger className="bg-surface-secondary border border-theme text-primary text-xs h-9 rounded-lg">
                     <SelectValue placeholder="Department" />
                   </SelectTrigger>
                   <SelectContent className={selectContentClass}>
@@ -138,7 +138,7 @@ export function GoalFormModal({
                   value={formData.priority}
                   onValueChange={(v) => onFormDataChange('priority', v)}
                 >
-                  <SelectTrigger className="bg-black/20 border-theme text-primary text-xs h-9 rounded-lg">
+                  <SelectTrigger className="bg-surface-secondary border border-theme text-primary text-xs h-9 rounded-lg">
                     <SelectValue placeholder="Priority" />
                   </SelectTrigger>
                   <SelectContent className={selectContentClass}>
@@ -160,7 +160,7 @@ export function GoalFormModal({
                   value={formData.employeeId}
                   onValueChange={(v) => onFormDataChange('employeeId', v)}
                 >
-                  <SelectTrigger className="bg-black/20 border-theme text-primary text-xs h-9 rounded-lg">
+                  <SelectTrigger className="bg-surface-secondary border border-theme text-primary text-xs h-9 rounded-lg">
                     <SelectValue placeholder="Select employee" />
                   </SelectTrigger>
                   <SelectContent className={selectContentClass}>
@@ -185,7 +185,7 @@ export function GoalFormModal({
                   type="date"
                   value={formData.dueDate}
                   onChange={(e) => onFormDataChange('dueDate', e.target.value)}
-                  className="bg-black/20 border-theme text-primary text-xs h-9 rounded-lg pl-9"
+                  className="bg-surface-secondary border border-theme text-primary text-xs h-9 rounded-lg pl-9"
                 />
               </div>
             </div>
@@ -199,7 +199,7 @@ export function GoalFormModal({
                 value={formData.title}
                 onChange={(e) => onFormDataChange('title', e.target.value)}
                 placeholder="Enter goal title"
-                className="bg-black/20 border-theme text-primary text-xs h-9 rounded-lg"
+                className="bg-surface-secondary border border-theme text-primary text-xs h-9 rounded-lg"
               />
               {errors.title && <p className="text-red-400 text-[10px] mt-0.5">{errors.title}</p>}
             </div>
@@ -209,7 +209,7 @@ export function GoalFormModal({
                 value={formData.description}
                 onChange={(e) => onFormDataChange('description', e.target.value)}
                 placeholder="Describe the goal details..."
-                className="bg-black/20 border-theme text-white text-xs min-h-[80px] rounded-lg resize-none"
+                className="bg-surface-secondary border border-theme text-primary text-xs min-h-[80px] rounded-lg resize-none"
               />
               <AIGoalSuggestions
                 category={formData.category}
@@ -228,7 +228,7 @@ export function GoalFormModal({
               type="button"
               variant="outline"
               onClick={onReset}
-              className="bg-black/20 hover:bg-black/30 border-theme text-secondary text-xs h-9 rounded-lg"
+              className="bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary text-[13px] font-medium h-9 px-4 rounded-lg"
             >
               <BsArrowCounterclockwise className="h-3.5 w-3.5 mr-1.5" />
               Reset
@@ -238,7 +238,7 @@ export function GoalFormModal({
                 type="button"
                 variant="outline"
                 onClick={onTemplateClick}
-                className="bg-black/20 hover:bg-black/30 border-theme text-secondary text-xs h-9 rounded-lg"
+                className="bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary text-[13px] font-medium h-9 px-4 rounded-lg"
               >
                 <BsListTask className="h-3.5 w-3.5 mr-1.5" />
                 Templates
@@ -247,7 +247,7 @@ export function GoalFormModal({
             <Button
               type="submit"
               disabled={loading}
-              className="flex-1 min-w-[120px] bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-xs h-9 rounded-lg font-medium"
+              className="flex-1 min-w-[120px] bg-indigo-600 hover:bg-indigo-700 text-white text-[13px] font-medium h-9 px-4 rounded-lg"
             >
               {loading ? (
                 <span className="flex items-center gap-2">
@@ -265,7 +265,7 @@ export function GoalFormModal({
               type="button"
               variant="outline"
               onClick={onClose}
-              className="bg-black/20 hover:bg-black/30 border-theme text-secondary text-xs h-9 rounded-lg"
+              className="bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary text-[13px] font-medium h-9 px-4 rounded-lg"
             >
               Cancel
             </Button>

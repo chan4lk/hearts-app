@@ -290,15 +290,15 @@ export default function UserTable({
   // Get sort icon for a column
   const getSortIcon = (column: SortColumn) => {
     if (sortColumn !== column) {
-      return <span className="text-white/60 text-xs">⇅</span>;
+      return <span className="text-secondary text-xs">⇅</span>;
     }
     if (sortDirection === 'asc') {
-      return <span className="text-yellow-300 font-bold text-sm drop-shadow-lg">↑</span>;
+      return <span className="text-indigo-500 font-bold text-sm">↑</span>;
     }
     if (sortDirection === 'desc') {
-      return <span className="text-yellow-300 font-bold text-sm drop-shadow-lg">↓</span>;
+      return <span className="text-indigo-500 font-bold text-sm">↓</span>;
     }
-    return <span className="text-white/60 text-xs">⇅</span>;
+    return <span className="text-secondary text-xs">⇅</span>;
   };
 
   return (
@@ -307,10 +307,10 @@ export default function UserTable({
       <div className="flex-1 flex flex-col overflow-hidden min-h-0">
         <div className="overflow-x-auto overflow-y-auto flex-1 min-h-0">
           <table className="w-full table-fixed min-w-full">
-            <thead className="sticky top-0 z-20 bg-gradient-to-r from-teal-600 to-cyan-600 border-b-2 border-teal-700 shadow-md">
+            <thead className="sticky top-0 z-20 bg-surface-secondary border-b border-theme">
               <tr>
-                <th 
-                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+                <th
+                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
                   style={{ width: '20%' }}
                   onClick={() => handleSort('name')}
                 >
@@ -319,8 +319,8 @@ export default function UserTable({
                     {getSortIcon('name')}
                   </div>
                 </th>
-                <th 
-                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+                <th
+                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
                   style={{ width: '25%' }}
                   onClick={() => handleSort('email')}
                 >
@@ -329,8 +329,8 @@ export default function UserTable({
                     {getSortIcon('email')}
                   </div>
                 </th>
-                <th 
-                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+                <th
+                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
                   style={{ width: '12%' }}
                   onClick={() => handleSort('role')}
                 >
@@ -339,8 +339,8 @@ export default function UserTable({
                     {getSortIcon('role')}
                   </div>
                 </th>
-                <th 
-                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+                <th
+                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
                   style={{ width: '12%' }}
                   onClick={() => handleSort('status')}
                 >
@@ -349,8 +349,8 @@ export default function UserTable({
                     {getSortIcon('status')}
                   </div>
                 </th>
-                <th 
-                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+                <th
+                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
                   style={{ width: '18%' }}
                   onClick={() => handleSort('manager')}
                 >
@@ -387,7 +387,7 @@ export default function UserTable({
                   key={user.id}
                   className="border-b border-theme hover:bg-surface-secondary transition-colors"
                 >
-                  <td className="py-2.5 px-3 text-[11px]">
+                  <td className="py-2.5 px-3 text-[13px]">
                     <div className="flex items-center gap-2.5">
                       <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
                         user.role === Role.ADMIN ? 'bg-purple-500/20 text-purple-400' :
@@ -396,10 +396,10 @@ export default function UserTable({
                       }`}>
                         <BsPerson className="w-3.5 h-3.5" />
                       </div>
-                      <div className="text-[11px] font-medium text-primary truncate">{user.name}</div>
+                      <div className="text-[13px] font-medium text-primary truncate">{user.name}</div>
                     </div>
                   </td>
-                  <td className="py-2.5 px-3 text-[11px] text-secondary truncate">
+                  <td className="py-2.5 px-3 text-[12px] text-secondary truncate">
                     {user.email}
                   </td>
                   <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>

@@ -59,9 +59,9 @@ const getStatusBadge = (status: string, goal?: Goal | GoalWithRatingExtended, se
     PENDING: { bg: 'bg-amber-500/20', text: 'text-amber-400', icon: BsClock },
     MODIFIED: { bg: 'bg-blue-500/20', text: 'text-blue-400', icon: BsGear },
     COMPLETED: { bg: 'bg-green-500/20', text: 'text-green-400', icon: BsCheckCircle },
-    DRAFT: { bg: 'bg-gray-500/20', text: 'text-gray-400', icon: BsGear },
+    DRAFT: { bg: 'bg-slate-500/20', text: 'text-slate-400', icon: BsGear },
     IN_PROGRESS: { bg: 'bg-blue-500/20', text: 'text-blue-400', icon: BsPlayCircle },
-    NOT_STARTED: { bg: 'bg-gray-500/20', text: 'text-gray-400', icon: BsCircle },
+    NOT_STARTED: { bg: 'bg-slate-500/20', text: 'text-slate-400', icon: BsCircle },
     ON_HOLD: { bg: 'bg-amber-500/20', text: 'text-amber-400', icon: BsPauseCircle },
     BLOCKED: { bg: 'bg-red-500/20', text: 'text-red-400', icon: BsFlag }
   };
@@ -888,15 +888,15 @@ export default function GoalsTable({
   // Get sort icon for a column
   const getSortIcon = (column: SortColumn) => {
     if (sortColumn !== column) {
-      return <span className="text-white/60 text-xs">⇅</span>;
+      return <span className="text-secondary text-xs">⇅</span>;
     }
     if (sortDirection === 'asc') {
-      return <span className="text-yellow-300 font-bold text-sm drop-shadow-lg">↑</span>;
+      return <span className="text-indigo-500 font-bold text-sm">↑</span>;
     }
     if (sortDirection === 'desc') {
-      return <span className="text-yellow-300 font-bold text-sm drop-shadow-lg">↓</span>;
+      return <span className="text-indigo-500 font-bold text-sm">↓</span>;
     }
-    return <span className="text-white/60 text-xs">⇅</span>;
+    return <span className="text-secondary text-xs">⇅</span>;
   };
 
   return (
@@ -905,10 +905,10 @@ export default function GoalsTable({
       <div className="flex-1 flex flex-col overflow-hidden min-h-0">
         <div className="overflow-x-auto overflow-y-auto flex-1 min-h-0">
           <table className="w-full table-fixed min-w-full">
-            <thead className="sticky top-0 z-20 bg-gradient-to-r from-teal-600 to-cyan-600 border-b-2 border-teal-700 shadow-md">
+            <thead className="sticky top-0 z-20 bg-surface-secondary border-b border-theme">
               <tr>
-              <th 
-                className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+              <th
+                className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
                 style={{ width: '20%' }}
                 onClick={() => handleSort('title')}
               >
@@ -917,8 +917,8 @@ export default function GoalsTable({
                   {getSortIcon('title')}
                 </div>
               </th>
-              <th 
-                className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+              <th
+                className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
                 style={{ width: '12%' }}
                 onClick={() => handleSort('status')}
               >
@@ -927,8 +927,8 @@ export default function GoalsTable({
                   {getSortIcon('status')}
                 </div>
               </th>
-              <th 
-                className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+              <th
+                className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
                 style={{ width: '10%' }}
                 onClick={() => handleSort('priority')}
               >
@@ -937,8 +937,8 @@ export default function GoalsTable({
                   {getSortIcon('priority')}
                 </div>
               </th>
-              <th 
-                className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+              <th
+                className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
                 style={{ width: '12%' }}
                 onClick={() => handleSort('dueDate')}
               >
@@ -948,8 +948,8 @@ export default function GoalsTable({
                 </div>
               </th>
               {showEmployee && (
-                <th 
-                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+                <th
+                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
                   style={{ width: '12%' }}
                   onClick={() => handleSort('employee')}
                 >
@@ -960,8 +960,8 @@ export default function GoalsTable({
                 </th>
               )}
               {showManager && (
-                <th 
-                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+                <th
+                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
                   style={{ width: '12%' }}
                   onClick={() => handleSort('manager')}
                 >
@@ -971,8 +971,8 @@ export default function GoalsTable({
                   </div>
                 </th>
               )}
-              <th 
-                className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+              <th
+                className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
                 style={{ width: '10%' }}
                 onClick={() => handleSort('category')}
               >
@@ -982,16 +982,16 @@ export default function GoalsTable({
                 </div>
               </th>
               {showRating && (
-                <th 
-                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider whitespace-nowrap"
+                <th
+                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider whitespace-nowrap"
                   style={{ width: '10%' }}
                 >
                   Rating
                 </th>
               )}
               {showActions && (
-                <th 
-                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider whitespace-nowrap"
+                <th
+                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider whitespace-nowrap"
                   style={{ width: '10%' }}
                 >
                   Actions
@@ -1020,15 +1020,15 @@ export default function GoalsTable({
               </tr>
             ) : (
               sortedGoals.map((goal) => (
-                <tr 
-                  key={goal.id} 
-                  className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer"
+                <tr
+                  key={goal.id}
+                  className="border-b border-theme hover:bg-surface-secondary/50 transition-colors cursor-pointer"
                   onClick={() => onGoalClick?.(goal)}
                 >
-                  <td className="py-2.5 px-3 text-[11px]">
+                  <td className="py-2.5 px-3 text-[13px]">
                     <div className="truncate">
                       <div className="font-medium text-primary truncate">{goal.title}</div>
-                      <div className="text-tertiary truncate mt-0.5 text-[10px]">{goal.description}</div>
+                      <div className="text-secondary truncate mt-0.5 text-[12px]">{goal.description}</div>
                     </div>
                   </td>
                   <td className="py-2.5 px-3 text-[11px]">

@@ -20,10 +20,10 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { BsBarChart, BsStarFill } from 'react-icons/bs';
-import HeroSection from '@/app/components/shared/HeroSection';
+
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 import Filters from '@/app/components/shared/Filters';
-import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
+
 import { BsClipboardData, BsCheckCircle, BsPercent, BsStarFill as BsStarIcon, BsClock, BsFileEarmarkText, BsCheck2Circle, BsXCircle, BsListCheck } from 'react-icons/bs';
 
 interface AnalyticsData {
@@ -506,16 +506,7 @@ export default function AnalyticsPage() {
 
   return (
     <DashboardLayout type={dashboardType}>
-      <div className="min-h-screen bg-surface-primary">
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-          {/* Hero Section */}
-          <HeroSection 
-            title="Analytics Dashboard"
-            subtitle="Track performance and insights across the organization"
-            gradient={HERO_GRADIENTS.ANALYTICS}
-          />
-
+      <div className="max-w-7xl mx-auto space-y-5">
           {/* Filters Section */}
           <Filters
             startDate={startDate}
@@ -888,7 +879,6 @@ export default function AnalyticsPage() {
               )}
             </>
           )}
-        </div>
       </div>
     </DashboardLayout>
   );

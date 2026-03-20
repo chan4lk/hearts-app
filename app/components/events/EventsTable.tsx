@@ -39,7 +39,7 @@ export const EventsTable = ({
       case 'ONGOING':
         return 'bg-green-500/20 text-green-300';
       case 'COMPLETED':
-        return 'bg-gray-500/20 text-gray-300';
+        return 'bg-slate-500/20 text-slate-300';
       case 'CANCELLED':
         return 'bg-red-500/20 text-red-300';
       default:
@@ -63,24 +63,24 @@ export const EventsTable = ({
   return (
     <div className="overflow-x-auto">
       <table className="w-full table-fixed min-w-full">
-        <thead className="sticky top-0 z-20 bg-gradient-to-r from-teal-600 to-cyan-600 border-b-2 border-teal-700 shadow-md">
+        <thead className="sticky top-0 z-20 bg-surface-secondary border-b border-theme">
           <tr>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-[12px] font-semibold text-secondary uppercase tracking-wider">
               Event Title
             </th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-[12px] font-semibold text-secondary uppercase tracking-wider">
               Type
             </th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-[12px] font-semibold text-secondary uppercase tracking-wider">
               Date
             </th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-[12px] font-semibold text-secondary uppercase tracking-wider">
               Participants
             </th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-[12px] font-semibold text-secondary uppercase tracking-wider">
               Status
             </th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-[12px] font-semibold text-secondary uppercase tracking-wider">
               Actions
             </th>
           </tr>
@@ -89,13 +89,13 @@ export const EventsTable = ({
           {events.map((event) => (
             <tr
               key={event.id}
-              className="border-b border-theme hover:bg-surface-secondary transition"
+              className="border-b border-theme hover:bg-surface-secondary/50 transition-colors"
             >
               <td className="px-4 py-3">
                 <div>
-                  <p className="font-medium text-primary">{event.title}</p>
+                  <p className="text-[13px] font-medium text-primary">{event.title}</p>
                   {event.location && (
-                    <p className="flex items-center gap-1 text-xs text-secondary">
+                    <p className="flex items-center gap-1 text-[12px] text-secondary">
                       <BsGeoAlt /> {event.location}
                     </p>
                   )}
@@ -110,7 +110,7 @@ export const EventsTable = ({
                   {event.eventType.replace(/_/g, ' ')}
                 </span>
               </td>
-              <td className="px-4 py-3 text-sm text-secondary">
+              <td className="px-4 py-3 text-[12px] text-secondary">
                 <div className="flex items-center gap-1">
                   <BsCalendar className="text-teal-400" />
                   {new Date(event.startDate).toLocaleDateString()} -{' '}
@@ -119,7 +119,7 @@ export const EventsTable = ({
                   })}
                 </div>
               </td>
-              <td className="px-4 py-3 text-sm text-secondary">
+              <td className="px-4 py-3 text-[13px] text-primary">
                 {event.participations?.length || 0}
                 {event.capacity ? `/${event.capacity}` : ''}
               </td>

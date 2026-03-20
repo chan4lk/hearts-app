@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import HeroSection from '@/app/components/shared/HeroSection';
+
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
-import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
+
 import ReviewCycleTable from './components/ReviewCycleTable';
 import ReviewCycleForm from './components/ReviewCycleForm';
 import ImportExcelModal from './components/ImportExcelModal';
@@ -211,15 +211,6 @@ export default function ReviewCyclesPage() {
         <div className="absolute inset-0 pointer-events-none bg-grid" />
         
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
-          {/* Hero Section - Fixed */}
-          <div className="flex-shrink-0 pt-3 pb-3 bg-surface-primary z-10 relative">
-            <HeroSection 
-              title="Review Cycles"
-              subtitle="Manage performance review cycles for your organization"
-              gradient={HERO_GRADIENTS.ADMIN}
-            />
-          </div>
-
           {/* Stats Section */}
           <div className="flex-shrink-0 pb-3">
             {(() => {

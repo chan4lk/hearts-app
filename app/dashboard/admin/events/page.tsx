@@ -6,8 +6,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
-import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
-import HeroSection from '@/app/components/shared/HeroSection';
+
 import Filters from '@/app/components/shared/Filters';
 import { BsPlus, BsSearch, BsCalendarEvent, BsFilter, BsCheckCircle, BsClock, BsArrowCounterclockwise } from 'react-icons/bs';
 import { EventFormModal } from '@/app/components/events/EventFormModal';
@@ -174,25 +173,19 @@ function AdminEventsContent() {
         <div className="absolute inset-0 pointer-events-none bg-grid" />
         
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
-          {/* Hero Section */}
-          <div className="flex-shrink-0 pb-3">
-            <HeroSection 
-              title="Event Management"
-              subtitle="Create and manage upcoming events for your organization"
-              gradient={HERO_GRADIENTS.ADMIN}
+          {/* Create Event Button */}
+          <div className="flex-shrink-0 pb-3 flex justify-end">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                setEditingEvent(null);
+                setIsFormOpen(true);
+              }}
+              className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 px-5 py-2.5 font-semibold text-white shadow-lg transition-all whitespace-nowrap"
             >
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  setEditingEvent(null);
-                  setIsFormOpen(true);
-                }}
-                className="flex items-center gap-2 rounded-lg bg-white/20 hover:bg-white/30 backdrop-blur-sm px-5 py-2.5 font-semibold text-white shadow-lg shadow-white/10 transition-all border border-white/20 whitespace-nowrap"
-              >
-                <BsPlus className="text-lg" /> Create Event
-              </motion.button>
-            </HeroSection>
+              <BsPlus className="text-lg" /> Create Event
+            </motion.button>
           </div>
 
           {/* Stats Section - Fixed */}

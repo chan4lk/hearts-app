@@ -9,8 +9,8 @@ import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { Pagination } from '@/app/components/shared/Pagination';
 import AIPerformanceInsights from '@/app/components/ai/AIPerformanceInsights';
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
-import HeroSection from '@/app/components/shared/HeroSection';
-import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
+
+
 import { BsStars, BsLightbulb, BsCheckCircle, BsXCircle, BsPeople, BsPencil } from 'react-icons/bs';
 
 import { Goal, EmployeeStats, DashboardStats } from '@/app/components/shared/types';
@@ -201,18 +201,7 @@ export default function ManagerDashboard() {
   };
   return (
     <DashboardLayout type="manager">
-      <div className="min-h-screen bg-surface-primary">
-        {/* Subtle Background Pattern */}
-        <div className="fixed inset-0 pointer-events-none bg-grid" />
-        
-        <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
-          {/* Hero Section */}
-          <HeroSection 
-            userName={session?.user?.name || 'Manager'}
-            subtitle="Manage your team's goals and performance"
-            gradient={HERO_GRADIENTS.MANAGER}
-          />
-
+      <div className="max-w-7xl mx-auto space-y-5">
           {/* Stats Section */}
           {(() => {
             const statItems: StatItem[] = [
@@ -414,15 +403,15 @@ export default function ManagerDashboard() {
               setPage(1);
             }}
           />
-        </div>
 
-        {/* Goal Details Modal */}
-        {selectedGoalDetails && (
-          <GoalDetailModal
-            goal={selectedGoalDetails}
-            onClose={() => setSelectedGoalDetails(null)}
-          />
-        )}
+
+          {/* Goal Details Modal */}
+          {selectedGoalDetails && (
+            <GoalDetailModal
+              goal={selectedGoalDetails}
+              onClose={() => setSelectedGoalDetails(null)}
+            />
+          )}
       </div>
     </DashboardLayout>
   );

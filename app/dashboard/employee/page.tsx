@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import HeroSection from '@/app/components/shared/HeroSection';
+
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 import Filters from '@/app/components/shared/Filters';
-import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
+
 import { BsClipboardData, BsCheckCircle, BsPencil, BsXCircle } from 'react-icons/bs';
 import GoalsSection from './components/GoalsSection';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
@@ -454,18 +454,7 @@ export default function EmployeeDashboard() {
 
   return (
     <DashboardLayout type="employee">
-      <div className="min-h-screen bg-surface-primary">
-        {/* Subtle Background Pattern */}
-        <div className="fixed inset-0 pointer-events-none bg-grid" />
-        
-        <div className="relative max-w-7xl mx-auto px-4 py-3 space-y-4">
-          {/* Hero Section */}
-          <HeroSection 
-            userName={session?.user?.name}
-            subtitle="Manage your goals and track progress"
-            gradient={HERO_GRADIENTS.EMPLOYEE}
-          />
-
+      <div className="max-w-7xl mx-auto space-y-5">
           {/* Stats Section */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -974,7 +963,6 @@ export default function EmployeeDashboard() {
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
       </div>
     </DashboardLayout>
   );

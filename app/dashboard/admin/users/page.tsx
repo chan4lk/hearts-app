@@ -6,10 +6,10 @@ import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import UserTable from './components/UserTable';
-import HeroSection from '@/app/components/shared/HeroSection';
+
 import Filters from '@/app/components/shared/Filters';
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
-import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
+
 import { BsPeople, BsGraphUp, BsShieldExclamation } from 'react-icons/bs';
 import { Pagination } from '@/app/components/shared/Pagination';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
@@ -352,15 +352,6 @@ function UsersPageContent() {
         <div className="absolute inset-0 pointer-events-none bg-grid" />
         
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
-          {/* Hero Section - Fixed */}
-          <div className="flex-shrink-0 pt-3 pb-3">
-            <HeroSection 
-              title="User Management"
-              subtitle="View, manage, and assign roles to users"
-              gradient={HERO_GRADIENTS.ADMIN}
-            />
-          </div>
-
           {/* Stats Section - Fixed */}
           <div className="flex-shrink-0 pb-3">
             {(() => {

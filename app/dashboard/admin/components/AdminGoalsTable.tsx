@@ -112,9 +112,9 @@ export default function AdminGoalsTable({
       PENDING: { bg: 'bg-amber-500/20', text: 'text-amber-400', icon: BsClock },
       MODIFIED: { bg: 'bg-blue-500/20', text: 'text-blue-400', icon: BsGear },
       COMPLETED: { bg: 'bg-green-500/20', text: 'text-green-400', icon: BsCheckCircle },
-      DRAFT: { bg: 'bg-gray-500/20', text: 'text-gray-400', icon: BsGear },
+      DRAFT: { bg: 'bg-slate-500/20', text: 'text-slate-400', icon: BsGear },
       IN_PROGRESS: { bg: 'bg-blue-500/20', text: 'text-blue-400', icon: BsPlayCircle },
-      NOT_STARTED: { bg: 'bg-gray-500/20', text: 'text-gray-400', icon: BsCircle },
+      NOT_STARTED: { bg: 'bg-slate-500/20', text: 'text-slate-400', icon: BsCircle },
       ON_HOLD: { bg: 'bg-amber-500/20', text: 'text-amber-400', icon: BsPauseCircle },
       BLOCKED: { bg: 'bg-red-500/20', text: 'text-red-400', icon: BsFlag }
     };
@@ -135,7 +135,7 @@ export default function AdminGoalsTable({
       URGENT: { bg: 'bg-red-500/20', text: 'text-red-400' },
       HIGH: { bg: 'bg-orange-500/20', text: 'text-orange-400' },
       MEDIUM: { bg: 'bg-amber-500/20', text: 'text-amber-400' },
-      LOW: { bg: 'bg-gray-500/20', text: 'text-gray-400' }
+      LOW: { bg: 'bg-slate-500/20', text: 'text-slate-400' }
     };
     const config = configs[priority] || configs.MEDIUM;
     
@@ -221,15 +221,15 @@ export default function AdminGoalsTable({
   // Get sort icon for a column
   const getSortIcon = (column: SortColumn) => {
     if (sortColumn !== column) {
-      return <span className="text-white/60 text-xs">⇅</span>;
+      return <span className="text-secondary text-xs">⇅</span>;
     }
     if (sortDirection === 'asc') {
-      return <span className="text-yellow-300 font-bold text-sm drop-shadow-lg">↑</span>;
+      return <span className="text-indigo-500 font-bold text-sm">↑</span>;
     }
     if (sortDirection === 'desc') {
-      return <span className="text-yellow-300 font-bold text-sm drop-shadow-lg">↓</span>;
+      return <span className="text-indigo-500 font-bold text-sm">↓</span>;
     }
-    return <span className="text-white/60 text-xs">⇅</span>;
+    return <span className="text-secondary text-xs">⇅</span>;
   };
 
   return (
@@ -265,22 +265,22 @@ export default function AdminGoalsTable({
       <div className="flex-1 flex flex-col overflow-hidden min-h-0">
         <div className="overflow-x-auto overflow-y-auto flex-1 min-h-0">
           <table className="w-full table-fixed min-w-full">
-            <thead className="sticky top-0 z-20 bg-gradient-to-r from-teal-600 to-cyan-600 border-b-2 border-teal-700 shadow-md">
+            <thead className="sticky top-0 z-20 bg-surface-secondary border-b border-theme">
               <tr>
                 <th className="text-left py-2.5 px-3 w-12" style={{ width: '3%' }}>
                   <button
                     onClick={() => handleSelectAll(!selectAll)}
-                    className="p-1 hover:bg-teal-700 rounded transition-colors"
+                    className="p-1 hover:bg-surface-tertiary rounded transition-colors"
                   >
                     {selectAll ? (
-                      <BsCheckSquare className="w-4 h-4 text-white" />
+                      <BsCheckSquare className="w-4 h-4 text-indigo-600" />
                     ) : (
-                      <BsSquare className="w-4 h-4 text-white/60" />
+                      <BsSquare className="w-4 h-4 text-secondary" />
                     )}
                   </button>
                 </th>
-                <th 
-                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+                <th
+                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
                   style={{ width: '18%' }}
                   onClick={() => handleSort('title')}
                 >
@@ -289,8 +289,8 @@ export default function AdminGoalsTable({
                     {getSortIcon('title')}
                   </div>
                 </th>
-                <th 
-                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+                <th
+                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
                   style={{ width: '10%' }}
                   onClick={() => handleSort('status')}
                 >
@@ -299,8 +299,8 @@ export default function AdminGoalsTable({
                     {getSortIcon('status')}
                   </div>
                 </th>
-                <th 
-                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+                <th
+                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
                   style={{ width: '8%' }}
                   onClick={() => handleSort('priority')}
                 >
@@ -309,8 +309,8 @@ export default function AdminGoalsTable({
                     {getSortIcon('priority')}
                   </div>
                 </th>
-                <th 
-                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+                <th
+                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
                   style={{ width: '9%' }}
                   onClick={() => handleSort('dueDate')}
                 >
@@ -320,8 +320,8 @@ export default function AdminGoalsTable({
                   </div>
                 </th>
                 {showEmployee && (
-                  <th 
-                    className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+                  <th
+                    className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
                     style={{ width: '12%' }}
                     onClick={() => handleSort('employee')}
                   >
@@ -332,8 +332,8 @@ export default function AdminGoalsTable({
                   </th>
                 )}
                 {showManager && (
-                  <th 
-                    className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+                  <th
+                    className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
                     style={{ width: '12%' }}
                     onClick={() => handleSort('manager')}
                   >
@@ -343,8 +343,8 @@ export default function AdminGoalsTable({
                     </div>
                   </th>
                 )}
-                <th 
-                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+                <th
+                  className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap"
                   style={{ width: '10%' }}
                   onClick={() => handleSort('category')}
                 >
@@ -353,20 +353,20 @@ export default function AdminGoalsTable({
                     {getSortIcon('category')}
                   </div>
                 </th>
-                <th className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider whitespace-nowrap" style={{ width: '7%' }}>Actions</th>
+                <th className="text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider whitespace-nowrap" style={{ width: '7%' }}>Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody>
               {goals.length === 0 ? (
                 <tr>
-                  <td 
-                    colSpan={7 + (showEmployee ? 1 : 0) + (showManager ? 1 : 0)} 
+                  <td
+                    colSpan={7 + (showEmployee ? 1 : 0) + (showManager ? 1 : 0)}
                     className="py-12 text-center"
                   >
                     <div className="flex flex-col items-center justify-center">
-                      <BsBullseye className="w-10 h-10 text-gray-400 dark:text-gray-500 mb-2" />
-                      <p className="text-xs font-medium text-gray-900 dark:text-gray-100 mb-1">No goals found</p>
-                      <p className="text-[10px] text-gray-500 dark:text-gray-400">Try adjusting your filters to see more results</p>
+                      <BsBullseye className="w-10 h-10 text-secondary mb-2" />
+                      <p className="text-xs font-medium text-primary mb-1">No goals found</p>
+                      <p className="text-[10px] text-secondary">Try adjusting your filters to see more results</p>
                     </div>
                   </td>
                 </tr>
@@ -376,8 +376,8 @@ export default function AdminGoalsTable({
                   return (
                     <tr
                       key={goal.id}
-                      className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors whitespace-nowrap ${
-                        isSelected ? 'bg-blue-50 dark:bg-blue-900/10 border-l-4 border-l-blue-500' : ''
+                      className={`border-b border-theme hover:bg-surface-secondary/50 transition-colors whitespace-nowrap ${
+                        isSelected ? 'bg-indigo-500/5 border-l-4 border-l-indigo-500' : ''
                       }`}
                     >
                       <td className="py-2 px-3">
@@ -386,22 +386,22 @@ export default function AdminGoalsTable({
                             e.stopPropagation();
                             handleGoalSelect(goal.id, !isSelected);
                           }}
-                          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                          className="p-1 hover:bg-surface-secondary rounded transition-colors"
                         >
                           {isSelected ? (
-                            <BsCheckSquare className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
+                            <BsCheckSquare className="w-3 h-3 text-indigo-600" />
                           ) : (
-                            <BsSquare className="w-3 h-3 text-gray-400" />
+                            <BsSquare className="w-3 h-3 text-secondary" />
                           )}
                         </button>
                       </td>
-                      <td 
+                      <td
                         className="py-2 px-3 cursor-pointer"
                         onClick={() => onGoalClick?.(goal)}
                       >
                         <div className="max-w-xs">
-                          <div className="text-[11px] font-medium text-gray-900 dark:text-gray-100 truncate">{goal.title}</div>
-                          <div className="text-[10px] text-gray-500 dark:text-gray-400 truncate mt-0.5">{goal.description}</div>
+                          <div className="text-[13px] font-medium text-primary truncate">{goal.title}</div>
+                          <div className="text-[12px] text-secondary truncate mt-0.5">{goal.description}</div>
                         </div>
                       </td>
                       <td className="py-2 px-3">
@@ -410,50 +410,50 @@ export default function AdminGoalsTable({
                       <td className="py-2 px-3">
                         {getPriorityBadge(goal.priority || 'MEDIUM')}
                       </td>
-                      <td 
-                        className="py-2 px-3 text-[11px] text-gray-700 dark:text-gray-300 whitespace-nowrap cursor-pointer"
+                      <td
+                        className="py-2 px-3 text-[13px] text-primary whitespace-nowrap cursor-pointer"
                         onClick={() => onGoalClick?.(goal)}
                       >
                         {new Date(goal.dueDate).toLocaleDateString()}
                       </td>
                       {showEmployee && (
-                        <td 
-                          className="py-2 px-3 text-[11px] text-gray-700 dark:text-gray-300 truncate cursor-pointer"
+                        <td
+                          className="py-2 px-3 text-[13px] text-primary truncate cursor-pointer"
                           onClick={() => onGoalClick?.(goal)}
                         >
-                          {goal.employee?.name || <span className="text-gray-400">Unassigned</span>}
+                          {goal.employee?.name || <span className="text-secondary">Unassigned</span>}
                         </td>
                       )}
                       {showManager && (
-                        <td 
-                          className="py-2 px-3 text-[11px] text-gray-700 dark:text-gray-300 truncate cursor-pointer"
+                        <td
+                          className="py-2 px-3 text-[13px] text-primary truncate cursor-pointer"
                           onClick={() => onGoalClick?.(goal)}
                         >
                           {(() => {
-                            const isSelfCreated = goal.employee && 
-                              (!goal.manager || 
-                               !goal.managerId || 
-                               goal.managerId === null || 
+                            const isSelfCreated = goal.employee &&
+                              (!goal.manager ||
+                               !goal.managerId ||
+                               goal.managerId === null ||
                                goal.managerId === '');
-                            
+
                             if (isSelfCreated) {
                               return <span className="text-blue-600 dark:text-blue-400">Self-Created</span>;
                             }
-                            return goal.manager?.name || <span className="text-gray-400">Unassigned</span>;
+                            return goal.manager?.name || <span className="text-secondary">Unassigned</span>;
                           })()}
                         </td>
                       )}
-                      <td 
-                        className="py-2 px-3 text-[11px] text-gray-700 dark:text-gray-300 whitespace-nowrap cursor-pointer"
+                      <td
+                        className="py-2 px-3 text-[13px] text-primary whitespace-nowrap cursor-pointer"
                         onClick={() => onGoalClick?.(goal)}
                       >
                         {goal.category}
                       </td>
-                      <td className="py-2 px-3 text-[11px]" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-2 px-3 text-[13px]" onClick={(e) => e.stopPropagation()}>
                         {onDelete && (
                           <button
                             onClick={() => onDelete(goal)}
-                            className="p-1 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                            className="p-1 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
                             title="Delete Goal"
                           >
                             <BsTrash className="w-3 h-3" />

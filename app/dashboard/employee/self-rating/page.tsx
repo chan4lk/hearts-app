@@ -5,15 +5,15 @@
  import { useRouter } from 'next/navigation';
  import { motion } from 'framer-motion';
  import DashboardLayout from '@/app/components/layout/DashboardLayout';
- import HeroSection from '@/app/components/shared/HeroSection';
+
  import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
  import Filters from '@/app/components/shared/Filters';
- import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
+
  import { BsStarFill, BsClipboardData, BsCheckCircle, BsPercent } from 'react-icons/bs';
  import { GoalWithRating } from '@/app/components/shared/types';
  import { Pagination } from '@/app/components/shared/Pagination';
 import RatingGoalCard from '@/app/components/shared/RatingGoalCard';
-import BackgroundElements from '@/app/components/shared/BackgroundElements';
+
  
  export default function SelfRatingPage() {
    const { data: session, status } = useSession();
@@ -161,14 +161,7 @@ import BackgroundElements from '@/app/components/shared/BackgroundElements';
  
    return (
      <DashboardLayout type="employee">
-       <div className="min-h-screen bg-surface-primary">
-         <BackgroundElements />
-         <div className="relative z-10 p-4 space-y-4">
-           <HeroSection
-             title="Self Rating"
-             subtitle="Rate your completed goals"
-             gradient={HERO_GRADIENTS.EMPLOYEE}
-           />
+       <div className="max-w-7xl mx-auto space-y-5">
            <div className="space-y-3">
              <StatsSection stats={statsItems} variant="auto" />
            </div>
@@ -244,7 +237,6 @@ import BackgroundElements from '@/app/components/shared/BackgroundElements';
                />
              </div>
            )}
-         </div>
        </div>
      </DashboardLayout>
    );

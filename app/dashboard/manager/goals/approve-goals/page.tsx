@@ -6,10 +6,10 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { Goal, GoalWithRatingExtended, EmployeeStats } from '@/app/components/shared/types';
-import HeroSection from '@/app/components/shared/HeroSection';
+
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 import Filters from '@/app/components/shared/Filters';
-import { HERO_GRADIENTS } from '@/app/components/shared/filterConfig';
+
 import { BsClipboardData, BsCheckCircle, BsXCircle, BsPencil } from 'react-icons/bs';
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
@@ -348,15 +348,7 @@ export default function ApproveGoalsPage() {
   const filteredGoals = goals;
   return (
     <DashboardLayout type="manager">
-      <div className="min-h-screen bg-surface-primary">
-        
-        <div className="relative z-10 p-4 space-y-4">
-          <HeroSection 
-            title="Approve Goals"
-            subtitle="Review and approve pending employee goals"
-            gradient={HERO_GRADIENTS.MANAGER}
-          />
-
+      <div className="max-w-7xl mx-auto space-y-5">
           <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-4 border border-white/20 dark:border-gray-700/50 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Goal Approval Dashboard</h2>
@@ -502,7 +494,6 @@ export default function ApproveGoalsPage() {
               onClose={() => setSelectedGoalDetails(null)}
             />
           )}
-        </div>
       </div>
     </DashboardLayout>
   );
