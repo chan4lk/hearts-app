@@ -156,13 +156,13 @@ const getColorConfig = (value: string, config: any) => {
   return {
     borderColor: selectedConfig
       ? selectedConfig.borderColor.replace('/30', '/50')
-      : 'border-gray-700',
+      : 'border-theme',
     bgColor: selectedConfig
       ? selectedConfig.bgColor
-      : 'bg-gray-900/50',
+      : 'bg-surface-secondary',
     textColor: selectedConfig
       ? selectedConfig.textColor
-      : 'text-white',
+      : 'text-primary',
     gradient: selectedConfig
       ? selectedConfig.gradient
       : 'from-amber-500 to-orange-500'
@@ -175,8 +175,8 @@ const FilterSelect = ({
   options,
   icon,
   gradient = 'from-blue-500 to-indigo-500',
-  bgColor = 'bg-gray-900/50',
-  borderColor = 'border-gray-700',
+  bgColor = 'bg-surface-secondary',
+  borderColor = 'border-theme',
   focusRing = 'focus:ring-blue-500 focus:border-blue-500'
 }: {
   value: string;
@@ -200,21 +200,21 @@ const FilterSelect = ({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full ${icon !== false ? 'pl-10' : 'pl-3'} pr-8 py-2.5 ${bgColor} text-white rounded-lg border ${borderColor} focus:outline-none focus:ring-2 focus:ring-opacity-50 ${focusRing} text-sm font-medium appearance-none cursor-pointer transition-all duration-200 hover:border-opacity-70 hover:shadow-sm`}
+        className={`w-full ${icon !== false ? 'pl-10' : 'pl-3'} pr-8 py-2.5 ${bgColor} text-primary rounded-lg border ${borderColor} focus:outline-none focus:ring-2 focus:ring-opacity-50 ${focusRing} text-sm font-medium appearance-none cursor-pointer transition-all duration-200 hover:border-opacity-70 hover:shadow-sm`}
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 12 12'%3E%3Cpath fill='%239CA3AF' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'right 0.75rem center'
         }}
       >
-        <option value="all" style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}>
+        <option value="all" className="bg-surface-secondary text-primary">
           All
         </option>
         {options.map((option) => (
           <option 
             key={option.value} 
             value={option.value} 
-            style={{ backgroundColor: '#1f2937', color: '#d1d5db' }}
+            className="bg-surface-secondary text-primary"
           >
             {option.label}
           </option>
@@ -317,7 +317,7 @@ export default function Filters({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="bg-surface-elevated backdrop-blur-sm rounded-xl p-4 border-2 border-theme space-y-4"
+      className="bg-surface-elevated rounded-xl p-4 border border-theme space-y-4"
     >
       <div className="flex gap-2 items-start">
         <div className={`flex-1 ${gridColsClass}`}>

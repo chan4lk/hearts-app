@@ -399,7 +399,7 @@ function GoalsPageContent() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowTemplates(!showTemplates)}
-              className="bg-gradient-to-br from-purple-900/30 via-indigo-900/30 to-blue-900/30 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30 hover:border-purple-500/50 transition-all text-left group"
+              className="bg-surface-elevated border border-theme hover:border-purple-500/30 hover:shadow-theme-sm rounded-xl p-6 transition-all text-left group"
             >
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-colors">
@@ -420,7 +420,7 @@ function GoalsPageContent() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setIsCreateModalOpen(true)}
-              className="bg-gradient-to-br from-green-900/30 via-emerald-900/30 to-teal-900/30 backdrop-blur-sm rounded-xl p-6 border border-green-500/30 hover:border-green-500/50 transition-all text-left group"
+              className="bg-surface-elevated border border-theme hover:border-emerald-500/30 hover:shadow-theme-sm rounded-xl p-6 transition-all text-left group"
             >
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-green-500/20 rounded-lg group-hover:bg-green-500/30 transition-colors">

@@ -145,7 +145,7 @@ export default function BrowseEventsPage() {
 
   return (
     <DashboardLayout type="employee">
-      <div className="fixed inset-0 top-16 left-0 md:left-64 right-0 bottom-0 bg-surface-primary flex flex-col overflow-hidden z-0">
+      <div className="fixed inset-0 top-16 left-0 md:left-60 right-0 bottom-0 bg-surface-primary flex flex-col overflow-hidden z-0">
         {/* Subtle Background Pattern */}
         <div className="absolute inset-0 pointer-events-none bg-grid" />
         

@@ -206,7 +206,7 @@ export default function ReviewCyclesPage() {
   };
   return (
     <DashboardLayout type="admin">
-      <div className="fixed inset-0 top-16 left-0 md:left-64 right-0 bottom-0 bg-surface-primary flex flex-col overflow-hidden z-0">
+      <div className="fixed inset-0 top-16 left-0 md:left-60 right-0 bottom-0 bg-surface-primary flex flex-col overflow-hidden z-0">
         {/* Subtle Background Pattern */}
         <div className="absolute inset-0 pointer-events-none bg-grid" />
         
@@ -326,7 +326,7 @@ export default function ReviewCyclesPage() {
                   animate={{ scale: 1, opacity: 1, y: 0 }}
                   exit={{ scale: 0.95, opacity: 0, y: 20 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-2xl flex flex-col overflow-hidden"
+                  className="modal-content rounded-xl shadow-2xl w-full max-w-2xl flex flex-col overflow-hidden"
                   style={{ 
                     maxHeight: 'calc(100vh - 7rem)',
                     height: 'auto'

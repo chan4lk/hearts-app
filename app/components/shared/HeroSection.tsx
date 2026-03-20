@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { ReactNode } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { BsPlus, BsCollection } from 'react-icons/bs';
@@ -22,80 +21,44 @@ export default function HeroSection({
   userName,
   gradient = 'from-indigo-600 to-purple-600',
   children,
-  useSessionName = false,
   onCreateClick,
   onBulkCreateClick
 }: HeroSectionProps) {
   const displayName = userName || 'User';
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className={`relative overflow-hidden rounded-xl p-6 shadow-lg bg-gradient-to-r ${gradient}`}
-    >
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/[0.07] rounded-full blur-3xl animate-pulse-slow" />
-        <div
-          className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/[0.07] rounded-full blur-3xl animate-pulse-slow"
-          style={{ animationDelay: '1s' }}
-        />
-        {/* Subtle grid lines */}
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.4) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.4) 1px, transparent 1px)
-            `,
-            backgroundSize: '40px 40px',
-          }}
-        />
-      </div>
+    <div className={`relative overflow-hidden rounded-xl p-5 sm:p-6 bg-gradient-to-r ${gradient}`}>
+      {/* Background texture */}
+      <div className="absolute inset-0 opacity-[0.06]" style={{
+        backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 50%, white 1px, transparent 1px)',
+        backgroundSize: '30px 30px',
+      }} />
 
-      {/* Content */}
-      <div className="relative flex items-center justify-between">
-        <div className="space-y-2 flex-1">
-          {title ? (
-            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-              {title}
-            </h2>
-          ) : (
-            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-              Welcome back, {displayName}
-            </h2>
-          )}
+      <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-white leading-tight">
+            {title || `Welcome back, ${displayName}`}
+          </h2>
           {subtitle && (
-            <p className="text-white/80 text-sm">
-              {subtitle}
-            </p>
+            <p className="text-white/75 text-sm mt-1">{subtitle}</p>
           )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {onBulkCreateClick && (
-            <Button
-              onClick={onBulkCreateClick}
-              variant="outline"
-              className="bg-white/10 border-white/20 text-white hover:bg-white/20 border-0"
-            >
-              <BsCollection className="mr-2 h-4 w-4" />
+            <Button onClick={onBulkCreateClick} className="bg-white/15 hover:bg-white/25 border-0 text-white text-[13px] h-9 px-3.5 rounded-lg">
+              <BsCollection className="mr-1.5 h-3.5 w-3.5" />
               Bulk Create
             </Button>
           )}
           {onCreateClick && (
-            <Button
-              onClick={onCreateClick}
-              className="bg-white text-indigo-600 hover:bg-white/90 border-0"
-            >
-              <BsPlus className="mr-2 h-4 w-4" />
+            <Button onClick={onCreateClick} className="bg-white text-indigo-700 hover:bg-white/90 border-0 text-[13px] font-semibold h-9 px-3.5 rounded-lg shadow-sm">
+              <BsPlus className="mr-1 h-4 w-4" />
               Create Goal
             </Button>
           )}
           {children}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

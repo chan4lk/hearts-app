@@ -550,7 +550,7 @@ export default function EmployeeDashboard() {
                 resetForm();
                 setShowCreateGoalModal(true);
               }}
-              className="bg-gradient-to-br from-green-900/30 via-emerald-900/30 to-teal-900/30 backdrop-blur-sm rounded-xl p-6 border border-green-500/30 hover:border-green-500/50 transition-all text-left group"
+              className="bg-surface-elevated border border-theme hover:border-emerald-500/30 hover:shadow-theme-sm rounded-xl p-6 transition-all text-left group"
             >
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-green-500/20 rounded-lg group-hover:bg-green-500/30 transition-colors">
@@ -568,7 +568,7 @@ export default function EmployeeDashboard() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowAIGoalSuggestions(true)}
-              className="bg-gradient-to-br from-purple-900/30 via-indigo-900/30 to-blue-900/30 backdrop-blur-sm rounded-xl p-6 border border-purple-500/30 hover:border-purple-500/50 transition-all text-left group"
+              className="bg-surface-elevated border border-theme hover:border-purple-500/30 hover:shadow-theme-sm rounded-xl p-6 transition-all text-left group"
             >
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-colors">
@@ -586,7 +586,7 @@ export default function EmployeeDashboard() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowAIInsights(true)}
-              className="bg-gradient-to-br from-blue-900/30 via-indigo-900/30 to-purple-900/30 backdrop-blur-sm rounded-xl p-6 border border-blue-500/30 hover:border-blue-500/50 transition-all text-left group"
+              className="bg-surface-elevated border border-theme hover:border-blue-500/30 hover:shadow-theme-sm rounded-xl p-6 transition-all text-left group"
             >
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition-colors">
@@ -628,9 +628,9 @@ export default function EmployeeDashboard() {
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.95, opacity: 0 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-blue-500/30"
+                  className="modal-content rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-blue-500/30"
                 >
-                  <div className="sticky top-0 bg-gray-900/95 backdrop-blur-sm border-b border-blue-500/30 p-6 flex items-center justify-between">
+                  <div className="sticky top-0 bg-surface-elevated backdrop-blur-sm border-b border-blue-500/30 p-6 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-blue-500/20 rounded-lg">
                         <BsLightbulb className="w-6 h-6 text-blue-400" />
@@ -832,7 +832,7 @@ export default function EmployeeDashboard() {
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.95, opacity: 0 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-gray-900/95 backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden border-2 border-amber-500/40 flex flex-col"
+                  className="modal-content rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden border-2 border-amber-500/40 flex flex-col"
                 >
                   {/* Compact Header - Sticky */}
                   <div className="sticky top-0 z-10 bg-gradient-to-r from-amber-900/40 via-amber-800/40 to-orange-900/40 backdrop-blur-md border-b-2 border-amber-500/50 px-4 py-3 flex items-center justify-between flex-shrink-0">
