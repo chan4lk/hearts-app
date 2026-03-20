@@ -22,7 +22,7 @@ import {
 import { BsBarChart, BsStarFill } from 'react-icons/bs';
 
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
-import Filters from '@/app/components/shared/Filters';
+import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 
 import { BsClipboardData, BsCheckCircle, BsPercent, BsStarFill as BsStarIcon, BsClock, BsFileEarmarkText, BsCheck2Circle, BsXCircle, BsListCheck } from 'react-icons/bs';
 
@@ -507,30 +507,35 @@ export default function AnalyticsPage() {
   return (
     <DashboardLayout type={dashboardType}>
       <div className="max-w-7xl mx-auto space-y-5">
-          {/* Filters Section */}
-          <Filters
-            startDate={startDate}
-            endDate={endDate}
-            onStartDateChange={setStartDate}
-            onEndDateChange={setEndDate}
-            selectedEmployee={selectedEmployee}
-            onEmployeeChange={(value: string) => {
-              setSelectedEmployee(value);
-              // Don't set loading here - fetchAnalytics will handle it
-            }}
-            selectedDepartment={selectedDepartment}
-            onDepartmentChange={(value: string) => {
-              setSelectedDepartment(value);
-              // Don't set loading here - fetchAnalytics will handle it
-            }}
-            employees={employees}
-            departments={departments}
-            onExport={() => handleExport('pdf')}
-            userRole={session?.user?.role}
-            onRefresh={handleRefresh}
-            refreshing={refreshing}
-            onClear={handleClearFilters}
-          />
+          {/* Toolbar + Filters */}
+          <PageToolbar
+            actions={[
+              {
+                label: 'Export PDF',
+                onClick: () => handleExport('pdf'),
+                variant: 'export',
+              },
+            ]}
+            hasActiveFilters={selectedEmployee !== 'all' || selectedDepartment !== 'all'}
+            onClearFilters={handleClearFilters}
+          >
+            {(session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER') && (
+              <FilterSelect
+                value={selectedEmployee === 'all' ? '' : selectedEmployee}
+                onChange={(value) => setSelectedEmployee(value || 'all')}
+                options={employees.map(emp => ({ value: emp.id, label: emp.name }))}
+                placeholder="All Employees"
+              />
+            )}
+            {(session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER') && departments.length > 0 && (
+              <FilterSelect
+                value={selectedDepartment === 'all' ? '' : selectedDepartment}
+                onChange={(value) => setSelectedDepartment(value || 'all')}
+                options={departments.map(d => ({ value: d, label: d }))}
+                placeholder="All Departments"
+              />
+            )}
+          </PageToolbar>
 
           {/* No Data Message */}
           {!analyticsData && !loading && (

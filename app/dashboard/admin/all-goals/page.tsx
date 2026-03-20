@@ -12,7 +12,7 @@ import { Goal, User as UserType } from '@/app/components/shared/types';
 import { motion } from 'framer-motion';
 
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
-import Filters from '@/app/components/shared/Filters';
+import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 
 import { BsClipboardData, BsPencil, BsCheckCircle, BsXCircle } from 'react-icons/bs';
 import { PageContainer } from '@/app/components/shared/PageContainer';
@@ -27,6 +27,7 @@ function AllGoalsPageContent() {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedPriority, setSelectedPriority] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [loading, setLoading] = useState(true);
   const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
@@ -330,34 +331,70 @@ function AllGoalsPageContent() {
             })()}
           </motion.div>
 
-          {/* Filters - Fixed */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="flex-shrink-0 mb-3"
-          >
-            <Filters
-              selectedUser={selectedUser}
-              onUserChange={setSelectedUser}
-              selectedStatus={selectedStatus}
-              onStatusChange={setSelectedStatus}
-              selectedPriority={selectedPriority}
-              onPriorityChange={setSelectedPriority}
-              selectedCategory={selectedCategory}
-              onCategoryChange={setSelectedCategory}
-              users={users}
-              onClear={() => {
+          {/* Toolbar + Filters */}
+          <div className="flex-shrink-0 mb-3">
+            <PageToolbar
+              searchValue={searchQuery}
+              onSearchChange={(value) => {
+                setSearchQuery(value);
+                setPage(1);
+              }}
+              searchPlaceholder="Search goals..."
+              hasActiveFilters={selectedUser !== 'all' || selectedStatus !== 'all' || selectedPriority !== '' || selectedCategory !== 'all'}
+              onClearFilters={() => {
                 setSelectedUser('all');
                 setSelectedStatus('all');
                 setSelectedPriority('');
                 setSelectedCategory('all');
+                setSearchQuery('');
                 setPage(1);
-                // Also update URL params
                 router.push('/dashboard/admin/all-goals');
               }}
-            />
-          </motion.div>
+            >
+              <FilterSelect
+                value={selectedUser}
+                onChange={setSelectedUser}
+                options={users.map(u => ({ value: u.id || u.email, label: u.name }))}
+                placeholder="All Users"
+              />
+              <FilterSelect
+                value={selectedStatus === 'all' ? '' : selectedStatus}
+                onChange={(value) => setSelectedStatus(value || 'all')}
+                options={[
+                  { value: 'DRAFT', label: 'Draft' },
+                  { value: 'PENDING', label: 'Pending' },
+                  { value: 'APPROVED', label: 'Approved' },
+                  { value: 'REJECTED', label: 'Rejected' },
+                  { value: 'COMPLETED', label: 'Completed' },
+                ]}
+                placeholder="All Status"
+              />
+              <FilterSelect
+                value={selectedPriority}
+                onChange={setSelectedPriority}
+                options={[
+                  { value: 'LOW', label: 'Low' },
+                  { value: 'MEDIUM', label: 'Medium' },
+                  { value: 'HIGH', label: 'High' },
+                  { value: 'CRITICAL', label: 'Critical' },
+                ]}
+                placeholder="All Priority"
+              />
+              <FilterSelect
+                value={selectedCategory === 'all' ? '' : selectedCategory}
+                onChange={(value) => setSelectedCategory(value || 'all')}
+                options={[
+                  { value: 'PROFESSIONAL', label: 'Professional' },
+                  { value: 'TECHNICAL', label: 'Technical' },
+                  { value: 'LEADERSHIP', label: 'Leadership' },
+                  { value: 'PERSONAL', label: 'Personal' },
+                  { value: 'TRAINING', label: 'Training' },
+                  { value: 'KPI', label: 'KPI' },
+                ]}
+                placeholder="All Categories"
+              />
+            </PageToolbar>
+          </div>
 
           {/* Goals Table - Scrollable Container */}
           <div className="flex-1 overflow-hidden flex flex-col min-h-0">

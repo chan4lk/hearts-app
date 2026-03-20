@@ -7,7 +7,7 @@
  import DashboardLayout from '@/app/components/layout/DashboardLayout';
 
  import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
- import Filters from '@/app/components/shared/Filters';
+ import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 
  import { BsStarFill, BsClipboardData, BsCheckCircle, BsPercent } from 'react-icons/bs';
  import { GoalWithRating } from '@/app/components/shared/types';
@@ -165,46 +165,68 @@ import RatingGoalCard from '@/app/components/shared/RatingGoalCard';
            <div className="space-y-3">
              <StatsSection stats={statsItems} variant="auto" />
            </div>
-           <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-4 border border-white/20 dark:border-gray-700/50 space-y-4">
-             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-               <div className="relative flex-1 max-w-md w-full">
-                 <input
-                   type="text"
-                   placeholder="Search goals..."
-                   value={search}
-                   onChange={(e) => {
-                     setSearch(e.target.value);
-                     setPage(1);
-                   }}
-                   className="w-full px-4 py-2 bg-gray-900/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all duration-200"
-                 />
-               </div>
-               <Filters
-                 selectedStatus={selectedStatus}
-                 onStatusChange={(value: string) => {
-                   setSelectedStatus(value);
-                   setPage(1);
-                 }}
-                 selectedPriority={selectedPriority}
-                 onPriorityChange={(value: string) => {
-                   setSelectedPriority(value);
-                   setPage(1);
-                 }}
-                 selectedCategory={selectedCategory}
-                 onCategoryChange={(value: string) => {
-                   setSelectedCategory(value);
-                   setPage(1);
-                 }}
-                 onClear={() => {
-                   setSelectedStatus('all');
-                   setSelectedPriority('');
-                   setSelectedCategory('all');
-                   setSearch('');
-                   setPage(1);
-                 }}
-               />
-             </div>
-           </div>
+           <PageToolbar
+             searchValue={search}
+             onSearchChange={(value) => {
+               setSearch(value);
+               setPage(1);
+             }}
+             searchPlaceholder="Search goals..."
+             hasActiveFilters={selectedStatus !== 'all' || selectedPriority !== '' || selectedCategory !== 'all'}
+             onClearFilters={() => {
+               setSelectedStatus('all');
+               setSelectedPriority('');
+               setSelectedCategory('all');
+               setSearch('');
+               setPage(1);
+             }}
+           >
+             <FilterSelect
+               value={selectedStatus === 'all' ? '' : selectedStatus}
+               onChange={(value) => {
+                 setSelectedStatus(value || 'all');
+                 setPage(1);
+               }}
+               options={[
+                 { value: 'DRAFT', label: 'Draft' },
+                 { value: 'PENDING', label: 'Pending' },
+                 { value: 'APPROVED', label: 'Approved' },
+                 { value: 'REJECTED', label: 'Rejected' },
+                 { value: 'COMPLETED', label: 'Completed' },
+               ]}
+               placeholder="All Status"
+             />
+             <FilterSelect
+               value={selectedPriority}
+               onChange={(value) => {
+                 setSelectedPriority(value);
+                 setPage(1);
+               }}
+               options={[
+                 { value: 'LOW', label: 'Low' },
+                 { value: 'MEDIUM', label: 'Medium' },
+                 { value: 'HIGH', label: 'High' },
+                 { value: 'CRITICAL', label: 'Critical' },
+               ]}
+               placeholder="All Priority"
+             />
+             <FilterSelect
+               value={selectedCategory === 'all' ? '' : selectedCategory}
+               onChange={(value) => {
+                 setSelectedCategory(value || 'all');
+                 setPage(1);
+               }}
+               options={[
+                 { value: 'PROFESSIONAL', label: 'Professional' },
+                 { value: 'TECHNICAL', label: 'Technical' },
+                 { value: 'LEADERSHIP', label: 'Leadership' },
+                 { value: 'PERSONAL', label: 'Personal' },
+                 { value: 'TRAINING', label: 'Training' },
+                 { value: 'KPI', label: 'KPI' },
+               ]}
+               placeholder="All Categories"
+             />
+           </PageToolbar>
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
              {filteredGoals.map(goal => (
                <RatingGoalCard

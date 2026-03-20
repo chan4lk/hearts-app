@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
-import Filters from '@/app/components/shared/Filters';
+import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 
 import { BsClipboardData, BsCheckCircle, BsPencil, BsXCircle } from 'react-icons/bs';
 import GoalsSection from './components/GoalsSection';
@@ -643,29 +643,54 @@ export default function EmployeeDashboard() {
               </motion.div>
             )}
           </AnimatePresence>
-             {/* Filters Section */}
+             {/* Toolbar + Filters */}
              <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <Filters
-              selectedStatus={selectedStatus}
-              onStatusChange={(status) => {
-                setSelectedStatus(status);
-                setPage(1); // Reset to first page on filter change
-              }}
-              selectedPriority={selectedPriority}
-              onPriorityChange={(priority) => {
-                setSelectedPriority(priority);
-                setPage(1); // Reset to first page on filter change
-              }}
-              onClear={() => {
+            <PageToolbar
+              searchValue={searchQuery}
+              onSearchChange={handleSearchChange}
+              searchPlaceholder="Search goals..."
+              hasActiveFilters={selectedStatus !== '' || selectedPriority !== ''}
+              onClearFilters={() => {
                 setSelectedStatus('');
                 setSelectedPriority('');
+                setSearchQuery('');
                 setPage(1);
               }}
-            />
+            >
+              <FilterSelect
+                value={selectedStatus}
+                onChange={(value) => {
+                  setSelectedStatus(value);
+                  setPage(1);
+                }}
+                options={[
+                  { value: 'DRAFT', label: 'Draft' },
+                  { value: 'PENDING', label: 'Pending' },
+                  { value: 'APPROVED', label: 'Approved' },
+                  { value: 'REJECTED', label: 'Rejected' },
+                  { value: 'COMPLETED', label: 'Completed' },
+                ]}
+                placeholder="All Status"
+              />
+              <FilterSelect
+                value={selectedPriority}
+                onChange={(value) => {
+                  setSelectedPriority(value);
+                  setPage(1);
+                }}
+                options={[
+                  { value: 'LOW', label: 'Low' },
+                  { value: 'MEDIUM', label: 'Medium' },
+                  { value: 'HIGH', label: 'High' },
+                  { value: 'CRITICAL', label: 'Critical' },
+                ]}
+                placeholder="All Priority"
+              />
+            </PageToolbar>
           </motion.div>
 
 

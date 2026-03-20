@@ -15,7 +15,7 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 import { GoalList } from './components/sections/GoalList';
-import Filters from '@/app/components/shared/Filters';
+import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 
 import { CreateGoalModal } from './components/modals/CreateGoalModal';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
@@ -57,6 +57,7 @@ function ManagerGoalSettingPageContent() {
   const [selectedEmployee, setSelectedEmployee] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedPriority, setSelectedPriority] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState<GoalFormData>({
     title: '',
     description: '',
@@ -487,31 +488,74 @@ function ManagerGoalSettingPageContent() {
           })()}
         </div>
 
-        {/* Filters */}
-        <Filters
-          selectedEmployee={selectedEmployee}
-          onEmployeeChange={(employee) => {
-            setSelectedEmployee(employee);
-            setPage(1); // Reset to first page on filter change
+        {/* Toolbar + Filters */}
+        <PageToolbar
+          searchValue={searchQuery}
+          onSearchChange={(value) => {
+            setSearchQuery(value);
+            setPage(1);
           }}
-          selectedStatus={selectedStatus}
-          onStatusChange={(status) => {
-            setSelectedStatus(status);
-            setPage(1); // Reset to first page on filter change
-          }}
-          selectedPriority={selectedPriority}
-          onPriorityChange={(priority) => {
-            setSelectedPriority(priority);
-            setPage(1); // Reset to first page on filter change
-          }}
-          assignedEmployees={assignedEmployees}
-          onClear={() => {
+          searchPlaceholder="Search goals..."
+          actions={[
+            {
+              label: 'Bulk Create',
+              onClick: () => setIsBulkCreateModalOpen(true),
+              variant: 'secondary',
+            },
+            {
+              label: 'Create Goal',
+              onClick: () => setIsCreateModalOpen(true),
+              variant: 'primary',
+            },
+          ]}
+          hasActiveFilters={selectedEmployee !== 'all' || selectedStatus !== '' || selectedPriority !== ''}
+          onClearFilters={() => {
             setSelectedEmployee('all');
             setSelectedStatus('');
             setSelectedPriority('');
+            setSearchQuery('');
             setPage(1);
           }}
-        />
+        >
+          <FilterSelect
+            value={selectedEmployee === 'all' ? '' : selectedEmployee}
+            onChange={(value) => {
+              setSelectedEmployee(value || 'all');
+              setPage(1);
+            }}
+            options={assignedEmployees.map(emp => ({ value: emp.id, label: emp.name }))}
+            placeholder="All Employees"
+          />
+          <FilterSelect
+            value={selectedStatus}
+            onChange={(value) => {
+              setSelectedStatus(value);
+              setPage(1);
+            }}
+            options={[
+              { value: 'DRAFT', label: 'Draft' },
+              { value: 'PENDING', label: 'Pending' },
+              { value: 'APPROVED', label: 'Approved' },
+              { value: 'REJECTED', label: 'Rejected' },
+              { value: 'COMPLETED', label: 'Completed' },
+            ]}
+            placeholder="All Status"
+          />
+          <FilterSelect
+            value={selectedPriority}
+            onChange={(value) => {
+              setSelectedPriority(value);
+              setPage(1);
+            }}
+            options={[
+              { value: 'LOW', label: 'Low' },
+              { value: 'MEDIUM', label: 'Medium' },
+              { value: 'HIGH', label: 'High' },
+              { value: 'CRITICAL', label: 'Critical' },
+            ]}
+            placeholder="All Priority"
+          />
+        </PageToolbar>
 
         {/* Goal Templates Section */}
 

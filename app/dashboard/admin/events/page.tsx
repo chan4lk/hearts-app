@@ -7,7 +7,7 @@ import { toast } from 'react-toastify';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 
-import Filters from '@/app/components/shared/Filters';
+import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 import { BsPlus, BsSearch, BsCalendarEvent, BsFilter, BsCheckCircle, BsClock, BsArrowCounterclockwise } from 'react-icons/bs';
 import { EventFormModal } from '@/app/components/events/EventFormModal';
 import { EventsTable } from '@/app/components/events/EventsTable';
@@ -173,19 +173,52 @@ function AdminEventsContent() {
         <div className="absolute inset-0 pointer-events-none bg-grid" />
         
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
-          {/* Create Event Button */}
-          <div className="flex-shrink-0 pb-3 flex justify-end">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                setEditingEvent(null);
-                setIsFormOpen(true);
+          {/* Toolbar */}
+          <div className="flex-shrink-0 pb-3">
+            <PageToolbar
+              searchValue={search}
+              onSearchChange={(value) => {
+                setSearch(value);
+                setPage(1);
               }}
-              className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 px-5 py-2.5 font-semibold text-white shadow-lg transition-all whitespace-nowrap"
+              searchPlaceholder="Search events..."
+              actions={[
+                {
+                  label: 'Create Event',
+                  onClick: () => {
+                    setEditingEvent(null);
+                    setIsFormOpen(true);
+                  },
+                  variant: 'primary',
+                },
+              ]}
+              hasActiveFilters={status !== '' || eventType !== ''}
+              onClearFilters={handleClearFilters}
             >
-              <BsPlus className="text-lg" /> Create Event
-            </motion.button>
+              <FilterSelect
+                value={status}
+                onChange={(value) => {
+                  setStatus(value);
+                  setPage(1);
+                }}
+                options={[
+                  { value: 'SCHEDULED', label: 'Scheduled' },
+                  { value: 'ONGOING', label: 'Ongoing' },
+                  { value: 'COMPLETED', label: 'Completed' },
+                  { value: 'CANCELLED', label: 'Cancelled' },
+                ]}
+                placeholder="All Statuses"
+              />
+              <FilterSelect
+                value={eventType}
+                onChange={(value) => {
+                  setEventType(value);
+                  setPage(1);
+                }}
+                options={eventTypes.map(type => ({ value: type, label: type.replace(/_/g, ' ') }))}
+                placeholder="All Event Types"
+              />
+            </PageToolbar>
           </div>
 
           {/* Stats Section - Fixed */}
@@ -223,71 +256,6 @@ function AdminEventsContent() {
               ];
               return <StatsSection stats={statItems} variant="auto" />;
             })()}
-          </div>
-
-          {/* Filters - Fixed */}
-          <div className="flex-shrink-0 pb-3">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="rounded-xl border-2 border-teal-500/20 bg-gradient-to-r from-teal-500/5 via-cyan-500/5 to-teal-500/5 p-4 backdrop-blur-xl"
-          >
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-              <div className="relative flex-1 max-w-md w-full">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                  <div className="p-1.5 rounded-md bg-gradient-to-r from-indigo-500 to-purple-600">
-                    <BsSearch className="w-3.5 h-3.5 text-white" />
-                  </div>
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search events..."
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setPage(1);
-                  }}
-                  className="w-full pl-10 pr-3 py-2.5 bg-gray-900/50 text-white rounded-lg border border-gray-700 hover:border-indigo-500/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder-gray-400 transition-all duration-200 text-sm font-medium"
-                />
-              </div>
-              <Filters
-                selectedStatus={status}
-                onStatusChange={(value: string) => {
-                  setStatus(value);
-                  setPage(1);
-                }}
-                statusOptions={[
-                  { value: '', label: 'All Statuses' },
-                  { value: 'SCHEDULED', label: 'Scheduled' },
-                  { value: 'ONGOING', label: 'Ongoing' },
-                  { value: 'COMPLETED', label: 'Completed' },
-                  { value: 'CANCELLED', label: 'Cancelled' }
-                ]}
-                filters={[
-                  {
-                    id: 'eventType',
-                    label: 'Event Type',
-                    value: eventType,
-                    onChange: (value: string) => {
-                      setEventType(value);
-                      setPage(1);
-                    },
-                    options: [
-                      { value: '', label: 'All Event Types' },
-                      ...eventTypes.map(type => ({ value: type, label: type.replace(/_/g, ' ') }))
-                    ],
-                    gradient: 'from-purple-500 to-pink-600'
-                  }
-                ]}
-                onClear={() => {
-                  setSearch('');
-                  setStatus('');
-                  setEventType('');
-                  setPage(1);
-                }}
-              />
-            </div>
-          </motion.div>
           </div>
 
           {/* Events Table - Scrollable Container */}

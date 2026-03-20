@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { BsSearch, BsPlus, BsX, BsCheckLg, BsArrowRight, BsCalendar, BsFilter } from 'react-icons/bs';
 import { toast } from 'react-toastify';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import Filters from '@/app/components/shared/Filters';
+import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 
 interface Event {
   id: string;
@@ -252,56 +252,32 @@ export default function BrowseEventsPage() {
             </div>
           </div>
 
-          {/* Filters */}
+          {/* Toolbar + Filters */}
           <div className="flex-shrink-0 pb-3">
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 border-2 border-gray-700/50">
-              <div className="flex gap-3 items-start justify-between">
-                {/* Search Input */}
-                <div className="relative flex-1 max-w-md w-full">
-                  <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none z-10">
-                    <div className="p-1.5 rounded-md bg-gradient-to-r from-blue-500 to-indigo-500">
-                      <BsSearch className="w-3 h-3 text-white" />
-                    </div>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Search events..."
-                    value={search}
-                    onChange={(e) => {
-                      setSearch(e.target.value);
-                      setPage(1);
-                    }}
-                    className="w-full pl-10 pr-3 py-2.5 bg-gray-900/50 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-opacity-50 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium placeholder-gray-400 transition-all duration-200 hover:border-opacity-70 hover:shadow-sm"
-                  />
-                </div>
-
-                {/* Shared Filters */}
-                <Filters
-                  filters={[
-                    {
-                      id: 'eventType',
-                      label: 'Event Type',
-                      value: eventType,
-                      onChange: (value: string) => {
-                        setEventType(value);
-                        setPage(1);
-                      },
-                      options: [
-                        { value: '', label: 'All Event Types' },
-                        ...eventTypes.map(type => ({ value: type, label: type.replace(/_/g, ' ') }))
-                      ],
-                      icon: <BsCalendar className="w-3 h-3 text-white" />,
-                      gradient: 'from-teal-500 to-cyan-600'
-                    }
-                  ]}
-                  onClear={() => {
-                    setSearch('');
-                    setEventType('');
-                    setPage(1);
-                  }}
-                />
-              </div>
-            </div>
+            <PageToolbar
+              searchValue={search}
+              onSearchChange={(value) => {
+                setSearch(value);
+                setPage(1);
+              }}
+              searchPlaceholder="Search events..."
+              hasActiveFilters={eventType !== ''}
+              onClearFilters={() => {
+                setSearch('');
+                setEventType('');
+                setPage(1);
+              }}
+            >
+              <FilterSelect
+                value={eventType}
+                onChange={(value) => {
+                  setEventType(value);
+                  setPage(1);
+                }}
+                options={eventTypes.map(type => ({ value: type, label: type.replace(/_/g, ' ') }))}
+                placeholder="All Event Types"
+              />
+            </PageToolbar>
           </div>
 
           {/* Events Grid - Scrollable Container */}

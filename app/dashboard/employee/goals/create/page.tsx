@@ -10,7 +10,7 @@ import GoalTemplates from '@/app/components/shared/GoalTemplates';
 
 import { GoalsList } from './components/GoalsList';
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
-import Filters from '@/app/components/shared/Filters';
+import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 
 import { BsClipboardData, BsCheckCircle, BsPencil, BsXCircle } from 'react-icons/bs';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
@@ -61,6 +61,7 @@ function GoalsPageContent() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Pagination state
   const [page, setPage] = useState(1);
@@ -446,21 +447,69 @@ function GoalsPageContent() {
             )}
           </AnimatePresence>
 
-          {/* Filters Section */}
+          {/* Toolbar + Filters */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
           >
-            <Filters
-              selectedStatus={selectedStatus}
-              onStatusChange={setSelectedStatus}
-              selectedCategory={selectedCategory}
-              onCategoryChange={setSelectedCategory}
-              selectedPriority={selectedPriority}
-              onPriorityChange={setSelectedPriority}
-              onClear={handleClearFilters}
-            />
+            <PageToolbar
+              searchValue={searchQuery}
+              onSearchChange={(value) => {
+                setSearchQuery(value);
+                setPage(1);
+              }}
+              searchPlaceholder="Search goals..."
+              actions={[
+                {
+                  label: 'Create Goal',
+                  onClick: () => setIsCreateModalOpen(true),
+                  variant: 'primary',
+                },
+              ]}
+              hasActiveFilters={selectedStatus !== 'all' || selectedCategory !== 'all' || selectedPriority !== ''}
+              onClearFilters={() => {
+                handleClearFilters();
+                setSearchQuery('');
+              }}
+            >
+              <FilterSelect
+                value={selectedStatus === 'all' ? '' : selectedStatus}
+                onChange={(value) => setSelectedStatus(value || 'all')}
+                options={[
+                  { value: 'DRAFT', label: 'Draft' },
+                  { value: 'PENDING', label: 'Pending' },
+                  { value: 'APPROVED', label: 'Approved' },
+                  { value: 'REJECTED', label: 'Rejected' },
+                  { value: 'COMPLETED', label: 'Completed' },
+                ]}
+                placeholder="All Status"
+              />
+              <FilterSelect
+                value={selectedCategory === 'all' ? '' : selectedCategory}
+                onChange={(value) => setSelectedCategory(value || 'all')}
+                options={[
+                  { value: 'PROFESSIONAL', label: 'Professional' },
+                  { value: 'TECHNICAL', label: 'Technical' },
+                  { value: 'LEADERSHIP', label: 'Leadership' },
+                  { value: 'PERSONAL', label: 'Personal' },
+                  { value: 'TRAINING', label: 'Training' },
+                  { value: 'KPI', label: 'KPI' },
+                ]}
+                placeholder="All Categories"
+              />
+              <FilterSelect
+                value={selectedPriority}
+                onChange={setSelectedPriority}
+                options={[
+                  { value: 'LOW', label: 'Low' },
+                  { value: 'MEDIUM', label: 'Medium' },
+                  { value: 'HIGH', label: 'High' },
+                  { value: 'CRITICAL', label: 'Critical' },
+                ]}
+                placeholder="All Priority"
+              />
+            </PageToolbar>
           </motion.div>
 
           {/* Goals List */}

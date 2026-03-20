@@ -8,7 +8,7 @@ import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import { GoalWithRatingExtended, EmployeeStats } from "@/app/components/shared/types";
 
 import StatsSection, { StatItem } from "@/app/components/shared/StatsSection";
-import Filters from "@/app/components/shared/Filters";
+import PageToolbar, { FilterSelect } from "@/app/components/shared/PageToolbar";
 
 import { BsClipboardData, BsCheckCircle, BsPercent, BsStarFill as BsStarIcon } from 'react-icons/bs';
 import GoalsTable from '@/app/components/shared/GoalsTable';
@@ -26,6 +26,7 @@ export default function RateEmployeesPage() {
   const [filterRating, setFilterRating] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedPriority, setSelectedPriority] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [employeeStats, setEmployeeStats] = useState<EmployeeStats[]>([]);
   const [selectedGoal, setSelectedGoal] = useState<GoalWithRatingExtended | null>(null);
   
@@ -460,59 +461,77 @@ export default function RateEmployeesPage() {
             })()}
           </div>
 
-          <Filters
-            selectedStatus={selectedStatus}
-            onStatusChange={(value) => {
-              setSelectedStatus(value);
+          <PageToolbar
+            searchValue={searchQuery}
+            onSearchChange={(value) => {
+              setSearchQuery(value);
               setPage(1);
             }}
-            selectedPriority={selectedPriority}
-            onPriorityChange={(value) => {
-              setSelectedPriority(value);
-              setPage(1);
-            }}
-            filters={[
-              {
-                id: 'employee',
-                label: 'Employee',
-                value: filterEmployee,
-                onChange: (value) => {
-                  setFilterEmployee(value);
-                  setPage(1);
-                },
-                options: [
-                  { value: 'all', label: 'All Employees' },
-                  ...employeeStats.map(emp => ({ value: emp.id, label: emp.name }))
-                ],
-                gradient: 'from-blue-500 to-indigo-500'
-              },
-              {
-                id: 'rating',
-                label: 'Rating',
-                value: filterRating,
-                onChange: (value) => {
-                  setFilterRating(value);
-                  setPage(1);
-                },
-                options: [
-                  { value: 'all', label: 'All Ratings' },
-                  { value: '1', label: '1' },
-                  { value: '2', label: '2' },
-                  { value: '3', label: '3' },
-                  { value: '4', label: '4' },
-                  { value: '5', label: '5' }
-                ],
-                gradient: 'from-amber-500 to-orange-500'
-              }
-            ]}
-            onClear={() => {
+            searchPlaceholder="Search goals..."
+            hasActiveFilters={filterEmployee !== 'all' || filterRating !== 'all' || selectedStatus !== '' || selectedPriority !== ''}
+            onClearFilters={() => {
               setFilterEmployee('all');
               setFilterRating('all');
               setSelectedStatus('');
               setSelectedPriority('');
+              setSearchQuery('');
               setPage(1);
             }}
-          />
+          >
+            <FilterSelect
+              value={filterEmployee === 'all' ? '' : filterEmployee}
+              onChange={(value) => {
+                setFilterEmployee(value || 'all');
+                setPage(1);
+              }}
+              options={employeeStats.map(emp => ({ value: emp.id, label: emp.name }))}
+              placeholder="All Employees"
+            />
+            <FilterSelect
+              value={filterRating === 'all' ? '' : filterRating}
+              onChange={(value) => {
+                setFilterRating(value || 'all');
+                setPage(1);
+              }}
+              options={[
+                { value: '1', label: '1 Star' },
+                { value: '2', label: '2 Stars' },
+                { value: '3', label: '3 Stars' },
+                { value: '4', label: '4 Stars' },
+                { value: '5', label: '5 Stars' },
+              ]}
+              placeholder="All Ratings"
+            />
+            <FilterSelect
+              value={selectedStatus}
+              onChange={(value) => {
+                setSelectedStatus(value);
+                setPage(1);
+              }}
+              options={[
+                { value: 'DRAFT', label: 'Draft' },
+                { value: 'PENDING', label: 'Pending' },
+                { value: 'APPROVED', label: 'Approved' },
+                { value: 'REJECTED', label: 'Rejected' },
+                { value: 'COMPLETED', label: 'Completed' },
+              ]}
+              placeholder="All Status"
+            />
+            <FilterSelect
+              value={selectedPriority}
+              onChange={(value) => {
+                setSelectedPriority(value);
+                setPage(1);
+              }}
+              options={[
+                { value: 'LOW', label: 'Low' },
+                { value: 'MEDIUM', label: 'Medium' },
+                { value: 'HIGH', label: 'High' },
+                { value: 'CRITICAL', label: 'Critical' },
+              ]}
+              placeholder="All Priority"
+            />
+          </PageToolbar>
 
           {/* Goals Table */}
           <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl border border-white/20 dark:border-gray-700/50 overflow-hidden shadow-lg">

@@ -12,6 +12,7 @@ import ReviewCycleTable from './components/ReviewCycleTable';
 import ReviewCycleForm from './components/ReviewCycleForm';
 import ImportExcelModal from './components/ImportExcelModal';
 import { Pagination } from '@/app/components/shared/Pagination';
+import PageToolbar from '@/app/components/shared/PageToolbar';
 import { BsArrowLeft, BsPerson, BsCheckCircle, BsClock, BsClipboardPlus } from 'react-icons/bs';
 import Link from 'next/link';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
@@ -61,7 +62,8 @@ export default function ReviewCyclesPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [cycleToDelete, setCycleToDelete] = useState<ReviewCycle | null>(null);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  
+  const [searchQuery, setSearchQuery] = useState('');
+
   // Pagination state
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
@@ -211,6 +213,30 @@ export default function ReviewCyclesPage() {
         <div className="absolute inset-0 pointer-events-none bg-grid" />
         
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
+          {/* Toolbar */}
+          <div className="flex-shrink-0 pb-3">
+            <PageToolbar
+              searchValue={searchQuery}
+              onSearchChange={setSearchQuery}
+              searchPlaceholder="Search review cycles..."
+              actions={[
+                {
+                  label: 'Import Excel',
+                  onClick: () => setIsImportModalOpen(true),
+                  variant: 'export',
+                },
+                {
+                  label: 'Create Cycle',
+                  onClick: () => {
+                    setEditingCycle(null);
+                    setIsFormOpen(true);
+                  },
+                  variant: 'primary',
+                },
+              ]}
+            />
+          </div>
+
           {/* Stats Section */}
           <div className="flex-shrink-0 pb-3">
             {(() => {

@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import UserTable from './components/UserTable';
 
-import Filters from '@/app/components/shared/Filters';
+import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 
 import { BsPeople, BsGraphUp, BsShieldExclamation } from 'react-icons/bs';
@@ -396,57 +396,38 @@ function UsersPageContent() {
             })()}
           </div>
 
-          {/* Filters - Using shared Filters component with search */}
+          {/* Toolbar + Filters */}
           <div className="flex-shrink-0 pb-3">
-            <div className="bg-gradient-to-br from-gray-800/60 to-gray-900/60 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 shadow-xl">
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                {/* Search Input */}
-                <div className="relative flex-1 max-w-md w-full">
-                  <input
-                    type="text"
-                    placeholder="Search users by name or email..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-900/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all duration-200"
-                  />
-                </div>
-                
-                {/* Shared Filters Component */}
-                <Filters
-                  selectedStatus={filters.status}
-                  onStatusChange={(value) => setFilters((prev: UserFilters) => ({ ...prev, status: value }))}
-                  statusOptions={[
-                    { value: '', label: 'All Status' },
-                    { value: 'ACTIVE', label: 'Active' },
-                    { value: 'INACTIVE', label: 'Inactive' }
-                  ]}
-                  selectedUser={''}
-                  onUserChange={() => {}}
-                  selectedDepartment={''}
-                  onDepartmentChange={() => {}}
-                  userRole={session?.user?.role as Role}
-                  onClear={() => {
-                    setFilters({ role: '', status: '', manager: '' });
-                    setSearchTerm('');
-                  }}
-                  filters={[
-                    {
-                      id: 'role',
-                      label: 'Role',
-                      value: filters.role,
-                      onChange: (value) => setFilters((prev: UserFilters) => ({ ...prev, role: value })),
-                      options: [
-                        { value: '', label: 'All Roles' },
-                        { value: 'EMPLOYEE', label: 'Employee' },
-                        { value: 'MANAGER', label: 'Manager' },
-                        { value: 'ADMIN', label: 'Admin' }
-                      ],
-                      gradient: 'from-purple-500 to-pink-500'
-                    }
-                  ]}
-                />
-              </div>
-            </div>
+            <PageToolbar
+              searchValue={searchTerm}
+              onSearchChange={setSearchTerm}
+              searchPlaceholder="Search users by name or email..."
+              hasActiveFilters={filters.role !== '' || filters.status !== ''}
+              onClearFilters={() => {
+                setFilters({ role: '', status: '', manager: '' });
+                setSearchTerm('');
+              }}
+            >
+              <FilterSelect
+                value={filters.role}
+                onChange={(value) => setFilters((prev: UserFilters) => ({ ...prev, role: value }))}
+                options={[
+                  { value: 'EMPLOYEE', label: 'Employee' },
+                  { value: 'MANAGER', label: 'Manager' },
+                  { value: 'ADMIN', label: 'Admin' },
+                ]}
+                placeholder="All Roles"
+              />
+              <FilterSelect
+                value={filters.status}
+                onChange={(value) => setFilters((prev: UserFilters) => ({ ...prev, status: value }))}
+                options={[
+                  { value: 'ACTIVE', label: 'Active' },
+                  { value: 'INACTIVE', label: 'Inactive' },
+                ]}
+                placeholder="All Status"
+              />
+            </PageToolbar>
           </div>
 
           {/* User Table - Scrollable Container */}

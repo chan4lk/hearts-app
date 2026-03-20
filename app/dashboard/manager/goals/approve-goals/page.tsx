@@ -8,7 +8,7 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { Goal, GoalWithRatingExtended, EmployeeStats } from '@/app/components/shared/types';
 
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
-import Filters from '@/app/components/shared/Filters';
+import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 
 import { BsClipboardData, BsCheckCircle, BsXCircle, BsPencil } from 'react-icons/bs';
 import GoalsTable from '@/app/components/shared/GoalsTable';
@@ -29,6 +29,7 @@ export default function ApproveGoalsPage() {
   const [selectedEmployee, setSelectedEmployee] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [selectedPriority, setSelectedPriority] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [employeeStats, setEmployeeStats] = useState<EmployeeStats[]>([]);
   
   // Pagination state
@@ -350,22 +351,48 @@ export default function ApproveGoalsPage() {
     <DashboardLayout type="manager">
       <div className="max-w-7xl mx-auto space-y-5">
           <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-4 border border-white/20 dark:border-gray-700/50 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Goal Approval Dashboard</h2>
-              <Filters
-                selectedStatus={selectedStatus}
-                onStatusChange={(status: string) => {
-                  setSelectedStatus(status);
-                  setPage(1); // Reset to first page on filter change
+            <PageToolbar
+              searchValue={searchQuery}
+              onSearchChange={(value) => {
+                setSearchQuery(value);
+                setPage(1);
+              }}
+              searchPlaceholder="Search goals..."
+              hasActiveFilters={selectedStatus !== '' || selectedPriority !== ''}
+              onClearFilters={() => {
+                handleClearFilters();
+                setSearchQuery('');
+              }}
+            >
+              <FilterSelect
+                value={selectedStatus}
+                onChange={(value) => {
+                  setSelectedStatus(value);
+                  setPage(1);
                 }}
-                selectedPriority={selectedPriority}
-                onPriorityChange={(priority: string) => {
-                  setSelectedPriority(priority);
-                  setPage(1); // Reset to first page on filter change
-                }}
-                onClear={handleClearFilters}
+                options={[
+                  { value: 'DRAFT', label: 'Draft' },
+                  { value: 'PENDING', label: 'Pending' },
+                  { value: 'APPROVED', label: 'Approved' },
+                  { value: 'REJECTED', label: 'Rejected' },
+                ]}
+                placeholder="All Status"
               />
-            </div>
+              <FilterSelect
+                value={selectedPriority}
+                onChange={(value) => {
+                  setSelectedPriority(value);
+                  setPage(1);
+                }}
+                options={[
+                  { value: 'LOW', label: 'Low' },
+                  { value: 'MEDIUM', label: 'Medium' },
+                  { value: 'HIGH', label: 'High' },
+                  { value: 'CRITICAL', label: 'Critical' },
+                ]}
+                placeholder="All Priority"
+              />
+            </PageToolbar>
 
             {(() => {
               const pendingCount = goals.filter(g => g.status === 'PENDING' || g.status === 'DRAFT').length;

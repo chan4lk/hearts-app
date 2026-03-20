@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { EventParticipationCard } from '@/app/components/events/EventParticipationCard';
 import { FeedbackModal } from '@/app/components/events/FeedbackModal';
-import Filters from '@/app/components/shared/Filters';
+import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 
 interface Participation {
   id: string;
@@ -28,6 +28,7 @@ function EmployeeEventsContent() {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
   const [status, setStatus] = useState(searchParams.get('status') || '');
+  const [searchQuery, setSearchQuery] = useState('');
   const [pagination, setPagination] = useState({ total: 0, pages: 0 });
 
   const fetchParticipations = async () => {
@@ -249,28 +250,37 @@ function EmployeeEventsContent() {
             </div>
           </div>
 
-          {/* Filters - Fixed */}
+          {/* Toolbar + Filters */}
           <div className="flex-shrink-0 pb-3">
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 border-2 border-gray-700/50">
-              <Filters
-                selectedStatus={status}
-                onStatusChange={(value: string) => {
+            <PageToolbar
+              searchValue={searchQuery}
+              onSearchChange={(value) => {
+                setSearchQuery(value);
+                setPage(1);
+              }}
+              searchPlaceholder="Search events..."
+              hasActiveFilters={status !== ''}
+              onClearFilters={() => {
+                setStatus('');
+                setSearchQuery('');
+                setPage(1);
+              }}
+            >
+              <FilterSelect
+                value={status}
+                onChange={(value) => {
                   setStatus(value);
                   setPage(1);
                 }}
-                statusOptions={[
-                  { value: '', label: 'All Participation Status' },
+                options={[
                   { value: 'REGISTERED', label: 'Registered' },
                   { value: 'ATTENDED', label: 'Attended' },
                   { value: 'NO_SHOW', label: 'No Show' },
-                  { value: 'CANCELLED', label: 'Cancelled' }
+                  { value: 'CANCELLED', label: 'Cancelled' },
                 ]}
-                onClear={() => {
-                  setStatus('');
-                  setPage(1);
-                }}
+                placeholder="All Participation Status"
               />
-            </div>
+            </PageToolbar>
           </div>
 
           {/* Events Content - Scrollable Container */}
