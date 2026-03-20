@@ -10,68 +10,68 @@
 :root {
   color-scheme: light;
 
-  /* Surfaces */
-  --color-bg-primary: 250 250 252;       /* #FAFAFC warm off-white */
-  --color-bg-secondary: 243 244 246;     /* #F3F4F6 */
-  --color-bg-tertiary: 255 255 255;      /* #FFFFFF cards */
+  /* Surfaces — high contrast: white cards on light gray bg */
+  --color-bg-primary: 245 246 250;       /* #F5F6FA page bg */
+  --color-bg-secondary: 237 239 245;     /* #EDEEF5 inputs, table headers */
+  --color-bg-tertiary: 230 232 240;      /* #E6E8F0 hover states */
   --color-bg-sidebar: 255 255 255;       /* #FFFFFF */
   --color-bg-header: 255 255 255;        /* #FFFFFF */
-  --color-bg-elevated: 255 255 255;      /* cards, modals */
+  --color-bg-elevated: 255 255 255;      /* cards, modals — white */
 
-  /* Text */
-  --color-text-primary: 17 24 39;        /* #111827 */
-  --color-text-secondary: 107 114 128;   /* #6B7280 */
-  --color-text-tertiary: 156 163 175;    /* #9CA3AF */
+  /* Text — strong contrast */
+  --color-text-primary: 15 23 42;        /* #0F172A slate-900 */
+  --color-text-secondary: 71 85 105;     /* #475569 slate-600 */
+  --color-text-tertiary: 148 163 184;    /* #94A3B8 slate-400 */
   --color-text-inverse: 255 255 255;
 
-  /* Borders */
-  --color-border-primary: 229 231 235;   /* #E5E7EB */
-  --color-border-secondary: 243 244 246; /* #F3F4F6 */
+  /* Borders — visible but subtle */
+  --color-border-primary: 214 218 228;   /* #D6DAE4 */
+  --color-border-secondary: 229 231 235; /* #E5E7EB */
   --color-border-focus: 99 102 241;      /* indigo-500 */
 
   /* Accent — Indigo */
-  --color-accent: 99 102 241;            /* #6366F1 */
-  --color-accent-hover: 79 70 229;       /* #4F46E5 */
+  --color-accent: 79 70 229;             /* #4F46E5 indigo-600 */
+  --color-accent-hover: 67 56 202;       /* #4338CA indigo-700 */
   --color-accent-muted: 238 242 255;     /* indigo-50 */
 
   /* Status */
-  --color-success: 16 185 129;
-  --color-warning: 245 158 11;
-  --color-error: 239 68 68;
+  --color-success: 5 150 105;            /* emerald-600 */
+  --color-warning: 217 119 6;            /* amber-600 */
+  --color-error: 220 38 38;              /* red-600 */
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
-  --shadow-xl: 0 20px 50px -12px rgba(0, 0, 0, 0.12);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 50px -12px rgba(0, 0, 0, 0.15);
 
   /* Grid overlay */
-  --grid-color: rgba(99, 102, 241, 0.06);
-  --grid-opacity: 0.4;
+  --grid-color: rgba(99, 102, 241, 0.04);
+  --grid-opacity: 0.3;
 }
 
 /* ─── Dark Theme ─────────────────────────────────────────────────── */
 .dark {
   color-scheme: dark;
 
-  /* Surfaces */
-  --color-bg-primary: 11 17 32;          /* #0B1120 */
-  --color-bg-secondary: 15 20 36;        /* #0F1424 */
-  --color-bg-tertiary: 20 27 45;         /* #141B2D */
-  --color-bg-sidebar: 13 20 36;          /* #0D1424 */
-  --color-bg-header: 13 20 36;           /* #0D1424 */
-  --color-bg-elevated: 22 28 48;         /* #161C30 */
+  /* Surfaces — warm dark with clear card separation */
+  --color-bg-primary: 15 18 28;          /* #0F121C page bg */
+  --color-bg-secondary: 22 26 38;        /* #161A26 inputs, table headers */
+  --color-bg-tertiary: 30 34 48;         /* #1E2230 hover states */
+  --color-bg-sidebar: 17 20 32;          /* #111420 */
+  --color-bg-header: 17 20 32;           /* #111420 */
+  --color-bg-elevated: 26 30 44;         /* #1A1E2C cards, modals */
 
-  /* Text */
-  --color-text-primary: 241 245 249;     /* #F1F5F9 */
-  --color-text-secondary: 148 163 184;   /* #94A3B8 */
-  --color-text-tertiary: 100 116 139;    /* #64748B */
-  --color-text-inverse: 17 24 39;
+  /* Text — bright and readable */
+  --color-text-primary: 237 242 247;     /* #EDF2F7 */
+  --color-text-secondary: 160 174 192;   /* #A0AEC0 */
+  --color-text-tertiary: 113 128 150;    /* #718096 */
+  --color-text-inverse: 15 23 42;
 
-  /* Borders */
-  --color-border-primary: 30 41 59;      /* #1E293B */
-  --color-border-secondary: 51 65 85;    /* #334155 */
-  --color-border-focus: 99 102 241;
+  /* Borders — visible on dark bg */
+  --color-border-primary: 45 52 68;      /* #2D3444 */
+  --color-border-secondary: 55 63 81;    /* #373F51 */
+  --color-border-focus: 129 140 248;     /* indigo-400 */
 
   /* Accent */
   --color-accent: 129 140 248;           /* indigo-400 */
@@ -84,14 +84,14 @@
   --color-error: 248 113 113;
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
-  --shadow-xl: 0 20px 50px -12px rgba(0, 0, 0, 0.6);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 50px -12px rgba(0, 0, 0, 0.7);
 
   /* Grid overlay */
-  --grid-color: rgba(99, 102, 241, 0.15);
-  --grid-opacity: 0.1;
+  --grid-color: rgba(129, 140, 248, 0.08);
+  --grid-opacity: 0.08;
 }
 
 /* ─── Base Styles ────────────────────────────────────────────────── */
