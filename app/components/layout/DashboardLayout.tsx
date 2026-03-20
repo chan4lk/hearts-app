@@ -244,15 +244,15 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
               />
             </Link>                  </div>
                   <div>
-                    <h1 className="text-lg font-bold text-white">
+                    <h1 className="text-lg font-bold text-primary">
                       {settings.systemName}
                     </h1>
-                    <p className="text-xs text-gray-400">{portalTitle}</p>
+                    <p className="text-xs text-tertiary">{portalTitle}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-gray-400 hover:text-white"
+                  className="text-secondary hover:text-primary"
                   aria-label="Close menu"
                 >
                   <BsX className="w-6 h-6" />
@@ -280,13 +280,13 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                         className={`group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden ${
                           isActive
                             ? 'bg-gradient-to-r from-purple-800 to-purple-900 text-white shadow-lg shadow-purple-900/30'
-                            : 'text-gray-400 hover:text-white'
+                            : 'text-secondary hover:text-primary'
                         }`}
                       >
                         <span className="flex items-center space-x-3 relative z-10 w-full">
                           {/* Animated background hover effect */}
                           {!isActive && (
-                            <div className="absolute inset-0 bg-gradient-to-r from-gray-800 to-gray-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg transform group-hover:scale-105" />
+                            <div className="absolute inset-0 bg-surface-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg transform group-hover:scale-105" />
                           )}
                           
                           {/* Active indicator with glow */}
@@ -302,7 +302,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                             <item.icon className={`text-xl ${
                               isActive 
                                 ? 'transform rotate-0 drop-shadow-[0_0_3px_rgba(167,139,250,0.5)]' 
-                                : 'group-hover:rotate-6 group-hover:text-purple-400'
+                                : 'group-hover:rotate-6 group-hover:text-accent'
                             } transition-all duration-300`} />
                           </span>
                           
@@ -310,7 +310,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                           <span className={`relative z-10 transform transition-all duration-300 group-hover:translate-x-1 ${
                             isActive 
                               ? 'font-medium drop-shadow-[0_0_2px_rgba(167,139,250,0.3)]' 
-                              : 'group-hover:text-purple-400'
+                              : 'group-hover:text-accent'
                           }`}>
                             {item.label}
                           </span>
@@ -329,7 +329,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                 })}
 
                 {/* Sign Out Button with enhanced hover effect */}
-                <div className="pt-6 mt-6 border-t border-gray-800">
+                <div className="pt-6 mt-6 border-t border-theme">
                   <button
                     onClick={handleSignOut}
                     className="group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 text-red-400 hover:text-red-500 w-full relative overflow-hidden"
@@ -371,10 +371,10 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
               />
             </Link>                   </div>
             <div>
-              <h1 className="text-lg font-bold text-white">
+              <h1 className="text-lg font-bold text-primary">
               AspireHub
               </h1>
-              <p className="text-xs text-gray-400">{portalTitle}</p>
+              <p className="text-xs text-tertiary">{portalTitle}</p>
             </div>
           </div>
           <nav className="space-y-1 flex-1">
@@ -399,14 +399,14 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                     className={`group flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-300 relative overflow-hidden cursor-pointer ${
                       isActive
                         ? 'bg-gradient-to-r from-purple-800 to-purple-900 text-white shadow-lg shadow-purple-900/30'
-                        : 'text-gray-400 hover:text-white'
+                        : 'text-secondary hover:text-primary'
                     }`}
                     style={{ pointerEvents: 'auto' }}
                   >
                     <span className="flex items-center space-x-3 relative z-10 w-full">
                       {/* Animated background hover effect */}
                       {!isActive && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-gray-800 to-gray-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg transform group-hover:scale-105" />
+                        <div className="absolute inset-0 bg-surface-secondary opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg transform group-hover:scale-105" />
                       )}
                       
                       {/* Active indicator with glow */}
@@ -422,7 +422,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                         <item.icon className={`text-xl ${
                           isActive 
                             ? 'transform rotate-0 drop-shadow-[0_0_3px_rgba(167,139,250,0.5)]' 
-                            : 'group-hover:rotate-6 group-hover:text-purple-400'
+                            : 'group-hover:rotate-6 group-hover:text-accent'
                         } transition-all duration-300`} />
                       </span>
                       
@@ -430,7 +430,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                       <span className={`relative z-10 transform transition-all duration-300 group-hover:translate-x-1 ${
                         isActive 
                           ? 'font-medium drop-shadow-[0_0_2px_rgba(167,139,250,0.3)]' 
-                          : 'group-hover:text-purple-400'
+                          : 'group-hover:text-accent'
                       }`}>
                         {item.label}
                       </span>
@@ -468,7 +468,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
             {/* Mobile menu button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-gray-400 hover:text-white md:hidden"
+              className="text-secondary hover:text-primary md:hidden"
               aria-label="Open menu"
             >
               <BsList className="w-6 h-6" />
@@ -486,10 +486,10 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
             </Link>       
               {/* System Name */}
               <div className="flex flex-col">
-                <h1 className="text-lg font-semibold text-gray-300">
+                <h1 className="text-lg font-semibold text-primary">
                 AspireHub
                 </h1>
-                <span className="text-xs text-gray-400"></span>
+                <span className="text-xs text-tertiary"></span>
               </div>
             </div>
           </div>
@@ -505,10 +505,10 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
             <div className="relative" ref={userMenuRef}>
               <button 
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center justify-center text-gray-400 hover:text-white focus:outline-none transition-all duration-300 hover:scale-105"
+                className="flex items-center justify-center text-secondary hover:text-primary focus:outline-none transition-all duration-300 hover:scale-105"
               >
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 via-fuchsia-500 to-indigo-500 p-[1.5px] transition-all duration-300 hover:from-fuchsia-500 hover:via-indigo-500 hover:to-violet-500">
-                  <div className="w-full h-full rounded-full bg-gray-900/90 dark:bg-gray-900 flex items-center justify-center backdrop-blur-xl">
+                  <div className="w-full h-full rounded-full bg-surface-primary flex items-center justify-center backdrop-blur-xl">
                     <svg className="w-4 h-4 text-white/90" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                       <path d="M6 21V19C6 17.9391 6.42143 16.9217 7.17157 16.1716C7.92172 15.4214 8.93913 15 10 15H14C15.0609 15 16.0783 15.4214 16.8284 16.1716C17.5786 16.9217 18 17.9391 18 19V21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -517,7 +517,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                   {/* Online indicator */}
                   <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2">
                     <span className="absolute inset-0 inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 ring-1 ring-gray-900 dark:ring-gray-900"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 ring-1 ring-[rgb(var(--color-bg-primary))]"></span>
                   </div>
                 </div>
               </button>
@@ -540,7 +540,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                     <div className="flex items-center space-x-3">
                       <div className="relative group">
                         <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 via-fuchsia-500 to-indigo-500 p-[1px] transition-all duration-300 group-hover:from-fuchsia-500 group-hover:via-indigo-500 group-hover:to-violet-500">
-                          <div className="w-full h-full rounded-lg bg-gray-900/90 dark:bg-gray-900 flex items-center justify-center backdrop-blur-xl">
+                          <div className="w-full h-full rounded-lg bg-surface-primary flex items-center justify-center backdrop-blur-xl">
                             <svg className="w-4 h-4 text-white/90" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                               <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                               <path d="M6 21V19C6 17.9391 6.42143 16.9217 7.17157 16.1716C7.92172 15.4214 8.93913 15 10 15H14C15.0609 15 16.0783 15.4214 16.8284 16.1716C17.5786 16.9217 18 17.9391 18 19V21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -548,7 +548,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                           </div>
                           <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3">
                             <span className="absolute inset-0 inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 ring-1 ring-white dark:ring-gray-900"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 ring-1 ring-[rgb(var(--color-bg-primary))]"></span>
                           </div>
                         </div>
                       </div>
@@ -686,7 +686,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
               exit={{ opacity: 0 }}
               className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50"
             >
-              <div className="flex items-center space-x-2 bg-gray-900/80 backdrop-blur-sm rounded-lg px-4 py-2">
+              <div className="flex items-center space-x-2 bg-surface-elevated/90 backdrop-blur-sm rounded-lg px-4 py-2">
                 <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
                 <span className="text-white text-sm font-medium">Loading...</span>
               </div>

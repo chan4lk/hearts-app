@@ -89,13 +89,13 @@ export const EventsTable = ({
           {events.map((event) => (
             <tr
               key={event.id}
-              className="border-b border-white/5 hover:bg-white/5 transition"
+              className="border-b border-theme hover:bg-surface-secondary transition"
             >
               <td className="px-4 py-3">
                 <div>
-                  <p className="font-medium text-white">{event.title}</p>
+                  <p className="font-medium text-primary">{event.title}</p>
                   {event.location && (
-                    <p className="flex items-center gap-1 text-xs text-white/60">
+                    <p className="flex items-center gap-1 text-xs text-secondary">
                       <BsGeoAlt /> {event.location}
                     </p>
                   )}
@@ -110,7 +110,7 @@ export const EventsTable = ({
                   {event.eventType.replace(/_/g, ' ')}
                 </span>
               </td>
-              <td className="px-4 py-3 text-sm text-white/70">
+              <td className="px-4 py-3 text-sm text-secondary">
                 <div className="flex items-center gap-1">
                   <BsCalendar className="text-teal-400" />
                   {new Date(event.startDate).toLocaleDateString()} -{' '}
@@ -119,7 +119,7 @@ export const EventsTable = ({
                   })}
                 </div>
               </td>
-              <td className="px-4 py-3 text-sm text-white/70">
+              <td className="px-4 py-3 text-sm text-secondary">
                 {event.participations?.length || 0}
                 {event.capacity ? `/${event.capacity}` : ''}
               </td>
@@ -164,7 +164,7 @@ export const EventsTable = ({
 
       {events.length === 0 && !isLoading && (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <p className="text-white/60">No events found</p>
+          <p className="text-secondary">No events found</p>
         </div>
       )}
     </div>

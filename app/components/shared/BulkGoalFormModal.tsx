@@ -8,8 +8,8 @@ import { Textarea } from '@/app/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { CATEGORIES, DEPARTMENTS, PRIORITIES, GOAL_TEMPLATES } from './constants';
 
-const selectContentClass = 'bg-[#1a1b1e] border border-gray-700 text-white z-[100] max-h-[min(14rem,45vh)]';
-const selectTriggerClass = 'bg-black/20 border border-gray-800/50 text-white text-xs h-9 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20';
+const selectContentClass = 'bg-surface-elevated border border-theme text-primary z-[100] max-h-[min(14rem,45vh)]';
+const selectTriggerClass = 'bg-black/20 border border-theme text-primary text-xs h-9 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20';
 const nativeSelectClass = selectTriggerClass;
 
 interface BulkGoalFormData extends Omit<GoalFormData, 'employeeId'> {
@@ -249,26 +249,26 @@ export function BulkGoalFormModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-1 sm:p-3 overflow-hidden">
+    <div className="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-1 sm:p-3 overflow-hidden">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-gradient-to-br from-[#1a1b1e] to-[#2a2b2e] rounded-lg sm:rounded-xl w-full max-w-4xl shadow-2xl border border-gray-800/50 max-h-[90vh] overflow-hidden"
+        className="modal-content rounded-lg sm:rounded-xl w-full max-w-4xl shadow-2xl border border-theme max-h-[90vh] overflow-hidden"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-3 py-2 border-b border-gray-800/50 bg-black/20">
+        <div className="flex items-center justify-between px-3 py-2 border-b border-theme bg-black/20">
           <div className="flex items-center gap-2">
             <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 p-1.5 rounded-lg">
               <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
             </div>
-            <h2 className="text-sm font-medium text-white">Create Multiple Goals</h2>
+            <h2 className="text-sm font-medium text-primary">Create Multiple Goals</h2>
           </div>
           <button
             onClick={handleClose}
-            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-white/70 hover:text-white"
+            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-secondary hover:text-primary"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -277,13 +277,13 @@ export function BulkGoalFormModal({
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 px-3 py-2 bg-black/10 border-b border-gray-800/30">
+        <div className="flex gap-1 px-3 py-2 bg-black/10 border-b border-theme">
           <button
             onClick={() => setActiveTab('manual')}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               activeTab === 'manual'
                 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                : 'text-white/70 hover:bg-white/10 hover:text-white'
+                : 'text-secondary hover:bg-white/10 hover:text-white'
             }`}
           >
             Manual Entry ({goals.length})
@@ -293,7 +293,7 @@ export function BulkGoalFormModal({
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               activeTab === 'templates'
                 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                : 'text-white/70 hover:bg-white/10 hover:text-white'
+                : 'text-secondary hover:bg-white/10 hover:text-white'
             }`}
           >
             Templates
@@ -305,21 +305,21 @@ export function BulkGoalFormModal({
           {activeTab === 'templates' ? (
             <div className="space-y-4">
               {/* Employee Selection for Templates */}
-              <div className="bg-black/10 rounded-lg p-3 border border-gray-800/30">
-                <h3 className="text-sm font-medium text-white mb-2">
+              <div className="bg-black/10 rounded-lg p-3 border border-theme">
+                <h3 className="text-sm font-medium text-primary mb-2">
                   Select Employees ({selectedEmployees.length} selected)
                 </h3>
                 {assignedEmployees.length === 0 ? (
-                  <p className="text-xs text-white/50">No employees available</p>
+                  <p className="text-xs text-tertiary">No employees available</p>
                 ) : (
                   <div className="grid grid-cols-2 gap-2">
                     {assignedEmployees.map(employee => (
-                      <label key={employee.id} className="flex items-center gap-2 text-xs text-white/70 hover:text-white cursor-pointer">
+                      <label key={employee.id} className="flex items-center gap-2 text-xs text-secondary hover:text-primary cursor-pointer">
                         <input
                           type="checkbox"
                           checked={selectedEmployees.includes(employee.id)}
                           onChange={() => handleEmployeeToggle(employee.id)}
-                          className="rounded border-gray-600 text-amber-500 focus:ring-amber-500/20"
+                          className="rounded border-theme text-amber-500 focus:ring-amber-500/20"
                         />
                         {employee.name}
                       </label>
@@ -336,10 +336,10 @@ export function BulkGoalFormModal({
                     type="button"
                     onClick={() => handleTemplateApply(template)}
                     disabled={selectedEmployees.length === 0}
-                    className="p-3 bg-black/20 border border-gray-800/50 rounded-lg text-left hover:bg-black/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-3 bg-black/20 border border-theme rounded-lg text-left hover:bg-black/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <div className="text-sm font-medium text-white">{template.title}</div>
-                    <div className="text-xs text-white/60">{template.category} • {template.subtitle}</div>
+                    <div className="text-sm font-medium text-primary">{template.title}</div>
+                    <div className="text-xs text-tertiary">{template.category} • {template.subtitle}</div>
                   </button>
                 ))}
               </div>
@@ -354,11 +354,11 @@ export function BulkGoalFormModal({
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="bg-black/20 rounded-lg p-3 border border-gray-800/50"
+                  className="bg-black/20 rounded-lg p-3 border border-theme"
                 >
                   {/* Goal Header */}
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-medium text-white">
+                    <h3 className="text-sm font-medium text-primary">
                       Goal #{index + 1}
                     </h3>
                     <div className="flex items-center gap-1">
@@ -392,19 +392,19 @@ export function BulkGoalFormModal({
                     {/* Title & Employee Row */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-[11px] font-medium text-white/70 mb-1">Goal Title *</label>
+                        <label className="block text-[11px] font-medium text-secondary mb-1">Goal Title *</label>
                         <Input
                           value={goal.title}
                           onChange={(e) => updateGoal(goal.id, 'title', e.target.value)}
                           placeholder="Enter goal title"
-                          className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20"
+                          className="bg-black/20 border-theme text-primary text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20"
                         />
                         {errors[goal.id]?.title && (
                           <div className="text-red-400 text-[10px] mt-1 font-semibold animate-pulse">{errors[goal.id].title}</div>
                         )}
                       </div>
                       <div>
-                        <label className="block text-[11px] font-medium text-white/70 mb-1">Employee *</label>
+                        <label className="block text-[11px] font-medium text-secondary mb-1">Employee *</label>
                         <Select
                           value={goal.employeeId}
                           onValueChange={(v) => updateGoal(goal.id, 'employeeId', v)}
@@ -415,7 +415,7 @@ export function BulkGoalFormModal({
                           </SelectTrigger>
                           <SelectContent className={selectContentClass}>
                             {assignedEmployees.map((emp) => (
-                              <SelectItem key={emp.id} value={emp.id} className="text-white focus:bg-white/10 focus:text-white">
+                              <SelectItem key={emp.id} value={emp.id} className="text-primary focus:bg-white/10 focus:text-primary">
                                 {emp.name}
                               </SelectItem>
                             ))}
@@ -430,7 +430,7 @@ export function BulkGoalFormModal({
                     {/* Category, Department, Priority - dark dropdown for clear view */}
                     <div className="grid grid-cols-3 gap-2">
                       <div>
-                        <label className="block text-[11px] font-medium text-white/70 mb-1">Category</label>
+                        <label className="block text-[11px] font-medium text-secondary mb-1">Category</label>
                         <Select
                           value={goal.category}
                           onValueChange={(v) => updateGoal(goal.id, 'category', v)}
@@ -441,7 +441,7 @@ export function BulkGoalFormModal({
                           </SelectTrigger>
                           <SelectContent className={selectContentClass}>
                             {CATEGORIES.map((c) => (
-                              <SelectItem key={c.value} value={c.value} className="text-white focus:bg-white/10 focus:text-white">
+                              <SelectItem key={c.value} value={c.value} className="text-primary focus:bg-white/10 focus:text-primary">
                                 {c.label}
                               </SelectItem>
                             ))}
@@ -449,7 +449,7 @@ export function BulkGoalFormModal({
                         </Select>
                       </div>
                       <div>
-                        <label className="block text-[11px] font-medium text-white/70 mb-1">Department</label>
+                        <label className="block text-[11px] font-medium text-secondary mb-1">Department</label>
                         <Select
                           value={goal.department}
                           onValueChange={(v) => updateGoal(goal.id, 'department', v)}
@@ -460,7 +460,7 @@ export function BulkGoalFormModal({
                           </SelectTrigger>
                           <SelectContent className={selectContentClass}>
                             {DEPARTMENTS.map((d) => (
-                              <SelectItem key={d.value} value={d.value} className="text-white focus:bg-white/10 focus:text-white">
+                              <SelectItem key={d.value} value={d.value} className="text-primary focus:bg-white/10 focus:text-primary">
                                 {d.label}
                               </SelectItem>
                             ))}
@@ -468,7 +468,7 @@ export function BulkGoalFormModal({
                         </Select>
                       </div>
                       <div>
-                        <label className="block text-[11px] font-medium text-white/70 mb-1">Priority</label>
+                        <label className="block text-[11px] font-medium text-secondary mb-1">Priority</label>
                         <Select
                           value={goal.priority}
                           onValueChange={(v) => updateGoal(goal.id, 'priority', v)}
@@ -479,7 +479,7 @@ export function BulkGoalFormModal({
                           </SelectTrigger>
                           <SelectContent className={selectContentClass}>
                             {PRIORITIES.map((p) => (
-                              <SelectItem key={p.value} value={p.value} className="text-white focus:bg-white/10 focus:text-white">
+                              <SelectItem key={p.value} value={p.value} className="text-primary focus:bg-white/10 focus:text-primary">
                                 {p.label}
                               </SelectItem>
                             ))}
@@ -491,21 +491,21 @@ export function BulkGoalFormModal({
                     {/* Due Date & Description Row */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <div>
-                        <label className="block text-[11px] font-medium text-white/70 mb-1">Due Date</label>
+                        <label className="block text-[11px] font-medium text-secondary mb-1">Due Date</label>
                         <Input
                           type="date"
                           value={goal.dueDate}
                           onChange={(e) => updateGoal(goal.id, 'dueDate', e.target.value)}
-                          className="bg-black/20 border-gray-800/50 text-white text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20"
+                          className="bg-black/20 border-theme text-primary text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20"
                         />
                       </div>
                       <div className="sm:col-span-2">
-                        <label className="block text-[11px] font-medium text-white/70 mb-1">Description</label>
+                        <label className="block text-[11px] font-medium text-secondary mb-1">Description</label>
                         <Textarea
                           value={goal.description}
                           onChange={(e) => updateGoal(goal.id, 'description', e.target.value)}
                           placeholder="Describe the goal..."
-                          className="bg-black/20 border-gray-800/50 text-white text-xs min-h-[28px] rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20 resize-none"
+                          className="bg-black/20 border-theme text-primary text-xs min-h-[28px] rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20 resize-none"
                         />
                       </div>
                     </div>
@@ -533,15 +533,15 @@ export function BulkGoalFormModal({
 
         {/* Footer */}
         {activeTab === 'manual' && (
-          <div className="bg-black/10 px-3 py-2 flex items-center justify-between border-t border-gray-800/30">
-            <div className="text-xs text-white/60">
+          <div className="bg-black/10 px-3 py-2 flex items-center justify-between border-t border-theme">
+            <div className="text-xs text-tertiary">
               {goals.length} goal(s) ready to create
             </div>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleClose}
-                className="px-3 py-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-xs"
+                className="px-3 py-1.5 text-secondary hover:text-primary hover:bg-white/10 rounded-lg transition-colors text-xs"
               >
                 Cancel
               </button>
@@ -568,14 +568,14 @@ export function BulkGoalFormModal({
         )}
 
         {activeTab === 'templates' && (
-          <div className="bg-black/10 px-3 py-2 flex items-center justify-between border-t border-gray-800/30">
-            <div className="text-xs text-white/60">
+          <div className="bg-black/10 px-3 py-2 flex items-center justify-between border-t border-theme">
+            <div className="text-xs text-tertiary">
               Use templates to quickly create goals for multiple employees
             </div>
             <button
               type="button"
               onClick={handleClose}
-              className="px-3 py-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors text-xs"
+              className="px-3 py-1.5 text-secondary hover:text-primary hover:bg-white/10 rounded-lg transition-colors text-xs"
             >
               Close
             </button>

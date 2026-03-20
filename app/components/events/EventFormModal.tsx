@@ -127,7 +127,7 @@ export const EventFormModal = ({
           onClick={onClose}
         >
           <motion.div
-            className="relative w-full max-w-2xl rounded-xl border border-teal-500/30 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 shadow-2xl shadow-teal-500/10 backdrop-blur-xl overflow-hidden"
+            className="relative w-full max-w-2xl rounded-xl border border-teal-500/30 bg-surface-elevated shadow-2xl shadow-teal-500/10 backdrop-blur-xl overflow-hidden"
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -139,7 +139,7 @@ export const EventFormModal = ({
                   <div className="p-2 bg-gradient-to-r from-teal-500 to-cyan-600 rounded-lg shadow-lg">
                     <BsCalendarEvent className="text-xl text-white" />
                   </div>
-                  <h2 className="text-xl font-bold text-white">
+                  <h2 className="text-xl font-bold text-primary">
                     {initialData ? 'Edit Event' : 'Create New Event'}
                   </h2>
                 </div>
@@ -147,7 +147,7 @@ export const EventFormModal = ({
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={onClose}
-                  className="p-2 hover:bg-white/10 rounded-lg transition-colors text-gray-400 hover:text-white"
+                  className="p-2 hover:bg-surface-secondary rounded-lg transition-colors text-secondary hover:text-primary"
                 >
                   <BsX className="text-xl" />
                 </motion.button>
@@ -156,7 +156,7 @@ export const EventFormModal = ({
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
               <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">
+                <label className="block text-sm font-medium text-secondary mb-2">
                   Event Name *
                 </label>
                 <input
@@ -165,13 +165,13 @@ export const EventFormModal = ({
                   value={formData.title}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white placeholder-gray-400 hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
+                  className="w-full rounded-lg border border-theme bg-surface-secondary px-4 py-2 text-primary placeholder-tertiary hover:border-teal-500/50 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
                   placeholder="e.g., Toastmasters Conference"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">
+                <label className="block text-sm font-medium text-secondary mb-2">
                   Category *
                 </label>
                 <select
@@ -179,7 +179,7 @@ export const EventFormModal = ({
                   value={formData.eventType}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
+                  className="w-full rounded-lg border border-theme bg-surface-secondary px-4 py-2 text-primary hover:border-teal-500/50 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
                 >
                   {EVENT_CATEGORIES_FORM.map((c) => (
                     <option key={c.value} value={c.value}>
@@ -191,7 +191,7 @@ export const EventFormModal = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-white/80 mb-2">
+                  <label className="block text-sm font-medium text-secondary mb-2">
                     Date *
                   </label>
                   <input
@@ -200,11 +200,11 @@ export const EventFormModal = ({
                     value={formData.date}
                     onChange={handleChange}
                     required
-                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
+                    className="w-full rounded-lg border border-theme bg-surface-secondary px-4 py-2 text-primary hover:border-teal-500/50 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/80 mb-2">
+                  <label className="block text-sm font-medium text-secondary mb-2">
                     Time *
                   </label>
                   <input
@@ -213,13 +213,13 @@ export const EventFormModal = ({
                     value={formData.time}
                     onChange={handleChange}
                     required
-                    className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
+                    className="w-full rounded-lg border border-theme bg-surface-secondary px-4 py-2 text-primary hover:border-teal-500/50 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white/80 mb-2">
+                <label className="block text-sm font-medium text-secondary mb-2">
                   Status *
                 </label>
                 <select
@@ -227,7 +227,7 @@ export const EventFormModal = ({
                   value={formData.status}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-lg border border-gray-600 bg-gray-900/50 px-4 py-2 text-white hover:border-gray-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
+                  className="w-full rounded-lg border border-theme bg-surface-secondary px-4 py-2 text-primary hover:border-teal-500/50 focus:border-teal-500 focus:ring-1 focus:ring-teal-500/20 focus:outline-none transition-colors"
                 >
                   {EVENT_STATUS_OPTIONS.map((s) => (
                     <option key={s.value} value={s.value}>
@@ -252,7 +252,7 @@ export const EventFormModal = ({
                   whileTap={{ scale: 0.98 }}
                   type="button"
                   onClick={onClose}
-                  className="flex-1 rounded-lg border border-white/20 py-2.5 font-semibold text-white hover:bg-white/10 transition-all"
+                  className="flex-1 rounded-lg border border-theme py-2.5 font-semibold text-primary hover:bg-surface-secondary transition-all"
                 >
                   Cancel
                 </motion.button>

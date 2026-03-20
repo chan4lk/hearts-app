@@ -151,7 +151,7 @@ export default function ManagerSelector({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={handleClose}
-          className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+          className="absolute inset-0 modal-overlay backdrop-blur-sm"
         />
 
         {/* Modal - Simple and Compact */}
@@ -160,33 +160,33 @@ export default function ManagerSelector({
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.96 }}
           onClick={(e) => e.stopPropagation()}
-          className="relative w-full max-w-md bg-gray-800 rounded-lg shadow-xl border border-gray-700/50 overflow-hidden flex flex-col"
+          className="relative w-full max-w-md bg-surface-elevated rounded-lg shadow-xl border border-theme overflow-hidden flex flex-col"
           style={{ maxHeight: 'calc(6 * 3.5rem + 8rem)' }} // Show ~6 items + header/search/footer
         >
           {/* Compact Header */}
-          <div className="px-4 py-3 border-b border-gray-700/50 flex items-center justify-between flex-shrink-0">
+          <div className="px-4 py-3 border-b border-theme flex items-center justify-between flex-shrink-0">
             <div>
-              <h3 className="text-base font-semibold text-white">Assign Manager</h3>
-              <p className="text-xs text-gray-400 mt-0.5">{userName}</p>
+              <h3 className="text-base font-semibold text-primary">Assign Manager</h3>
+              <p className="text-xs text-secondary mt-0.5">{userName}</p>
             </div>
             <button
               onClick={handleClose}
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded transition-colors"
+              className="p-1.5 text-secondary hover:text-primary hover:bg-surface-secondary rounded transition-colors"
             >
               <BsX className="w-4 h-4" />
             </button>
           </div>
 
           {/* Compact Search */}
-          <div className="px-4 py-2.5 border-b border-gray-700/50 flex-shrink-0">
+          <div className="px-4 py-2.5 border-b border-theme flex-shrink-0">
             <div className="relative">
-              <BsSearch className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <BsSearch className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
               <input
                 type="text"
                 placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-sm bg-gray-900/50 border border-gray-700/50 rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
+                className="w-full pl-9 pr-3 py-2 text-sm bg-surface-secondary border border-theme rounded-md text-primary placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
                 autoFocus
               />
             </div>
@@ -204,7 +204,7 @@ export default function ManagerSelector({
             {loading ? (
               <div className="py-12 text-center">
                 <div className="inline-block animate-spin rounded-full h-5 w-5 border-2 border-gray-600 border-t-indigo-500"></div>
-                <p className="mt-2 text-xs text-gray-400">Loading...</p>
+                <p className="mt-2 text-xs text-secondary">Loading...</p>
               </div>
             ) : (
               <div className="py-1">
@@ -212,13 +212,13 @@ export default function ManagerSelector({
                 <button
                   onClick={() => handleSelect(null)}
                   disabled={isLoading}
-                  className={`w-full px-4 py-2.5 text-left hover:bg-gray-700/30 transition-colors ${
+                  className={`w-full px-4 py-2.5 text-left hover:bg-surface-secondary transition-colors ${
                     !currentManager ? 'bg-indigo-500/10' : ''
                   } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <BsPerson className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    <span className="text-sm text-white">Unassigned</span>
+                    <BsPerson className="w-4 h-4 text-secondary flex-shrink-0" />
+                    <span className="text-sm text-primary">Unassigned</span>
                     {!currentManager && (
                       <BsCheck className="w-3.5 h-3.5 text-indigo-400 ml-auto flex-shrink-0" />
                     )}
@@ -228,7 +228,7 @@ export default function ManagerSelector({
                 {/* Managers - Compact List, Shows 6 by default */}
                 {filteredManagers.length === 0 ? (
                   <div className="py-8 text-center">
-                    <p className="text-sm text-gray-400">No managers found</p>
+                    <p className="text-sm text-secondary">No managers found</p>
                   </div>
                 ) : (
                   filteredManagers.map((manager) => {
@@ -240,7 +240,7 @@ export default function ManagerSelector({
                         key={manager.id}
                         onClick={() => handleSelect(manager.id)}
                         disabled={isLoading}
-                        className={`w-full px-4 py-2.5 text-left hover:bg-gray-700/30 transition-colors ${
+                        className={`w-full px-4 py-2.5 text-left hover:bg-surface-secondary transition-colors ${
                           isSelected ? 'bg-indigo-500/10' : ''
                         } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
@@ -252,7 +252,7 @@ export default function ManagerSelector({
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="text-sm text-white truncate">{manager.name}</span>
+                              <span className="text-sm text-primary truncate">{manager.name}</span>
                               <span className={`text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 ${
                                 isAdmin ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'
                               }`}>
@@ -262,7 +262,7 @@ export default function ManagerSelector({
                                 <BsCheck className="w-3.5 h-3.5 text-indigo-400 ml-auto flex-shrink-0" />
                               )}
                             </div>
-                            <p className="text-xs text-gray-400 truncate mt-0.5">{manager.email}</p>
+                            <p className="text-xs text-secondary truncate mt-0.5">{manager.email}</p>
                           </div>
                         </div>
                       </button>
@@ -275,8 +275,8 @@ export default function ManagerSelector({
 
           {/* Compact Footer */}
           {!loading && (
-            <div className="px-4 py-2 border-t border-gray-700/50 bg-gray-900/30 flex-shrink-0">
-              <p className="text-xs text-gray-500 text-center">
+            <div className="px-4 py-2 border-t border-theme bg-surface-secondary flex-shrink-0">
+              <p className="text-xs text-tertiary text-center">
                 {filteredManagers.length} available
               </p>
             </div>

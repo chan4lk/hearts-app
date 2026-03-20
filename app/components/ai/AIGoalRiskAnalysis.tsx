@@ -118,11 +118,11 @@ export default function AIGoalRiskAnalysis({ goalId, className = '' }: AIGoalRis
                 {getRiskIcon(analysis.riskLevel)}
               </div>
               <div className="flex-1">
-                <p className="text-gray-400 text-xs mb-1">RISK LEVEL</p>
-                <p className="text-2xl font-bold text-white capitalize">{analysis.riskLevel} Risk</p>
+                <p className="text-secondary text-xs mb-1">RISK LEVEL</p>
+                <p className="text-2xl font-bold text-primary capitalize">{analysis.riskLevel} Risk</p>
               </div>
               <div className="text-right">
-                <p className="text-gray-400 text-xs mb-1">COMPLETION PROBABILITY</p>
+                <p className="text-secondary text-xs mb-1">COMPLETION PROBABILITY</p>
                 <p className={`text-3xl font-bold ${getProbabilityColor(analysis.completionProbability)}`}>
                   {analysis.completionProbability}%
                 </p>
@@ -132,8 +132,8 @@ export default function AIGoalRiskAnalysis({ goalId, className = '' }: AIGoalRis
 
           {/* Risks */}
           {analysis.risks.length > 0 && (
-            <div className="bg-gray-800/50 rounded-lg p-5 border border-gray-700">
-              <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
+            <div className="bg-surface-secondary rounded-lg p-5 border border-theme">
+              <h4 className="text-primary font-semibold mb-3 flex items-center gap-2">
                 <BsExclamationTriangle className="w-4 h-4 text-amber-400" />
                 Identified Risks
               </h4>
@@ -141,7 +141,7 @@ export default function AIGoalRiskAnalysis({ goalId, className = '' }: AIGoalRis
                 {analysis.risks.map((risk, index) => (
                   <li key={index} className="flex items-start gap-3">
                     <span className="text-amber-400 mt-1">•</span>
-                    <span className="text-gray-300 text-sm">{risk}</span>
+                    <span className="text-secondary text-sm">{risk}</span>
                   </li>
                 ))}
               </ul>
@@ -151,7 +151,7 @@ export default function AIGoalRiskAnalysis({ goalId, className = '' }: AIGoalRis
           {/* Recommendations */}
           {analysis.recommendations.length > 0 && (
             <div className="bg-gradient-to-r from-purple-500/10 to-indigo-500/10 rounded-lg p-5 border border-purple-500/30">
-              <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
+              <h4 className="text-primary font-semibold mb-3 flex items-center gap-2">
                 <BsCheckCircle className="w-4 h-4 text-purple-400" />
                 Recommendations
               </h4>
@@ -159,7 +159,7 @@ export default function AIGoalRiskAnalysis({ goalId, className = '' }: AIGoalRis
                 {analysis.recommendations.map((rec, index) => (
                   <li key={index} className="flex items-start gap-3">
                     <span className="text-purple-400 mt-1">✓</span>
-                    <span className="text-gray-300 text-sm">{rec}</span>
+                    <span className="text-secondary text-sm">{rec}</span>
                   </li>
                 ))}
               </ul>
@@ -169,7 +169,7 @@ export default function AIGoalRiskAnalysis({ goalId, className = '' }: AIGoalRis
           {/* Close Button */}
           <button
             onClick={() => setShowAnalysis(false)}
-            className="w-full px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm"
+            className="w-full px-4 py-2 bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary rounded-lg transition-colors text-sm"
           >
             Close Analysis
           </button>

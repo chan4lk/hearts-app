@@ -34,7 +34,7 @@ interface GoalFormModalProps {
   onTemplateClick?: () => void;
 }
 
-const selectContentClass = 'bg-[#1a1b1e] border-gray-800/50 z-[100] max-h-[min(14rem,45vh)]';
+const selectContentClass = 'bg-surface-elevated border-theme z-[100] max-h-[min(14rem,45vh)]';
 
 export function GoalFormModal({
   isOpen,
@@ -62,20 +62,20 @@ export function GoalFormModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-3 overflow-hidden">
-      <div className="bg-gradient-to-br from-[#1a1b1e] to-[#2a2b2e] rounded-xl w-full max-w-md shadow-2xl border border-gray-800/50 flex flex-col max-h-[90vh] min-h-0">
+    <div className="fixed inset-0 modal-overlay z-[60] flex items-center justify-center p-3 overflow-hidden">
+      <div className="modal-content rounded-xl w-full max-w-md shadow-2xl border border-theme flex flex-col max-h-[90vh] min-h-0">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800/50 bg-black/20 shrink-0">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-theme bg-black/20 shrink-0">
           <div className="flex items-center gap-2">
             <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 p-1.5 rounded-lg">
               <BsListTask className="w-4 h-4 text-amber-400" />
             </div>
-            <h2 className="text-sm font-semibold text-white">{isEditMode ? 'Update Goal' : 'Create Goal'}</h2>
+            <h2 className="text-sm font-semibold text-primary">{isEditMode ? 'Update Goal' : 'Create Goal'}</h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-lg text-tertiary hover:text-primary hover:bg-white/10 transition-colors"
             aria-label="Close"
           >
             <BsX className="h-5 w-5" />
@@ -84,20 +84,20 @@ export function GoalFormModal({
 
         <form onSubmit={onSubmit} className="flex flex-col min-h-0 flex-1 flex-nowrap">
           {/* FIXED SECTION: All dropdowns live here – no scroll, so dropdowns never get clipped */}
-          <div className="shrink-0 px-4 py-3 border-b border-gray-800/50 bg-black/10 space-y-3">
+          <div className="shrink-0 px-4 py-3 border-b border-theme bg-black/10 space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-white/80 mb-1">Category</label>
+                <label className="block text-xs font-medium text-secondary mb-1">Category</label>
                 <Select
                   value={formData.category}
                   onValueChange={(v) => onFormDataChange('category', v)}
                 >
-                  <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-9 rounded-lg">
+                  <SelectTrigger className="bg-black/20 border-theme text-primary text-xs h-9 rounded-lg">
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
                   <SelectContent className={selectContentClass}>
                     {CATEGORIES.map((c) => (
-                      <SelectItem key={c.value} value={c.value} className="text-white text-xs">
+                      <SelectItem key={c.value} value={c.value} className="text-primary text-xs">
                         <span className="flex items-center gap-2">
                           {React.createElement(c.icon, { className: c.iconColor })}
                           {c.label}
@@ -109,17 +109,17 @@ export function GoalFormModal({
                 {errors.category && <p className="text-red-400 text-[10px] mt-0.5">{errors.category}</p>}
               </div>
               <div>
-                <label className="block text-xs font-medium text-white/80 mb-1">Department</label>
+                <label className="block text-xs font-medium text-secondary mb-1">Department</label>
                 <Select
                   value={formData.department}
                   onValueChange={(v) => onFormDataChange('department', v)}
                 >
-                  <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-9 rounded-lg">
+                  <SelectTrigger className="bg-black/20 border-theme text-primary text-xs h-9 rounded-lg">
                     <SelectValue placeholder="Department" />
                   </SelectTrigger>
                   <SelectContent className={selectContentClass}>
                     {DEPARTMENTS.map((d) => (
-                      <SelectItem key={d.value} value={d.value} className="text-white text-xs">
+                      <SelectItem key={d.value} value={d.value} className="text-primary text-xs">
                         <span className="flex items-center gap-2">
                           {React.createElement(d.icon, { className: d.iconColor })}
                           {d.label}
@@ -133,17 +133,17 @@ export function GoalFormModal({
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-white/80 mb-1">Priority</label>
+                <label className="block text-xs font-medium text-secondary mb-1">Priority</label>
                 <Select
                   value={formData.priority}
                   onValueChange={(v) => onFormDataChange('priority', v)}
                 >
-                  <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-9 rounded-lg">
+                  <SelectTrigger className="bg-black/20 border-theme text-primary text-xs h-9 rounded-lg">
                     <SelectValue placeholder="Priority" />
                   </SelectTrigger>
                   <SelectContent className={selectContentClass}>
                     {PRIORITIES.map((p) => (
-                      <SelectItem key={p.value} value={p.value} className="text-white text-xs">
+                      <SelectItem key={p.value} value={p.value} className="text-primary text-xs">
                         <span className="flex items-center gap-2">
                           {React.createElement(p.icon, { className: p.iconColor })}
                           {p.label}
@@ -155,17 +155,17 @@ export function GoalFormModal({
                 {errors.priority && <p className="text-red-400 text-[10px] mt-0.5">{errors.priority}</p>}
               </div>
               <div>
-                <label className="block text-xs font-medium text-white/80 mb-1">Employee</label>
+                <label className="block text-xs font-medium text-secondary mb-1">Employee</label>
                 <Select
                   value={formData.employeeId}
                   onValueChange={(v) => onFormDataChange('employeeId', v)}
                 >
-                  <SelectTrigger className="bg-black/20 border-gray-800/50 text-white text-xs h-9 rounded-lg">
+                  <SelectTrigger className="bg-black/20 border-theme text-primary text-xs h-9 rounded-lg">
                     <SelectValue placeholder="Select employee" />
                   </SelectTrigger>
                   <SelectContent className={selectContentClass}>
                     {assignedEmployees.map((e) => (
-                      <SelectItem key={e.id} value={e.id} className="text-white text-xs">
+                      <SelectItem key={e.id} value={e.id} className="text-primary text-xs">
                         <span className="flex items-center gap-2">
                           <BsPeople className="h-3 w-3 text-amber-400/70" />
                           {e.name}
@@ -178,14 +178,14 @@ export function GoalFormModal({
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-white/80 mb-1">Due Date</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Due Date</label>
               <div className="relative">
                 <BsCalendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-amber-400/70 pointer-events-none" />
                 <Input
                   type="date"
                   value={formData.dueDate}
                   onChange={(e) => onFormDataChange('dueDate', e.target.value)}
-                  className="bg-black/20 border-gray-800/50 text-white text-xs h-9 rounded-lg pl-9"
+                  className="bg-black/20 border-theme text-primary text-xs h-9 rounded-lg pl-9"
                 />
               </div>
             </div>
@@ -194,22 +194,22 @@ export function GoalFormModal({
           {/* SCROLLABLE SECTION: Only title + description (no dropdowns here) */}
           <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 space-y-3">
             <div>
-              <label className="block text-xs font-medium text-white/80 mb-1">Goal Title</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Goal Title</label>
               <Input
                 value={formData.title}
                 onChange={(e) => onFormDataChange('title', e.target.value)}
                 placeholder="Enter goal title"
-                className="bg-black/20 border-gray-800/50 text-white text-xs h-9 rounded-lg"
+                className="bg-black/20 border-theme text-primary text-xs h-9 rounded-lg"
               />
               {errors.title && <p className="text-red-400 text-[10px] mt-0.5">{errors.title}</p>}
             </div>
             <div>
-              <label className="block text-xs font-medium text-white/80 mb-1">Description</label>
+              <label className="block text-xs font-medium text-secondary mb-1">Description</label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => onFormDataChange('description', e.target.value)}
                 placeholder="Describe the goal details..."
-                className="bg-black/20 border-gray-800/50 text-white text-xs min-h-[80px] rounded-lg resize-none"
+                className="bg-black/20 border-theme text-white text-xs min-h-[80px] rounded-lg resize-none"
               />
               <AIGoalSuggestions
                 category={formData.category}
@@ -223,12 +223,12 @@ export function GoalFormModal({
           </div>
 
           {/* Fixed footer */}
-          <div className="shrink-0 px-4 py-3 border-t border-gray-800/50 bg-black/10 flex flex-wrap gap-2">
+          <div className="shrink-0 px-4 py-3 border-t border-theme bg-black/10 flex flex-wrap gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={onReset}
-              className="bg-black/20 hover:bg-black/30 border-gray-800/50 text-white/80 text-xs h-9 rounded-lg"
+              className="bg-black/20 hover:bg-black/30 border-theme text-secondary text-xs h-9 rounded-lg"
             >
               <BsArrowCounterclockwise className="h-3.5 w-3.5 mr-1.5" />
               Reset
@@ -238,7 +238,7 @@ export function GoalFormModal({
                 type="button"
                 variant="outline"
                 onClick={onTemplateClick}
-                className="bg-black/20 hover:bg-black/30 border-gray-800/50 text-white/80 text-xs h-9 rounded-lg"
+                className="bg-black/20 hover:bg-black/30 border-theme text-secondary text-xs h-9 rounded-lg"
               >
                 <BsListTask className="h-3.5 w-3.5 mr-1.5" />
                 Templates
@@ -265,7 +265,7 @@ export function GoalFormModal({
               type="button"
               variant="outline"
               onClick={onClose}
-              className="bg-black/20 hover:bg-black/30 border-gray-800/50 text-white/80 text-xs h-9 rounded-lg"
+              className="bg-black/20 hover:bg-black/30 border-theme text-secondary text-xs h-9 rounded-lg"
             >
               Cancel
             </Button>

@@ -228,7 +228,7 @@ const getStatusBadge = (status: string, goal?: Goal | GoalWithRatingExtended, se
             <BsGear className="w-3 h-3 ml-auto opacity-50 rotate-90" />
           </div>
         </SelectTrigger>
-        <SelectContent className="bg-gray-800 border-gray-700 z-50" onClick={(e) => e.stopPropagation()}>
+        <SelectContent className="bg-surface-elevated border-theme z-50" onClick={(e) => e.stopPropagation()}>
           {availableStatuses.map((statusOption) => {
             const isCurrentStatus = statusOption.value === status;
             const optionConfig = configs[statusOption.value] || configs.PENDING;
@@ -236,7 +236,7 @@ const getStatusBadge = (status: string, goal?: Goal | GoalWithRatingExtended, se
               <SelectItem 
                 key={statusOption.value} 
                 value={statusOption.value}
-                className={`hover:bg-gray-700 cursor-pointer ${isCurrentStatus ? 'bg-gray-700/50 font-semibold' : ''}`}
+                className={`hover:bg-surface-secondary cursor-pointer ${isCurrentStatus ? 'bg-surface-secondary font-semibold' : ''}`}
               >
                 <div className="flex items-center gap-2">
                   {optionConfig.icon && <optionConfig.icon className="w-3.5 h-3.5" />}
@@ -305,7 +305,7 @@ const getPriorityBadge = (priority: string, goal?: Goal | GoalWithRatingExtended
             <BsGear className="w-3 h-3 ml-auto opacity-50 rotate-90" />
           </div>
         </SelectTrigger>
-        <SelectContent className="bg-gray-800 border-gray-700 z-50" onClick={(e) => e.stopPropagation()}>
+        <SelectContent className="bg-surface-elevated border-theme z-50" onClick={(e) => e.stopPropagation()}>
           {PRIORITY_OPTIONS.map((priorityOption) => {
             const isCurrentPriority = priorityOption.value === priority;
             const optionConfig = configs[priorityOption.value] || configs.MEDIUM;
@@ -313,7 +313,7 @@ const getPriorityBadge = (priority: string, goal?: Goal | GoalWithRatingExtended
               <SelectItem 
                 key={priorityOption.value} 
                 value={priorityOption.value}
-                className={`hover:bg-gray-700 cursor-pointer ${isCurrentPriority ? 'bg-gray-700/50 font-semibold' : ''}`}
+                className={`hover:bg-surface-secondary cursor-pointer ${isCurrentPriority ? 'bg-surface-secondary font-semibold' : ''}`}
               >
                 <div className="flex items-center gap-2">
                   <span className={`w-2 h-2 rounded-full ${optionConfig.bg.replace('/20', '')}`}></span>
@@ -1004,7 +1004,7 @@ export default function GoalsTable({
               <tr>
                 <td 
                   colSpan={5 + (showEmployee ? 1 : 0) + (showManager ? 1 : 0) + (showRating ? 1 : 0) + (showActions ? 1 : 0)} 
-                  className="py-12 text-center text-gray-400"
+                  className="py-12 text-center text-secondary"
                 >
                   <div className="flex flex-col items-center justify-center py-8">
                     <div className="relative mb-4">
@@ -1013,8 +1013,8 @@ export default function GoalsTable({
                         <BsBullseye className="w-8 h-8 text-indigo-400" />
                       </div>
                     </div>
-                    <p className="text-lg font-medium text-gray-300 mb-1">No goals found</p>
-                    <p className="text-sm text-gray-500">Try adjusting your filters to see more results</p>
+                    <p className="text-lg font-medium text-secondary mb-1">No goals found</p>
+                    <p className="text-sm text-tertiary">Try adjusting your filters to see more results</p>
                   </div>
                 </td>
               </tr>
@@ -1027,8 +1027,8 @@ export default function GoalsTable({
                 >
                   <td className="py-2.5 px-3 text-[11px]">
                     <div className="truncate">
-                      <div className="font-medium text-white truncate">{goal.title}</div>
-                      <div className="text-gray-400 truncate mt-0.5 text-[10px]">{goal.description}</div>
+                      <div className="font-medium text-primary truncate">{goal.title}</div>
+                      <div className="text-tertiary truncate mt-0.5 text-[10px]">{goal.description}</div>
                     </div>
                   </td>
                   <td className="py-2.5 px-3 text-[11px]">
@@ -1051,21 +1051,21 @@ export default function GoalsTable({
                             }
                           }}
                           disabled={updatingDueDate === goal.id}
-                          className="bg-gray-800/50 border border-white/10 text-white/90 text-[10px] px-2 py-1 pr-6 rounded-md hover:bg-gray-700/50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="bg-surface-secondary border border-white/10 text-primary text-[10px] px-2 py-1 pr-6 rounded-md hover:bg-surface-secondary/50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
                         />
-                        <BsCalendar className="absolute right-1.5 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none w-2.5 h-2.5" />
+                        <BsCalendar className="absolute right-1.5 top-1/2 transform -translate-y-1/2 text-secondary pointer-events-none w-2.5 h-2.5" />
                       </div>
                     ) : (
-                      <span className="text-gray-300 truncate">{new Date(goal.dueDate).toLocaleDateString()}</span>
+                      <span className="text-secondary truncate">{new Date(goal.dueDate).toLocaleDateString()}</span>
                     )}
                   </td>
                   {showEmployee && (
-                    <td className="py-2.5 px-3 text-[11px] text-gray-300 truncate">
+                    <td className="py-2.5 px-3 text-[11px] text-secondary truncate">
                       {goal.employee?.name || 'Unassigned'}
                     </td>
                   )}
                   {showManager && (
-                    <td className="py-2.5 px-3 text-[11px] text-gray-300 truncate">
+                    <td className="py-2.5 px-3 text-[11px] text-secondary truncate">
                       {(() => {
                         // Check if this is a self-created goal
                         // Self-created goals have no manager assigned
@@ -1082,7 +1082,7 @@ export default function GoalsTable({
                       })()}
                     </td>
                   )}
-                  <td className="py-2.5 px-3 text-[11px] text-gray-300 truncate">
+                  <td className="py-2.5 px-3 text-[11px] text-secondary truncate">
                     {goal.category}
                   </td>
                   {showRating && (() => {
@@ -1115,7 +1115,7 @@ export default function GoalsTable({
                           }}
                           disabled={submittingRating === goal.id}
                         >
-                          <SelectTrigger className="bg-gray-800/50 border border-white/10 text-white/90 text-xs px-3 py-1.5 h-auto hover:bg-gray-700/50 transition-colors cursor-pointer min-w-[120px]">
+                          <SelectTrigger className="bg-surface-secondary border border-white/10 text-primary text-xs px-3 py-1.5 h-auto hover:bg-surface-secondary/50 transition-colors cursor-pointer min-w-[120px]">
                             <div className="flex items-center gap-1.5">
                               {displayValue > 0 ? (
                                   <>
@@ -1125,18 +1125,18 @@ export default function GoalsTable({
                                   </>
                                 ) : (
                                   <>
-                                    <BsStar className="w-3 h-3 text-gray-400" />
+                                    <BsStar className="w-3 h-3 text-secondary" />
                                     <SelectValue>Not Rated</SelectValue>
                                   </>
                                 )}
                             </div>
                           </SelectTrigger>
-                          <SelectContent className="bg-gray-800 border-gray-700" onClick={(e) => e.stopPropagation()}>
+                          <SelectContent className="bg-surface-elevated border-theme" onClick={(e) => e.stopPropagation()}>
                             {RATING_OPTIONS.map(option => (
                               <SelectItem 
                                 key={option.value} 
                                 value={String(option.value)}
-                                className="text-white/90 hover:bg-gray-700 focus:bg-gray-700"
+                                className="text-primary hover:bg-surface-secondary focus:bg-surface-secondary"
                               >
                                 <div className="flex items-center gap-2">
                                   {option.value > 0 && <BsStarFill className="w-3 h-3 text-yellow-400" />}
@@ -1147,7 +1147,7 @@ export default function GoalsTable({
                           </SelectContent>
                         </Select>
                         ) : (
-                          <div className="flex items-center gap-1.5 text-xs text-gray-300">
+                          <div className="flex items-center gap-1.5 text-xs text-secondary">
                             {(() => {
                               const ratingValue = getRatingValue(goal, showRating);
                               return ratingValue > 0 ? (
@@ -1156,7 +1156,7 @@ export default function GoalsTable({
                                   <span>{getRatingDisplay(ratingValue)}</span>
                                 </>
                               ) : (
-                                <span className="text-gray-500">Not Rated</span>
+                                <span className="text-tertiary">Not Rated</span>
                               );
                             })()}
                           </div>
@@ -1206,7 +1206,7 @@ export default function GoalsTable({
       </div>
 
       {/* Summary */}
-      <div className="mt-4 pt-4 border-t border-white/10 text-sm text-gray-400 flex-shrink-0">
+      <div className="mt-4 pt-4 border-t border-theme text-sm text-secondary flex-shrink-0">
         Showing {filteredGoals.length} of {goals.length} goals
       </div>
     </div>

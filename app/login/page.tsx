@@ -40,7 +40,7 @@ function ConstellationBackground() {
   ], []);
 
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+    <div className="fixed inset-0 overflow-hidden pointer-events-none dark:block hidden" aria-hidden="true">
       {/* Deep space gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#050a18] via-[#0B1120] to-[#1E1B4B]" />
 
@@ -183,6 +183,8 @@ function LoginForm() {
 
   return (
     <main className="relative flex flex-col min-h-screen overflow-hidden">
+      {/* Light mode background */}
+      <div className="fixed inset-0 bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/30 dark:hidden" />
       <ConstellationBackground />
 
       <div className="relative flex-1 flex items-center justify-center px-4 py-12 sm:py-16">
@@ -239,16 +241,16 @@ function LoginForm() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
                   </span>
-                  <span className="text-indigo-300/80 text-[11px] font-semibold tracking-[0.15em] uppercase">
+                  <span className="text-accent text-[11px] font-semibold tracking-[0.15em] uppercase">
                     AspireHub Portal
                   </span>
                 </div>
 
                 <div className="space-y-2">
-                  <h1 className="text-[30px] sm:text-[34px] font-bold tracking-tight text-white leading-none">
+                  <h1 className="text-[30px] sm:text-[34px] font-bold tracking-tight text-primary leading-none">
                     Welcome back
                   </h1>
-                  <p className="text-[14px] text-slate-400/70 leading-relaxed max-w-[260px] mx-auto">
+                  <p className="text-[14px] text-secondary leading-relaxed max-w-[260px] mx-auto">
                     Sign in to track and elevate your performance journey
                   </p>
                 </div>
@@ -310,7 +312,7 @@ function LoginForm() {
 
               {/* ─── Footer info ─── */}
               <motion.div variants={itemVariants} className="text-center space-y-3 pt-1">
-                <p className="text-[12px] text-slate-500/60 leading-relaxed">
+                <p className="text-[12px] text-tertiary leading-relaxed">
                   Access your dashboard securely with your <br className="sm:hidden" />
                   organization&apos;s Microsoft account
                 </p>
@@ -319,7 +321,7 @@ function LoginForm() {
                     <svg className="w-3 h-3 text-emerald-500/60" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                     </svg>
-                    <span className="text-[10px] text-slate-500/50 font-medium tracking-wide">
+                    <span className="text-[10px] text-tertiary font-medium tracking-wide">
                       SSO Protected
                     </span>
                   </div>
@@ -328,7 +330,7 @@ function LoginForm() {
                     <svg className="w-3 h-3 text-indigo-400/50" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                     </svg>
-                    <span className="text-[10px] text-slate-500/50 font-medium tracking-wide">
+                    <span className="text-[10px] text-tertiary font-medium tracking-wide">
                       Enterprise Grade
                     </span>
                   </div>

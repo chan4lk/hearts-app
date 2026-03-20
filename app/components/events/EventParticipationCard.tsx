@@ -86,13 +86,13 @@ export const EventParticipationCard = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/2 p-5 backdrop-blur-xl hover:border-teal-500/50 transition"
+      className="rounded-xl border border-theme bg-surface-secondary p-5 backdrop-blur-xl hover:border-teal-500/50 transition"
     >
       <div className="mb-4 flex items-start justify-between">
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-white">{event.title}</h3>
+          <h3 className="text-lg font-semibold text-primary">{event.title}</h3>
           {event.location && (
-            <p className="flex items-center gap-1 text-sm text-white/60 mt-1">
+            <p className="flex items-center gap-1 text-sm text-secondary mt-1">
               <BsGeo /> {event.location}
             </p>
           )}
@@ -108,7 +108,7 @@ export const EventParticipationCard = ({
       </div>
 
       {/* Date and Time */}
-      <div className="mb-4 flex items-center gap-2 text-sm text-white/70">
+      <div className="mb-4 flex items-center gap-2 text-sm text-secondary">
         <BsCalendar className="text-teal-400" />
         <span>
           {new Date(event.startDate).toLocaleDateString()} at{' '}
@@ -120,14 +120,14 @@ export const EventParticipationCard = ({
       </div>
 
       {/* Event Description */}
-      <p className="mb-4 text-sm text-white/70 line-clamp-2">
+      <p className="mb-4 text-sm text-secondary line-clamp-2">
         {event.description}
       </p>
 
       {/* Toastmaster role selection */}
       {isToastmasters && onUpdateRole && (
         <div className="mb-4">
-          <label className="block text-xs text-white/60 mb-1">
+          <label className="block text-xs text-secondary mb-1">
             Toastmaster role
           </label>
           <select
@@ -139,7 +139,7 @@ export const EventParticipationCard = ({
               });
             }}
             disabled={isLoading}
-            className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm text-white focus:border-teal-500 focus:outline-none disabled:opacity-50"
+            className="w-full rounded-lg border border-theme bg-surface-secondary px-3 py-2 text-sm text-primary focus:border-teal-500 focus:outline-none disabled:opacity-50"
           >
             <option value="">Select role…</option>
             {TOASTMASTER_ROLES.map((role) => (
@@ -154,7 +154,7 @@ export const EventParticipationCard = ({
       {/* Hearts Talk – Participant or Facilitator */}
       {isHeartsTalk && onUpdateRole && (
         <div className="mb-4">
-          <label className="block text-xs text-white/60 mb-1">
+          <label className="block text-xs text-secondary mb-1">
             Hearts Talk – Participant or Facilitator
           </label>
           <select
@@ -166,7 +166,7 @@ export const EventParticipationCard = ({
               });
             }}
             disabled={isLoading}
-            className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm text-white focus:border-teal-500 focus:outline-none disabled:opacity-50"
+            className="w-full rounded-lg border border-theme bg-surface-secondary px-3 py-2 text-sm text-primary focus:border-teal-500 focus:outline-none disabled:opacity-50"
           >
             <option value="">Select…</option>
             {HEARTS_TALK_ROLES.map((r) => (
@@ -183,15 +183,15 @@ export const EventParticipationCard = ({
         <div className="mb-4 space-y-3">
           {hoursContributed && (
             <div className="rounded-lg bg-teal-500/10 border border-teal-500/20 p-3">
-              <p className="text-xs text-white/60 mb-1">Hours Contributed</p>
+              <p className="text-xs text-secondary mb-1">Hours Contributed</p>
               <p className="text-lg font-bold text-teal-300">{hoursContributed}h</p>
             </div>
           )}
 
           {feedback && (
             <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-3">
-              <p className="text-xs text-white/60 mb-1">Your Feedback</p>
-              <p className="text-sm text-white/80">{feedback}</p>
+              <p className="text-xs text-secondary mb-1">Your Feedback</p>
+              <p className="text-sm text-secondary">{feedback}</p>
             </div>
           )}
         </div>
@@ -224,11 +224,11 @@ export const EventParticipationCard = ({
             {feedback ? 'Edit Feedback' : 'Add Feedback'}
           </button>
         ) : !isPastEvent ? (
-          <div className="text-xs text-white/60 text-center w-full py-2">
+          <div className="text-xs text-secondary text-center w-full py-2">
             Event starts {formatDistanceToNow(new Date(event.startDate), { addSuffix: true })}
           </div>
         ) : (
-          <div className="text-xs text-white/60 text-center w-full py-2">
+          <div className="text-xs text-secondary text-center w-full py-2">
             Event completed
           </div>
         )}
@@ -236,8 +236,8 @@ export const EventParticipationCard = ({
 
       {/* Event Status Badge & Category */}
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs text-white/50">{categoryLabel}</span>
-        <span className="inline-flex px-2 py-1 rounded text-xs font-medium bg-white/10 text-white/70">
+        <span className="text-xs text-tertiary">{categoryLabel}</span>
+        <span className="inline-flex px-2 py-1 rounded text-xs font-medium bg-white/10 text-secondary">
           {event.status}
         </span>
       </div>

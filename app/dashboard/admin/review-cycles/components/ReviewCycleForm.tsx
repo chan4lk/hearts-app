@@ -368,13 +368,13 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
       >
         {/* Employee Selection - Searchable Dropdown */}
         <div ref={employeeRef} className="relative">
-          <label className="block text-sm font-semibold text-gray-200 mb-2" style={{ color: '#e5e7eb' }}>
+          <label className="block text-sm font-semibold text-secondary mb-2" style={{ color: '#e5e7eb' }}>
             <BsPerson className="inline w-4 h-4 mr-2" />
             Employee *
           </label>
           <div className="relative">
             <div className="relative">
-              <BsSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <BsSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
               <input
                 type="text"
                 value={employeeSearch}
@@ -394,22 +394,22 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                 }}
                 placeholder={loadingUsers ? "Loading employees..." : "Search employee by name or email..."}
                 disabled={loadingUsers && users.length === 0}
-                className={`w-full pl-10 pr-10 py-2 bg-gray-800 text-white rounded-lg border ${
-                  errors.userId ? 'border-red-500' : 'border-gray-700'
+                className={`w-full pl-10 pr-10 py-2 bg-surface-secondary text-primary rounded-lg border ${
+                  errors.userId ? 'border-red-500' : 'border-theme'
                 } focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-wait`}
               />
               <button
                 type="button"
                 onClick={() => setShowEmployeeDropdown(!showEmployeeDropdown)}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-secondary hover:text-primary"
               >
                 <BsChevronDown className={`w-4 h-4 transition-transform ${showEmployeeDropdown ? 'rotate-180' : ''}`} />
               </button>
             </div>
             {showEmployeeDropdown && (
-              <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute z-50 w-full mt-1 bg-surface-elevated border border-theme rounded-lg shadow-lg max-h-60 overflow-y-auto">
                 {loadingUsers ? (
-                  <div className="px-4 py-8 text-center text-gray-400 text-sm">
+                  <div className="px-4 py-8 text-center text-secondary text-sm">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-500 mx-auto mb-2"></div>
                     Loading employees...
                   </div>
@@ -418,14 +418,14 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                     <div
                       key={user.id}
                       onClick={() => handleEmployeeSelect(user.id)}
-                      className={`px-4 py-2 cursor-pointer hover:bg-gray-700 transition-colors ${
+                      className={`px-4 py-2 cursor-pointer hover:bg-surface-secondary transition-colors ${
                         formData.userId === user.id ? 'bg-indigo-900/50' : ''
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="text-white font-medium">{user.name}</div>
-                          <div className="text-gray-400 text-sm">{user.email}</div>
+                          <div className="text-primary font-medium">{user.name}</div>
+                          <div className="text-secondary text-sm">{user.email}</div>
                         </div>
                         {user.role && (
                           <span className="px-2 py-0.5 text-xs rounded bg-indigo-500/20 text-indigo-300">
@@ -436,7 +436,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                     </div>
                   ))
                 ) : (
-                  <div className="px-4 py-2 text-gray-400 text-sm">No employees found</div>
+                  <div className="px-4 py-2 text-secondary text-sm">No employees found</div>
                 )}
               </div>
             )}
@@ -448,13 +448,13 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
 
         {/* Reporting Person - Searchable Dropdown */}
         <div ref={reportingPersonRef} className="relative">
-          <label className="block text-sm font-semibold text-gray-200 mb-2" style={{ color: '#e5e7eb' }}>
+          <label className="block text-sm font-semibold text-secondary mb-2" style={{ color: '#e5e7eb' }}>
             <BsPerson className="inline w-4 h-4 mr-2" />
             Reporting Person
           </label>
           <div className="relative">
             <div className="relative">
-              <BsSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <BsSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
               <input
                 type="text"
                 value={reportingPersonSearch}
@@ -474,20 +474,20 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                 }}
                 placeholder={loadingEmployees ? "Loading reporting persons..." : "Search person by name or email..."}
                 disabled={loadingEmployees && employees.length === 0}
-                className="w-full pl-10 pr-10 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-wait"
+                className="w-full pl-10 pr-10 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-wait"
               />
               <button
                 type="button"
                 onClick={() => setShowReportingPersonDropdown(!showReportingPersonDropdown)}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-secondary hover:text-primary"
               >
                 <BsChevronDown className={`w-4 h-4 transition-transform ${showReportingPersonDropdown ? 'rotate-180' : ''}`} />
               </button>
             </div>
             {showReportingPersonDropdown && (
-              <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute z-50 w-full mt-1 bg-surface-elevated border border-theme rounded-lg shadow-lg max-h-60 overflow-y-auto">
                 {loadingEmployees ? (
-                  <div className="px-4 py-8 text-center text-gray-400 text-sm">
+                  <div className="px-4 py-8 text-center text-secondary text-sm">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-500 mx-auto mb-2"></div>
                     Loading reporting persons...
                   </div>
@@ -496,16 +496,16 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                     <div
                       key={emp.id}
                       onClick={() => handleReportingPersonSelect(emp.id)}
-                      className={`px-4 py-2 cursor-pointer hover:bg-gray-700 transition-colors ${
+                      className={`px-4 py-2 cursor-pointer hover:bg-surface-secondary transition-colors ${
                         formData.reportingPersonId === emp.id ? 'bg-indigo-900/50' : ''
                       }`}
                     >
-                      <div className="text-white font-medium">{emp.name}</div>
-                      <div className="text-gray-400 text-sm">{emp.email}</div>
+                      <div className="text-primary font-medium">{emp.name}</div>
+                      <div className="text-secondary text-sm">{emp.email}</div>
                     </div>
                   ))
                 ) : (
-                  <div className="px-4 py-2 text-gray-400 text-sm">No employees found</div>
+                  <div className="px-4 py-2 text-secondary text-sm">No employees found</div>
                 )}
               </div>
             )}
@@ -514,13 +514,13 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
 
         {/* Job Category - Searchable Dropdown */}
         <div ref={jobCategoryRef} className="relative">
-          <label className="block text-sm font-semibold text-gray-200 mb-2" style={{ color: '#e5e7eb' }}>
+          <label className="block text-sm font-semibold text-secondary mb-2" style={{ color: '#e5e7eb' }}>
             <BsBriefcase className="inline w-4 h-4 mr-2" />
             Job Category
           </label>
           <div className="relative">
             <div className="relative">
-              <BsSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <BsSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
               <input
                 type="text"
                 value={jobCategorySearch}
@@ -539,7 +539,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                   }
                 }}
                 placeholder="Search job category..."
-                className="w-full pl-10 pr-10 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full pl-10 pr-10 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
               <button
                 type="button"
@@ -552,13 +552,13 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                     setJobCategorySearch('');
                   }
                 }}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-secondary hover:text-primary"
               >
                 <BsChevronDown className={`w-4 h-4 transition-transform ${showJobCategoryDropdown ? 'rotate-180' : ''}`} />
               </button>
             </div>
             {showJobCategoryDropdown && (
-              <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute z-50 w-full mt-1 bg-surface-elevated border border-theme rounded-lg shadow-lg max-h-60 overflow-y-auto">
                 {filteredJobCategories.length > 0 ? (
                   filteredJobCategories.map((category) => (
                     <div
@@ -568,15 +568,15 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                         e.stopPropagation();
                         handleJobCategorySelect(category);
                       }}
-                      className={`px-4 py-2 cursor-pointer hover:bg-gray-700 transition-colors ${
+                      className={`px-4 py-2 cursor-pointer hover:bg-surface-secondary transition-colors ${
                         formData.jobCategory === category ? 'bg-indigo-900/50' : ''
                       }`}
                     >
-                      <div className="text-white font-medium">{category}</div>
+                      <div className="text-primary font-medium">{category}</div>
                     </div>
                   ))
                 ) : (
-                  <div className="px-4 py-2 text-gray-400 text-sm">No job categories found</div>
+                  <div className="px-4 py-2 text-secondary text-sm">No job categories found</div>
                 )}
               </div>
             )}
@@ -585,13 +585,13 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
 
         {/* Designation - Searchable Dropdown */}
         <div ref={designationRef} className="relative">
-          <label className="block text-sm font-semibold text-gray-200 mb-2" style={{ color: '#e5e7eb' }}>
+          <label className="block text-sm font-semibold text-secondary mb-2" style={{ color: '#e5e7eb' }}>
             <BsBriefcase className="inline w-4 h-4 mr-2" />
             Designation
           </label>
           <div className="relative">
             <div className="relative">
-              <BsSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <BsSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
               <input
                 type="text"
                 value={designationSearch}
@@ -610,7 +610,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                   }
                 }}
                 placeholder="Search designation..."
-                className="w-full pl-10 pr-10 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full pl-10 pr-10 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
               <button
                 type="button"
@@ -623,13 +623,13 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                     setDesignationSearch('');
                   }
                 }}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-secondary hover:text-primary"
               >
                 <BsChevronDown className={`w-4 h-4 transition-transform ${showDesignationDropdown ? 'rotate-180' : ''}`} />
               </button>
             </div>
             {showDesignationDropdown && (
-              <div className="absolute z-50 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute z-50 w-full mt-1 bg-surface-elevated border border-theme rounded-lg shadow-lg max-h-60 overflow-y-auto">
                 {filteredDesignations.length > 0 ? (
                   filteredDesignations.map((designation) => (
                     <div
@@ -639,15 +639,15 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                         e.stopPropagation();
                         handleDesignationSelect(designation);
                       }}
-                      className={`px-4 py-2 cursor-pointer hover:bg-gray-700 transition-colors ${
+                      className={`px-4 py-2 cursor-pointer hover:bg-surface-secondary transition-colors ${
                         formData.designation === designation ? 'bg-indigo-900/50' : ''
                       }`}
                     >
-                      <div className="text-white font-medium">{designation}</div>
+                      <div className="text-primary font-medium">{designation}</div>
                     </div>
                   ))
                 ) : (
-                  <div className="px-4 py-2 text-gray-400 text-sm">No designations found</div>
+                  <div className="px-4 py-2 text-secondary text-sm">No designations found</div>
                 )}
               </div>
             )}
@@ -656,7 +656,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
 
         {/* Date of Appointment */}
         <div>
-          <label className="block text-sm font-semibold text-gray-200 mb-2" style={{ color: '#e5e7eb' }}>
+          <label className="block text-sm font-semibold text-secondary mb-2" style={{ color: '#e5e7eb' }}>
             <BsCalendar className="inline w-4 h-4 mr-2" />
             Date of Appointment (Joined Date)
           </label>
@@ -664,10 +664,10 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
             type="date"
             value={formData.dateOfAppointment}
             onChange={(e) => handleChange('dateOfAppointment', e.target.value)}
-            className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           {formData.dateOfAppointment && (
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1 text-xs text-secondary">
               {new Date(formData.dateOfAppointment).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
@@ -679,13 +679,13 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
 
         {/* After 6 Months */}
         <div>
-          <label className="block text-sm font-semibold text-gray-200 mb-2" style={{ color: '#e5e7eb' }}>
+          <label className="block text-sm font-semibold text-secondary mb-2" style={{ color: '#e5e7eb' }}>
             After 6 Months
           </label>
           <select
             value={formData.after6Months}
             onChange={(e) => handleChange('after6Months', e.target.value)}
-            className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value="">Select Month</option>
             {MONTHS.map((month) => (
@@ -698,7 +698,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
 
         {/* Review Month */}
         <div>
-          <label className="block text-sm font-semibold text-gray-200 mb-2" style={{ color: '#e5e7eb' }}>
+          <label className="block text-sm font-semibold text-secondary mb-2" style={{ color: '#e5e7eb' }}>
             Review Month
             {calculatedReviewMonth && formData.reviewMonth === calculatedReviewMonth && (
               <span className="ml-2 text-xs text-indigo-400 font-normal"></span>
@@ -707,7 +707,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
           <select
             value={formData.reviewMonth}
             onChange={(e) => handleChange('reviewMonth', e.target.value)}
-            className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value="">Select Month</option>
             {MONTHS.map((month) => (
@@ -719,20 +719,20 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
           </select>
           {calculatedReviewMonth && formData.reviewMonth !== calculatedReviewMonth && (
             <p className="mt-1 text-xs text-amber-400">
-              ⚠️ Changed from calculated: <span className="line-through text-gray-400">{calculatedReviewMonth}</span>
+              ⚠️ Changed from calculated: <span className="line-through text-secondary">{calculatedReviewMonth}</span>
             </p>
           )}
         </div>
 
         {/* Adjusted Review Month */}
         <div>
-          <label className="block text-sm font-semibold text-gray-200 mb-2" style={{ color: '#e5e7eb' }}>
+          <label className="block text-sm font-semibold text-secondary mb-2" style={{ color: '#e5e7eb' }}>
             Adjusted Review Month
           </label>
           <select
             value={formData.adjustedReviewMonth}
             onChange={(e) => handleChange('adjustedReviewMonth', e.target.value)}
-            className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value="">Select Month</option>
             {MONTHS.map((month) => (
@@ -748,10 +748,10 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
             <div className="mt-2 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
               <div className="flex flex-wrap items-center gap-2 text-sm">
                 <span className="text-amber-400 font-medium">Original:</span>
-                <span className="px-2 py-1 bg-gray-700/50 rounded text-gray-300 line-through decoration-amber-400 decoration-2">
+                <span className="px-2 py-1 bg-surface-secondary rounded text-secondary line-through decoration-amber-400 decoration-2">
                   {formData.reviewMonth}
                 </span>
-                <span className="text-gray-500">→</span>
+                <span className="text-tertiary">→</span>
                 <span className="text-green-400 font-medium">Adjusted:</span>
                 <span className="px-2 py-1 bg-green-500/20 rounded text-green-300 font-semibold border border-green-500/30">
                   {formData.adjustedReviewMonth}
@@ -759,7 +759,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
               </div>
               {calculatedReviewMonth && formData.reviewMonth !== calculatedReviewMonth && (
                 <div className="mt-2 pt-2 border-t border-amber-500/20">
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-secondary">
                     Note: Review Month was also changed from calculated: <span className="line-through">{calculatedReviewMonth}</span>
                   </span>
                 </div>
@@ -768,7 +768,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
           )}
           {/* Show calculated review month hint when no adjustment */}
           {!formData.adjustedReviewMonth && formData.reviewMonth && calculatedReviewMonth && (
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1 text-xs text-secondary">
             </p>
           )}
         </div>
@@ -776,11 +776,11 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
       </form>
 
       {/* Fixed Footer with Buttons */}
-      <div className="flex-shrink-0 px-6 py-4 border-t border-gray-700/30 bg-gray-800/50 flex items-center justify-end gap-3 rounded-b-xl">
+      <div className="flex-shrink-0 px-6 py-4 border-t border-theme bg-surface-secondary flex items-center justify-end gap-3 rounded-b-xl">
         <button
           type="button"
           onClick={onClose}
-          className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors rounded-lg hover:bg-gray-700/50"
+          className="px-4 py-2 text-sm font-medium text-secondary hover:text-primary transition-colors rounded-lg hover:bg-surface-secondary"
           style={{ color: '#d1d5db' }}
         >
           Cancel

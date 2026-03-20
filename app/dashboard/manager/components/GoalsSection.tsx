@@ -76,10 +76,10 @@ export default function GoalsSection({
   const selfCreatedGoalsCount = filteredSelfCreatedGoals.length;
 
   return (
-    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl border border-white/20 dark:border-gray-700/50 overflow-hidden shadow-lg">
+    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl border border-white/20 dark:border-theme overflow-hidden shadow-lg">
       <div className="p-4">
         {/* Header Section */}
-        <div className="px-4 py-3 border-b border-gray-700/50 mb-6">
+        <div className="px-4 py-3 border-b border-theme mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="bg-indigo-500/10 p-2 rounded-lg backdrop-blur-sm">
@@ -89,13 +89,13 @@ export default function GoalsSection({
             </div>
 
             {/* View Toggle Buttons */}
-            <div className="flex gap-2 p-1 bg-gray-800/50 rounded-lg backdrop-blur-sm">
+            <div className="flex gap-2 p-1 bg-surface-secondary rounded-lg backdrop-blur-sm">
               <button
                 onClick={() => setActiveView('assigned')}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-all ${
                   activeView === 'assigned'
                     ? 'bg-indigo-500 text-white'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    : 'text-secondary hover:text-primary hover:bg-white/5'
                 }`}
               >
                 <BsShield className="w-4 h-4" />
@@ -110,7 +110,7 @@ export default function GoalsSection({
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-all ${
                   activeView === 'self-created'
                     ? 'bg-purple-500 text-white'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    : 'text-secondary hover:text-primary hover:bg-white/5'
                 }`}
               >
                 <BsStars className="w-4 h-4" />
@@ -142,7 +142,7 @@ export default function GoalsSection({
           
           {/* Pagination */}
           {pagination && onPageChange && onLimitChange && (
-            <div className="mt-6 pt-4 border-t border-gray-700/50">
+            <div className="mt-6 pt-4 border-t border-theme">
               <Pagination
                 page={pagination.page}
                 limit={pagination.limit}

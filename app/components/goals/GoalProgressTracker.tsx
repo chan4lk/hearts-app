@@ -111,13 +111,13 @@ export default function GoalProgressTracker({
       {/* Progress Bar */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white">Progress Tracking</h3>
-          <span className="text-2xl font-bold text-white">{progress}%</span>
+          <h3 className="text-lg font-semibold text-primary">Progress Tracking</h3>
+          <span className="text-2xl font-bold text-primary">{progress}%</span>
         </div>
 
         {/* Visual Progress Bar */}
         <div className="relative">
-          <div className="h-4 bg-gray-700 rounded-full overflow-hidden">
+          <div className="h-4 bg-[rgb(var(--color-border-primary))] rounded-full overflow-hidden">
             <motion.div
               className={`h-full ${getProgressColor()}`}
               initial={{ width: 0 }}
@@ -140,7 +140,7 @@ export default function GoalProgressTracker({
                       : 'bg-gray-600'
                   }`}
                 />
-                <span className="text-xs text-gray-400 mt-1">
+                <span className="text-xs text-secondary mt-1">
                   {milestone.value}%
                 </span>
               </div>
@@ -152,7 +152,7 @@ export default function GoalProgressTracker({
       {/* Quick Progress Buttons */}
       {isEmployee && (
         <div className="space-y-3">
-          <label className="text-sm font-medium text-gray-300">Quick Update</label>
+          <label className="text-sm font-medium text-secondary">Quick Update</label>
           <div className="grid grid-cols-5 gap-2">
             {PROGRESS_MILESTONES.map((milestone) => (
               <Button
@@ -163,7 +163,7 @@ export default function GoalProgressTracker({
                 className={`text-xs ${
                   progress === milestone.value
                     ? 'bg-indigo-600 hover:bg-indigo-700'
-                    : 'bg-gray-800 hover:bg-gray-700'
+                    : 'bg-surface-secondary hover:bg-surface-tertiary'
                 }`}
               >
                 {milestone.value}%
@@ -176,7 +176,7 @@ export default function GoalProgressTracker({
       {/* Custom Progress Slider */}
       {isEmployee && (
         <div className="space-y-3">
-          <label className="text-sm font-medium text-gray-300">
+          <label className="text-sm font-medium text-secondary">
             Custom Progress: {progress}%
           </label>
           <input
@@ -186,7 +186,7 @@ export default function GoalProgressTracker({
             step="5"
             value={progress}
             onChange={(e) => handleProgressChange(parseInt(e.target.value))}
-            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+            className="w-full h-2 bg-[rgb(var(--color-border-primary))] rounded-lg appearance-none cursor-pointer accent-indigo-600"
             disabled={!isEmployee || isUpdating}
           />
         </div>
@@ -195,7 +195,7 @@ export default function GoalProgressTracker({
       {/* Status Selection */}
       {isEmployee && (
         <div className="space-y-3">
-          <label className="text-sm font-medium text-gray-300">Status</label>
+          <label className="text-sm font-medium text-secondary">Status</label>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {STATUS_OPTIONS.map((option) => {
               const Icon = option.icon;
@@ -209,11 +209,11 @@ export default function GoalProgressTracker({
                   className={`flex items-center gap-2 p-3 rounded-lg border transition-all ${
                     isSelected
                       ? `border-${option.color}-500 bg-${option.color}-500/20`
-                      : 'border-gray-700 bg-gray-800 hover:bg-gray-700'
+                      : 'border-theme bg-surface-secondary hover:bg-surface-tertiary'
                   }`}
                 >
                   <Icon className={`w-4 h-4 text-${option.color}-400`} />
-                  <span className="text-sm text-white">{option.label}</span>
+                  <span className="text-sm text-primary">{option.label}</span>
                 </button>
               );
             })}
@@ -241,7 +241,7 @@ export default function GoalProgressTracker({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="What progress have you made? Any blockers?"
-                className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+                className="w-full p-3 bg-surface-secondary border border-theme rounded-lg text-primary placeholder-tertiary focus:outline-none focus:border-indigo-500"
                 rows={3}
               />
             </motion.div>
@@ -272,8 +272,8 @@ export default function GoalProgressTracker({
 
       {/* Read-only view for managers */}
       {!isEmployee && (
-        <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
-          <p className="text-sm text-gray-400 text-center">
+        <div className="bg-surface-secondary border border-theme rounded-lg p-4">
+          <p className="text-sm text-secondary text-center">
             Only employees can update progress. You can view the current status above.
           </p>
         </div>

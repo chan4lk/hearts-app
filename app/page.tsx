@@ -4,103 +4,122 @@ import { Features } from '@/app/components/features';
 import { AzureIntegration } from '@/app/components/azure';
 import Link from 'next/link';
 
+const stats = [
+  { value: '10x', label: 'Faster reviews' },
+  { value: '98%', label: 'User satisfaction' },
+  { value: '3K+', label: 'Goals tracked' },
+  { value: '50+', label: 'Organizations' },
+];
+
 export default async function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-surface-primary">
       <Header userName="" />
 
       <main className="flex-grow flex flex-col">
-        {/* Hero Section */}
-        <section className="flex-1 flex items-center justify-center relative min-h-[calc(100vh-4rem)] px-4 sm:px-6 py-16 sm:py-20 md:py-24 overflow-hidden mt-10">
-          {/* Background layers */}
-          <div className="absolute inset-0 overflow-hidden">
-            {/* Aurora glow */}
-            <div
-              className="absolute w-full h-full bg-gradient-to-br from-indigo-500/[0.08] via-purple-500/[0.04] to-transparent"
-              style={{ animation: 'pulse 8s ease-in-out infinite' }}
-            />
-            {/* Grid overlay */}
-            <div
-              className="absolute inset-0 opacity-[0.025]"
-              style={{
-                backgroundImage: `
-                  linear-gradient(rgba(99, 102, 241, 0.5) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(99, 102, 241, 0.5) 1px, transparent 1px)
-                `,
-                backgroundSize: '80px 80px',
-                maskImage: 'radial-gradient(ellipse at center, white, transparent)',
-                WebkitMaskImage: 'radial-gradient(ellipse at center, white, transparent)',
-              }}
-            />
-            {/* Nebula center glow */}
-            <div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full"
-              style={{
-                background: 'radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, rgba(139, 92, 246, 0.03) 40%, transparent 70%)',
-                filter: 'blur(60px)',
-              }}
-            />
+        {/* ═══ Hero Section ═══ */}
+        <section className="relative min-h-[calc(100vh-4rem)] flex items-center justify-center px-5 sm:px-8 pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden">
+          {/* Background decoration */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {/* Grid */}
+            <div className="absolute inset-0 bg-grid opacity-30 dark:opacity-100" style={{ maskImage: 'radial-gradient(ellipse 70% 50% at 50% 40%, black, transparent)', WebkitMaskImage: 'radial-gradient(ellipse 70% 50% at 50% 40%, black, transparent)' }} />
+            {/* Accent glow */}
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-to-r from-indigo-500/[0.07] via-purple-500/[0.05] to-pink-500/[0.03] rounded-full blur-3xl" />
+            <div className="absolute bottom-1/4 left-1/3 w-[400px] h-[200px] bg-indigo-500/[0.04] rounded-full blur-3xl" />
           </div>
 
-          <div className="container mx-auto relative z-10">
-            <div className="max-w-[95%] sm:max-w-[90%] md:max-w-5xl mx-auto text-center">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-indigo-500/[0.08] border border-indigo-500/[0.15] backdrop-blur-sm mb-6 sm:mb-8">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-400" />
-                </span>
-                <span className="text-indigo-300 text-xs sm:text-sm font-medium">
-                  Elevate Your Team&apos;s Performance
-                </span>
+          <div className="max-w-4xl mx-auto text-center relative z-10">
+            {/* Eyebrow */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[rgba(var(--color-accent),0.06)] border border-[rgba(var(--color-accent),0.1)] mb-7">
+              <div className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-500 opacity-60" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
               </div>
+              <span className="text-accent text-[12px] sm:text-[13px] font-semibold tracking-wide">
+                Performance Management Platform
+              </span>
+            </div>
 
-              {/* Heading */}
-              <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-primary mb-6 sm:mb-8 leading-[1.1] tracking-tight">
-                Transform Goals Into
-                <span className="relative block mt-2 sm:mt-3">
-                  <span
-                    className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 animate-gradient"
-                  >
-                    Achievements
-                  </span>
-                </span>
-              </h1>
+            {/* Headline */}
+            <h1 className="text-[clamp(2rem,5vw,3.75rem)] font-bold text-primary tracking-tight leading-[1.1] mb-5">
+              Align goals.{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-400">
+                Track progress.
+              </span>
+              <br />
+              Grow your team.
+            </h1>
 
-              {/* Description */}
-              <p className="text-base sm:text-lg md:text-xl text-secondary mb-8 sm:mb-10 max-w-xl sm:max-w-2xl mx-auto leading-relaxed">
-                AspireHub helps organizations streamline employee management, set meaningful goals,
-                and track progress with powerful analytics and intuitive dashboards.
-              </p>
+            {/* Subhead */}
+            <p className="text-base sm:text-lg text-secondary max-w-xl mx-auto leading-relaxed mb-9">
+              AspireHub gives managers and employees a shared space to set goals,
+              run reviews, and track performance — with AI-powered insights built in.
+            </p>
 
-              {/* CTA */}
-              <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4">
-                <Link
-                  href="/login"
-                  className="w-full sm:w-auto group relative inline-flex items-center justify-center px-7 sm:px-8 py-3.5 sm:py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-base sm:text-lg font-semibold shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all duration-300 hover:-translate-y-0.5"
-                >
-                  <span className="relative flex items-center gap-2">
-                    Get Started Now
-                    <svg
-                      className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover:translate-x-1"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </span>
-                </Link>
+            {/* CTA buttons */}
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-3">
+              <Link
+                href="/login"
+                className="w-full sm:w-auto group inline-flex items-center justify-center gap-2 px-6 py-3 text-[14px] font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 rounded-lg shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-200 hover:-translate-y-px"
+              >
+                Start for free
+                <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </Link>
+              <a
+                href="#features"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 text-[14px] font-medium text-primary bg-surface-secondary hover:bg-surface-tertiary border border-theme rounded-lg transition-all duration-200"
+              >
+                See how it works
+              </a>
+            </div>
+          </div>
+
+          {/* Stats bar */}
+          <div className="absolute bottom-0 inset-x-0">
+            <div className="max-w-4xl mx-auto px-5 sm:px-8 pb-8 md:pb-12">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-8">
+                {stats.map(({ value, label }) => (
+                  <div key={label} className="text-center">
+                    <div className="text-2xl sm:text-3xl font-bold text-primary tracking-tight">{value}</div>
+                    <div className="text-[12px] sm:text-[13px] text-tertiary font-medium mt-0.5">{label}</div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </section>
 
-        {/* Features Section */}
+        {/* ═══ Features ═══ */}
         <Features />
 
-        {/* Azure Integration Section */}
+        {/* ═══ Integration ═══ */}
         <AzureIntegration />
+
+        {/* ═══ CTA Section ═══ */}
+        <section id="security" className="py-20 md:py-28 bg-surface-primary relative">
+          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[rgb(var(--color-border-primary))] to-transparent" />
+          <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
+            <h2 className="text-3xl sm:text-4xl font-bold text-primary tracking-tight mb-4">
+              Ready to transform your team&apos;s performance?
+            </h2>
+            <p className="text-base sm:text-lg text-secondary mb-8 max-w-xl mx-auto">
+              Join organizations already using AspireHub to align goals, run better reviews, and grow their people.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-3">
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-[14px] font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-lg shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-200 hover:-translate-y-px"
+              >
+                Get started free
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </section>
       </main>
 
       <Footer />

@@ -34,7 +34,7 @@ export function DeleteConfirmationModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 modal-overlay"
             onClick={onClose}
           />
           
@@ -43,7 +43,7 @@ export function DeleteConfirmationModal({
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
-            className="relative z-10 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 border border-rose-500/20 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl"
+            className="relative z-10 modal-content border border-rose-500/20 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl"
           >
             <div className="flex items-start gap-4">
               {/* Icon */}
@@ -65,7 +65,7 @@ export function DeleteConfirmationModal({
                   <Button
                     variant="outline"
                     onClick={onClose}
-                    className="bg-transparent border-gray-700 hover:bg-gray-700/50 text-gray-300 hover:text-white transition-all"
+                    className="bg-transparent border-theme hover:bg-surface-secondary text-secondary hover:text-primary transition-all"
                   >
                     {cancelText}
                   </Button>

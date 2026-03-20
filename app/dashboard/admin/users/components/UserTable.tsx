@@ -364,7 +364,7 @@ export default function UserTable({
         <tbody>
           {users.length === 0 ? (
             <tr>
-              <td colSpan={5} className="py-12 text-center text-gray-400">
+              <td colSpan={5} className="py-12 text-center text-secondary">
                 <div className="flex flex-col items-center justify-center py-8">
                   <div className="relative mb-4">
                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full blur-xl"></div>
@@ -372,8 +372,8 @@ export default function UserTable({
                       <BsPerson className="w-8 h-8 text-indigo-400" />
                     </div>
                   </div>
-                  <p className="text-lg font-medium text-gray-300 mb-1">No users found</p>
-                  <p className="text-sm text-gray-500">Try adjusting your filters to see more results</p>
+                  <p className="text-lg font-medium text-secondary mb-1">No users found</p>
+                  <p className="text-sm text-tertiary">Try adjusting your filters to see more results</p>
                 </div>
               </td>
             </tr>
@@ -385,7 +385,7 @@ export default function UserTable({
               return (
                 <tr
                   key={user.id}
-                  className="border-b border-white/5 hover:bg-white/5 transition-colors"
+                  className="border-b border-theme hover:bg-surface-secondary transition-colors"
                 >
                   <td className="py-2.5 px-3 text-[11px]">
                     <div className="flex items-center gap-2.5">
@@ -396,10 +396,10 @@ export default function UserTable({
                       }`}>
                         <BsPerson className="w-3.5 h-3.5" />
                       </div>
-                      <div className="text-[11px] font-medium text-white truncate">{user.name}</div>
+                      <div className="text-[11px] font-medium text-primary truncate">{user.name}</div>
                     </div>
                   </td>
-                  <td className="py-2.5 px-3 text-[11px] text-gray-300 truncate">
+                  <td className="py-2.5 px-3 text-[11px] text-secondary truncate">
                     {user.email}
                   </td>
                   <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
@@ -412,14 +412,14 @@ export default function UserTable({
                         <SelectValue>{user.role || 'EMPLOYEE'}</SelectValue>
                         <BsGear className="w-3 h-3 ml-auto opacity-50 rotate-90" />
                       </SelectTrigger>
-                      <SelectContent className="bg-gray-800 border-gray-700 z-50" onClick={(e) => e.stopPropagation()}>
-                        <SelectItem value="ADMIN" className="hover:bg-gray-700 cursor-pointer">
+                      <SelectContent className="bg-surface-elevated border-theme z-50" onClick={(e) => e.stopPropagation()}>
+                        <SelectItem value="ADMIN" className="hover:bg-surface-secondary cursor-pointer">
                           <span className="text-purple-400">Admin</span>
                         </SelectItem>
-                        <SelectItem value="MANAGER" className="hover:bg-gray-700 cursor-pointer">
+                        <SelectItem value="MANAGER" className="hover:bg-surface-secondary cursor-pointer">
                           <span className="text-blue-400">Manager</span>
                         </SelectItem>
-                        <SelectItem value="EMPLOYEE" className="hover:bg-gray-700 cursor-pointer">
+                        <SelectItem value="EMPLOYEE" className="hover:bg-surface-secondary cursor-pointer">
                           <span className="text-emerald-400">Employee</span>
                         </SelectItem>
                       </SelectContent>
@@ -435,11 +435,11 @@ export default function UserTable({
                         <SelectValue>{user.status || 'ACTIVE'}</SelectValue>
                         <BsGear className="w-3 h-3 ml-auto opacity-50 rotate-90" />
                       </SelectTrigger>
-                      <SelectContent className="bg-gray-800 border-gray-700 z-50" onClick={(e) => e.stopPropagation()}>
-                        <SelectItem value="ACTIVE" className="hover:bg-gray-700 cursor-pointer">
+                      <SelectContent className="bg-surface-elevated border-theme z-50" onClick={(e) => e.stopPropagation()}>
+                        <SelectItem value="ACTIVE" className="hover:bg-surface-secondary cursor-pointer">
                           <span className="text-green-400">Active</span>
                         </SelectItem>
-                        <SelectItem value="INACTIVE" className="hover:bg-gray-700 cursor-pointer">
+                        <SelectItem value="INACTIVE" className="hover:bg-surface-secondary cursor-pointer">
                           <span className="text-red-400">Inactive</span>
                         </SelectItem>
                       </SelectContent>

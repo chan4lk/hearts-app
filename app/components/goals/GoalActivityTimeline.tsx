@@ -49,7 +49,7 @@ export default function GoalActivityTimeline({ activities }: GoalActivityTimelin
       case 'completed':
         return <BsCheckCircle className="w-4 h-4 text-emerald-400" />;
       default:
-        return <BsClock className="w-4 h-4 text-gray-400" />;
+        return <BsClock className="w-4 h-4 text-secondary" />;
     }
   };
 
@@ -89,10 +89,10 @@ export default function GoalActivityTimeline({ activities }: GoalActivityTimelin
 
   if (activities.length === 0) {
     return (
-      <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-8 text-center">
-        <BsClock className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-        <p className="text-gray-400">No activity yet</p>
-        <p className="text-sm text-gray-500 mt-1">
+      <div className="bg-surface-secondary border border-theme rounded-lg p-8 text-center">
+        <BsClock className="w-12 h-12 text-tertiary mx-auto mb-3" />
+        <p className="text-secondary">No activity yet</p>
+        <p className="text-sm text-tertiary mt-1">
           Updates will appear here as progress is made
         </p>
       </div>
@@ -101,11 +101,11 @@ export default function GoalActivityTimeline({ activities }: GoalActivityTimelin
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-white mb-4">Activity Timeline</h3>
+      <h3 className="text-lg font-semibold text-primary mb-4">Activity Timeline</h3>
       
       <div className="relative">
         {/* Timeline Line */}
-        <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-700" />
+        <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-[rgb(var(--color-border-primary))]" />
 
         {/* Activity Items */}
         <div className="space-y-4">
@@ -118,49 +118,49 @@ export default function GoalActivityTimeline({ activities }: GoalActivityTimelin
               className="relative pl-14"
             >
               {/* Icon */}
-              <div className={`absolute left-4 top-1 w-8 h-8 rounded-full border-2 ${getActivityColor(activity.type)} bg-gray-900 flex items-center justify-center`}>
+              <div className={`absolute left-4 top-1 w-8 h-8 rounded-full border-2 ${getActivityColor(activity.type)} bg-surface-primary flex items-center justify-center`}>
                 {getActivityIcon(activity.type)}
               </div>
 
               {/* Content */}
-              <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:bg-gray-800 transition-colors">
+              <div className="bg-surface-secondary border border-theme rounded-lg p-4 hover:bg-surface-tertiary transition-colors">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <p className="text-white font-medium">
+                    <p className="text-primary font-medium">
                       {getActivityMessage(activity)}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
-                      <BsPerson className="w-3 h-3 text-gray-500" />
-                      <span className="text-sm text-gray-400">
+                      <BsPerson className="w-3 h-3 text-tertiary" />
+                      <span className="text-sm text-secondary">
                         {activity.user.name}
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-tertiary">
                         ({activity.user.role})
                       </span>
                     </div>
                   </div>
-                  <span className="text-xs text-gray-500 whitespace-nowrap">
+                  <span className="text-xs text-tertiary whitespace-nowrap">
                     {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
                   </span>
                 </div>
 
                 {/* Additional Details */}
                 {activity.data.notes && (
-                  <div className="mt-3 p-3 bg-gray-900/50 rounded border border-gray-700">
-                    <p className="text-sm text-gray-300">{activity.data.notes}</p>
+                  <div className="mt-3 p-3 bg-surface-primary rounded border border-theme">
+                    <p className="text-sm text-secondary">{activity.data.notes}</p>
                   </div>
                 )}
 
                 {activity.data.comment && (
                   <div className="mt-3 p-3 bg-purple-900/20 rounded border border-purple-500/20">
-                    <p className="text-sm text-gray-300">{activity.data.comment}</p>
+                    <p className="text-sm text-secondary">{activity.data.comment}</p>
                   </div>
                 )}
 
                 {/* Progress Bar for Progress Updates */}
                 {activity.type === 'progress_update' && activity.data.progress !== undefined && (
                   <div className="mt-3">
-                    <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                    <div className="h-2 bg-[rgb(var(--color-border-primary))] rounded-full overflow-hidden">
                       <div
                         className="h-full bg-green-500 transition-all duration-500"
                         style={{ width: `${activity.data.progress}%` }}

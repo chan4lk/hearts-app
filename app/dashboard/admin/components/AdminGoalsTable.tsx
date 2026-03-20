@@ -244,7 +244,7 @@ export default function AdminGoalsTable({
             className="mb-3 flex items-center justify-between p-2 bg-rose-500/10 border border-rose-500/30 rounded-lg flex-shrink-0"
           >
             <div className="flex items-center gap-3">
-              <span className="text-xs text-white font-medium">
+              <span className="text-xs text-primary font-medium">
                 {selectedGoalIds.size} goal{selectedGoalIds.size !== 1 ? 's' : ''} selected
               </span>
             </div>

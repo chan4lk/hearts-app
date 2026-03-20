@@ -70,7 +70,7 @@ function ErrorContent() {
           {/* Ambient glow */}
           <div className="absolute -inset-2 rounded-[28px] bg-gradient-to-b from-red-500/10 via-transparent to-transparent blur-xl opacity-50" />
 
-          <div className="relative rounded-2xl border border-slate-800/60 bg-slate-900/50 backdrop-blur-xl p-8 shadow-2xl">
+          <div className="relative rounded-2xl border border-theme bg-surface-elevated backdrop-blur-xl p-8 shadow-2xl">
             {/* Top highlight */}
             <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-red-500/20 to-transparent" />
 
@@ -88,8 +88,8 @@ function ErrorContent() {
               </div>
 
               <div>
-                <h1 className="text-xl font-bold text-white mb-2">Authentication Error</h1>
-                <p className="text-sm text-slate-400 leading-relaxed">{errorMessage}</p>
+                <h1 className="text-xl font-bold text-primary mb-2">Authentication Error</h1>
+                <p className="text-sm text-secondary leading-relaxed">{errorMessage}</p>
               </div>
 
               <div className="flex justify-center gap-3 pt-2">
@@ -101,7 +101,7 @@ function ErrorContent() {
                 </Link>
                 <button
                   onClick={() => router.back()}
-                  className="px-5 py-2.5 rounded-xl border border-slate-700/50 bg-slate-800/30 hover:bg-slate-800/60 text-white text-sm font-medium transition-all duration-300"
+                  className="px-5 py-2.5 rounded-xl border border-theme bg-surface-secondary hover:bg-surface-secondary/80 text-primary text-sm font-medium transition-all duration-300"
                 >
                   Go Back
                 </button>

@@ -239,7 +239,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+        className="fixed inset-0 modal-overlay z-50"
       />
               <div className="fixed inset-0 flex items-center justify-center p-1 sm:p-2 md:p-3 z-50" onClick={onClose}>
           <motion.div
@@ -247,7 +247,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             onClick={e => e.stopPropagation()}
-            className="relative bg-gradient-to-b from-gray-800 to-gray-900 rounded-xl sm:rounded-2xl md:rounded-3xl w-full max-w-[95vw] sm:max-w-md mx-auto 
+            className="relative modal-content rounded-xl sm:rounded-2xl md:rounded-3xl w-full max-w-[95vw] sm:max-w-md mx-auto
                      shadow-2xl overflow-hidden transform transition-all max-h-[90vh] sm:max-h-[85vh] flex flex-col"
          >
 
@@ -275,7 +275,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                       <SelectValue>{statusConfig.label}</SelectValue>
                     </div>
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-700">
+                  <SelectContent className="bg-surface-elevated border-theme">
                     {session?.user?.id === currentGoal.employeeId ? (
                       // Employee can update to these statuses
                       <>
@@ -329,7 +329,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
               variant="ghost"
               size="icon"
               onClick={handleClose}
-              className="h-7 w-7 sm:h-8 sm:w-8 text-gray-400 hover:text-white hover:bg-white/10 touch-manipulation"
+              className="h-7 w-7 sm:h-8 sm:w-8 text-secondary hover:text-primary hover:bg-white/10 touch-manipulation"
             >
               <BsX className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </Button>
@@ -342,7 +342,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg sm:rounded-xl md:rounded-2xl p-2.5 sm:p-3 md:p-3.5"
+            className="bg-surface-secondary rounded-lg sm:rounded-xl md:rounded-2xl p-2.5 sm:p-3 md:p-3.5"
           >
             <div className="relative">
               <div 
@@ -355,7 +355,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
               >
                 <p 
                   ref={descriptionRef}
-                  className="text-xs sm:text-sm text-white/90 leading-relaxed"
+                  className="text-xs sm:text-sm text-primary leading-relaxed"
                 >
                   {currentGoal.description}
                 </p>
@@ -364,7 +364,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
               {/* Gradient Fade Effect */}
               {!isDescriptionExpanded && shouldShowExpandButton && (
                 <div 
-                  className="absolute bottom-0 left-0 right-0 h-6 sm:h-8 md:h-12 bg-gradient-to-t from-gray-900 to-transparent pointer-events-none"
+                  className="absolute bottom-0 left-0 right-0 h-6 sm:h-8 md:h-12 bg-gradient-to-t from-[rgb(var(--color-bg-secondary))] to-transparent pointer-events-none"
                 />
               )}
               
@@ -373,7 +373,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                 <button
                   onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
                   className="flex items-center justify-center w-full gap-1.5 mt-1.5 sm:mt-2 py-1.5 sm:py-2 text-xs font-medium
-                           text-gray-400 hover:text-white transition-colors rounded-lg
+                           text-secondary hover:text-primary transition-colors rounded-lg
                            hover:bg-white/5 active:bg-white/10 touch-manipulation min-h-[32px] sm:min-h-[36px]"
                 >
                   <span>{isDescriptionExpanded ? 'Show Less' : 'Show More'}</span>
@@ -393,25 +393,25 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
             <motion.div 
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg sm:rounded-xl md:rounded-2xl p-2.5 sm:p-3"
+              className="bg-surface-secondary rounded-lg sm:rounded-xl md:rounded-2xl p-2.5 sm:p-3"
             >
-              <div className="flex items-center gap-1.5 sm:gap-2 text-gray-300 mb-1 sm:mb-1.5">
+              <div className="flex items-center gap-1.5 sm:gap-2 text-secondary mb-1 sm:mb-1.5">
                 <BsCalendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
                 <span className="text-xs font-medium">Due Date</span>
               </div>
-              <p className="text-xs sm:text-sm text-white/90">{new Date(goal.dueDate).toLocaleDateString()}</p>
+              <p className="text-xs sm:text-sm text-primary">{new Date(goal.dueDate).toLocaleDateString()}</p>
             </motion.div>
 
             <motion.div 
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg sm:rounded-xl md:rounded-2xl p-2.5 sm:p-3"
+              className="bg-surface-secondary rounded-lg sm:rounded-xl md:rounded-2xl p-2.5 sm:p-3"
             >
-              <div className="flex items-center gap-1.5 sm:gap-2 text-gray-300 mb-1 sm:mb-1.5">
+              <div className="flex items-center gap-1.5 sm:gap-2 text-secondary mb-1 sm:mb-1.5">
                 <BsShield className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
                 <span className="text-xs font-medium">Manager</span>
               </div>
-              <p className="text-xs sm:text-sm text-white/90 truncate">{goal.manager?.name || 'Not assigned'}</p>
+              <p className="text-xs sm:text-sm text-primary truncate">{goal.manager?.name || 'Not assigned'}</p>
             </motion.div>
           </div>
 
@@ -420,25 +420,25 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg sm:rounded-xl md:rounded-2xl p-2.5 sm:p-3"
+              className="bg-surface-secondary rounded-lg sm:rounded-xl md:rounded-2xl p-2.5 sm:p-3"
             >
-              <div className="flex items-center gap-1.5 sm:gap-2 text-gray-300 mb-1 sm:mb-1.5">
+              <div className="flex items-center gap-1.5 sm:gap-2 text-secondary mb-1 sm:mb-1.5">
                 <BsPerson className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
                 <span className="text-xs font-medium">Employee</span>
               </div>
-              <p className="text-xs sm:text-sm text-white/90 truncate">{goal.employee?.name || 'Unassigned'}</p>
+              <p className="text-xs sm:text-sm text-primary truncate">{goal.employee?.name || 'Unassigned'}</p>
             </motion.div>
 
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg sm:rounded-xl md:rounded-2xl p-2.5 sm:p-3"
+              className="bg-surface-secondary rounded-lg sm:rounded-xl md:rounded-2xl p-2.5 sm:p-3"
             >
-              <div className="flex items-center gap-1.5 sm:gap-2 text-gray-300 mb-1 sm:mb-1.5">
+              <div className="flex items-center gap-1.5 sm:gap-2 text-secondary mb-1 sm:mb-1.5">
                 <BsGear className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
                 <span className="text-xs font-medium">Created</span>
               </div>
-              <p className="text-xs sm:text-sm text-white/90">{new Date(goal.createdAt).toLocaleDateString()}</p>
+              <p className="text-xs sm:text-sm text-primary">{new Date(goal.createdAt).toLocaleDateString()}</p>
             </motion.div>
           </div>
 
@@ -449,10 +449,10 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg sm:rounded-xl md:rounded-2xl p-2.5 sm:p-3 md:p-3.5 space-y-1.5 sm:space-y-2"
+                className="bg-surface-secondary rounded-lg sm:rounded-xl md:rounded-2xl p-2.5 sm:p-3 md:p-3.5 space-y-1.5 sm:space-y-2"
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 sm:gap-2 text-gray-300">
+                  <div className="flex items-center gap-1.5 sm:gap-2 text-secondary">
                     <BsChat className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
                     <span className="text-xs font-medium">Manager's Decision</span>
                   </div>
@@ -464,7 +464,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                     {currentGoal.status}
                   </Badge>
                 </div>
-                <div className="text-[10px] sm:text-xs text-gray-400">
+                <div className="text-[10px] sm:text-xs text-tertiary">
                   {goal.updatedAt ? new Date(goal.updatedAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
@@ -472,7 +472,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                   }) : ''}
                 </div>
                 <div className="bg-black/20 rounded-lg sm:rounded-xl p-2 sm:p-3 mt-1.5 sm:mt-2">
-                  <p className="text-xs sm:text-sm text-white/90 whitespace-pre-wrap">{goal.managerComments}</p>
+                  <p className="text-xs sm:text-sm text-primary whitespace-pre-wrap">{goal.managerComments}</p>
                 </div>
               </motion.div>
             )}
@@ -502,7 +502,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
               transition={{ delay: 0.2 }}
               className="bg-gradient-to-br from-blue-900/20 via-indigo-900/20 to-purple-900/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-blue-500/20"
             >
-              <h4 className="text-xs sm:text-sm font-semibold text-white mb-3 flex items-center gap-2">
+              <h4 className="text-xs sm:text-sm font-semibold text-primary mb-3 flex items-center gap-2">
                 <BsPlayCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400" />
                 Update Status
               </h4>
@@ -511,7 +511,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                   onClick={() => handleQuickStatusUpdate('NOT_STARTED')}
                   disabled={isUpdatingStatus}
                   variant="outline"
-                  className="flex items-center gap-2 bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white text-xs"
+                  className="flex items-center gap-2 bg-surface-secondary border-theme text-secondary hover:bg-surface-elevated hover:text-primary text-xs"
                 >
                   {isUpdatingStatus ? (
                     <BsArrowRepeat className="w-3 h-3 animate-spin" />
@@ -583,7 +583,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
             transition={{ delay: 0.2 }}
             className="bg-gradient-to-br from-orange-900/20 via-red-900/20 to-rose-900/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 border border-orange-500/20"
           >
-            <h4 className="text-xs sm:text-sm font-semibold text-white mb-2 flex items-center gap-2">
+            <h4 className="text-xs sm:text-sm font-semibold text-primary mb-2 flex items-center gap-2">
               <BsShield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-400" />
               AI Risk Analysis
             </h4>
@@ -596,7 +596,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-gray-700"
+            className="bg-surface-secondary rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-theme"
           >
             <GoalActivityTimeline activities={activities} />
           </motion.div>
@@ -664,7 +664,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
             <Button
               variant="ghost"
               onClick={handleClose}
-              className="text-gray-400 hover:text-white hover:bg-white/10 text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 h-9 sm:h-10 touch-manipulation"
+              className="text-secondary hover:text-primary hover:bg-white/10 text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 h-9 sm:h-10 touch-manipulation"
             >
               Close
             </Button>

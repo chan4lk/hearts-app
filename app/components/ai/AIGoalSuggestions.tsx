@@ -122,7 +122,7 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-gray-900 rounded-xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden border border-purple-500/20"
+              className="bg-surface-elevated rounded-xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden border border-purple-500/20"
             >
               {/* Header */}
               <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6">
@@ -150,7 +150,7 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
               </div>
 
               {/* Suggestions List */}
-              <div className="p-6 overflow-y-auto max-h-[calc(80vh-180px)] bg-gray-800/30">
+              <div className="p-6 overflow-y-auto max-h-[calc(80vh-180px)] bg-surface-secondary">
                 {loading ? (
                   <div className="flex flex-col items-center justify-center py-12">
                     <BsStars className="w-12 h-12 text-purple-400 animate-spin mb-4" />
@@ -171,11 +171,11 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 border-2 border-gray-700 hover:border-purple-500 transition-all shadow-lg"
+                      className="bg-surface-secondary rounded-xl p-6 border-2 border-theme hover:border-purple-500 transition-all shadow-lg"
                     >
                       {/* Title Row */}
                       <div className="mb-4">
-                        <h3 className="text-xl font-bold text-white mb-3">
+                        <h3 className="text-xl font-bold text-primary mb-3">
                           {suggestion.title}
                         </h3>
                         <div className="flex flex-wrap gap-2">
@@ -205,7 +205,7 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
 
                       {/* Description */}
                       <div className="mb-6">
-                        <p className="text-gray-300 text-base leading-relaxed">
+                        <p className="text-secondary text-base leading-relaxed">
                           {suggestion.description}
                         </p>
                       </div>

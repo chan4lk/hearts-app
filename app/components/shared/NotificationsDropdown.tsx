@@ -201,7 +201,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2.5 text-gray-400 hover:text-white transition-all duration-200 rounded-lg hover:bg-indigo-500/10 group"
+        className="relative p-2.5 text-secondary hover:text-primary transition-all duration-200 rounded-lg hover:bg-indigo-500/10 group"
         aria-label="Notifications"
       >
         <motion.div
@@ -249,22 +249,22 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                 <button
                   onClick={handleRefresh}
                   disabled={isRefreshing}
-                  className="p-1.5 rounded-lg hover:bg-gray-700/50 transition-colors disabled:opacity-50"
+                  className="p-1.5 rounded-lg hover:bg-surface-secondary transition-colors disabled:opacity-50"
                   title="Refresh"
                 >
                   <motion.div
                     animate={isRefreshing ? { rotate: 360 } : {}}
                     transition={{ duration: 0.5, repeat: isRefreshing ? Infinity : 0, ease: "linear" }}
                   >
-                    <BsArrowClockwise className="w-4 h-4 text-gray-400 hover:text-indigo-400" />
+                    <BsArrowClockwise className="w-4 h-4 text-secondary hover:text-indigo-400" />
                   </motion.div>
                 </button>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="p-1.5 rounded-lg hover:bg-gray-700/50 transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-surface-secondary transition-colors"
                   title="Close"
                 >
-                  <BsX className="w-4 h-4 text-gray-400 hover:text-white" />
+                  <BsX className="w-4 h-4 text-secondary hover:text-primary" />
                 </button>
               </div>
             </div>
@@ -272,16 +272,16 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
             {/* Notifications List */}
             <div className="overflow-y-auto flex-1">
               {loading ? (
-                <div className="p-8 text-center text-gray-400">
+                <div className="p-8 text-center text-secondary">
                   <div className="inline-block w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
                 </div>
               ) : notifications.length === 0 ? (
-                <div className="p-8 text-center text-gray-400">
+                <div className="p-8 text-center text-secondary">
                   <BsBell className="w-12 h-12 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">No notifications</p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-700/30">
+                <div className="divide-y divide-[rgb(var(--color-border-primary))]">
                   {notifications.map((notification, index) => (
                     <motion.div
                       key={notification.id}
@@ -291,7 +291,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                       className={`group relative p-4 hover:bg-gradient-to-r hover:from-indigo-500/5 hover:to-purple-500/5 cursor-pointer transition-all duration-200 ${
                         !notification.isRead 
                           ? 'bg-gradient-to-r from-indigo-500/10 to-indigo-500/5 border-l-4 border-indigo-500 shadow-sm' 
-                          : 'hover:border-l-2 hover:border-gray-600'
+                          : 'hover:border-l-2 hover:border-theme'
                       }`}
                       onClick={() => {
                         if (!notification.isRead) {
@@ -310,19 +310,19 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className={`text-sm leading-relaxed ${
-                            !notification.isRead ? 'text-white font-medium' : 'text-gray-300'
+                            !notification.isRead ? 'text-primary font-medium' : 'text-secondary'
                           }`}>
                             {notification.message}
                           </p>
                           {notification.goal && (
-                            <div className="mt-2 px-2 py-1 bg-gray-800/50 rounded-md inline-block">
+                            <div className="mt-2 px-2 py-1 bg-surface-secondary rounded-md inline-block">
                               <p className="text-xs text-indigo-400 font-medium truncate max-w-[200px]">
                                 {notification.goal.title}
                               </p>
                             </div>
                           )}
                           <div className="flex items-center gap-2 mt-2">
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-tertiary">
                               {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                             </p>
                             {!notification.isRead && (
@@ -350,7 +350,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                             className="p-2 rounded-lg hover:bg-red-500/20 transition-colors"
                             title="Delete"
                           >
-                            <BsTrash className="w-4 h-4 text-gray-400 hover:text-red-400" />
+                            <BsTrash className="w-4 h-4 text-secondary hover:text-red-400" />
                           </button>
                         </div>
                       </div>
@@ -362,7 +362,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
 
             {/* Footer */}
             {notifications.length > 0 && (
-              <div className="px-4 py-3 border-t border-theme bg-gradient-to-r from-gray-800/40 to-gray-900/40 flex items-center justify-between gap-2">
+              <div className="px-4 py-3 border-t border-theme bg-surface-secondary flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => {
@@ -385,7 +385,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                     Clear All
                   </button>
                 </div>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-tertiary">
                   Last updated: {formatDistanceToNow(new Date(lastFetchTime), { addSuffix: true })}
                 </span>
               </div>

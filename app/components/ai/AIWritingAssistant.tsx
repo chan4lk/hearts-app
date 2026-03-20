@@ -81,7 +81,7 @@ export default function AIWritingAssistant({
         <select
           value={tone}
           onChange={(e) => setTone(e.target.value as any)}
-          className="px-3 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-purple-500 focus:outline-none text-sm"
+          className="px-3 py-2 input-theme rounded-lg focus:border-purple-500 focus:outline-none text-sm"
         >
           <option value="professional">Professional</option>
           <option value="constructive">Constructive</option>
@@ -94,10 +94,10 @@ export default function AIWritingAssistant({
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-4 bg-gray-800/50 rounded-lg border border-purple-500/30 overflow-hidden"
+          className="mt-4 bg-surface-secondary rounded-lg border border-purple-500/30 overflow-hidden"
         >
           <div className="bg-gradient-to-r from-purple-600/20 to-indigo-600/20 p-3 border-b border-purple-500/30">
-            <h4 className="text-white font-medium flex items-center gap-2">
+            <h4 className="text-primary font-medium flex items-center gap-2">
               <BsStars className="w-4 h-4 text-purple-400" />
               AI Suggestion
             </h4>
@@ -106,9 +106,9 @@ export default function AIWritingAssistant({
           <div className="p-4 space-y-4">
             {/* Original */}
             <div>
-              <p className="text-gray-400 text-xs font-medium mb-2">ORIGINAL</p>
-              <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
-                <p className="text-gray-300 text-sm">{text}</p>
+              <p className="text-secondary text-xs font-medium mb-2">ORIGINAL</p>
+              <div className="bg-surface-elevated rounded-lg p-3 border border-theme">
+                <p className="text-secondary text-sm">{text}</p>
               </div>
             </div>
 
@@ -116,7 +116,7 @@ export default function AIWritingAssistant({
             <div>
               <p className="text-purple-400 text-xs font-medium mb-2">IMPROVED</p>
               <div className="bg-purple-900/20 rounded-lg p-3 border border-purple-500/30">
-                <p className="text-white text-sm">{improved}</p>
+                <p className="text-primary text-sm">{improved}</p>
               </div>
             </div>
 
@@ -131,7 +131,7 @@ export default function AIWritingAssistant({
               </button>
               <button
                 onClick={handleReject}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm"
+                className="flex items-center gap-2 px-4 py-2 bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary rounded-lg transition-colors text-sm"
               >
                 <BsArrowRepeat className="w-4 h-4" />
                 <span>Keep Original</span>

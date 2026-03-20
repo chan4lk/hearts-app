@@ -114,7 +114,7 @@ export default function AIPerformanceInsights({
       case 'declining':
         return <BsArrowDown className="w-4 h-4 text-red-400" />;
       default:
-        return <BsDash className="w-4 h-4 text-gray-400" />;
+        return <BsDash className="w-4 h-4 text-secondary" />;
     }
   };
 
@@ -124,7 +124,7 @@ export default function AIPerformanceInsights({
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <BsStars className="w-6 h-6 text-purple-400" />
-          <h3 className="text-xl font-bold text-white">AI Performance Insights</h3>
+          <h3 className="text-xl font-bold text-primary">AI Performance Insights</h3>
         </div>
         {!autoLoad && (
           <motion.button
@@ -142,23 +142,23 @@ export default function AIPerformanceInsights({
       {/* Metrics Summary */}
       {metrics && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-            <p className="text-gray-400 text-xs mb-1">Total Goals</p>
-            <p className="text-2xl font-bold text-white">{metrics.totalGoals}</p>
+          <div className="bg-surface-secondary rounded-lg p-4 border border-theme">
+            <p className="text-secondary text-xs mb-1">Total Goals</p>
+            <p className="text-2xl font-bold text-primary">{metrics.totalGoals}</p>
           </div>
-          <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-            <p className="text-gray-400 text-xs mb-1">Completion Rate</p>
+          <div className="bg-surface-secondary rounded-lg p-4 border border-theme">
+            <p className="text-secondary text-xs mb-1">Completion Rate</p>
             <p className="text-2xl font-bold text-emerald-400">{metrics.completionRate}%</p>
           </div>
-          <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-            <p className="text-gray-400 text-xs mb-1">Avg Rating</p>
+          <div className="bg-surface-secondary rounded-lg p-4 border border-theme">
+            <p className="text-secondary text-xs mb-1">Avg Rating</p>
             <p className="text-2xl font-bold text-purple-400">{metrics.averageRating}/5</p>
           </div>
-          <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-            <p className="text-gray-400 text-xs mb-1">Trend</p>
+          <div className="bg-surface-secondary rounded-lg p-4 border border-theme">
+            <p className="text-secondary text-xs mb-1">Trend</p>
             <div className="flex items-center gap-2">
               {getTrendIcon(metrics.recentTrend)}
-              <p className="text-lg font-bold text-white capitalize">{metrics.recentTrend}</p>
+              <p className="text-lg font-bold text-primary capitalize">{metrics.recentTrend}</p>
             </div>
           </div>
         </div>
@@ -195,15 +195,15 @@ export default function AIPerformanceInsights({
                 </div>
                 <div className="flex-1">
                   <div className="flex items-start justify-between gap-3 mb-2">
-                    <h4 className="text-white font-semibold">{insight.title}</h4>
+                    <h4 className="text-primary font-semibold">{insight.title}</h4>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getPriorityBadge(insight.priority)}`}>
                       {insight.priority.toUpperCase()}
                     </span>
                   </div>
-                  <p className="text-gray-300 text-sm mb-3">{insight.description}</p>
+                  <p className="text-secondary text-sm mb-3">{insight.description}</p>
                   <div className="bg-black/20 rounded-lg p-3 border border-white/10">
-                    <p className="text-xs text-gray-400 mb-1">RECOMMENDATION</p>
-                    <p className="text-white text-sm">{insight.recommendation}</p>
+                    <p className="text-xs text-secondary mb-1">RECOMMENDATION</p>
+                    <p className="text-primary text-sm">{insight.recommendation}</p>
                   </div>
                 </div>
               </div>
@@ -216,7 +216,7 @@ export default function AIPerformanceInsights({
       {!loading && insights.length === 0 && !error && (
         <div className="text-center py-12">
           <BsLightbulb className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-400">No insights available yet. Click "Refresh Insights" to generate.</p>
+          <p className="text-secondary">No insights available yet. Click "Refresh Insights" to generate.</p>
         </div>
       )}
     </div>
