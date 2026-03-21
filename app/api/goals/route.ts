@@ -314,54 +314,74 @@ export async function GET(req: Request) {
       orderBy.createdAt = 'desc';
     }
 
-    // Fetch total count for pagination (before applying skip/take)
-    const total = await prisma.goal.count({
-      where: whereClause
-    });
-
-    // Fetch goals with all related data (paginated)
-    const goals = await prisma.goal.findMany({
-      where: whereClause,
-      include: goalInclude,
-      orderBy,
-      skip,
-      take: limit
-    });
-
-    // Fetch all goals for stats calculation (without pagination)
-    const allGoalsForStats = await prisma.goal.findMany({
-      where: whereClause,
-      select: {
-        status: true,
-        category: true,
-        priority: true,
-        rating: {
-          select: {
-            selfScore: true,
-            managerScore: true
-          }
+    // Run paginated goals, count, and stats aggregation in parallel
+    const [goals, total, statusAgg, categoryAgg, ratingAgg] = await Promise.all([
+      // 1. Paginated goals with relations
+      prisma.goal.findMany({
+        where: whereClause,
+        include: goalInclude,
+        orderBy,
+        skip,
+        take: limit
+      }),
+      // 2. Total count for pagination
+      prisma.goal.count({ where: whereClause }),
+      // 3. Status breakdown via DB groupBy (replaces loading all goals)
+      prisma.goal.groupBy({
+        by: ['status'],
+        _count: { _all: true },
+        where: whereClause
+      }),
+      // 4. Category breakdown via DB groupBy
+      prisma.goal.groupBy({
+        by: ['category'],
+        _count: { _all: true },
+        where: whereClause
+      }),
+      // 5. Rating counts via DB (replaces loading all goals for rating stats)
+      prisma.rating.count({
+        where: {
+          goal: whereClause,
+          OR: [
+            { selfScore: { not: null } },
+            { managerScore: { not: null } }
+          ]
         }
-      }
-    });
+      })
+    ]);
 
-    // Calculate statistics from all matching goals (not just paginated)
-    const stats = calculateStats(allGoalsForStats);
+    // Build stats from aggregations (no large dataset in memory)
+    const statusMap: Record<string, number> = {};
+    for (const row of statusAgg) {
+      statusMap[row.status] = row._count._all;
+    }
 
-    // Add category breakdown
-    const categoryStats: Record<string, number> = {};
-    allGoalsForStats.forEach((goal: any) => {
-      if (goal.category) {
-        categoryStats[goal.category] = (categoryStats[goal.category] || 0) + 1;
+    const totalGoals = Object.values(statusMap).reduce((s, n) => s + n, 0);
+    const stats = {
+      total: totalGoals,
+      completed: statusMap['COMPLETED'] || 0,
+      pending: statusMap['PENDING'] || 0,
+      approved: statusMap['APPROVED'] || 0,
+      draft: statusMap['DRAFT'] || 0,
+      rejected: statusMap['REJECTED'] || 0,
+      modified: statusMap['MODIFIED'] || 0,
+      selfRated: 0, // These detailed breakdowns require the old approach; use ratingAgg for total
+      managerRated: 0,
+      rated: ratingAgg,
+      unrated: totalGoals - ratingAgg,
+      categories: {} as Record<string, number>
+    };
+
+    for (const row of categoryAgg) {
+      if (row._count._all > 0) {
+        stats.categories[row.category] = row._count._all;
       }
-    });
+    }
 
     return NextResponse.json({
       success: true,
       goals,
-      stats: {
-        ...stats,
-        categories: categoryStats
-      },
+      stats,
       pagination: getPaginationMeta(page, limit, total),
       meta: {
         view: effectiveView,

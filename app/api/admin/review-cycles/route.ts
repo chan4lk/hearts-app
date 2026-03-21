@@ -61,11 +61,10 @@ export async function GET(req: Request) {
       orderBy.updatedAt = 'desc';
     }
     
-    // Get total count for pagination
-    const total = await prisma.reviewCycle.count({ where: whereClause });
-    
-    // Fetch paginated review cycles
-    const reviewCycles = await prisma.reviewCycle.findMany({
+    // Run count and findMany in parallel
+    const [total, reviewCycles] = await Promise.all([
+      prisma.reviewCycle.count({ where: whereClause }),
+      prisma.reviewCycle.findMany({
       where: whereClause,
       include: {
         user: {
@@ -101,7 +100,8 @@ export async function GET(req: Request) {
       orderBy,
       skip,
       take: limit
-    });
+    })
+    ]);
 
     return NextResponse.json({
       reviewCycles,

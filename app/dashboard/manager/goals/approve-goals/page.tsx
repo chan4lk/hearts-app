@@ -395,9 +395,12 @@ export default function ApproveGoalsPage() {
             </PageToolbar>
 
             {(() => {
-              const pendingCount = goals.filter(g => g.status === 'PENDING' || g.status === 'DRAFT').length;
-              const approvedCount = goals.filter(g => g.status === 'APPROVED').length;
-              const rejectedCount = goals.filter(g => g.status === 'REJECTED').length;
+              // Single-pass count instead of 3 separate .filter() calls
+              const sc: Record<string, number> = {};
+              for (const g of goals) sc[g.status] = (sc[g.status] || 0) + 1;
+              const pendingCount = (sc['PENDING'] || 0) + (sc['DRAFT'] || 0);
+              const approvedCount = sc['APPROVED'] || 0;
+              const rejectedCount = sc['REJECTED'] || 0;
               
               const statItems: StatItem[] = [
                 {

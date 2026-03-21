@@ -10,85 +10,64 @@ import { handleApiError } from '@/app/api/utils/error-handler';
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get total users count
-    const totalUsers = await prisma.user.count();
+    // Run ALL queries in parallel instead of 8 sequential queries
+    const [
+      roleDistribution,
+      totalGoals,
+      activeSessions,
+      securityAlerts,
+      recentUsers
+    ] = await Promise.all([
+      // 1. Role counts in a single groupBy (replaces 4 separate count queries)
+      prisma.user.groupBy({
+        by: ['role'],
+        _count: { _all: true }
+      }),
 
-    // Get specific role counts
-    const employeeCount = await prisma.user.count({
-      where: { role: 'EMPLOYEE' }
-    });
+      // 2. Total non-deleted goals
+      prisma.goal.count({
+        where: { status: { not: 'DELETED' } }
+      }),
 
-    const adminCount = await prisma.user.count({
-      where: { role: 'ADMIN' }
-    });
+      // 3. Active sessions (last 30 min)
+      prisma.user.count({
+        where: { updatedAt: { gte: new Date(Date.now() - 30 * 60 * 1000) } }
+      }),
 
-    const managerCount = await prisma.user.count({
-      where: { role: 'MANAGER' }
-    });
+      // 4. Security alerts (inactive 24h+)
+      prisma.user.count({
+        where: { updatedAt: { lt: new Date(Date.now() - 24 * 60 * 60 * 1000) } }
+      }),
 
-    // Get total goals count
-    const totalGoals = await prisma.goal.count({
-      where: {
-        status: { not: 'DELETED' }
-      }
-    });
+      // 5. Recent users
+      prisma.user.findMany({
+        take: 5,
+        orderBy: { updatedAt: 'desc' },
+        select: { name: true, email: true, role: true, updatedAt: true }
+      })
+    ]);
 
-    // Get active sessions (users who have been active in the last 30 minutes)
-    const activeSessions = await prisma.user.count({
-      where: {
-        updatedAt: {
-          gte: new Date(Date.now() - 30 * 60 * 1000) // Last 30 minutes
-        }
-      }
-    });
-
-    // Get system uptime (this would be calculated based on your actual uptime monitoring)
-    const systemUptime = 99.9; // This should come from your monitoring system
-
-    // Get security alerts (users who haven't logged in for 24 hours)
-    const securityAlerts = await prisma.user.count({
-      where: {
-        updatedAt: {
-          lt: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
-        }
-      }
-    });
-
-    // Get role distribution
-    const roleDistribution = await prisma.user.groupBy({
-      by: ['role'],
-      _count: {
-        role: true
-      }
-    });
-
-    // Get recent user activity
-    const recentUsers = await prisma.user.findMany({
-      take: 5,
-      orderBy: {
-        updatedAt: 'desc'
-      },
-      select: {
-        name: true,
-        email: true,
-        role: true,
-        updatedAt: true
-      }
-    });
+    // Derive counts from single groupBy result
+    const roleCounts: Record<string, number> = {};
+    let totalUsers = 0;
+    for (const row of roleDistribution) {
+      roleCounts[row.role] = row._count._all;
+      totalUsers += row._count._all;
+    }
 
     return NextResponse.json({
       totalUsers,
-      employeeCount,
-      adminCount,
-      managerCount,
+      employeeCount: roleCounts['EMPLOYEE'] || 0,
+      adminCount: roleCounts['ADMIN'] || 0,
+      managerCount: roleCounts['MANAGER'] || 0,
       totalGoals,
       activeSessions,
-      systemUptime,
+      systemUptime: 99.9,
       securityAlerts,
       roleDistribution,
       recentUsers
@@ -97,4 +76,4 @@ export async function GET() {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }
-} 
+}

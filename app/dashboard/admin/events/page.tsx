@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
@@ -224,9 +224,12 @@ function AdminEventsContent() {
           {/* Stats Section - Fixed */}
           <div className="flex-shrink-0 pb-3">
             {(() => {
-              const scheduledCount = events.filter(e => e.status === 'SCHEDULED').length;
-              const ongoingCount = events.filter(e => e.status === 'ONGOING').length;
-              const completedCount = events.filter(e => e.status === 'COMPLETED').length;
+              // Single-pass count instead of 3 separate .filter() calls
+              const sc: Record<string, number> = {};
+              for (const e of events) sc[e.status] = (sc[e.status] || 0) + 1;
+              const scheduledCount = sc['SCHEDULED'] || 0;
+              const ongoingCount = sc['ONGOING'] || 0;
+              const completedCount = sc['COMPLETED'] || 0;
               
               const statItems: StatItem[] = [
                 {

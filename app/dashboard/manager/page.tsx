@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { useSession } from 'next-auth/react';
 import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
@@ -63,104 +63,103 @@ export default function ManagerDashboard() {
     );
   };
 
-  // Filter goals based on selected employee (if any)
-  const filteredGoalsForStats = goals.filter(g => {
+  // Memoize filtered goals for stats (avoid recalculating on every render)
+  const filteredGoalsForStats = useMemo(() => goals.filter(g => {
     if (!g.employee || isCurrentUserGoal(g)) return false;
-    // If an employee is selected, only include their goals
     if (selectedEmployee && selectedEmployee !== 'all') {
       return g.employee.email === selectedEmployee;
     }
     return true;
-  });
+  }), [goals, selectedEmployee, session?.user?.email]);
 
-  // Calculate statistics for employee goals (respecting employee filter)
-  const stats: DashboardStats = {
-    employeeGoals: {
-      total: filteredGoalsForStats.length,
-      draft: filteredGoalsForStats.filter(g => g.status === 'DRAFT').length,
-      pending: filteredGoalsForStats.filter(g => g.status === 'PENDING').length,
-      approved: filteredGoalsForStats.filter(g => g.status === 'APPROVED').length,
-      rejected: filteredGoalsForStats.filter(g => g.status === 'REJECTED').length,
-      modified: filteredGoalsForStats.filter(g => g.status === 'MODIFIED').length,
-      completed: filteredGoalsForStats.filter(g => g.status === 'COMPLETED').length,
-    },
-    employeeCount: selectedEmployee && selectedEmployee !== 'all' ? 1 : employeeCounts.total,
-    activeEmployees: selectedEmployee && selectedEmployee !== 'all' ? 1 : employeeCounts.active
-  };
+  // Memoize statistics calculation
+  const stats: DashboardStats = useMemo(() => {
+    const statusCounts: Record<string, number> = {};
+    for (const g of filteredGoalsForStats) {
+      statusCounts[g.status] = (statusCounts[g.status] || 0) + 1;
+    }
+    return {
+      employeeGoals: {
+        total: filteredGoalsForStats.length,
+        draft: statusCounts['DRAFT'] || 0,
+        pending: statusCounts['PENDING'] || 0,
+        approved: statusCounts['APPROVED'] || 0,
+        rejected: statusCounts['REJECTED'] || 0,
+        modified: statusCounts['MODIFIED'] || 0,
+        completed: statusCounts['COMPLETED'] || 0,
+      },
+      employeeCount: selectedEmployee && selectedEmployee !== 'all' ? 1 : employeeCounts.total,
+      activeEmployees: selectedEmployee && selectedEmployee !== 'all' ? 1 : employeeCounts.active
+    };
+  }, [filteredGoalsForStats, selectedEmployee, employeeCounts]);
 
-  // Calculate role-based statistics
-  const roleStats = {
+  // Memoize role-based statistics
+  const roleStats = useMemo(() => ({
     admins: employees.filter(emp => emp.role === 'ADMIN').length,
     managers: employees.filter(emp => emp.role === 'MANAGER').length,
     employees: employees.filter(emp => emp.role === 'EMPLOYEE').length,
     totalUsers: employees.length
-  };
+  }), [employees]);
 
-  // Load goals and employees from the database
+  // Fetch employees once on mount (not on every filter change)
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchEmployees = async () => {
       try {
-        // Fetch assigned employees first to get employee IDs
         const empResponse = await fetch('/api/employees/assigned');
-        if (!empResponse.ok) {
-          throw new Error('Failed to fetch assigned employees');
-        }
+        if (!empResponse.ok) throw new Error('Failed to fetch assigned employees');
         const empData = await empResponse.json();
         const employeesList = empData.employees || [];
-        
         setEmployees(employeesList);
         setEmployeeCounts({
           total: employeesList.length || 0,
           active: employeesList.filter((emp: any) => emp.isActive !== false).length || 0
         });
-
-        // Convert selectedEmployee email to employeeId if filtering by employee
-        let employeeIdFilter = undefined;
-        if (selectedEmployee && selectedEmployee !== 'all') {
-          const selectedEmp = employeesList.find((emp: any) => emp.email === selectedEmployee);
-          if (selectedEmp) {
-            employeeIdFilter = selectedEmp.id;
-          }
-        }
-
-        // Build query params with pagination and filters
-        const params = new URLSearchParams({
-          view: 'team-goals',
-          page: page.toString(),
-          limit: limit.toString(),
-          sortBy: 'createdAt',
-          sortOrder: 'desc',
-          ...(selectedStatus && selectedStatus !== '' && { status: selectedStatus }),
-          ...(selectedPriority && { priority: selectedPriority }),
-          ...(employeeIdFilter && { employeeId: employeeIdFilter })
-        });
-        
-        // Fetch goals
-        const goalResponse = await fetch(`/api/goals?${params}`);
-        if (!goalResponse.ok) {
-          throw new Error('Failed to fetch goals');
-        }
-
-        const goalData = await goalResponse.json();
-
-        // Goals from unified API already include all related data
-        setGoals(goalData.goals || []);
-        
-        // Set pagination if available
-        if (goalData.pagination) {
-          setPagination(goalData.pagination);
-        }
       } catch (error) {
-        console.error('Error fetching data:', error);
-        setGoals([]);
+        console.error('Error fetching employees:', error);
         setEmployees([]);
-      } finally {
-        setLoading(false);
       }
     };
+    fetchEmployees();
+  }, [session?.user?.email]);
 
-    fetchData();
-  }, [session?.user?.email, page, limit, selectedStatus, selectedPriority, selectedEmployee]);
+  // Fetch goals when filters/pagination change (separate from employees)
+  const fetchGoals = useCallback(async () => {
+    try {
+      setLoading(true);
+      // Convert selectedEmployee email to employeeId
+      let employeeIdFilter: string | undefined;
+      if (selectedEmployee && selectedEmployee !== 'all') {
+        const selectedEmp = employees.find((emp: any) => emp.email === selectedEmployee);
+        if (selectedEmp) employeeIdFilter = selectedEmp.id;
+      }
+
+      const params = new URLSearchParams({
+        view: 'team-goals',
+        page: page.toString(),
+        limit: limit.toString(),
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+        ...(selectedStatus && selectedStatus !== '' && { status: selectedStatus }),
+        ...(selectedPriority && { priority: selectedPriority }),
+        ...(employeeIdFilter && { employeeId: employeeIdFilter })
+      });
+
+      const goalResponse = await fetch(`/api/goals?${params}`);
+      if (!goalResponse.ok) throw new Error('Failed to fetch goals');
+      const goalData = await goalResponse.json();
+      setGoals(goalData.goals || []);
+      if (goalData.pagination) setPagination(goalData.pagination);
+    } catch (error) {
+      console.error('Error fetching goals:', error);
+      setGoals([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, limit, selectedStatus, selectedPriority, selectedEmployee, employees]);
+
+  useEffect(() => {
+    fetchGoals();
+  }, [fetchGoals]);
 
   // Add session/role check
   useEffect(() => {

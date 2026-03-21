@@ -18,70 +18,37 @@ export async function GET(
 
     const { goalId } = params;
 
-    // Get goal to check authorization
-    const goal = await prisma.goal.findUnique({
-      where: { id: goalId },
-      select: {
-        employeeId: true,
-        managerId: true,
-      },
-    });
-
-    if (!goal) {
-      return NextResponse.json({ error: 'Goal not found' }, { status: 404 });
-    }
-
-    // Check if user has access to this goal
-    const hasAccess =
-      goal.employeeId === session.user.id ||
-      goal.managerId === session.user.id ||
-      session.user.role === 'ADMIN';
-
-    if (!hasAccess) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
-
-    // Get goal activity history
+    // Single query: fetch goal with all relations needed for both auth check and activity (eliminates duplicate query)
     const goalWithHistory = await prisma.goal.findUnique({
       where: { id: goalId },
       include: {
         employee: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-          },
+          select: { id: true, name: true, email: true, role: true },
         },
         manager: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-          },
+          select: { id: true, name: true, email: true, role: true },
         },
         createdBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-          },
+          select: { id: true, name: true, email: true, role: true },
         },
         updatedBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-          },
+          select: { id: true, name: true, email: true, role: true },
         },
       },
     });
 
     if (!goalWithHistory) {
       return NextResponse.json({ error: 'Goal not found' }, { status: 404 });
+    }
+
+    // Check authorization using the already-loaded data
+    const hasAccess =
+      goalWithHistory.employeeId === session.user.id ||
+      goalWithHistory.managerId === session.user.id ||
+      session.user.role === 'ADMIN';
+
+    if (!hasAccess) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
     // Build activity timeline

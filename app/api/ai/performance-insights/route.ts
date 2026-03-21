@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    // Get user's goals and performance data
+    // Get user's goals and performance data (limited to last 200 for performance)
     const user = await prisma.user.findUnique({
       where: { id: targetUserId },
       include: {
@@ -40,11 +40,14 @@ export async function POST(request: NextRequest) {
             status: { not: 'DELETED' }
           },
           include: {
-            rating: true
+            rating: {
+              select: { selfScore: true, managerScore: true }
+            }
           },
           orderBy: {
             createdAt: 'desc'
-          }
+          },
+          take: 200
         }
       }
     });

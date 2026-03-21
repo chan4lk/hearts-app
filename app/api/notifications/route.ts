@@ -22,31 +22,21 @@ export async function GET(req: NextRequest) {
       PAGINATION_LIMITS.NOTIFICATIONS
     );
 
-    // Get total count
-    const total = await prisma.notification.count({
-      where: {
-        userId: session.user.id
-      }
-    });
+    const notifWhere = { userId: session.user.id };
 
-    const notifications = await prisma.notification.findMany({
-      where: {
-        userId: session.user.id
-      },
-      include: {
-        goal: {
-          select: {
-            id: true,
-            title: true
-          }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      },
-      skip,
-      take: limit
-    });
+    // Run count and findMany in parallel
+    const [total, notifications] = await Promise.all([
+      prisma.notification.count({ where: notifWhere }),
+      prisma.notification.findMany({
+        where: notifWhere,
+        include: {
+          goal: { select: { id: true, title: true } }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit
+      })
+    ]);
 
     return NextResponse.json({ 
       notifications,

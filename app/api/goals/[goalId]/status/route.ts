@@ -26,11 +26,11 @@ export async function PATCH(
 
     // Removed: Sensitive data logging (userId, role)
 
-    // Get the goal
+    // Get the goal with employee's managerId in a single query (eliminates N+1)
     const goal = await prisma.goal.findUnique({
       where: { id: params.goalId },
       include: {
-        employee: { select: { id: true, name: true, email: true } },
+        employee: { select: { id: true, name: true, email: true, managerId: true } },
         manager: { select: { id: true, name: true, email: true } }
       }
     });
@@ -43,16 +43,8 @@ export async function PATCH(
     const isManagerOrAdmin = session.user.role === 'MANAGER' || session.user.role === 'ADMIN';
     const isGoalManager = goal.managerId === session.user.id;
 
-    // Check if manager is the manager of the employee who owns this goal
-    // This is important for DRAFT goals created by employees where goal.managerId might be null
-    let isEmployeeManager = false;
-    if (isManagerOrAdmin && goal.employee) {
-      const employeeUser = await prisma.user.findUnique({
-        where: { id: goal.employeeId },
-        select: { managerId: true }
-      });
-      isEmployeeManager = employeeUser?.managerId === session.user.id;
-    }
+    // Use employee.managerId from the already-loaded relation (no extra query)
+    const isEmployeeManager = isManagerOrAdmin && goal.employee?.managerId === session.user.id;
 
     // Employees can update their own goals
     // Admins can update ANY goal status (full permissions)
@@ -220,19 +212,15 @@ export async function PATCH(
     }
 
     // Notify manager when employee creates DRAFT goal and it gets approved/rejected
+    // Use employee.managerId from the already-loaded relation (no extra query)
     if ((newStatus === 'APPROVED' || newStatus === 'REJECTED') && oldStatus === 'DRAFT') {
-      // Fetch employee with manager info
-      const employeeWithManager = await prisma.user.findUnique({
-        where: { id: goal.employeeId },
-        select: { id: true, name: true, email: true, managerId: true }
-      });
-      
-      if (employeeWithManager?.managerId) {
+      const empManagerId = goal.employee?.managerId;
+      if (empManagerId) {
         await prisma.notification.create({
           data: {
             type: newStatus === 'APPROVED' ? NotificationType.GOAL_APPROVED : NotificationType.GOAL_REJECTED,
-            message: `You ${newStatus === 'APPROVED' ? 'approved' : 'rejected'} ${employeeWithManager.name || 'employee'}'s goal "${goal.title}"`,
-            userId: employeeWithManager.managerId,
+            message: `You ${newStatus === 'APPROVED' ? 'approved' : 'rejected'} ${goal.employee?.name || 'employee'}'s goal "${goal.title}"`,
+            userId: empManagerId,
             goalId: goal.id,
           },
         });

@@ -30,38 +30,23 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const currentUser = await prisma.user.findUnique({
-      where: { id: session.user.id }
-    });
-
-    if (!currentUser || currentUser.role !== 'ADMIN') {
+    // Use session role directly (already verified by NextAuth) — eliminates extra query
+    if (session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
     const users = await prisma.user.findMany({
-      where: {
-        isActive: true
-      },
+      where: { isActive: true },
+      take: 500, // Safety limit to prevent unbounded memory usage
       include: {
         manager: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true
-          }
+          select: { id: true, name: true, email: true, role: true }
         },
         employees: {
-          select: {
-            id: true,
-            name: true,
-            role: true
-          }
+          select: { id: true, name: true, role: true }
         }
       },
-      orderBy: {
-        name: 'asc'
-      }
+      orderBy: { name: 'asc' }
     });
 
     // Transform the data to match our frontend types

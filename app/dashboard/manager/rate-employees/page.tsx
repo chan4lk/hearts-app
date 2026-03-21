@@ -401,8 +401,11 @@ export default function RateEmployeesPage() {
     return goals.filter(goal => {
       if (!goal.employee) return false;
       // Rating filter is client-side only (not supported by API)
-      if (filterRating !== 'all' && (goal.rating?.managerScore || goal.rating?.score) !== parseInt(filterRating)) return false;
-      return false;
+      if (filterRating !== 'all') {
+        const score = goal.rating?.managerScore || goal.rating?.score;
+        if (score !== parseInt(filterRating)) return false;
+      }
+      return true; // BUG FIX: was returning false for all goals
     });
   }, [goals, filterRating]);
 

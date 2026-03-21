@@ -43,42 +43,33 @@ export async function GET(request: NextRequest) {
       managerId: targetManagerId
     };
 
-    // Get total count
-    const total = await prisma.user.count({ where: whereClause });
-
-    const employees = await prisma.user.findMany({
-      where: whereClause,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        department: true,
-        position: true,
-        isActive: true,
-        manager: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        },
-        _count: {
-          select: {
-            goals: {
-              where: {
-                status: 'APPROVED'
-              }
+    // Run count and findMany in parallel
+    const [total, employees] = await Promise.all([
+      prisma.user.count({ where: whereClause }),
+      prisma.user.findMany({
+        where: whereClause,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          department: true,
+          position: true,
+          isActive: true,
+          manager: {
+            select: { id: true, name: true, email: true }
+          },
+          _count: {
+            select: {
+              goals: { where: { status: 'APPROVED' } }
             }
           }
-        }
-      },
-      orderBy: {
-        name: 'asc'
-      },
-      skip,
-      take: limit
-    });
+        },
+        orderBy: { name: 'asc' },
+        skip,
+        take: limit
+      })
+    ]);
 
     return NextResponse.json({ 
       employees: employees.map(emp => ({

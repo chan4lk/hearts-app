@@ -2,10 +2,8 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { GoalStatus, Role } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { handleApiError } from '@/app/api/utils/error-handler';
-
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -13,7 +11,7 @@ export const runtime = 'nodejs';
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -22,74 +20,63 @@ export async function GET() {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Fetch all goals (with safety limit for stats calculation)
-    const MAX_STATS_GOALS = 10000; // Safety limit for stats queries
-    const goals = await prisma.goal.findMany({
-      where: {
-        status: {
-          not: 'DELETED'
-        }
-      },
-      take: MAX_STATS_GOALS, // Safety limit
-      include: {
-        employee: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true
-          }
-        }
-      }
-    });
+    const goalWhere = { status: { not: 'DELETED' as const } };
 
-    // Calculate statistics
+    // Run all queries in parallel — use groupBy instead of loading 10K goals
+    const [statusAgg, userCounts, recentActivity] = await Promise.all([
+      // 1. Goal stats via DB groupBy (replaces loading 10K goals into memory)
+      prisma.goal.groupBy({
+        by: ['status'],
+        _count: { _all: true },
+        where: goalWhere
+      }),
+
+      // 2. User counts via groupBy (replaces loading 5K users)
+      prisma.user.groupBy({
+        by: ['role'],
+        _count: { _all: true },
+        where: { role: { in: ['EMPLOYEE', 'MANAGER'] } }
+      }),
+
+      // 3. Recent activity (already limited)
+      prisma.goal.findMany({
+        where: goalWhere,
+        orderBy: { updatedAt: 'desc' },
+        take: 5,
+        include: {
+          employee: { select: { name: true, email: true } }
+        }
+      })
+    ]);
+
+    // Build stats from aggregation
+    const statusMap: Record<string, number> = {};
+    let total = 0;
+    for (const row of statusAgg) {
+      statusMap[row.status] = row._count._all;
+      total += row._count._all;
+    }
+
     const stats = {
-      total: goals.length,
-      completed: goals.filter((g) => g.status === 'COMPLETED').length,
-      pending: goals.filter((g) => g.status === 'PENDING').length,
-      inProgress: goals.filter((g) => g.status === 'APPROVED').length,
-      draft: goals.filter((g) => g.status === 'DRAFT').length,
-      rejected: goals.filter((g) => g.status === 'REJECTED').length,
-      modified: goals.filter((g) => g.status === 'MODIFIED').length
+      total,
+      completed: statusMap['COMPLETED'] || 0,
+      pending: statusMap['PENDING'] || 0,
+      inProgress: statusMap['APPROVED'] || 0,
+      draft: statusMap['DRAFT'] || 0,
+      rejected: statusMap['REJECTED'] || 0,
+      modified: statusMap['MODIFIED'] || 0
     };
 
-    // Get user counts (with safety limit)
-    const MAX_STATS_USERS = 5000; // Safety limit for stats queries
-    const users = await prisma.user.findMany({
-      where: {
-        role: {
-          in: ['EMPLOYEE', 'MANAGER']
-        }
-      },
-      take: MAX_STATS_USERS // Safety limit
-    });
+    // Build user stats from aggregation
+    const userRoleCounts: Record<string, number> = {};
+    for (const row of userCounts) {
+      userRoleCounts[row.role] = row._count._all;
+    }
 
     const userStats = {
-      totalEmployees: users.filter((u) => u.role === 'EMPLOYEE').length,
-      totalManagers: users.filter((u) => u.role === 'MANAGER').length
+      totalEmployees: userRoleCounts['EMPLOYEE'] || 0,
+      totalManagers: userRoleCounts['MANAGER'] || 0
     };
-
-    // Get recent activity
-    const recentActivity = await prisma.goal.findMany({
-      where: {
-        status: {
-          not: 'DELETED'
-        }
-      },
-      orderBy: {
-        updatedAt: 'desc'
-      },
-      take: 5,
-      include: {
-        employee: {
-          select: {
-            name: true,
-            email: true
-          }
-        }
-      }
-    });
 
     return NextResponse.json({
       stats,
@@ -102,9 +89,8 @@ export async function GET() {
         employee: goal.employee
       }))
     });
-
   } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }
-} 
+}

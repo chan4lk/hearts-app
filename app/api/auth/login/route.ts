@@ -1,10 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { compare } from 'bcryptjs';
 import { sign } from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
+import { rateLimiters } from '@/lib/rateLimit';
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // Rate limit login attempts to prevent brute force
+  const rateLimitResponse = await rateLimiters.strict(req);
+  if (rateLimitResponse) return rateLimitResponse;
   try {
     const { email, password } = await req.json();
 

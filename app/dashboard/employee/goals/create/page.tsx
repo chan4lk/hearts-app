@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
@@ -314,10 +314,13 @@ function GoalsPageContent() {
             animate={{ opacity: 1, y: 0 }}
           >
             {(() => {
+              // Single-pass count instead of 3 separate .filter() calls
+              const sc: Record<string, number> = {};
+              for (const g of goals) sc[g.status] = (sc[g.status] || 0) + 1;
               const totalGoals = goals.length;
-              const approvedCount = goals.filter(g => g.status === 'APPROVED').length;
-              const draftCount = goals.filter(g => g.status === 'DRAFT').length;
-              const rejectedCount = goals.filter(g => g.status === 'REJECTED').length;
+              const approvedCount = sc['APPROVED'] || 0;
+              const draftCount = sc['DRAFT'] || 0;
+              const rejectedCount = sc['REJECTED'] || 0;
               
               const statItems: StatItem[] = [
                 {

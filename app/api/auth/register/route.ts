@@ -1,9 +1,13 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
+import { rateLimiters } from '@/lib/rateLimit';
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // Rate limit registration to prevent abuse
+  const rateLimitResponse = await rateLimiters.moderate(req);
+  if (rateLimitResponse) return rateLimitResponse;
   try {
     const { name, email, password } = await req.json();
 

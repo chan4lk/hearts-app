@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 
@@ -143,7 +143,7 @@ export default function EmployeeDashboard() {
   };
 
   // Fetch goals from the unified API
-  const fetchGoals = async () => {
+  const fetchGoals = useCallback(async () => {
     const params = new URLSearchParams({
       view: 'my-goals',
       page: page.toString(),
@@ -164,14 +164,13 @@ export default function EmployeeDashboard() {
     }
 
     const data = await response.json();
-    
-    // Set pagination if available
+
     if (data.pagination) {
       setPagination(data.pagination);
     }
-    
+
     return data.goals || [];
-  };
+  }, [page, limit, selectedStatus, selectedPriority, searchQuery]);
 
   // Handle form submit
   const handleCreateGoal = async (e: React.FormEvent) => {
@@ -357,54 +356,39 @@ export default function EmployeeDashboard() {
   // Server-side filtering is handled by API, but we keep client-side filtering for view switching
   const filteredGoals = goals;
 
-  const getGoalStats = (): GoalStats => {
+  // Memoize goal stats to avoid recalculating on every render
+  const getGoalStats = useMemo((): GoalStats => {
+    const statusCounts: Record<string, number> = {};
+    const categoryStats: Record<string, number> = {};
+    for (const g of goals) {
+      statusCounts[g.status] = (statusCounts[g.status] || 0) + 1;
+      if (g.category) categoryStats[g.category] = (categoryStats[g.category] || 0) + 1;
+    }
+
     const totalGoals = goals.length;
-    const total = totalGoals;
-    const completedGoals = goals.filter(g => g.status === 'COMPLETED').length;
-    const completed = completedGoals;
-    const modified = goals.filter(g => g.status === 'MODIFIED').length;
-    const pendingGoals = goals.filter(g => g.status === 'PENDING').length;
-    const pending = pendingGoals;
-    const approved = goals.filter(g => g.status === 'APPROVED').length;
-    const rejected = goals.filter(g => g.status === 'REJECTED').length;
-    const draftGoals = goals.filter(g => g.status === 'DRAFT').length;
-    const inProgressGoals = goals.filter(g => ['PENDING', 'MODIFIED'].includes(g.status)).length;
-    const approvedGoals = approved;
-    const rejectedGoals = rejected;
-    const achievementScore = totalGoals > 0 ? Math.round(((completedGoals + approved) / totalGoals) * 100) : 0;
+    const completedGoals = statusCounts['COMPLETED'] || 0;
+    const approved = statusCounts['APPROVED'] || 0;
 
-    // Calculate category stats
-    const categoryStats: { [key: string]: number } = {};
-    goals.forEach(goal => {
-      if (goal.category) {
-        categoryStats[goal.category] = (categoryStats[goal.category] || 0) + 1;
-      }
-    });
-
-    // For employee dashboard, these values are not relevant but required by the interface
-    const totalEmployees = 0;
-    const totalManagers = 0;
-    
     return {
       totalGoals,
-      total,
+      total: totalGoals,
       completedGoals,
-      completed,
-      modified,
-      pendingGoals,
-      pending,
+      completed: completedGoals,
+      modified: statusCounts['MODIFIED'] || 0,
+      pendingGoals: statusCounts['PENDING'] || 0,
+      pending: statusCounts['PENDING'] || 0,
       approved,
-      rejected,
-      achievementScore,
-      inProgressGoals,
-      totalEmployees,
-      totalManagers,
-      approvedGoals,
-      rejectedGoals,
-      draftGoals,
+      rejected: statusCounts['REJECTED'] || 0,
+      achievementScore: totalGoals > 0 ? Math.round(((completedGoals + approved) / totalGoals) * 100) : 0,
+      inProgressGoals: (statusCounts['PENDING'] || 0) + (statusCounts['MODIFIED'] || 0),
+      totalEmployees: 0,
+      totalManagers: 0,
+      approvedGoals: approved,
+      rejectedGoals: statusCounts['REJECTED'] || 0,
+      draftGoals: statusCounts['DRAFT'] || 0,
       categoryStats
     };
-  };
+  }, [goals]);
 
   const handleSubmitGoal = async (goalId: string) => {
     try {
@@ -462,7 +446,7 @@ export default function EmployeeDashboard() {
             animate={{ opacity: 1, y: 0 }}
           >
             {(() => {
-              const goalStats = getGoalStats();
+              const goalStats = getGoalStats;
               const statItems: StatItem[] = [
                 {
                   title: 'Total Goals',

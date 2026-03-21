@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -175,38 +175,40 @@ function ManagerGoalSettingPageContent() {
     }
   };
 
-  const updateStats = (goals: Goal[], employees: User[]) => {
-    const filteredGoals = selectedEmployee === 'all' ? goals : goals.filter(goal => goal.employee?.id === selectedEmployee);
-    
-    setStats({
-      totalEmployees: employees.length,
-      totalGoals: filteredGoals.length,
-      total: filteredGoals.length,
-      completedGoals: filteredGoals.filter(g => g.status === 'COMPLETED').length,
-      completed: filteredGoals.filter(g => g.status === 'COMPLETED').length,
-      pendingGoals: filteredGoals.filter(g => g.status === 'PENDING').length,
-      pending: filteredGoals.filter(g => g.status === 'PENDING').length,
-      draftGoals: filteredGoals.filter(g => g.status === 'DRAFT').length,
-      approvedGoals: filteredGoals.filter(g => g.status === 'APPROVED').length,
-      approved: filteredGoals.filter(g => g.status === 'APPROVED').length,
-      rejectedGoals: filteredGoals.filter(g => g.status === 'REJECTED').length,
-      rejected: filteredGoals.filter(g => g.status === 'REJECTED').length,
-      modified: filteredGoals.filter(g => g.status === 'MODIFIED').length,
-      achievementScore: calculateAchievementScore(filteredGoals),
-      inProgressGoals: filteredGoals.filter(g => g.status === 'PENDING' || g.status === 'MODIFIED').length,
-      totalManagers: 0, // This would need to be set from a different API call if needed
-      categoryStats: filteredGoals.reduce((acc, goal) => {
-        acc[goal.category] = (acc[goal.category] || 0) + 1;
-        return acc;
-      }, {} as { [key: string]: number })
-    });
-  };
+  // Optimized: single-pass status counting instead of 12 separate .filter() calls
+  const updateStats = useCallback((goalsList: Goal[], employeesList: User[]) => {
+    const filteredGoals = selectedEmployee === 'all' ? goalsList : goalsList.filter(goal => goal.employee?.id === selectedEmployee);
 
-  const calculateAchievementScore = (goals: Goal[]): number => {
-    if (goals.length === 0) return 0;
-    const completedGoals = goals.filter(g => g.status === 'COMPLETED').length;
-    return Math.round((completedGoals / goals.length) * 100);
-  };
+    const sc: Record<string, number> = {};
+    const cc: Record<string, number> = {};
+    for (const g of filteredGoals) {
+      sc[g.status] = (sc[g.status] || 0) + 1;
+      if (g.category) cc[g.category] = (cc[g.category] || 0) + 1;
+    }
+
+    const completed = sc['COMPLETED'] || 0;
+    const total = filteredGoals.length;
+
+    setStats({
+      totalEmployees: employeesList.length,
+      totalGoals: total,
+      total,
+      completedGoals: completed,
+      completed,
+      pendingGoals: sc['PENDING'] || 0,
+      pending: sc['PENDING'] || 0,
+      draftGoals: sc['DRAFT'] || 0,
+      approvedGoals: sc['APPROVED'] || 0,
+      approved: sc['APPROVED'] || 0,
+      rejectedGoals: sc['REJECTED'] || 0,
+      rejected: sc['REJECTED'] || 0,
+      modified: sc['MODIFIED'] || 0,
+      achievementScore: total > 0 ? Math.round((completed / total) * 100) : 0,
+      inProgressGoals: (sc['PENDING'] || 0) + (sc['MODIFIED'] || 0),
+      totalManagers: 0,
+      categoryStats: cc
+    });
+  }, [selectedEmployee]);
 
   const handleSubmit = async (formData: GoalFormData) => {
     setLoading(true);

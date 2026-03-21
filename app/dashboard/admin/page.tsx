@@ -141,6 +141,7 @@ export default function AdminDashboard() {
     }
   };
 
+  // Initial data load - only depends on session (not filters)
   useEffect(() => {
     if (!session) {
       router.push('/login');
@@ -153,10 +154,16 @@ export default function AdminDashboard() {
     }
 
     fetchDashboardData();
-    if (showGoals) {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, router]);
+
+  // Fetch goals when toggled or filters/pagination change
+  useEffect(() => {
+    if (showGoals && session?.user?.role === Role.ADMIN) {
       fetchAllGoals();
     }
-  }, [session, router, showGoals, goalsPage, goalsLimit, selectedUser, selectedStatus, selectedPriority, selectedCategory]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showGoals, goalsPage, goalsLimit, selectedUser, selectedStatus, selectedPriority, selectedCategory]);
 
   const fetchAllGoals = async () => {
     try {

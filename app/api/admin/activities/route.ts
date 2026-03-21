@@ -16,36 +16,21 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get recent user activities (limited for performance)
-    const MAX_ACTIVITY_USERS = 10;
-    const recentUsers = await prisma.user.findMany({
-      take: MAX_ACTIVITY_USERS,
-      orderBy: {
-        updatedAt: 'desc'
-      },
-      select: {
-        name: true,
-        email: true,
-        role: true,
-        updatedAt: true
-      }
-    });
-
-    // Get recent goal activities, including deleted goals (limited for performance)
-    const MAX_ACTIVITY_GOALS = 20;
-    const recentGoals = await prisma.goal.findMany({
-      take: MAX_ACTIVITY_GOALS,
-      orderBy: {
-        updatedAt: 'desc'
-      },
-      include: {
-        employee: {
-          select: {
-            name: true
-          }
+    // Fetch users and goals in parallel
+    const [recentUsers, recentGoals] = await Promise.all([
+      prisma.user.findMany({
+        take: 10,
+        orderBy: { updatedAt: 'desc' },
+        select: { name: true, email: true, role: true, updatedAt: true }
+      }),
+      prisma.goal.findMany({
+        take: 20,
+        orderBy: { updatedAt: 'desc' },
+        include: {
+          employee: { select: { name: true } }
         }
-      }
-    });
+      })
+    ]);
 
     // Format activities
     const activities = [

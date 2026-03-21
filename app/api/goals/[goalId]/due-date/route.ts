@@ -25,11 +25,11 @@ export async function PATCH(
       return NextResponse.json({ error: 'Due date is required' }, { status: 400 });
     }
 
-    // Get the goal
+    // Get the goal with employee's managerId in a single query (eliminates N+1)
     const goal = await prisma.goal.findUnique({
       where: { id: resolvedParams.goalId },
       include: {
-        employee: { select: { id: true, name: true, email: true } },
+        employee: { select: { id: true, name: true, email: true, managerId: true } },
         manager: { select: { id: true, name: true, email: true } }
       }
     });
@@ -42,15 +42,8 @@ export async function PATCH(
     const isManagerOrAdmin = session.user.role === 'MANAGER' || session.user.role === 'ADMIN';
     const isGoalManager = goal.managerId === session.user.id;
 
-    // Check if manager is the manager of the employee who owns this goal
-    let isEmployeeManager = false;
-    if (isManagerOrAdmin && goal.employee) {
-      const employeeUser = await prisma.user.findUnique({
-        where: { id: goal.employeeId },
-        select: { managerId: true }
-      });
-      isEmployeeManager = employeeUser?.managerId === session.user.id;
-    }
+    // Use employee.managerId from the already-loaded relation (no extra query)
+    const isEmployeeManager = isManagerOrAdmin && goal.employee?.managerId === session.user.id;
 
     // Employees can update due date of their own goals
     // Admins can update ANY goal due date (full permissions)

@@ -33,49 +33,31 @@ export async function GET() {
           role: Role.EMPLOYEE
         };
 
-    // Get all relevant employees
-    const employees = await prisma.user.findMany({
-      where: whereClause,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        department: true,
-        position: true,
-        isActive: true,
-        manager: {
-          select: {
-            name: true,
-            email: true
-          }
-        },
-        _count: {
-          select: {
-            goals: {
-              where: {
-                status: 'APPROVED'
-              }
+    // Run all queries in parallel
+    const [employees, totalEmployees, activeEmployees] = await Promise.all([
+      prisma.user.findMany({
+        where: whereClause,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          department: true,
+          position: true,
+          isActive: true,
+          manager: {
+            select: { name: true, email: true }
+          },
+          _count: {
+            select: {
+              goals: { where: { status: 'APPROVED' } }
             }
           }
-        }
-      },
-      orderBy: {
-        name: 'asc'
-      }
-    });
-
-    // Get total employee count (including inactive)
-    const totalEmployees = await prisma.user.count({
-      where: whereClause
-    });
-
-    // Get active employee count
-    const activeEmployees = await prisma.user.count({
-      where: {
-        ...whereClause,
-        isActive: true
-      }
-    });
+        },
+        orderBy: { name: 'asc' }
+      }),
+      prisma.user.count({ where: whereClause }),
+      prisma.user.count({ where: { ...whereClause, isActive: true } })
+    ]);
 
     // Transform the data to include goal count, status, and manager info
     const employeesWithStats = employees.map(emp => ({
