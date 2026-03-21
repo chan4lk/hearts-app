@@ -253,7 +253,6 @@ export async function PUT(req: NextRequest, { params }: { params: { goalId: stri
       goal
     });
   } catch (error) {
-    console.error('Error updating goal:', error);
     return NextResponse.json({ error: 'Failed to update goal' }, { status: 500 });
   }
 }

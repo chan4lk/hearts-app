@@ -50,7 +50,6 @@ export default function BrowseEventsPage() {
       setEvents(data.events);
       setPagination(data.pagination);
     } catch (error) {
-      console.error('Error fetching events:', error);
       toast.error('Failed to fetch events');
     } finally {
       setIsLoading(false);
@@ -81,7 +80,6 @@ export default function BrowseEventsPage() {
       toast.success('Successfully registered for the event');
       fetchEvents();
     } catch (error) {
-      console.error('Error registering:', error);
       toast.error(
         error instanceof Error ? error.message : 'Failed to register'
       );
@@ -107,7 +105,6 @@ export default function BrowseEventsPage() {
       toast.success('Registration cancelled');
       fetchEvents();
     } catch (error) {
-      console.error('Error cancelling registration:', error);
       toast.error('Failed to cancel registration');
     } finally {
       setRegistering(null);

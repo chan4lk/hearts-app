@@ -185,7 +185,6 @@ export function BulkGoalFormModal({
       setErrors({});
       onClose();
     } catch (error) {
-      console.error('Error creating bulk goals:', error);
       // Error toast removed
     } finally {
       setIsSubmitting(false);

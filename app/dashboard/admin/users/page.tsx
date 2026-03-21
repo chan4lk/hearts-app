@@ -138,7 +138,6 @@ function UsersPageContent() {
         admins: data.adminCount || 0
       });
     } catch (error) {
-      console.error('Error fetching total stats:', error);
     }
   }, []);
 
@@ -197,7 +196,6 @@ function UsersPageContent() {
       
       setLastRefresh(new Date());
     } catch (error) {
-      console.error('Error fetching users:', error);
       // Toast removed
     } finally {
       setIsLoading(false);

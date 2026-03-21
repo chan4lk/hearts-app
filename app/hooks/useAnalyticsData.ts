@@ -120,7 +120,6 @@ export function useAnalyticsData() {
         Array.from(new Set(list.map((e: any) => e.department).filter(Boolean) as string[])).sort()
       );
     } catch (err) {
-      console.error('Error fetching employees:', err);
     }
   }, [session?.user]);
 
@@ -189,12 +188,10 @@ export function useAnalyticsData() {
       // Retry on connection errors, with a cap
       if ((msg.includes('connection limit') || msg.includes('too many clients')) && retryCount.current < MAX_RETRIES) {
         retryCount.current++;
-        console.warn(`Retrying analytics fetch (${retryCount.current}/${MAX_RETRIES})...`);
         setTimeout(() => fetchAnalytics(), 2000 * retryCount.current);
         return;
       }
 
-      console.error('Error fetching analytics:', err);
       setError(msg);
       setAnalyticsData(EMPTY_DATA);
       hasData.current = true;

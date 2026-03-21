@@ -42,7 +42,6 @@ export function AIGoalSuggestions({
         onGenerate();
       }
     } catch (error) {
-      console.error('Error generating suggestions:', error);
       toast.error('Failed to generate goal suggestions');
     } finally {
       setLoading(false);

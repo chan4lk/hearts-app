@@ -43,7 +43,6 @@ export function ProgressUpdateForm({ goalId, currentProgress }: ProgressUpdateFo
       setNotes('');
     } catch (error) {
       toast.error('Failed to update progress. Please try again.');
-      console.error('Error updating progress:', error);
     } finally {
       setLoading(false);
     }

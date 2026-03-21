@@ -87,7 +87,6 @@ export default function GoalTemplates({ onSelect }: GoalTemplatesProps) {
         {filteredTemplates.map((template) => {
           const Icon = iconMap[template.icon];
           if (!Icon) {
-            console.warn(`Icon ${template.icon} not found in iconMap`);
             return null;
           }
           return (

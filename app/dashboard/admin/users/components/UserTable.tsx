@@ -103,7 +103,6 @@ export default function UserTable({
       
       // Toast removed
     } catch (error) {
-      console.error('Error updating role:', error);
       // Toast removed
     } finally {
       setUpdatingRole(null);
@@ -156,7 +155,6 @@ export default function UserTable({
       
       // Toast removed
     } catch (error) {
-      console.error('Error updating status:', error);
       // Error toast removed
     } finally {
       setUpdatingStatus(null);
@@ -214,7 +212,6 @@ export default function UserTable({
       
       // Manager updated successfully - notification removed
     } catch (error) {
-      console.error('Error updating manager:', error);
       // Error toast removed
     } finally {
       setUpdatingManager(null);

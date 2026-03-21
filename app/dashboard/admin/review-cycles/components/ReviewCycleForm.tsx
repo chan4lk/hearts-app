@@ -224,11 +224,9 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
         }));
         setUsers(minimalUsers);
       } else {
-        console.error('Failed to fetch users:', response.statusText);
         setUsers([]);
       }
     } catch (error) {
-      console.error('Error fetching users:', error);
       setUsers([]);
     } finally {
       setLoadingUsers(false);
@@ -310,7 +308,6 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
       }
     } catch (error) {
       // Error handling is done in parent component
-      console.error('Error saving review cycle:', error);
     } finally {
       // Keep loading state briefly for visual feedback, then clear
       setTimeout(() => setLoading(false), 100);

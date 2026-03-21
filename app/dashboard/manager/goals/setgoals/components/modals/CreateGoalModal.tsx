@@ -124,7 +124,6 @@ export function CreateGoalModal({
         description: data.description,
       }));
     } catch (error) {
-      console.error('Error generating goal:', error);
       // Error toast removed
     } finally {
       setIsGenerating(false);

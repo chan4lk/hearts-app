@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { BsSearch, BsCalendarPlus, BsArrowRight, BsFilter, BsCheckLg, BsArrowCounterclockwise } from 'react-icons/bs';
 import { toast } from 'react-toastify';
@@ -47,7 +48,6 @@ function EmployeeEventsContent() {
       setParticipations(data.participations);
       setPagination(data.pagination);
     } catch (error) {
-      console.error('Error fetching participations:', error);
       toast.error('Failed to fetch your events');
     } finally {
       setIsLoading(false);
@@ -74,7 +74,6 @@ function EmployeeEventsContent() {
       toast.success(`Attendance updated to ${newStatus}`);
       fetchParticipations();
     } catch (error) {
-      console.error('Error updating status:', error);
       toast.error('Failed to update participation status');
     }
   };
@@ -95,7 +94,6 @@ function EmployeeEventsContent() {
       toast.success('Role updated');
       fetchParticipations();
     } catch (error) {
-      console.error('Error updating role:', error);
       toast.error('Failed to update role');
     }
   };
@@ -129,7 +127,6 @@ function EmployeeEventsContent() {
       setIsFeedbackOpen(false);
       setSelectedEventId(null);
     } catch (error) {
-      console.error('Error submitting feedback:', error);
       throw error;
     }
   };
@@ -273,15 +270,13 @@ function EmployeeEventsContent() {
                   <p className="text-white/60 mb-6">
                     Browse available events and register to participate
                   </p>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => window.location.href = '/dashboard/employee/events/browse'}
-                    className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-6 py-3 font-semibold text-white hover:from-teal-600 hover:to-cyan-700 shadow-cyan-500/30 transition-all"
+                  <Link
+                    href="/dashboard/employee/events/browse"
+                    className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-6 py-3 font-semibold text-white transition-all"
                   >
                     Browse Events
                     <BsArrowRight className="text-lg" />
-                  </motion.button>
+                  </Link>
                 </motion.div>
               )}
             </motion.div>

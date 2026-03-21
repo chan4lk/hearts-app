@@ -65,42 +65,30 @@ export async function GET(req: Request) {
     const [total, reviewCycles] = await Promise.all([
       prisma.reviewCycle.count({ where: whereClause }),
       prisma.reviewCycle.findMany({
-      where: whereClause,
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-            manager: {
-              select: {
-                id: true,
-                name: true,
-                email: true
+        where: whereClause,
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true,
+              manager: {
+                select: { id: true, name: true, email: true }
               }
             }
+          },
+          reportingPerson: {
+            select: { id: true, name: true, email: true }
+          },
+          updatedBy: {
+            select: { id: true, name: true, email: true }
           }
         },
-        reportingPerson: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        },
-        updatedBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      },
-      orderBy,
-      skip,
-      take: limit
-    })
+        orderBy,
+        skip,
+        take: limit
+      })
     ]);
 
     return NextResponse.json({

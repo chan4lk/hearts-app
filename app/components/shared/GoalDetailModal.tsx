@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, BsArrowRight, BsChevronDown, BsChevronUp, BsPencil, BsTrash, BsPerson, BsGear, BsFlag, BsBuilding, BsPlayCircle, BsPauseCircle, BsCircle, BsArrowRepeat } from 'react-icons/bs';
+import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, BsArrowRight, BsChevronDown, BsChevronUp, BsPencil, BsTrash, BsPerson, BsGear, BsFlag, BsPlayCircle, BsPauseCircle, BsCircle, BsArrowRepeat } from 'react-icons/bs';
 import { Goal, GoalWithRatingExtended } from '@/app/components/shared/types';
 import { IconType } from 'react-icons';
+import { getPriorityConfig as getSharedPriorityConfig, getDepartmentConfig as getSharedDepartmentConfig } from '@/app/utils/badgeConfigs';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FORM_STYLES } from '@/app/components/ui/form-primitives';
 import { Button } from '@/app/components/ui/button';
@@ -29,24 +30,14 @@ type StatusConfig = {
 };
 
 
+// Use centralized configs — adapters to keep the local API shape
 const getPriorityConfig = (priority: string) => {
-  const configs: Record<string, { color: string; bg: string; icon: IconType; label: string }> = {
-    HIGH: { color: 'text-rose-400', bg: 'bg-rose-500/10', icon: BsFlag, label: 'High' },
-    MEDIUM: { color: 'text-amber-400', bg: 'bg-amber-500/10', icon: BsFlag, label: 'Medium' },
-    LOW: { color: 'text-emerald-400', bg: 'bg-emerald-500/10', icon: BsFlag, label: 'Low' }
-  };
-  return configs[priority] || configs.MEDIUM;
+  const c = getSharedPriorityConfig(priority);
+  return { color: c.text, bg: c.bg, icon: c.icon, label: c.label };
 };
 
 const getDepartmentConfig = (department: string) => {
-  const configs: Record<string, { color: string; bg: string; icon: IconType; label: string }> = {
-    ENGINEERING: { color: 'text-blue-400', bg: 'bg-blue-500/10', icon: BsGear, label: 'Engineering' },
-    MARKETING: { color: 'text-purple-400', bg: 'bg-purple-500/10', icon: BsBuilding, label: 'Marketing' },
-    SALES: { color: 'text-green-400', bg: 'bg-green-500/10', icon: BsBuilding, label: 'Sales' },
-    HR: { color: 'text-pink-400', bg: 'bg-pink-500/10', icon: BsPerson, label: 'HR' },
-    FINANCE: { color: 'text-cyan-400', bg: 'bg-cyan-500/10', icon: BsBuilding, label: 'Finance' }
-  };
-  return configs[department] || configs.ENGINEERING;
+  return getSharedDepartmentConfig(department);
 };
 
 export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, onDelete, onApprove, onReject }: GoalDetailModalProps) {
@@ -121,7 +112,6 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
           setActivities(data.activities);
         }
       } catch (error) {
-        console.error('Failed to fetch activities:', error);
       }
     };
 
@@ -178,9 +168,9 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
         setActivities(activityData.activities);
       }
       
-      // If approved/rejected, reload to show updated status
+      // Close modal after status change so parent re-fetches
       if (newStatus === 'APPROVED' || newStatus === 'REJECTED') {
-        setTimeout(() => window.location.reload(), 500);
+        setTimeout(() => onClose(), 300);
       }
     } catch (error) {
       // Error toast removed

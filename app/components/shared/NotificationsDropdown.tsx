@@ -62,7 +62,6 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
         setLastFetchTime(Date.now());
       }
     } catch (error) {
-      console.error('Error fetching notifications:', error);
     } finally {
       setLoading(false);
       setIsRefreshing(false);
@@ -125,7 +124,6 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
         );
       }
     } catch (error) {
-      console.error('Error marking notification as read:', error);
     }
   };
 
@@ -140,7 +138,6 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
         setNotifications(prev => prev.filter(n => n.id !== notificationId));
       }
     } catch (error) {
-      console.error('Error deleting notification:', error);
     }
   };
 
@@ -156,7 +153,6 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
       await Promise.all(deletePromises);
       setNotifications([]);
     } catch (error) {
-      console.error('Error clearing all notifications:', error);
     }
   };
 

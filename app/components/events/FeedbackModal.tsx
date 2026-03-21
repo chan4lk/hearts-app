@@ -25,7 +25,6 @@ export const FeedbackModal = ({ isOpen, onClose, onSubmit, initialData, isLoadin
       setFormData({ hoursContributed: 1, feedback: '' });
       onClose();
     } catch (error) {
-      console.error('Error submitting feedback:', error);
     }
   };
 

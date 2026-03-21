@@ -92,7 +92,6 @@ export default function ManagerSelector({
         if (error.name === 'AbortError') {
           return;
         }
-        console.error('Error fetching managers:', error);
         if (isMounted) {
           setManagers([]);
         }

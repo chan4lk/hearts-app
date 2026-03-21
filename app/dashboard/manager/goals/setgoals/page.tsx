@@ -131,7 +131,6 @@ function ManagerGoalSettingPageContent() {
       setAssignedEmployees(data.employees);
       fetchGoals(data.employees);
     } catch (error) {
-      console.error('Error fetching assigned employees:', error);
       setError(error instanceof Error ? error : new Error('Failed to load assigned employees'));
       // Toast removed
     }
@@ -168,7 +167,6 @@ function ManagerGoalSettingPageContent() {
         setPagination(data.pagination);
       }
     } catch (error) {
-      console.error('Error fetching goals:', error);
       // Toast removed
     } finally {
       setLoading(false);
@@ -229,7 +227,6 @@ function ManagerGoalSettingPageContent() {
       setIsCreateModalOpen(false);
       resetForm();
     } catch (error) {
-      console.error('Error creating goal:', error);
       // Error toast removed
     } finally {
       setLoading(false);
@@ -264,7 +261,6 @@ function ManagerGoalSettingPageContent() {
         throw new Error(result.message || 'Failed to create goals');
       }
     } catch (error) {
-      console.error('Error creating bulk goals:', error);
       // Error toast removed
     } finally {
       setLoading(false);
@@ -320,7 +316,6 @@ function ManagerGoalSettingPageContent() {
       setIsViewModalOpen(true);
       
     } catch (error) {
-      console.error('Error updating goal:', error);
       // Revert optimistic update on error
       setGoals(prev => prev.map(goal => 
         goal.id === goalToView.id ? goalToView : goal
@@ -357,7 +352,6 @@ function ManagerGoalSettingPageContent() {
 
       // Success - goal is already removed from UI
     } catch (error) {
-      console.error('Error deleting goal:', error);
       // Revert optimistic update on error
       if (goalToRestore) {
         setGoals(prev => [...prev, goalToRestore].sort((a, b) => 

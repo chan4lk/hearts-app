@@ -108,7 +108,6 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
         onImportComplete();
       }
     } catch (error) {
-      console.error('Import error:', error);
       setImportResult({
         success: false,
         imported: 0,

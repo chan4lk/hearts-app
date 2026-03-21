@@ -135,7 +135,6 @@ export default function AdminDashboard() {
       setActivities(activitiesData);
       setUsers(usersData.users || []);
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
     } finally {
       setIsLoading(false);
     }
@@ -190,7 +189,6 @@ export default function AdminDashboard() {
         setGoalsPagination(data.pagination);
       }
     } catch (error) {
-      console.error('Error fetching goals:', error);
     } finally {
       setGoalsLoading(false);
     }
@@ -233,7 +231,6 @@ export default function AdminDashboard() {
       fetchAllGoals();
       fetchDashboardData();
     } catch (error) {
-      console.error('Error deleting goal:', error);
       // Revert optimistic update on error
       fetchAllGoals();
       fetchDashboardData();
@@ -283,7 +280,6 @@ export default function AdminDashboard() {
       fetchAllGoals();
       fetchDashboardData();
     } catch (error) {
-      console.error('Error bulk deleting goals:', error);
       // Error toast removed
     }
   };

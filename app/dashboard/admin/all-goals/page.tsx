@@ -94,7 +94,6 @@ function AllGoalsPageContent() {
         });
       }
     } catch (error) {
-      console.error('Error fetching total stats:', error);
     }
   }, []);
 
@@ -152,7 +151,6 @@ function AllGoalsPageContent() {
         setPagination(goalsData.pagination);
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
@@ -189,7 +187,6 @@ function AllGoalsPageContent() {
       fetchData(); // Refresh goals
       fetchTotalStats(); // Refresh total stats
     } catch (error) {
-      console.error('Error deleting goal:', error);
       // Revert optimistic update on error
       fetchData();
       // Error toast removed
@@ -234,7 +231,6 @@ function AllGoalsPageContent() {
       fetchData();
       fetchTotalStats(); // Refresh total stats
     } catch (error) {
-      console.error('Error bulk deleting goals:', error);
       // Revert optimistic update on error
       fetchData();
       // Error toast removed

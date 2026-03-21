@@ -115,7 +115,6 @@ export default function ManagerDashboard() {
           active: employeesList.filter((emp: any) => emp.isActive !== false).length || 0
         });
       } catch (error) {
-        console.error('Error fetching employees:', error);
         setEmployees([]);
       }
     };
@@ -150,7 +149,6 @@ export default function ManagerDashboard() {
       setGoals(goalData.goals || []);
       if (goalData.pagination) setPagination(goalData.pagination);
     } catch (error) {
-      console.error('Error fetching goals:', error);
       setGoals([]);
     } finally {
       setLoading(false);
@@ -161,13 +159,10 @@ export default function ManagerDashboard() {
     fetchGoals();
   }, [fetchGoals]);
 
-  // Add session/role check
-  useEffect(() => {
-    if (!session) return;
-    if (!['MANAGER', 'ADMIN'].includes(session.user.role)) {
-      window.location.href = '/login';
-    }
-  }, [session]);
+  // Auth is handled by middleware — just guard render
+  if (!session || !['MANAGER', 'ADMIN'].includes(session.user.role)) {
+    return null;
+  }
 
   const handleGoalClick = (goal: Goal) => {
     setSelectedGoalDetails(goal);

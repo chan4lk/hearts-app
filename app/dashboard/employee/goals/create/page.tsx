@@ -88,12 +88,10 @@ function GoalsPageContent() {
     }
   }, [session?.user?.id]);
 
-  useEffect(() => {
-    if (status === 'loading') return;
-    if (!session || !['EMPLOYEE', 'MANAGER', 'ADMIN'].includes(session.user.role)) {
-      window.location.href = '/login';
-    }
-  }, [session, status]);
+  // Auth is handled by middleware — just guard render
+  if (status !== 'loading' && (!session || !['EMPLOYEE', 'MANAGER', 'ADMIN'].includes(session.user.role))) {
+    return null;
+  }
 
   useEffect(() => {
     fetchGoals();
@@ -126,7 +124,6 @@ function GoalsPageContent() {
         setPagination(null);
       }
     } catch (error) {
-      console.error('Error fetching goals:', error);
       showNotificationWithTimeout('Failed to load goals', 'error');
     }
   };
@@ -167,7 +164,6 @@ function GoalsPageContent() {
         priority: 'MEDIUM'
       });
     } catch (error) {
-      console.error('Error submitting goal:', error);
       showNotificationWithTimeout(
         `Failed to create goal: ${error instanceof Error ? error.message : 'Unknown error'}`,
         'error'
@@ -250,7 +246,6 @@ function GoalsPageContent() {
       setIsEditModalOpen(false);
       setEditGoal(null);
     } catch (error) {
-      console.error('Error updating goal:', error);
       showNotificationWithTimeout(
         error instanceof Error ? error.message : 'Failed to update goal',
         'error'
@@ -284,7 +279,6 @@ function GoalsPageContent() {
       setDeleteGoal(null);
       fetchGoals(); // Refresh to get the latest data
     } catch (error) {
-      console.error('Error deleting goal:', error);
       showNotificationWithTimeout(
         error instanceof Error ? error.message : 'Failed to delete goal',
         'error'

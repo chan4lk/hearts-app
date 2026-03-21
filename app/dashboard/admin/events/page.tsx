@@ -60,7 +60,6 @@ function AdminEventsContent() {
       setEvents(data.events);
       setPagination(data.pagination);
     } catch (error) {
-      console.error('Error fetching events:', error);
       toast.error('Failed to fetch events');
     } finally {
       setIsLoading(false);
@@ -86,7 +85,6 @@ function AdminEventsContent() {
       setIsFormOpen(false);
       setEditingEvent(null);
     } catch (error) {
-      console.error('Error creating event:', error);
       throw error;
     }
   };
@@ -108,7 +106,6 @@ function AdminEventsContent() {
       setIsFormOpen(false);
       setEditingEvent(null);
     } catch (error) {
-      console.error('Error updating event:', error);
       throw error;
     }
   };
@@ -126,7 +123,6 @@ function AdminEventsContent() {
       toast.success('Event deleted successfully');
       fetchEvents();
     } catch (error) {
-      console.error('Error deleting event:', error);
       toast.error('Failed to delete event');
     }
   };

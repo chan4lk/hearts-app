@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Goal } from '@/app/components/shared/types';
-import { BsTrash, BsFlag, BsCheckCircle, BsXCircle, BsClock, BsGear, BsPlayCircle, BsCircle, BsPauseCircle, BsBullseye } from 'react-icons/bs';
+import { BsTrash, BsBullseye } from 'react-icons/bs';
 import { Badge } from '@/app/components/ui/badge';
+import { getStatusConfig, getPriorityConfig } from '@/app/utils/badgeConfigs';
 import { TABLE_STYLES, useTableSelection, SortIcon, SelectionBanner, CheckboxHeader, CheckboxCell, TableEmptyState } from '@/app/components/ui/table-primitives';
 
 type SortColumn = 'title' | 'status' | 'priority' | 'dueDate' | 'employee' | 'manager' | 'category';
@@ -34,23 +35,10 @@ export default function AdminGoalsTable({
   const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
-  // Get status badge with colorful styling
+  // Use centralized status badge config (eliminates duplicate config)
   const getStatusBadge = (status: string) => {
-    const configs: Record<string, { bg: string; text: string; icon: any }> = {
-      APPROVED: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', icon: BsCheckCircle },
-      REJECTED: { bg: 'bg-rose-500/20', text: 'text-rose-400', icon: BsXCircle },
-      PENDING: { bg: 'bg-amber-500/20', text: 'text-amber-400', icon: BsClock },
-      MODIFIED: { bg: 'bg-blue-500/20', text: 'text-blue-400', icon: BsGear },
-      COMPLETED: { bg: 'bg-green-500/20', text: 'text-green-400', icon: BsCheckCircle },
-      DRAFT: { bg: 'bg-slate-500/20', text: 'text-slate-400', icon: BsGear },
-      IN_PROGRESS: { bg: 'bg-blue-500/20', text: 'text-blue-400', icon: BsPlayCircle },
-      NOT_STARTED: { bg: 'bg-slate-500/20', text: 'text-slate-400', icon: BsCircle },
-      ON_HOLD: { bg: 'bg-amber-500/20', text: 'text-amber-400', icon: BsPauseCircle },
-      BLOCKED: { bg: 'bg-red-500/20', text: 'text-red-400', icon: BsFlag }
-    };
-    const config = configs[status] || configs.PENDING;
+    const config = getStatusConfig(status);
     const Icon = config.icon;
-    
     return (
       <Badge className={`${config.bg} ${config.text} border-0 text-[10px] px-1.5 py-0.5 flex items-center gap-1 font-medium whitespace-nowrap`}>
         <Icon className="w-3 h-3" />
@@ -61,13 +49,7 @@ export default function AdminGoalsTable({
 
   // Get priority badge with colorful styling
   const getPriorityBadge = (priority: string) => {
-    const configs: Record<string, { bg: string; text: string }> = {
-      URGENT: { bg: 'bg-red-500/20', text: 'text-red-400' },
-      HIGH: { bg: 'bg-orange-500/20', text: 'text-orange-400' },
-      MEDIUM: { bg: 'bg-amber-500/20', text: 'text-amber-400' },
-      LOW: { bg: 'bg-slate-500/20', text: 'text-slate-400' }
-    };
-    const config = configs[priority] || configs.MEDIUM;
+    const config = getPriorityConfig(priority);
     
     return (
       <Badge className={`${config.bg} ${config.text} border-0 text-[10px] px-1.5 py-0.5 font-medium whitespace-nowrap`}>

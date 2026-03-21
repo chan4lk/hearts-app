@@ -85,7 +85,6 @@ export default function GoalProgressTracker({
       setShowNotes(false);
       setNotes('');
     } catch (error) {
-      console.error('❌ Failed to save progress:', error);
       // Error toast removed
     } finally {
       setIsUpdating(false);

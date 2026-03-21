@@ -44,7 +44,6 @@ export default function AIWritingAssistant({
       setImproved(data.improved);
       setShowComparison(true);
     } catch (err) {
-      console.error('Error improving text:', err);
     } finally {
       setLoading(false);
     }

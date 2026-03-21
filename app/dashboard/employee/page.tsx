@@ -70,13 +70,10 @@ export default function EmployeeDashboard() {
     }
   }, [session?.user?.id]);
 
-  // Redirect if not employee or manager
-  useEffect(() => {
-    if (status === 'loading') return;
-    if (!session || !['EMPLOYEE', 'MANAGER', 'ADMIN'].includes(session.user.role)) {
-      window.location.href = '/login';
-    }
-  }, [session, status]);
+  // Auth is handled by middleware — just guard render
+  if (status !== 'loading' && (!session || !['EMPLOYEE', 'MANAGER', 'ADMIN'].includes(session.user.role))) {
+    return null;
+  }
 
   // Helper function to map AI category to system category
   const mapCategory = (category?: string): string => {

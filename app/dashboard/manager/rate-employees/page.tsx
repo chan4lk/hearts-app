@@ -135,7 +135,6 @@ export default function RateEmployeesPage() {
       toast.success("Goals loaded successfully");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to load goals";
-      console.error("Error fetching goals:", error);
       toast.error(errorMessage);
       setGoals([]);
     } finally {
@@ -337,7 +336,6 @@ export default function RateEmployeesPage() {
           errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
         }
         const errorMessage = errorData.message || errorData.error || `Failed to update rating (${response.status})`;
-        console.error('Rating error:', errorMessage, errorData);
         throw new Error(errorMessage);
       }
 
@@ -374,7 +372,6 @@ export default function RateEmployeesPage() {
 
       toast.success(`Rating updated to ${value} stars`);
     } catch (error) {
-      console.error('Error updating rating:', error);
       // REVERT optimistic update on error
       setGoals(prevGoals => {
         const revertedGoals = prevGoals.map(goal =>

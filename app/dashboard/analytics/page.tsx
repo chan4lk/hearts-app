@@ -54,7 +54,6 @@ export default function AnalyticsPage() {
       const prefix = userRole === 'ADMIN' ? 'admin' : userRole === 'MANAGER' ? 'manager' : 'employee';
       pdfDoc.save(`${prefix}-analytics-report-${new Date().toISOString().split('T')[0]}.pdf`);
     } catch (err) {
-      console.error('Error exporting PDF:', err);
       alert('Failed to export PDF report. Please try again.');
     }
   };

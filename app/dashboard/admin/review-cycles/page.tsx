@@ -119,7 +119,6 @@ export default function ReviewCyclesPage() {
         setPagination(data.pagination || null);
       }
     } catch (error) {
-      console.error('Error fetching review cycles:', error);
       // Toast removed
     } finally {
       if (showLoading) {
