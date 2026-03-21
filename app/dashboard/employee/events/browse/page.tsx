@@ -150,105 +150,23 @@ export default function BrowseEventsPage() {
         <div className="absolute inset-0 pointer-events-none bg-grid" />
         
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
-          {/* Header - Fixed */}
-          <div className="flex-shrink-0 pb-3">
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="relative overflow-hidden rounded-xl p-4 bg-gradient-to-r from-teal-600 to-cyan-600"
-            >
-              {/* Animated Background Elements */}
-              <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-              </div>
-
-              <div className="relative">
-                <div className="space-y-1">
-                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                    Browse Events
-                  </h2>
-                  <p className="text-white/90 text-xs">Discover and register for upcoming events in your organization</p>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Stats Section - Fixed */}
+          {/* Stats Section */}
           <div className="flex-shrink-0 pb-3">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0 * 0.05 }}
-                className="relative overflow-hidden bg-blue-500/10 backdrop-blur-sm rounded-xl p-3 border-2 border-blue-500/30 hover:border-opacity-60 transition-all duration-300 group hover:shadow-xl hover:scale-105 flex items-center gap-3"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-                <div className="relative flex items-center gap-3 w-full">
-                  <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 text-white flex-shrink-0">
-                    <BsSearch className="w-4 h-4" />
-                  </div>
-                  <div className="flex flex-col">
-                    <div className="text-xl font-bold text-white">{events.length}</div>
-                    <div className="text-xs font-medium text-gray-400">Available</div>
+              {[
+                { label: 'Available', value: events.length, icon: <BsSearch className="w-4 h-4" />, color: 'text-blue-600 dark:text-blue-400' },
+                { label: 'Open Seats', value: events.filter(e => !isCapacityFull(e)).length, icon: <BsCalendar className="w-4 h-4" />, color: 'text-emerald-600 dark:text-emerald-400' },
+                { label: 'Full', value: events.filter(e => isCapacityFull(e)).length, icon: <BsCheckLg className="w-4 h-4" />, color: 'text-purple-600 dark:text-purple-400' },
+                { label: 'Pages', value: pagination.pages, icon: <BsFilter className="w-4 h-4" />, color: 'text-amber-600 dark:text-amber-400' },
+              ].map((stat, i) => (
+                <div key={i} className="flex items-center gap-3.5 px-4 py-3.5 rounded-xl bg-surface-elevated border border-theme">
+                  <div className={`flex-shrink-0 w-10 h-10 rounded-lg bg-surface-secondary flex items-center justify-center ${stat.color}`}>{stat.icon}</div>
+                  <div>
+                    <div className="text-[18px] font-bold text-primary">{stat.value}</div>
+                    <div className="text-[12px] font-medium text-secondary">{stat.label}</div>
                   </div>
                 </div>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 1 * 0.05 }}
-                className="relative overflow-hidden bg-emerald-500/10 backdrop-blur-sm rounded-xl p-3 border-2 border-emerald-500/30 hover:border-opacity-60 transition-all duration-300 group hover:shadow-xl hover:scale-105 flex items-center gap-3"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-teal-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-                <div className="relative flex items-center gap-3 w-full">
-                  <div className="p-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-white flex-shrink-0">
-                    <BsCalendar className="w-4 h-4" />
-                  </div>
-                  <div className="flex flex-col">
-                    <div className="text-xl font-bold text-white">{events.filter(e => !isCapacityFull(e)).length}</div>
-                    <div className="text-xs font-medium text-gray-400">Open Seats</div>
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 2 * 0.05 }}
-                className="relative overflow-hidden bg-purple-500/10 backdrop-blur-sm rounded-xl p-3 border-2 border-purple-500/30 hover:border-opacity-60 transition-all duration-300 group hover:shadow-xl hover:scale-105 flex items-center gap-3"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-                <div className="relative flex items-center gap-3 w-full">
-                  <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white flex-shrink-0">
-                    <BsCheckLg className="w-4 h-4" />
-                  </div>
-                  <div className="flex flex-col">
-                    <div className="text-xl font-bold text-white">{events.filter(e => isCapacityFull(e)).length}</div>
-                    <div className="text-xs font-medium text-gray-400">Full</div>
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 3 * 0.05 }}
-                className="relative overflow-hidden bg-teal-500/10 backdrop-blur-sm rounded-xl p-3 border-2 border-teal-500/30 hover:border-opacity-60 transition-all duration-300 group hover:shadow-xl hover:scale-105 flex items-center gap-3"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-teal-500 to-cyan-500 opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-                <div className="relative flex items-center gap-3 w-full">
-                  <div className="p-2 rounded-lg bg-gradient-to-r from-teal-500 to-cyan-500 text-white flex-shrink-0">
-                    <BsFilter className="w-4 h-4" />
-                  </div>
-                  <div className="flex flex-col">
-                    <div className="text-xl font-bold text-white">{pagination.pages}</div>
-                    <div className="text-xs font-medium text-gray-400">Pages</div>
-                  </div>
-                </div>
-              </motion.div>
+              ))}
             </div>
           </div>
 
@@ -367,8 +285,8 @@ export default function BrowseEventsPage() {
                     disabled={registering === event.id || isCapacityFull(event)}
                     className={`w-full rounded-lg px-4 py-2 font-semibold transition-all ${
                       isCapacityFull(event)
-                        ? 'bg-gray-500/20 text-gray-300 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white hover:from-teal-600 hover:to-cyan-700 disabled:opacity-50 shadow-cyan-500/20'
+                        ? 'bg-gray-500/20 text-secondary cursor-not-allowed'
+                        : 'bg-indigo-600 hover:bg-indigo-700 text-white hover:from-teal-600 hover:to-cyan-700 disabled:opacity-50 shadow-cyan-500/20'
                     }`}
                   >
                     {registering === event.id ? (
@@ -422,7 +340,7 @@ export default function BrowseEventsPage() {
 
             {/* Pagination - Fixed at bottom */}
             {pagination.pages > 1 && (
-              <div className="flex-shrink-0 pt-4 pb-3 border-t border-gray-700/50 mt-4">
+              <div className="flex-shrink-0 pt-4 pb-3 border-t border-theme mt-4">
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-white/60">
                     Showing {events.length} of {pagination.total} events
@@ -446,7 +364,7 @@ export default function BrowseEventsPage() {
                           onClick={() => setPage(p)}
                           className={`rounded-lg px-3 py-1 text-sm font-medium transition-all ${
                             page === p
-                              ? 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-cyan-500/30'
+                              ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-cyan-500/30'
                               : 'border border-white/20 text-white hover:bg-white/10'
                           }`}
                         >

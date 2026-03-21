@@ -302,7 +302,7 @@ export default function ReviewCyclesPage() {
             
             {/* Pagination - Fixed at bottom */}
             {pagination && (
-              <div className="flex-shrink-0 pt-4 pb-3 bg-surface-primary border-t border-gray-700/50">
+              <div className="flex-shrink-0 pt-4 pb-3 bg-surface-primary border-t border-theme">
                 <Pagination
                   page={pagination.page}
                   limit={pagination.limit}

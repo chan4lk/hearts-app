@@ -404,7 +404,7 @@ function AllGoalsPageContent() {
               transition={{ delay: 0.2 }}
               className="flex-1 flex flex-col overflow-hidden min-h-0"
             >
-              <div className="relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm flex flex-col h-full">
+              <div className="relative bg-surface-elevated rounded-lg border border-theme overflow-hidden shadow-sm flex flex-col h-full">
                 <div className="p-4 flex flex-col flex-1 overflow-hidden min-h-0">
                   <AdminGoalsTable
                     goals={filteredGoals}
@@ -422,7 +422,7 @@ function AllGoalsPageContent() {
                   
                   {/* Pagination - Fixed at bottom */}
                   {pagination && (
-                    <div className="flex-shrink-0 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex-shrink-0 mt-4 pt-4 border-t border-theme">
                       <Pagination
                         page={pagination.page}
                         limit={pagination.limit}

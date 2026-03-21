@@ -20,13 +20,13 @@ export default function StatsCard({ icon: Icon, title, value, total, color, dela
           <div className={`p-1.5 bg-gradient-to-br ${color} rounded-md`}>
             <Icon className="text-sm text-white" />
           </div>
-          <p className="text-xs font-medium text-gray-600 dark:text-gray-300">{title}</p>
+          <p className="text-xs font-medium text-secondary dark:text-secondary">{title}</p>
         </div>
         
         <div className="flex items-end gap-2">
           <h3 className="text-lg font-bold text-primary">{value}</h3>
           <div className="flex-1 h-4 flex items-end">
-            <div className="w-full h-1 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div className="w-full h-1 bg-surface-secondary dark:bg-surface-tertiary rounded-full overflow-hidden">
               <motion.div 
                 initial={{ width: 0 }}
                 animate={{ width: `${percentage}%` }}

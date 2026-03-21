@@ -10,7 +10,7 @@ export const STATUS_CONFIG = {
     label: 'Draft',
     borderColor: 'border-gray-500/30',
     bgColor: 'bg-gray-500/10',
-    textColor: 'text-gray-300',
+    textColor: 'text-secondary',
     gradient: 'from-gray-500 to-slate-500'
   },
   APPROVED: {
@@ -49,7 +49,7 @@ export const PRIORITY_CONFIG = {
     label: 'Low',
     borderColor: 'border-gray-500/30',
     bgColor: 'bg-gray-500/10',
-    textColor: 'text-gray-300',
+    textColor: 'text-secondary',
     gradient: 'from-gray-400 to-gray-500'
   },
   MEDIUM: {
@@ -445,7 +445,7 @@ export default function Filters({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onClear}
-            className="shrink-0 px-3 py-2 rounded-lg bg-gray-700/50 text-gray-300 hover:text-white hover:bg-gray-600/60 border border-transparent transition-all duration-200 flex items-center gap-2"
+            className="shrink-0 px-3 py-2 rounded-lg bg-gray-700/50 text-secondary hover:text-white hover:bg-gray-600/60 border border-transparent transition-all duration-200 flex items-center gap-2"
             title="Clear Filters"
           >
             <BsArrowCounterclockwise className="w-5 h-5" />

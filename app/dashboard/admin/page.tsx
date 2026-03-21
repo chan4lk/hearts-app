@@ -303,7 +303,7 @@ export default function AdminDashboard() {
       case 'down':
         return 'text-red-400 bg-red-500/10 border-red-500/20';
       default:
-        return 'text-gray-400 bg-gray-500/10 border-gray-500/20';
+        return 'text-secondary bg-gray-500/10 border-gray-500/20';
     }
   };
 
@@ -405,7 +405,7 @@ export default function AdminDashboard() {
                                                  <div className="flex items-center justify-between mb-2">
                            <div className="flex items-center gap-3">
                              <div className="w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                               <BsPeople className="w-4 h-4 text-gray-300" />
+                               <BsPeople className="w-4 h-4 text-secondary" />
                              </div>
                              <div>
                                <p className="text-sm font-medium text-primary capitalize">
@@ -573,7 +573,7 @@ export default function AdminDashboard() {
                 >
                   {goalsLoading ? (
                     <div className="flex items-center justify-center py-12">
-                      <div className="text-gray-400">Loading goals...</div>
+                      <div className="text-secondary">Loading goals...</div>
                     </div>
                   ) : (
                     <>
@@ -593,7 +593,7 @@ export default function AdminDashboard() {
                       
                       {/* Pagination */}
                       {goalsPagination && (
-                        <div className="mt-6 pt-4 border-t border-gray-700/50">
+                        <div className="mt-6 pt-4 border-t border-theme">
                           <Pagination
                             page={goalsPagination.page}
                             limit={goalsPagination.limit}

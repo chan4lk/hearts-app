@@ -834,7 +834,7 @@ export default function EmployeeDashboard() {
                       className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
                       aria-label="Close"
                     >
-                      <BsX className="w-5 h-5 text-gray-300 hover:text-white" />
+                      <BsX className="w-5 h-5 text-secondary hover:text-white" />
                     </button>
                   </div>
 
@@ -849,8 +849,8 @@ export default function EmployeeDashboard() {
                             <div className="mb-4 inline-flex p-4 bg-amber-500/10 rounded-full">
                               <BsPersonCheck className="w-12 h-12 text-amber-400/50" />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-300 mb-2">No Manager Ratings Yet</h3>
-                            <p className="text-sm text-gray-400">Your manager hasn't rated any goals yet.</p>
+                            <h3 className="text-lg font-semibold text-secondary mb-2">No Manager Ratings Yet</h3>
+                            <p className="text-sm text-secondary">Your manager hasn't rated any goals yet.</p>
                           </div>
                         );
                       }
@@ -866,7 +866,7 @@ export default function EmployeeDashboard() {
                               4: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20', icon: 'from-blue-500 to-blue-600' },
                               5: { bg: 'bg-green-500/10', text: 'text-green-400', border: 'border-green-500/20', icon: 'from-green-500 to-green-600' }
                             };
-                            const ratingStyle = ratingColors[rating as keyof typeof ratingColors] || { bg: 'bg-gray-500/10', text: 'text-gray-400', border: 'border-gray-500/20', icon: 'from-gray-500 to-gray-600' };
+                            const ratingStyle = ratingColors[rating as keyof typeof ratingColors] || { bg: 'bg-gray-500/10', text: 'text-secondary', border: 'border-gray-500/20', icon: 'from-gray-500 to-gray-600' };
                             const ratingLabels = {
                               1: "Needs Improvement",
                               2: "Below Expectations",
@@ -888,7 +888,7 @@ export default function EmployeeDashboard() {
                                   // Keep manager ratings modal open - don't close it
                                   // setShowManagerRatingsModal(false);
                                 }}
-                                className="group relative bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border-2 border-gray-700/50 hover:border-amber-500/60 transition-all cursor-pointer hover:shadow-lg hover:shadow-amber-500/10"
+                                className="group relative bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border-2 border-theme hover:border-amber-500/60 transition-all cursor-pointer hover:shadow-lg hover:shadow-amber-500/10"
                               >
                                 {/* Rating Badge */}
                                 <div className="absolute top-3 right-3">
@@ -908,7 +908,7 @@ export default function EmployeeDashboard() {
                                   
                                   {/* Description */}
                                   {goal.description && (
-                                    <p className="text-sm text-gray-400 line-clamp-2 mb-3 group-hover:text-gray-300 transition-colors">
+                                    <p className="text-sm text-secondary line-clamp-2 mb-3 group-hover:text-secondary transition-colors">
                                       {goal.description}
                                     </p>
                                   )}
@@ -921,7 +921,7 @@ export default function EmployeeDashboard() {
                                       </span>
                                     </div>
                                     {goal.rating?.managerRatedAt && (
-                                      <span className="text-xs text-gray-500">
+                                      <span className="text-xs text-tertiary">
                                         {new Date(goal.rating.managerRatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                       </span>
                                     )}
@@ -934,7 +934,7 @@ export default function EmployeeDashboard() {
                                         <div className="p-1 bg-amber-500/20 rounded flex-shrink-0 mt-0.5">
                                           <BsPersonCheck className="w-3 h-3 text-amber-400" />
                                         </div>
-                                        <p className="text-sm text-gray-300 italic flex-1">
+                                        <p className="text-sm text-secondary italic flex-1">
                                           "{goal.rating.managerComments}"
                                         </p>
                                       </div>

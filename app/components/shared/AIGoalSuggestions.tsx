@@ -146,7 +146,7 @@ export function AIGoalSuggestions({
                     <h4 className="font-semibold text-primary group-hover:text-transparent 
                       group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400
                       transition-all duration-300">{suggestion.title}</h4>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 mt-1 leading-relaxed">
+                    <p className="text-sm text-gray-700 dark:text-secondary mt-1 leading-relaxed">
                       {suggestion.description}
                     </p>
                   </div>

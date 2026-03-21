@@ -542,11 +542,11 @@ export default function AnalyticsPage() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl p-12 border border-gray-700/50 shadow-xl text-center"
+              className="bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl p-12 border border-theme shadow-xl text-center"
             >
               <div className="flex flex-col items-center justify-center">
                 <div className="p-4 bg-gray-800/50 rounded-full mb-4">
-                  <BsBarChart className="w-16 h-16 text-gray-500" />
+                  <BsBarChart className="w-16 h-16 text-tertiary" />
                 </div>
                 <h3 className="text-xl font-semibold text-primary mb-2">No Analytics Data Available</h3>
                 <p className="text-secondary text-sm max-w-md">
@@ -718,7 +718,7 @@ export default function AnalyticsPage() {
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex items-center justify-center h-[300px] text-gray-400">
+                <div className="flex items-center justify-center h-[300px] text-secondary">
                   No status data available
                 </div>
               )}
@@ -737,7 +737,7 @@ export default function AnalyticsPage() {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex items-center justify-center h-[300px] text-gray-400">
+                <div className="flex items-center justify-center h-[300px] text-secondary">
                   No category data available
                 </div>
               )}
@@ -756,7 +756,7 @@ export default function AnalyticsPage() {
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex items-center justify-center h-[300px] text-gray-400">
+                <div className="flex items-center justify-center h-[300px] text-secondary">
                   No trend data available
                 </div>
               )}
@@ -775,7 +775,7 @@ export default function AnalyticsPage() {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex items-center justify-center h-[300px] text-gray-400">
+                <div className="flex items-center justify-center h-[300px] text-secondary">
                   No priority data available
                 </div>
               )}
@@ -795,7 +795,7 @@ export default function AnalyticsPage() {
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="flex items-center justify-center h-[300px] text-gray-400">
+                  <div className="flex items-center justify-center h-[300px] text-secondary">
                     No department data available
                   </div>
                 )}
@@ -831,12 +831,12 @@ export default function AnalyticsPage() {
                 <div className="overflow-x-auto -mx-2 px-2">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b-2 border-gray-700/50">
-                        <th className="text-left py-3 px-3 text-sm font-semibold text-gray-300 uppercase tracking-wider">Employee</th>
-                        <th className="text-center py-3 px-3 text-sm font-semibold text-gray-300 uppercase tracking-wider">Total</th>
-                        <th className="text-center py-3 px-3 text-sm font-semibold text-gray-300 uppercase tracking-wider">Completed</th>
-                        <th className="text-center py-3 px-3 text-sm font-semibold text-gray-300 uppercase tracking-wider">Rate</th>
-                        <th className="text-center py-3 px-3 text-sm font-semibold text-gray-300 uppercase tracking-wider">Rating</th>
+                      <tr className="border-b-2 border-theme">
+                        <th className="text-left py-3 px-3 text-sm font-semibold text-secondary uppercase tracking-wider">Employee</th>
+                        <th className="text-center py-3 px-3 text-sm font-semibold text-secondary uppercase tracking-wider">Total</th>
+                        <th className="text-center py-3 px-3 text-sm font-semibold text-secondary uppercase tracking-wider">Completed</th>
+                        <th className="text-center py-3 px-3 text-sm font-semibold text-secondary uppercase tracking-wider">Rate</th>
+                        <th className="text-center py-3 px-3 text-sm font-semibold text-secondary uppercase tracking-wider">Rating</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-800/50">

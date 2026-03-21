@@ -52,7 +52,7 @@ export default function GoalTemplates({ onSelect }: GoalTemplatesProps) {
           className={`relative px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300
             ${selectedCategory === 'all' 
               ? 'text-white bg-gradient-to-r from-blue-500/90 to-purple-500/90 shadow-purple-500/20' 
-              : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+              : 'text-secondary hover:text-white hover:bg-white/10'}`}
         >
           <span className="relative z-10">All Templates</span>
           {selectedCategory === 'all' && (
@@ -69,7 +69,7 @@ export default function GoalTemplates({ onSelect }: GoalTemplatesProps) {
             className={`relative px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300
               ${selectedCategory === category 
                 ? 'text-white bg-gradient-to-r from-blue-500/90 to-purple-500/90 shadow-purple-500/20' 
-                : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                : 'text-secondary hover:text-white hover:bg-white/10'}`}
           >
             <span className="relative z-10">{category}</span>
             {selectedCategory === category && (
@@ -116,10 +116,10 @@ export default function GoalTemplates({ onSelect }: GoalTemplatesProps) {
                       <h3 className="text-lg font-semibold text-white group-hover:text-transparent 
                         group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400
                         transition-all duration-300">{template.title}</h3>
-                      <p className="text-sm text-gray-300/90">{template.subtitle}</p>
+                      <p className="text-sm text-secondary/90">{template.subtitle}</p>
                     </div>
                   </div>
-                  <p className="text-gray-300/80 text-sm leading-relaxed">{template.description}</p>
+                  <p className="text-secondary/80 text-sm leading-relaxed">{template.description}</p>
                 </div>
 
                 {/* Hover Effects */}

@@ -22,12 +22,12 @@ const STATUS_CONFIGS: StatusConfigs = {
   COMPLETED: { bg: 'bg-blue-50 dark:bg-blue-500/10', text: 'text-blue-700 dark:text-blue-400', icon: BsCheckCircle, border: 'border-blue-200 dark:border-blue-500/20' },
   MODIFIED: { bg: 'bg-amber-50 dark:bg-amber-500/10', text: 'text-amber-700 dark:text-amber-400', icon: BsClock, border: 'border-amber-200 dark:border-amber-500/20' },
   PENDING: { bg: 'bg-amber-50 dark:bg-amber-500/10', text: 'text-amber-700 dark:text-amber-400', icon: BsClock, border: 'border-amber-200 dark:border-amber-500/20' },
-  DRAFT: { bg: 'bg-gray-100 dark:bg-gray-500/10', text: 'text-gray-600 dark:text-gray-400', icon: BsPencil, border: 'border-gray-200 dark:border-gray-500/20' },
+  DRAFT: { bg: 'bg-surface-secondary dark:bg-gray-500/10', text: 'text-secondary dark:text-secondary', icon: BsPencil, border: 'border-gray-200 dark:border-gray-500/20' },
   DELETED: { bg: 'bg-red-100 dark:bg-red-900/10', text: 'text-red-700 dark:text-red-400', icon: BsTrash, border: 'border-red-200 dark:border-red-900/20' },
 };
 
 const PROGRESS_STATUS_CONFIG: Record<ProgressStatus, { label: string; color: string; icon: IconType }> = {
-  'NOT_STARTED': { label: 'Not Started', color: 'text-gray-500 dark:text-gray-400', icon: BsCircle },
+  'NOT_STARTED': { label: 'Not Started', color: 'text-tertiary dark:text-secondary', icon: BsCircle },
   'IN_PROGRESS': { label: 'In Progress', color: 'text-blue-600 dark:text-blue-400', icon: BsPlayCircle },
   'ON_HOLD': { label: 'On Hold', color: 'text-amber-600 dark:text-amber-400', icon: BsPauseCircle },
   'BLOCKED': { label: 'Blocked', color: 'text-red-600 dark:text-red-400', icon: BsFlag },

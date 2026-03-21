@@ -81,7 +81,7 @@ export default function RatingGoalCard({
       className={`w-full rounded-xl shadow-sm overflow-hidden group ${
         isGridView
           ? `h-[280px] flex flex-col relative ${categoryConfig.bgColor} hover:shadow-xl transition-all duration-300`
-          : 'bg-white dark:bg-gray-800'
+          : 'bg-surface-elevated'
       }`}
     >
       {isGridView && (
@@ -133,17 +133,17 @@ export default function RatingGoalCard({
                         ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
                         : goal.status === 'REJECTED'
                           ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300'
-                          : 'bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-300'
+                          : 'bg-surface-secondary text-gray-700 dark:bg-gray-500/20 dark:text-secondary'
                   }`}
                 >
                   {goal.status}
                 </span>
                 {variant === 'manager' && 'employee' in goal && goal.employee?.email && (
-                  <span className={`text-xs ${isGridView ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'}`}>
+                  <span className={`text-xs ${isGridView ? 'text-white/70' : 'text-tertiary dark:text-secondary'}`}>
                     {goal.employee.email}
                   </span>
                 )}
-                <span className={`text-xs ${isGridView ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'}`}>
+                <span className={`text-xs ${isGridView ? 'text-white/70' : 'text-tertiary dark:text-secondary'}`}>
                   Due {new Date(goal.dueDate).toLocaleDateString()}
                 </span>
               </div>
@@ -153,7 +153,7 @@ export default function RatingGoalCard({
             <button
               type="button"
               onClick={() => setShowDetails(!showDetails)}
-              className="text-gray-400 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="text-secondary p-1 rounded-lg hover:bg-surface-secondary dark:hover:bg-gray-700"
             >
               <motion.div animate={{ rotate: showDetails ? 180 : 0 }} transition={{ duration: 0.2 }}>
                 <BsChevronDown className="w-4 h-4" />
@@ -164,7 +164,7 @@ export default function RatingGoalCard({
 
         <p
           className={`text-sm line-clamp-2 ${
-            isGridView ? 'mb-4 flex-1 text-white/80' : 'mt-3 text-gray-600 dark:text-gray-300'
+            isGridView ? 'mb-4 flex-1 text-white/80' : 'mt-3 text-secondary dark:text-secondary'
           }`}
         >
           {goal.description}
@@ -178,7 +178,7 @@ export default function RatingGoalCard({
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <Label
-                className={`text-sm ${isGridView ? 'text-white/90' : 'text-gray-700 dark:text-gray-300'}`}
+                className={`text-sm ${isGridView ? 'text-white/90' : 'text-gray-700 dark:text-secondary'}`}
               >
                 {ratingLabel}
               </Label>
@@ -196,7 +196,7 @@ export default function RatingGoalCard({
                           : 'bg-white/5 text-white/40 hover:bg-white/10'
                         : currentScore === rating
                           ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-300'
-                          : 'bg-gray-50 text-gray-400 hover:bg-gray-100 dark:bg-gray-700/50 dark:hover:bg-gray-700'
+                          : 'bg-gray-50 text-secondary hover:bg-surface-secondary dark:bg-surface-tertiary/50 dark:hover:bg-gray-700'
                     }`}
                   >
                     <BsStarFill className="w-4 h-4" />
@@ -207,7 +207,7 @@ export default function RatingGoalCard({
             {currentScore != null && (
               <div
                 className={`text-sm ${
-                  isGridView ? 'text-white/70' : 'text-gray-600 dark:text-gray-300'
+                  isGridView ? 'text-white/70' : 'text-secondary dark:text-secondary'
                 }`}
               >
                 {RATING_DESCRIPTIONS[currentScore as keyof typeof RATING_DESCRIPTIONS]}
@@ -245,14 +245,14 @@ export default function RatingGoalCard({
                     <h4 className="text-sm font-medium text-primary mb-1">Details</h4>
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm">
-                        <BsCalendar className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-600 dark:text-gray-300">
+                        <BsCalendar className="w-4 h-4 text-secondary" />
+                        <span className="text-secondary dark:text-secondary">
                           Created on {new Date(goal.createdAt).toLocaleDateString()}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-sm">
-                        <BsTag className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-600 dark:text-gray-300">
+                        <BsTag className="w-4 h-4 text-secondary" />
+                        <span className="text-secondary dark:text-secondary">
                           {categoryConfig.label}
                         </span>
                       </div>
@@ -261,7 +261,7 @@ export default function RatingGoalCard({
                   {comments && (
                     <div>
                       <h4 className="text-sm font-medium text-primary mb-1">Comments</h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">{comments}</p>
+                      <p className="text-sm text-secondary dark:text-secondary">{comments}</p>
                     </div>
                   )}
                 </div>

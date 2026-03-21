@@ -34,7 +34,7 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
     <div className="flex flex-col items-center justify-center p-8 text-center">
       <BsExclamationTriangle className="w-12 h-12 text-red-500 mb-4" />
       <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
-      <p className="text-gray-600 mb-4">{error.message}</p>
+      <p className="text-secondary mb-4">{error.message}</p>
       <Button onClick={resetErrorBoundary} variant="outline">
         Try again
       </Button>

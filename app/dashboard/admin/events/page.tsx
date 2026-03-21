@@ -266,7 +266,7 @@ function AdminEventsContent() {
               transition={{ delay: 0.2 }}
               className="flex-1 flex flex-col overflow-hidden min-h-0"
             >
-              <div className="relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm flex flex-col h-full">
+              <div className="relative bg-surface-elevated rounded-lg border border-theme overflow-hidden shadow-sm flex flex-col h-full">
                 <div className="p-4 flex flex-col flex-1 overflow-hidden min-h-0">
                   <EventsTable
                     events={events}
@@ -281,7 +281,7 @@ function AdminEventsContent() {
 
             {/* Pagination - Fixed at bottom */}
             {pagination.pages > 1 && (
-              <div className="flex-shrink-0 pt-4 pb-3 border-t border-gray-700/50">
+              <div className="flex-shrink-0 pt-4 pb-3 border-t border-theme">
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-white/60">
                     Showing {events.length} of {pagination.total} events
@@ -306,7 +306,7 @@ function AdminEventsContent() {
                             onClick={() => setPage(p)}
                             className={`rounded-lg px-3 py-1 text-sm font-medium transition-all ${
                               page === p
-                                ? 'bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-cyan-500/30'
+                                ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-cyan-500/30'
                                 : 'border border-white/20 text-white hover:bg-white/10'
                             }`}
                           >
