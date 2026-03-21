@@ -379,55 +379,38 @@ export async function PUT(req: NextRequest) {
 
     // Check for circular manager relationships (only prevent chains, not immediate bidirectional assignments)
     if (managerId) {
-      const potentialManager = await prisma.user.findUnique({
-        where: { id: managerId },
-        select: {
-          id: true,
-          managerId: true
-        }
+      // Batch-load the manager chain in a single query instead of 50 sequential queries.
+      // Fetch all users' managerId in the potential chain at once, then walk the chain in memory.
+      const allManagerLinks = await prisma.user.findMany({
+        where: { managerId: { not: null } },
+        select: { id: true, managerId: true }
       });
 
-      // Only check for circular chains if the potential manager already has a manager
-      // Allow immediate bidirectional assignments (A manages B, B manages A)
-      if (potentialManager?.managerId && potentialManager.managerId !== id) {
-        // Check if the user being updated is in the manager chain of the potential manager
-        // This prevents chains like A -> B -> C -> A
-        const visitedIds = new Set<string>();
-        visitedIds.add(managerId);
-        
-        let currentManagerId: string | null = potentialManager.managerId;
-        let chainLength = 0;
-        const maxChainLength = 50; // Safety limit to prevent infinite loops
-        
-        while (currentManagerId && chainLength < maxChainLength) {
-          if (currentManagerId === id) {
+      // Build an in-memory lookup: userId -> managerId
+      const managerMap = new Map<string, string>();
+      for (const u of allManagerLinks) {
+        if (u.managerId) managerMap.set(u.id, u.managerId);
+      }
+
+      // Walk the chain in memory (O(n) with no DB queries)
+      const startManagerId = managerMap.get(managerId);
+      if (startManagerId && startManagerId !== id) {
+        const visitedIds = new Set<string>([managerId]);
+        let currentId: string | undefined = startManagerId;
+        let depth = 0;
+        const maxDepth = 50;
+
+        while (currentId && depth < maxDepth) {
+          if (currentId === id) {
             return NextResponse.json(
               { error: 'Circular manager relationship detected' },
               { status: 400 }
             );
           }
-          
-          if (visitedIds.has(currentManagerId)) {
-            // Already visited this manager, break to prevent infinite loop
-            break;
-          }
-          
-          visitedIds.add(currentManagerId);
-          
-          // Get the next manager in the chain
-          const nextUser: { managerId: string | null } | null = await prisma.user.findUnique({
-            where: { id: currentManagerId },
-            select: {
-              managerId: true
-            }
-          });
-          
-          if (!nextUser || !nextUser.managerId) {
-            break;
-          }
-          
-          currentManagerId = nextUser.managerId;
-          chainLength++;
+          if (visitedIds.has(currentId)) break;
+          visitedIds.add(currentId);
+          currentId = managerMap.get(currentId);
+          depth++;
         }
       }
     }

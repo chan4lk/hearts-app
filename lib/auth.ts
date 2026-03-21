@@ -35,6 +35,38 @@ export interface User {
   role: Role;
 }
 
+// ── Short-lived cache for session DB lookups ──
+// Prevents the session callback from hitting the DB on every getServerSession() call.
+// A single page load with 5 parallel API requests previously made 5 identical SELECTs.
+// With this cache (10s TTL), it makes 1 query and serves 4 from memory.
+const SESSION_CACHE_TTL = 10_000; // 10 seconds
+const sessionAuthCache = new Map<string, { data: { id: string; role: Role; isActive: boolean }; ts: number }>();
+
+async function getCachedUserAuth(userId: string) {
+  const cached = sessionAuthCache.get(userId);
+  if (cached && Date.now() - cached.ts < SESSION_CACHE_TTL) {
+    return cached.data;
+  }
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, role: true, isActive: true }
+  });
+
+  if (dbUser) {
+    sessionAuthCache.set(userId, { data: dbUser, ts: Date.now() });
+    // Prevent unbounded growth — evict old entries every 100 insertions
+    if (sessionAuthCache.size > 100) {
+      const now = Date.now();
+      sessionAuthCache.forEach((entry, key) => {
+        if (now - entry.ts > SESSION_CACHE_TTL) sessionAuthCache.delete(key);
+      });
+    }
+  }
+
+  return dbUser;
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     AzureADProvider({
@@ -376,43 +408,29 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        // Don't log session data - security risk
-
-        // Ensure the session user has the correct type
         const sessionUser = session.user as User & { role?: Role };
-        
-        // Update session with token data
         sessionUser.id = token.id as string;
         sessionUser.role = token.role as Role;
-        
-        // Always fetch the latest role and isActive status from the database
-        // Use ID-based lookup (indexed) instead of email for performance
+
+        // Fetch role/isActive from DB with a short TTL cache (10s) to avoid
+        // hitting the DB on every single API call. A page load with 5 parallel
+        // API calls previously triggered 5 identical SELECT queries; now it's 1.
         try {
-          const dbUser = await prisma.user.findUnique({
-            where: { id: sessionUser.id },
-            select: { 
-              role: true, 
-              id: true,
-              isActive: true  // NEW: Check if user is still active
-            }
-          });
-          
-          // Validate user exists and is active
+          const dbUser = await getCachedUserAuth(sessionUser.id);
+
           if (!dbUser) {
             logger.error(new Error('Session: User not found in database'));
             throw new Error('User not found');
           }
 
-          // NEW: Prevent access if user is disabled/inactive
           if (!dbUser.isActive) {
             logger.warn(`Session: Inactive user attempted access - ${sessionUser.email}`);
             throw new Error('User account is inactive');
           }
-          
+
           sessionUser.id = dbUser.id;
           sessionUser.role = dbUser.role;
         } catch (error) {
-          // If any validation fails, log and throw to invalidate session
           const errorMsg = error instanceof Error ? error.message : String(error);
           logger.error(new Error(`Session validation failed: ${errorMsg}`));
           throw error;

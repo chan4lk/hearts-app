@@ -76,13 +76,20 @@ export default function ReviewCyclesPage() {
     hasPrev: boolean;
   } | null>(null);
 
+  // Auth check — separate from data fetching to prevent re-fetch on session object change
   useEffect(() => {
     if (!session?.user || session.user.role !== 'ADMIN') {
       router.push('/dashboard');
-      return;
     }
-    fetchReviewCycles();
-  }, [session, router, page, limit]);
+  }, [session, router]);
+
+  // Fetch data — only depends on pagination, not session object reference
+  useEffect(() => {
+    if (session?.user?.role === 'ADMIN') {
+      fetchReviewCycles();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, limit]);
 
   const fetchReviewCycles = async (showLoading = true) => {
     try {

@@ -79,10 +79,10 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
     };
     loadNotifications();
     
-    // Poll for new notifications every 5 seconds (much faster for real-time feel)
+    // Poll for new notifications every 30 seconds (reduced from 5s to prevent query spam)
     const interval = setInterval(() => {
       fetchNotifications(false);
-    }, 5000);
+    }, 30000);
     
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps

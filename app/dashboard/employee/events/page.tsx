@@ -134,12 +134,14 @@ function EmployeeEventsContent() {
     }
   };
 
-  const upcomingEvents = participations.filter(
-    (p) => new Date(p.event.endDate) > new Date()
-  );
-  const pastEvents = participations.filter(
-    (p) => new Date(p.event.endDate) <= new Date()
-  );
+  // Memoize event filtering to avoid creating new Date() objects on every render
+  const { upcomingEvents, pastEvents } = useMemo(() => {
+    const now = new Date();
+    return {
+      upcomingEvents: participations.filter(p => new Date(p.event.endDate) > now),
+      pastEvents: participations.filter(p => new Date(p.event.endDate) <= now)
+    };
+  }, [participations]);
 
   return (
     <DashboardLayout type="employee">

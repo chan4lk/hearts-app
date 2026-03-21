@@ -73,28 +73,30 @@ function AllGoalsPageContent() {
     }
   }, [searchParams]);
 
-  // Fetch total stats (all goals, not filtered)
-  const fetchTotalStats = async () => {
+  // Fetch total stats using the stats from the goals API (no need to load 10K goals)
+  const fetchTotalStats = useCallback(async () => {
     try {
-      // Fetch all goals without filters to get total counts
-      const response = await fetch('/api/goals?view=all&limit=10000&page=1');
+      // Use limit=1 to get stats without loading all goals (API returns stats regardless of page size)
+      const response = await fetch('/api/goals?view=all&limit=1&page=1');
       if (!response.ok) return;
-      
+
       const data = await response.json();
-      const allGoals = data.goals || [];
+      const apiStats = data.stats;
       
-      // Calculate stats from all goals
-      setTotalStats({
-        total: allGoals.length,
-        approved: allGoals.filter((g: Goal) => g.status === 'APPROVED').length,
-        rejected: allGoals.filter((g: Goal) => g.status === 'REJECTED').length,
-        draft: allGoals.filter((g: Goal) => g.status === 'DRAFT').length,
-        completed: allGoals.filter((g: Goal) => g.status === 'COMPLETED').length
-      });
+      // Use pre-calculated stats from API (no client-side counting needed)
+      if (apiStats) {
+        setTotalStats({
+          total: apiStats.total || data.meta?.total || 0,
+          approved: apiStats.approved || 0,
+          rejected: apiStats.rejected || 0,
+          draft: apiStats.draft || 0,
+          completed: apiStats.completed || 0
+        });
+      }
     } catch (error) {
       console.error('Error fetching total stats:', error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (!session) {

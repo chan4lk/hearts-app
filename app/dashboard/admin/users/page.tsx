@@ -123,29 +123,24 @@ function UsersPageContent() {
     }
   }, [searchParams]);
 
-  // Fetch total stats (all users, not filtered)
-  const fetchTotalStats = async () => {
+  // Fetch total stats from admin/stats API (1 lightweight request instead of loading 10K users)
+  const fetchTotalStats = useCallback(async () => {
     try {
-      // Fetch all users without filters to get total counts
-      // Use minimal mode and high limit to get all users efficiently
-      const response = await fetch('/api/admin/users?minimal=true&limit=10000&page=1');
+      const response = await fetch('/api/admin/stats');
       if (!response.ok) return;
-      
+
       const data = await response.json();
-      const allUsers = Array.isArray(data) ? data : (data.users || []);
-      
-      // Calculate stats from all users
       setTotalStats({
-        total: allUsers.length,
-        active: allUsers.filter((u: any) => u.isActive !== false).length,
-        managers: allUsers.filter((u: any) => u.role === 'MANAGER').length,
-        employees: allUsers.filter((u: any) => u.role === 'EMPLOYEE').length,
-        admins: allUsers.filter((u: any) => u.role === 'ADMIN').length
+        total: data.totalUsers || 0,
+        active: data.activeSessions || 0,
+        managers: data.managerCount || 0,
+        employees: data.employeeCount || 0,
+        admins: data.adminCount || 0
       });
     } catch (error) {
       console.error('Error fetching total stats:', error);
     }
-  };
+  }, []);
 
   const fetchUsers = async (currentPage = page) => {
     try {
