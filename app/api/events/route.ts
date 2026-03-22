@@ -17,16 +17,23 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
-    const status = searchParams.get('status') || 'SCHEDULED';
+    const statusParam = searchParams.get('status') || 'SCHEDULED';
     const eventType = searchParams.get('eventType');
     const search = searchParams.get('search');
 
     const skip = (page - 1) * limit;
 
-    // Build where clause
-    const where: any = {
-      status: { in: status.split(',') },
-    };
+    // Validate status values against the EventStatus enum to prevent Prisma cast errors
+    const validStatuses = ['SCHEDULED', 'ONGOING', 'COMPLETED', 'CANCELLED'];
+    const statusValues = statusParam.split(',').filter(s => validStatuses.includes(s.trim()));
+
+    // Build where clause — use single value if only one status, otherwise use `in`
+    const where: any = {};
+    if (statusValues.length === 1) {
+      where.status = statusValues[0];
+    } else if (statusValues.length > 1) {
+      where.status = { in: statusValues };
+    }
     if (eventType) where.eventType = eventType;
     if (search) {
       where.OR = [

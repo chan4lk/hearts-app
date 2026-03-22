@@ -33,12 +33,17 @@ const nextConfig = {
       },
     });
     
+    // Suppress @azure/functions-core warning (optional peer dep that's never used in Next.js)
+    config.plugins.push(
+      new webpack.IgnorePlugin({ resourceRegExp: /^@azure\/functions-core$/ })
+    );
+
     // For non-server builds (client + middleware), ignore applicationinsights completely
     if (!isServer) {
       // Ignore applicationinsights and Azure packages
       config.plugins.push(
         new webpack.IgnorePlugin({
-          resourceRegExp: /^(applicationinsights|@azure\/monitor-opentelemetry|@azure\/monitor-opentelemetry-exporter|@azure\/functions-core)$/,
+          resourceRegExp: /^(applicationinsights|@azure\/monitor-opentelemetry|@azure\/monitor-opentelemetry-exporter)$/,
         })
       );
       
