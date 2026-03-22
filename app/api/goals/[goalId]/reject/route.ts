@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { GoalStatus } from '@prisma/client';
+import { GoalStatus, NotificationType } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { logger } from '@/lib/logger';
@@ -55,6 +55,16 @@ export async function PUT(
           }
         }
       }
+    });
+
+    // Notify the employee that their goal was rejected
+    await prisma.notification.create({
+      data: {
+        type: NotificationType.GOAL_REJECTED,
+        message: `Your goal "${goal.title}" has been rejected${managerComments ? ': ' + managerComments : ''}`,
+        userId: goal.employeeId,
+        goalId: goal.id,
+      },
     });
 
     return NextResponse.json({

@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { NotificationType } from '@prisma/client';
 import { rateLimiters } from '@/lib/rateLimit';
 import { logger } from '@/lib/logger';
 import { handleApiError } from '@/app/api/utils/error-handler';
 
-// Valid statuses for progress updates
-const ALLOWED_STATUSES_FOR_PROGRESS = ['DRAFT', 'PENDING', 'APPROVED'];
+// Valid statuses for progress updates — employees track progress while working
+const ALLOWED_STATUSES_FOR_PROGRESS = ['APPROVED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED'];
 
 // Valid progress status values
 const VALID_PROGRESS_STATUSES = ['NOT_STARTED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED', 'COMPLETED'];
@@ -57,7 +58,7 @@ export async function PUT(
     // Check if goal status allows progress updates
     if (!ALLOWED_STATUSES_FOR_PROGRESS.includes(goal.status)) {
       return NextResponse.json(
-        { error: `Cannot update progress for goals with status: ${goal.status}. Progress can only be updated for DRAFT, PENDING, or APPROVED goals.` },
+        { error: `Cannot update progress for goals with status: ${goal.status}. Progress can only be updated for APPROVED, IN_PROGRESS, ON_HOLD, or BLOCKED goals.` },
         { status: 400 }
       );
     }
@@ -97,7 +98,7 @@ export async function PUT(
     if (goal.managerId) {
       await prisma.notification.create({
         data: {
-          type: 'GOAL_UPDATED',
+          type: NotificationType.GOAL_UPDATED,
           message: `Progress updated to ${progress}% for goal: ${goal.title}`,
           userId: goal.managerId,
           goalId: updatedGoal.id,

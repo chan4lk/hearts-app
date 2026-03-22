@@ -176,11 +176,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
     // Verify all employees exist
     const employeeIds = Array.from(new Set(body.goals.map(goal => goal.employeeId)));
 
-    // Check if all employees exist (don't require them to be assigned to this manager)
+    // Check employees exist AND are managed by this manager (MANAGER) or exist (ADMIN)
+    const employeeWhere: any = { id: { in: employeeIds } };
+    if (session.user.role === 'MANAGER') {
+      employeeWhere.managerId = session.user.id; // Only allow goals for direct reports
+    }
     const existingEmployees = await prisma.user.findMany({
-      where: {
-        id: { in: employeeIds }
-      },
+      where: employeeWhere,
       select: { id: true, name: true, email: true }
     });
 
@@ -190,7 +192,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
     if (missingEmployeeIds.length > 0) {
       return NextResponse.json({
         success: false,
-        message: `Invalid employee IDs: ${missingEmployeeIds.join(', ')}`,
+        message: session.user.role === 'MANAGER'
+          ? `Employees not found or not assigned to you: ${missingEmployeeIds.join(', ')}`
+          : `Invalid employee IDs: ${missingEmployeeIds.join(', ')}`,
         created: 0,
         failed: body.goals.length
       }, { status: 400 });

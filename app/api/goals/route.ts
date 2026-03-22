@@ -28,17 +28,33 @@ type StatusTransitions = {
   [key in GoalStatus]: GoalStatus[];
 };
 
+/**
+ * GOAL STATE MACHINE — Clean workflow:
+ *
+ * Employee creates → DRAFT
+ *   Employee submits → PENDING (waiting for manager review)
+ *   Manager reviews → APPROVED / REJECTED / MODIFIED (request changes)
+ *
+ * REJECTED → Employee revises → DRAFT → resubmit → PENDING
+ * MODIFIED → Employee updates → PENDING (resubmit for review)
+ *
+ * APPROVED → Employee works:
+ *   → IN_PROGRESS → ON_HOLD / BLOCKED → back to IN_PROGRESS
+ *   → COMPLETED (terminal)
+ *
+ * Manager assigns → APPROVED directly (skips review)
+ */
 const validTransitions: StatusTransitions = {
-  [GoalStatus.DRAFT]: [GoalStatus.PENDING, GoalStatus.APPROVED, GoalStatus.REJECTED, GoalStatus.MODIFIED], // Employee can submit DRAFT to PENDING, or Manager can review DRAFT directly
-  [GoalStatus.PENDING]: [GoalStatus.APPROVED, GoalStatus.REJECTED, GoalStatus.MODIFIED], // Manager reviews submitted DRAFT
-  [GoalStatus.MODIFIED]: [GoalStatus.PENDING, GoalStatus.DRAFT], // Employee resubmits after modifications (can go back to DRAFT or submit to PENDING)
-  [GoalStatus.APPROVED]: [GoalStatus.IN_PROGRESS, GoalStatus.COMPLETED, GoalStatus.ON_HOLD, GoalStatus.BLOCKED], // Employee can start working
-  [GoalStatus.IN_PROGRESS]: [GoalStatus.COMPLETED, GoalStatus.ON_HOLD, GoalStatus.BLOCKED],
-  [GoalStatus.REJECTED]: [GoalStatus.DRAFT], // Employee can revise and resubmit
-  [GoalStatus.COMPLETED]: [],
-  [GoalStatus.ON_HOLD]: [GoalStatus.IN_PROGRESS, GoalStatus.COMPLETED],
-  [GoalStatus.BLOCKED]: [GoalStatus.IN_PROGRESS, GoalStatus.COMPLETED],
-  [GoalStatus.DELETED]: []
+  [GoalStatus.DRAFT]:       [GoalStatus.PENDING],                                                    // Employee submits for review
+  [GoalStatus.PENDING]:     [GoalStatus.APPROVED, GoalStatus.REJECTED, GoalStatus.MODIFIED],         // Manager reviews
+  [GoalStatus.MODIFIED]:    [GoalStatus.PENDING, GoalStatus.DRAFT],                                  // Employee revises and resubmits
+  [GoalStatus.APPROVED]:    [GoalStatus.IN_PROGRESS, GoalStatus.COMPLETED],                          // Employee starts work
+  [GoalStatus.REJECTED]:    [GoalStatus.DRAFT],                                                      // Employee revises
+  [GoalStatus.IN_PROGRESS]: [GoalStatus.COMPLETED, GoalStatus.ON_HOLD, GoalStatus.BLOCKED],          // Employee tracks work
+  [GoalStatus.ON_HOLD]:     [GoalStatus.IN_PROGRESS, GoalStatus.COMPLETED],                          // Resume or complete
+  [GoalStatus.BLOCKED]:     [GoalStatus.IN_PROGRESS, GoalStatus.COMPLETED],                          // Unblock or complete
+  [GoalStatus.COMPLETED]:   [],                                                                       // Terminal
+  [GoalStatus.DELETED]:     []                                                                        // Terminal
 };
 
 // Standard include for goal queries

@@ -42,44 +42,47 @@ export async function POST(
       });
 
       if (existingRating) {
-        // If rating exists, remove manager rating but preserve self-rating
-        await prisma.rating.update({
-          where: { goalId: goalId },
-          data: {
-            managerScore: null,
-            managerComments: null,
-            managerRatedById: null,
-            managerRatedAt: null,
-            // Preserve self-rating fields
-          }
-        });
-
-        // Fetch updated rating
-        const rating = await prisma.rating.findUnique({
-          where: { goalId: goalId },
-          include: {
-            selfRatedBy: {
-              select: { id: true, name: true, email: true }
+        // If self-rating exists, keep record but clear manager fields
+        if (existingRating.selfScore !== null && existingRating.selfScore !== undefined) {
+          const rating = await prisma.rating.update({
+            where: { goalId: goalId },
+            data: {
+              managerScore: null,
+              managerComments: null,
+              managerRatedById: null,
+              managerRatedAt: null,
             },
-            managerRatedBy: {
-              select: { id: true, name: true, email: true }
+            include: {
+              selfRatedBy: { select: { id: true, name: true, email: true } },
+              managerRatedBy: { select: { id: true, name: true, email: true } }
             }
-          }
-        });
+          });
 
-        return NextResponse.json({
-          id: rating?.id || '',
-          goalId: goalId,
-          selfScore: rating?.selfScore,
-          selfComments: rating?.selfComments,
-          selfRatedBy: rating?.selfRatedBy,
-          selfRatedAt: rating?.selfRatedAt,
-          score: rating?.managerScore || null,
-          comments: rating?.managerComments,
-          managerRatedBy: rating?.managerRatedBy,
-          managerRatedAt: rating?.managerRatedAt,
-          updatedAt: rating?.updatedAt,
-        });
+          return NextResponse.json({
+            id: rating.id,
+            goalId: goalId,
+            selfScore: rating.selfScore,
+            selfComments: rating.selfComments,
+            selfRatedBy: rating.selfRatedBy,
+            selfRatedAt: rating.selfRatedAt,
+            score: null,
+            comments: null,
+            managerRatedBy: null,
+            managerRatedAt: null,
+            updatedAt: rating.updatedAt,
+          });
+        } else {
+          // No self-rating either — delete the entire record (consistent with self-rating behavior)
+          await prisma.rating.delete({ where: { goalId: goalId } });
+
+          return NextResponse.json({
+            id: null,
+            goalId: goalId,
+            selfScore: null, selfComments: null, selfRatedBy: null, selfRatedAt: null,
+            score: null, comments: null, managerRatedBy: null, managerRatedAt: null,
+            updatedAt: new Date().toISOString(),
+          });
+        }
       } else {
         // No rating exists, nothing to remove
         return NextResponse.json({
