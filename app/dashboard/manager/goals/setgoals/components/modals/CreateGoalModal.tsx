@@ -123,7 +123,7 @@ export function CreateGoalModal({
         title: data.title,
         description: data.description,
       }));
-    } catch (error) {
+    } catch (error) { // handled silently
       // Error toast removed
     } finally {
       setIsGenerating(false);

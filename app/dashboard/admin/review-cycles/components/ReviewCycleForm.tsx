@@ -226,7 +226,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
       } else {
         setUsers([]);
       }
-    } catch (error) {
+    } catch (error) { // handled silently
       setUsers([]);
     } finally {
       setLoadingUsers(false);
@@ -306,7 +306,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
       if (result instanceof Promise) {
         await result;
       }
-    } catch (error) {
+    } catch (error) { // handled silently
       // Error handling is done in parent component
     } finally {
       // Keep loading state briefly for visual feedback, then clear

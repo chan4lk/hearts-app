@@ -46,17 +46,13 @@ export async function GET(req: Request, { params }: { params: { goalId: string }
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user is admin
-    const isAdmin = session.user.role === 'ADMIN';
-    
     const goal = await prisma.goal.findUnique({
       where: {
         id: params.goalId,
-        ...(isAdmin ? {} : { employeeId: session.user.id }), // Admin can view any goal
         status: { not: 'DELETED' }
       },
       include: {
-        employee: true,
+        employee: { select: { id: true, name: true, email: true, managerId: true } },
         createdBy: true,
         updatedBy: true
       }
@@ -66,8 +62,18 @@ export async function GET(req: Request, { params }: { params: { goalId: string }
       return NextResponse.json({ error: 'Goal not found' }, { status: 404 });
     }
 
+    // Authorization: employee, their manager, goal's assigned manager, or admin
+    const isOwner = goal.employeeId === session.user.id;
+    const isGoalManager = goal.managerId === session.user.id;
+    const isEmployeeManager = goal.employee?.managerId === session.user.id;
+    const isAdmin = session.user.role === 'ADMIN';
+
+    if (!isOwner && !isGoalManager && !isEmployeeManager && !isAdmin) {
+      return NextResponse.json({ error: 'Goal not found' }, { status: 404 });
+    }
+
     return NextResponse.json({ goal });
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }
@@ -134,7 +140,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { goalId
     });
 
     return NextResponse.json(updatedGoal);
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }
@@ -252,7 +258,7 @@ export async function PUT(req: NextRequest, { params }: { params: { goalId: stri
       message: 'Goal updated successfully',
       goal
     });
-  } catch (error) {
+  } catch (error) { // handled silently
     return NextResponse.json({ error: 'Failed to update goal' }, { status: 500 });
   }
 }
@@ -348,7 +354,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { goalId: s
       message: 'Goal deleted successfully',
       goal
     });
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }

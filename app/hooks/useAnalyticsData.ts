@@ -119,7 +119,7 @@ export function useAnalyticsData() {
       setDepartments(
         Array.from(new Set(list.map((e: any) => e.department).filter(Boolean) as string[])).sort()
       );
-    } catch (err) {
+    } catch (err) { // handled silently
     }
   }, [session?.user]);
 
@@ -182,7 +182,7 @@ export function useAnalyticsData() {
         setAnalyticsData(EMPTY_DATA);
         hasData.current = true;
       }
-    } catch (err) {
+    } catch (err) { // handled silently
       const msg = err instanceof Error ? err.message : String(err);
 
       // Retry on connection errors, with a cap

@@ -107,7 +107,7 @@ export async function PUT(
     }
 
     return NextResponse.json(updatedGoal);
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }

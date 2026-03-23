@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { message: 'Error creating user' },

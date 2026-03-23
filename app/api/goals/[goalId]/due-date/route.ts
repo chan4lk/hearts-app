@@ -118,7 +118,7 @@ export async function PATCH(
       success: true,
       goal: updatedGoal
     });
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }

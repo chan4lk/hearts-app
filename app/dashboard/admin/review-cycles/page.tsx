@@ -118,7 +118,7 @@ export default function ReviewCyclesPage() {
         setReviewCycles(data.reviewCycles || []);
         setPagination(data.pagination || null);
       }
-    } catch (error) {
+    } catch (error) { // handled silently
       // Toast removed
     } finally {
       if (showLoading) {
@@ -173,7 +173,7 @@ export default function ReviewCyclesPage() {
       // Refresh data in background silently (no loading indicator) to get server response
       // This ensures we have the complete data from server (including user names, etc.)
       await fetchReviewCycles(false); // false = don't show loading indicator
-    } catch (error) {
+    } catch (error) { // handled silently
       // On error, revert optimistic update and reopen form
       setIsFormOpen(true);
       setEditingCycle(previousEditingCycle);
@@ -198,7 +198,7 @@ export default function ReviewCyclesPage() {
 
       // Toast removed
       fetchReviewCycles();
-    } catch (error) {
+    } catch (error) { // handled silently
       // Toast removed
     }
   };

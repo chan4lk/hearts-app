@@ -111,7 +111,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
         if (data.success) {
           setActivities(data.activities);
         }
-      } catch (error) {
+      } catch (error) { // handled silently
       }
     };
 
@@ -171,7 +171,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
       if (newStatus === 'APPROVED' || newStatus === 'REJECTED') {
         setTimeout(() => onClose(), 300);
       }
-    } catch (error) {
+    } catch (error) { // handled silently
       // Error toast removed
     } finally {
       setIsUpdatingStatus(false);
@@ -192,7 +192,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
       setIsSubmitting(true);
       await onSubmitGoal(goal.id);
       onClose();
-    } catch (error) {
+    } catch (error) { // handled silently
       // Error toast removed
     } finally {
       setIsSubmitting(false);

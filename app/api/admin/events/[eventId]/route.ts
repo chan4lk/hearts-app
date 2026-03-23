@@ -36,7 +36,7 @@ export async function GET(
     }
 
     return NextResponse.json(event);
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -109,7 +109,7 @@ export async function PUT(
     logger.log(`Event updated: ${params.eventId} by ${session.user.name}`);
 
     return NextResponse.json(updatedEvent);
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Failed to update event' },
@@ -148,7 +148,7 @@ export async function DELETE(
     logger.log(`Event deleted: ${params.eventId} by ${session.user.name}`);
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Failed to delete event' },

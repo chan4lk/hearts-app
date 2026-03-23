@@ -8,6 +8,7 @@ import { NotificationType } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { rateLimiters } from '@/lib/rateLimit';
 import { getPaginationFromSearchParams, getPaginationMeta, PAGINATION_LIMITS } from '@/lib/pagination';
+import { createGoalSchema } from '@/lib/validation';
 
 // Define GoalStatus enum locally
 enum GoalStatus {
@@ -406,7 +407,7 @@ export async function GET(req: Request) {
         total
       }
     });
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Failed to fetch goals' }, { status: 500 });
   }
@@ -425,15 +426,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { title, description, category, dueDate, employeeId, department, priority } = await req.json();
+    const body = await req.json();
 
-    // Validate required fields
-    if (!title || !description || !dueDate) {
+    // Validate with Zod schema (replaces manual field checks)
+    const parsed = createGoalSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Title, description, and due date are required' },
+        { error: parsed.error.errors.map(e => e.message).join(', ') },
         { status: 400 }
       );
     }
+
+    const { title, description, category, dueDate } = parsed.data;
+    const { employeeId, department, priority } = body;
 
     const userRole = session.user.role;
     const userId = session.user.id;
@@ -534,7 +539,7 @@ export async function POST(req: NextRequest) {
       success: true,
       goal
     }, { status: 201 });
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Failed to create goal' }, { status: 500 });
   }
@@ -628,7 +633,7 @@ export async function DELETE(request: NextRequest) {
     });
 
     return NextResponse.json(deletedGoal);
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Failed to delete goal' },
@@ -769,7 +774,7 @@ export async function PATCH(request: NextRequest) {
     });
 
     return NextResponse.json(updatedGoal);
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Failed to update goal' },

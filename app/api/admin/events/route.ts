@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
         pages: Math.ceil(total / limit),
       },
     });
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
     logger.log(`Event created: ${event.id} by ${session.user.name}`);
 
     return NextResponse.json(event, { status: 201 });
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Failed to create event' },

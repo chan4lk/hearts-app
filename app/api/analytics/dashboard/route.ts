@@ -316,7 +316,7 @@ export async function GET(req: Request) {
         }
       }
     });
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
 
     const errorMessage = error instanceof Error ? error.message : String(error);

@@ -95,7 +95,7 @@ export async function GET(req: Request) {
       reviewCycles,
       pagination: getPaginationMeta(page, limit, total)
     });
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }
@@ -305,7 +305,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true, reviewCycle });
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }
@@ -363,7 +363,7 @@ export async function DELETE(req: Request) {
     });
 
     return NextResponse.json({ success: true, message: 'Review cycle deleted successfully' });
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }

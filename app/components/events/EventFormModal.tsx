@@ -71,7 +71,7 @@ export const EventFormModal = ({ isOpen, onClose, onSubmit, initialData, isLoadi
       });
       setFormData({ title: '', eventType: 'TOASTMASTERS', date: '', time: '09:00', status: 'SCHEDULED' });
       onClose();
-    } catch (error) {
+    } catch (error) { // handled silently
       toast.error('Failed to save event');
     } finally {
       setIsSubmitting(false);

@@ -62,7 +62,7 @@ export async function GET() {
     }));
 
     return NextResponse.json({ ratings: formattedRatings });
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }

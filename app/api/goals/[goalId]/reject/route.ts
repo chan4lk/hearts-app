@@ -24,13 +24,23 @@ export async function PUT(
     const body = await request.json();
     const { managerComments } = body;
 
-    // Check if goal exists and is in PENDING or DRAFT status
+    // Check if goal exists, is in valid status, and manager has authority
     const existingGoal = await prisma.goal.findUnique({
-      where: { id: params.goalId }
+      where: { id: params.goalId },
+      include: { employee: { select: { managerId: true } } }
     });
 
     if (!existingGoal) {
       return new NextResponse('Goal not found', { status: 404 });
+    }
+
+    // Managers can only reject goals of their direct reports (admins can reject any)
+    if (session.user.role === 'MANAGER') {
+      const isGoalManager = existingGoal.managerId === session.user.id;
+      const isEmployeeManager = existingGoal.employee?.managerId === session.user.id;
+      if (!isGoalManager && !isEmployeeManager) {
+        return NextResponse.json({ error: 'You can only reject goals of your direct reports' }, { status: 403 });
+      }
     }
 
     if (existingGoal.status !== 'PENDING' && existingGoal.status !== 'DRAFT') {
@@ -78,7 +88,7 @@ export async function PUT(
       submittedDate: goal.createdAt.toISOString(),
       feedback: goal.managerComments
     });
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }

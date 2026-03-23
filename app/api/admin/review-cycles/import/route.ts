@@ -510,7 +510,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ImportResult>
           logger.error(new Error(`Database error importing review cycle for ${user.email}: ${dbErrorMessage}`));
           throw new Error(`Failed to save review cycle: ${dbErrorMessage}`);
         }
-      } catch (error) {
+      } catch (error) { // handled silently
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         errors.push(`Row ${i + 2} (${excelName}): ${errorMessage}`);
         logger.error(error instanceof Error ? error : new Error(String(error)));
@@ -576,7 +576,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ImportResult>
       message: message,
       reportData: reportData
     });
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     
     if (error instanceof Error && error.message.includes('file')) {

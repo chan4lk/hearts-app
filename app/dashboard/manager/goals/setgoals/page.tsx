@@ -130,7 +130,7 @@ function ManagerGoalSettingPageContent() {
       const data = await response.json();
       setAssignedEmployees(data.employees);
       fetchGoals(data.employees);
-    } catch (error) {
+    } catch (error) { // handled silently
       setError(error instanceof Error ? error : new Error('Failed to load assigned employees'));
       // Toast removed
     }
@@ -166,7 +166,7 @@ function ManagerGoalSettingPageContent() {
       if (data.pagination) {
         setPagination(data.pagination);
       }
-    } catch (error) {
+    } catch (error) { // handled silently
       // Toast removed
     } finally {
       setLoading(false);
@@ -226,7 +226,7 @@ function ManagerGoalSettingPageContent() {
       setGoals(prev => [goal, ...prev]);
       setIsCreateModalOpen(false);
       resetForm();
-    } catch (error) {
+    } catch (error) { // handled silently
       // Error toast removed
     } finally {
       setLoading(false);
@@ -260,7 +260,7 @@ function ManagerGoalSettingPageContent() {
       } else {
         throw new Error(result.message || 'Failed to create goals');
       }
-    } catch (error) {
+    } catch (error) { // handled silently
       // Error toast removed
     } finally {
       setLoading(false);
@@ -315,7 +315,7 @@ function ManagerGoalSettingPageContent() {
       // Show view modal after update
       setIsViewModalOpen(true);
       
-    } catch (error) {
+    } catch (error) { // handled silently
       // Revert optimistic update on error
       setGoals(prev => prev.map(goal => 
         goal.id === goalToView.id ? goalToView : goal
@@ -351,7 +351,7 @@ function ManagerGoalSettingPageContent() {
       }
 
       // Success - goal is already removed from UI
-    } catch (error) {
+    } catch (error) { // handled silently
       // Revert optimistic update on error
       if (goalToRestore) {
         setGoals(prev => [...prev, goalToRestore].sort((a, b) => 

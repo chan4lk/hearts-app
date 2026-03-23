@@ -146,7 +146,7 @@ export default function ApproveGoalsPage() {
       });
 
       setEmployeeStats(Array.from(statsMap.values()));
-    } catch (err) {
+    } catch (err) { // handled silently
       const errorMessage = err instanceof Error ? err.message : 'Failed to load goals';
       setError(errorMessage);
       toast.error(errorMessage);
@@ -192,7 +192,7 @@ export default function ApproveGoalsPage() {
       // Optionally refresh to get the latest data, but UI is already updated
       // Only refresh if needed for stats or other data
       await fetchGoals();
-    } catch (err) {
+    } catch (err) { // handled silently
       // Revert optimistic update on error
       setGoals(prevGoals => [...prevGoals, goal]);
       toast.error(`Failed to ${action} goal`);

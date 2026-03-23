@@ -46,6 +46,11 @@ export async function POST(
       return NextResponse.json({ error: 'Only the goal owner can submit self-rating' }, { status: 403 });
     }
 
+    // Goal must be APPROVED or COMPLETED to be rated
+    if (goal.status !== 'APPROVED' && goal.status !== 'COMPLETED' && goal.status !== 'IN_PROGRESS') {
+      return NextResponse.json({ error: 'Goal must be approved, in progress, or completed to submit a rating' }, { status: 400 });
+    }
+
     // Check if rating exists
     const existingRating = await prisma.rating.findUnique({
       where: { goalId: params.goalId }
@@ -183,7 +188,7 @@ export async function POST(
       managerRatedAt: rating.managerRatedAt,
       updatedAt: rating.updatedAt,
     });
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }

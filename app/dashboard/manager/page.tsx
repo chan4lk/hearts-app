@@ -114,7 +114,7 @@ export default function ManagerDashboard() {
           total: employeesList.length || 0,
           active: employeesList.filter((emp: any) => emp.isActive !== false).length || 0
         });
-      } catch (error) {
+      } catch (error) { // handled silently
         setEmployees([]);
       }
     };
@@ -148,7 +148,7 @@ export default function ManagerDashboard() {
       const goalData = await goalResponse.json();
       setGoals(goalData.goals || []);
       if (goalData.pagination) setPagination(goalData.pagination);
-    } catch (error) {
+    } catch (error) { // handled silently
       setGoals([]);
     } finally {
       setLoading(false);

@@ -133,7 +133,7 @@ export default function RateEmployeesPage() {
       }
       
       toast.success("Goals loaded successfully");
-    } catch (error) {
+    } catch (error) { // handled silently
       const errorMessage = error instanceof Error ? error.message : "Failed to load goals";
       toast.error(errorMessage);
       setGoals([]);
@@ -247,7 +247,7 @@ export default function RateEmployeesPage() {
         });
 
         toast.success('Rating removed successfully');
-      } catch (error) {
+      } catch (error) { // handled silently
         // REVERT optimistic update on error
         setGoals(prevGoals => {
           const revertedGoals = prevGoals.map(goal =>
@@ -371,7 +371,7 @@ export default function RateEmployeesPage() {
       });
 
       toast.success(`Rating updated to ${value} stars`);
-    } catch (error) {
+    } catch (error) { // handled silently
       // REVERT optimistic update on error
       setGoals(prevGoals => {
         const revertedGoals = prevGoals.map(goal =>

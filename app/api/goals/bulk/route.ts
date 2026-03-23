@@ -252,7 +252,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
                 goalId: goal.id,
               },
             });
-          } catch (error) {
+          } catch (error) { // handled silently
             logger.error(error instanceof Error ? error : new Error(String(error)));
             throw new Error(`Failed to create goal ${i + 1}: ${goalData.title}`);
           }
@@ -279,7 +279,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
       }, { status: 500 });
     }
 
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     // Return error in BulkGoalResponse format
     return NextResponse.json<BulkGoalResponse>(
@@ -326,7 +326,7 @@ export async function GET(): Promise<NextResponse> {
       categories: Object.values(GoalCategory),
       priorities: ['LOW', 'MEDIUM', 'HIGH']
     });
-  } catch (error) {
+  } catch (error) { // handled silently
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }

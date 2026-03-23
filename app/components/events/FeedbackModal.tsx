@@ -24,7 +24,7 @@ export const FeedbackModal = ({ isOpen, onClose, onSubmit, initialData, isLoadin
       await onSubmit(formData);
       setFormData({ hoursContributed: 1, feedback: '' });
       onClose();
-    } catch (error) {
+    } catch (error) { // handled silently
     }
   };
 

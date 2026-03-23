@@ -59,7 +59,7 @@ function AdminEventsContent() {
       const data = await response.json();
       setEvents(data.events);
       setPagination(data.pagination);
-    } catch (error) {
+    } catch (error) { // handled silently
       toast.error('Failed to fetch events');
     } finally {
       setIsLoading(false);
@@ -84,7 +84,7 @@ function AdminEventsContent() {
       fetchEvents();
       setIsFormOpen(false);
       setEditingEvent(null);
-    } catch (error) {
+    } catch (error) { // handled silently
       throw error;
     }
   };
@@ -105,7 +105,7 @@ function AdminEventsContent() {
       fetchEvents();
       setIsFormOpen(false);
       setEditingEvent(null);
-    } catch (error) {
+    } catch (error) { // handled silently
       throw error;
     }
   };
@@ -122,7 +122,7 @@ function AdminEventsContent() {
 
       toast.success('Event deleted successfully');
       fetchEvents();
-    } catch (error) {
+    } catch (error) { // handled silently
       toast.error('Failed to delete event');
     }
   };

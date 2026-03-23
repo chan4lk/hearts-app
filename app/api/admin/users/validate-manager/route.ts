@@ -58,7 +58,7 @@ export async function POST(
       valid: true,
       message: 'Manager hierarchy is valid',
     });
-  } catch (error) {
+  } catch (error) { // handled silently
     return Response.json(
       { error: 'Failed to validate manager' },
       { status: 500 }

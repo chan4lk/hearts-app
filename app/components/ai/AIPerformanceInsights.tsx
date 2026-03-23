@@ -60,7 +60,7 @@ export default function AIPerformanceInsights({ userId, autoLoad = false, classN
       const data = await response.json();
       setInsights(data.insights || []);
       setMetrics(data.metrics);
-    } catch (err) {
+    } catch (err) { // handled silently
       setError(err instanceof Error ? err.message : 'Failed to load insights');
     } finally {
       setLoading(false);

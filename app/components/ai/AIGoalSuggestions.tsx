@@ -44,7 +44,7 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
       const data = await response.json();
       setSuggestions(data.suggestions || []);
       setShowSuggestions(true);
-    } catch (err) {
+    } catch (err) { // handled silently
       setError(err instanceof Error ? err.message : 'Failed to generate suggestions');
     } finally {
       setLoading(false);

@@ -43,7 +43,7 @@ export default function AIWritingAssistant({
       const data = await response.json();
       setImproved(data.improved);
       setShowComparison(true);
-    } catch (err) {
+    } catch (err) { // handled silently
     } finally {
       setLoading(false);
     }

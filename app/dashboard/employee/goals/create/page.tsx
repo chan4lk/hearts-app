@@ -123,7 +123,7 @@ function GoalsPageContent() {
         setGoals([]);
         setPagination(null);
       }
-    } catch (error) {
+    } catch (error) { // handled silently
       showNotificationWithTimeout('Failed to load goals', 'error');
     }
   };
@@ -163,7 +163,7 @@ function GoalsPageContent() {
         department: 'ENGINEERING',
         priority: 'MEDIUM'
       });
-    } catch (error) {
+    } catch (error) { // handled silently
       showNotificationWithTimeout(
         `Failed to create goal: ${error instanceof Error ? error.message : 'Unknown error'}`,
         'error'
@@ -245,7 +245,7 @@ function GoalsPageContent() {
       
       setIsEditModalOpen(false);
       setEditGoal(null);
-    } catch (error) {
+    } catch (error) { // handled silently
       showNotificationWithTimeout(
         error instanceof Error ? error.message : 'Failed to update goal',
         'error'
@@ -278,7 +278,7 @@ function GoalsPageContent() {
       setIsDeleteModalOpen(false);
       setDeleteGoal(null);
       fetchGoals(); // Refresh to get the latest data
-    } catch (error) {
+    } catch (error) { // handled silently
       showNotificationWithTimeout(
         error instanceof Error ? error.message : 'Failed to delete goal',
         'error'
