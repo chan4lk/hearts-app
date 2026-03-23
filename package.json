@@ -9,6 +9,8 @@
     "build:clean": "npm run clean && npm run build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "postinstall": "npx prisma generate",
     "prisma:generate": "npx prisma generate",
     "prisma:migrate": "npx prisma migrate dev",
@@ -68,9 +70,11 @@
   },
   "devDependencies": {
     "@types/xlsx": "^0.0.36",
+    "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^8.56.0",
     "eslint-config-next": "14.2.21",
     "prisma": "^6.10.1",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "vitest": "^4.1.1"
   }
 }
