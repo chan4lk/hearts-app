@@ -40,10 +40,8 @@ model User {
   createdEvents       Event[]        @relation("EventCreatedBy")
   eventParticipations EventParticipation[]
 
-  // Foreign key and login-related indexes
+  // Foreign key indexes
   @@index([managerId])
-  @@index([lastLoginAt])
-  @@index([lastLoginAttempt])
   
   // Frequently filtered fields
   @@index([role])
@@ -51,8 +49,7 @@ model User {
   @@index([isActive])
   @@index([createdAt])
   
-  // Search indexes - for email and name lookups
-  @@index([email])
+  // Search indexes - email already has @unique (implicit index), name used for search
   @@index([name])
   
   // Composite indexes for common query patterns
@@ -112,7 +109,7 @@ model Goal {
   @@index([department])
   @@index([createdAt])
   @@index([dueDate])
-  @@index([progressStatus])
+  // progressStatus index removed — never used in WHERE clauses
   
   // Composite indexes for common query patterns
   @@index([status, employeeId])        // Get goals by status for an employee
@@ -199,9 +196,9 @@ enum GoalStatus {
   DRAFT
   DELETED
   IN_PROGRESS
-  NOT_STARTED
   ON_HOLD
   BLOCKED
+  // NOT_STARTED removed — use ProgressStatus.NOT_STARTED for progress tracking instead
 }
 
 enum NotificationType {

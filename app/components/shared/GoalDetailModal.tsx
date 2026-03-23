@@ -127,7 +127,6 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
       REJECTED: { bgColor: 'bg-rose-500/20', textColor: 'text-rose-400', icon: BsXCircle, label: 'Rejected' },
       COMPLETED: { bgColor: 'bg-green-500/20', textColor: 'text-green-400', icon: BsCheckCircle, label: 'Completed' },
       IN_PROGRESS: { bgColor: 'bg-blue-500/20', textColor: 'text-blue-400', icon: BsPlayCircle, label: 'In Progress' },
-      NOT_STARTED: { bgColor: 'bg-slate-500/20', textColor: 'text-slate-400', icon: BsCircle, label: 'Not Started' },
       ON_HOLD: { bgColor: 'bg-amber-500/20', textColor: 'text-amber-400', icon: BsPauseCircle, label: 'On Hold' },
       BLOCKED: { bgColor: 'bg-red-500/20', textColor: 'text-red-400', icon: BsFlag, label: 'Blocked' },
       MODIFIED: { bgColor: 'bg-amber-500/20', textColor: 'text-amber-400', icon: BsClock, label: 'Modified' },
@@ -268,9 +267,8 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                   </SelectTrigger>
                   <SelectContent className="bg-surface-elevated border-theme">
                     {session?.user?.id === currentGoal.employeeId ? (
-                      // Employee can update to these statuses
+                      // Employee can update to work statuses
                       <>
-                        <SelectItem value="NOT_STARTED">Not Started</SelectItem>
                         <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
                         <SelectItem value="ON_HOLD">On Hold</SelectItem>
                         <SelectItem value="BLOCKED">Blocked</SelectItem>
@@ -498,19 +496,6 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                 Update Status
               </h4>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                <Button
-                  onClick={() => handleQuickStatusUpdate('NOT_STARTED')}
-                  disabled={isUpdatingStatus}
-                  variant="outline"
-                  className="flex items-center gap-2 bg-surface-secondary border-theme text-secondary hover:bg-surface-elevated hover:text-primary text-xs"
-                >
-                  {isUpdatingStatus ? (
-                    <BsArrowRepeat className="w-3 h-3 animate-spin" />
-                  ) : (
-                    <BsCircle className="w-3 h-3" />
-                  )}
-                  Not Started
-                </Button>
                 <Button
                   onClick={() => handleQuickStatusUpdate('IN_PROGRESS')}
                   disabled={isUpdatingStatus}

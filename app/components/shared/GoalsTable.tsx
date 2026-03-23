@@ -48,7 +48,6 @@ const STATUS_OPTIONS = [
   { value: 'COMPLETED', label: 'Completed' },
   { value: 'DRAFT', label: 'Draft' },
   { value: 'IN_PROGRESS', label: 'In Progress' },
-  { value: 'NOT_STARTED', label: 'Not Started' },
   { value: 'ON_HOLD', label: 'On Hold' },
   { value: 'BLOCKED', label: 'Blocked' }
 ];
@@ -62,7 +61,6 @@ const getStatusBadge = (status: string, goal?: Goal | GoalWithRatingExtended, se
     COMPLETED: { bg: 'bg-green-500/20', text: 'text-green-400', icon: BsCheckCircle },
     DRAFT: { bg: 'bg-slate-500/20', text: 'text-slate-400', icon: BsGear },
     IN_PROGRESS: { bg: 'bg-blue-500/20', text: 'text-blue-400', icon: BsPlayCircle },
-    NOT_STARTED: { bg: 'bg-slate-500/20', text: 'text-slate-400', icon: BsCircle },
     ON_HOLD: { bg: 'bg-amber-500/20', text: 'text-amber-400', icon: BsPauseCircle },
     BLOCKED: { bg: 'bg-red-500/20', text: 'text-red-400', icon: BsFlag }
   };
@@ -85,8 +83,8 @@ const getStatusBadge = (status: string, goal?: Goal | GoalWithRatingExtended, se
   // Note: For managers on approve-goals page, they can update any DRAFT goal of their employees
   // IMPORTANT: DRAFT status is READ-ONLY for employees - they cannot change it
   const canUpdate = goal && session && onStatusChange && !disableStatusUpdate && (
-    (isEmployee && status !== 'DRAFT' && (status === 'APPROVED' || status === 'REJECTED' || status === 'IN_PROGRESS' || status === 'ON_HOLD' || status === 'BLOCKED' || status === 'COMPLETED' || status === 'NOT_STARTED')) ||
-    (isManagerOrAdmin && (status === 'DRAFT' || status === 'APPROVED' || status === 'REJECTED' || status === 'IN_PROGRESS' || status === 'ON_HOLD' || status === 'BLOCKED' || status === 'COMPLETED'))
+    (isEmployee && status !== 'DRAFT' && ['APPROVED', 'REJECTED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED', 'COMPLETED'].includes(status)) ||
+    (isManagerOrAdmin && ['DRAFT', 'PENDING', 'APPROVED', 'REJECTED', 'MODIFIED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED', 'COMPLETED'].includes(status))
   );
   
   // For employees: Never show dropdown for DRAFT status (it's read-only - needs manager approval)
@@ -111,7 +109,6 @@ const getStatusBadge = (status: string, goal?: Goal | GoalWithRatingExtended, se
           'MODIFIED': 'Modified',
           'PENDING': 'Pending',
           'DRAFT': 'Draft',
-          'NOT_STARTED': 'Not Started'
         };
         return allowed.map(statusValue => ({
           value: statusValue,
@@ -128,25 +125,19 @@ const getStatusBadge = (status: string, goal?: Goal | GoalWithRatingExtended, se
         'REJECTED': 'Rejected',
         'MODIFIED': 'Modified',
         'PENDING': 'Pending',
-        'DRAFT': 'Draft',
-        'NOT_STARTED': 'Not Started'
+        'DRAFT': 'Draft'
       };
 
       if (isEmployee) {
-        // Employees can update work/progress statuses
-        // Employees can update from: APPROVED, REJECTED, or any work/progress status
-        // Employees can set to: NOT_STARTED, IN_PROGRESS, ON_HOLD, BLOCKED, COMPLETED
-        // Employees CANNOT update: DRAFT (read-only)
+        // Employees can set to: IN_PROGRESS, ON_HOLD, BLOCKED, COMPLETED
         const allOptions = [
-          { value: 'NOT_STARTED', label: 'Not Started' },
           { value: 'IN_PROGRESS', label: 'In Progress' },
           { value: 'ON_HOLD', label: 'On Hold' },
           { value: 'BLOCKED', label: 'Blocked' },
           { value: 'COMPLETED', label: 'Completed' }
         ];
-        
-        // Include current status if it's a work/progress status or APPROVED/REJECTED
-        const validCurrentStatuses = ['APPROVED', 'REJECTED', 'NOT_STARTED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED', 'COMPLETED'];
+
+        const validCurrentStatuses = ['APPROVED', 'REJECTED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED', 'COMPLETED'];
         const isValidCurrentStatus = validCurrentStatuses.includes(status);
         const currentStatusIncluded = allOptions.some(opt => opt.value === status);
         

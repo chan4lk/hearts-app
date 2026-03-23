@@ -320,7 +320,6 @@ export const GOAL_STATUS_BADGE_CONFIG: Record<string, { bg: string; text: string
   COMPLETED: { bg: 'bg-green-500/20', text: 'text-green-400' },
   DRAFT: { bg: 'bg-gray-500/20', text: 'text-gray-400' },
   IN_PROGRESS: { bg: 'bg-blue-500/20', text: 'text-blue-400' },
-  NOT_STARTED: { bg: 'bg-gray-500/20', text: 'text-gray-400' },
   ON_HOLD: { bg: 'bg-amber-500/20', text: 'text-amber-400' },
   BLOCKED: { bg: 'bg-red-500/20', text: 'text-red-400' },
 };

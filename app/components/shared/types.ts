@@ -41,7 +41,7 @@ export interface Goal {
 
   title: string;
   description: string;
-  status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'DRAFT' | 'DELETED' | 'IN_PROGRESS' | 'NOT_STARTED' | 'ON_HOLD' | 'BLOCKED';
+  status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'DRAFT' | 'DELETED' | 'IN_PROGRESS' | 'ON_HOLD' | 'BLOCKED';
   dueDate: string;
   category: string;
   department: string;
@@ -258,7 +258,7 @@ export interface GoalWithRatingExtended {
   deletedAt?: Date | null;
   deletedById?: string | null;
   updatedById?: string | null;
-  status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'DRAFT' | 'DELETED' | 'IN_PROGRESS' | 'NOT_STARTED' | 'ON_HOLD' | 'BLOCKED';
+  status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'DRAFT' | 'DELETED' | 'IN_PROGRESS' | 'ON_HOLD' | 'BLOCKED';
   rating?: Rating | null;
   employee: {
     id: string;

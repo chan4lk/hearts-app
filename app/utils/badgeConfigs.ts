@@ -13,7 +13,7 @@ export const STATUS_BADGE_CONFIG: Record<string, { bg: string; text: string; ico
   COMPLETED:   { bg: 'bg-green-500/20',   text: 'text-green-400',   icon: BsCheckCircle },
   DRAFT:       { bg: 'bg-slate-500/20',   text: 'text-slate-400',   icon: BsGear },
   IN_PROGRESS: { bg: 'bg-blue-500/20',    text: 'text-blue-400',    icon: BsPlayCircle },
-  NOT_STARTED: { bg: 'bg-slate-500/20',   text: 'text-slate-400',   icon: BsCircle },
+  // NOT_STARTED removed from GoalStatus — only exists in ProgressStatus
   ON_HOLD:     { bg: 'bg-amber-500/20',   text: 'text-amber-400',   icon: BsPauseCircle },
   BLOCKED:     { bg: 'bg-red-500/20',     text: 'text-red-400',     icon: BsFlag },
 };

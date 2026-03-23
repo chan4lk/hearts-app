@@ -59,63 +59,68 @@ export async function PATCH(
       );
     }
 
-    // Employees can update APPROVED goals to progress statuses
-    // Manager-assigned goals start as APPROVED, so employees can start immediately
-    // Employees can also update COMPLETED goals back to other statuses if needed
+    // ── EMPLOYEE permissions ──
     if (isEmployee) {
-      // Allow employees to update from APPROVED or any work/progress status
-      const allowedCurrentStatuses = ['APPROVED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED', 'COMPLETED', 'NOT_STARTED', 'REJECTED'];
+      const allowedCurrentStatuses = ['APPROVED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED', 'COMPLETED', 'REJECTED'];
       if (!allowedCurrentStatuses.includes(goal.status)) {
         return NextResponse.json(
-          { error: 'Status can only be updated for approved, in-progress, on-hold, blocked, completed, not-started, or rejected goals' },
+          { error: `Cannot update goals with status: ${goal.status}` },
           { status: 400 }
         );
       }
-      // Employees can set progress-related statuses from APPROVED or update existing progress statuses
-      const employeeAllowedStatuses = ['NOT_STARTED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED', 'COMPLETED'];
-      if (!employeeAllowedStatuses.includes(status)) {
-        logger.log('Employee status update rejected', 'Warning', { currentStatus: goal.status, requestedStatus: status });
+      // Employees can move to work-related statuses only
+      const employeeAllowedTargets = ['IN_PROGRESS', 'ON_HOLD', 'BLOCKED', 'COMPLETED'];
+      if (!employeeAllowedTargets.includes(status)) {
         return NextResponse.json(
-          { error: `Invalid status for employee. Allowed: ${employeeAllowedStatuses.join(', ')}` },
+          { error: `Invalid status for employee. Allowed: ${employeeAllowedTargets.join(', ')}` },
           { status: 400 }
         );
       }
     }
 
-    // Managers/Admins can approve/reject DRAFT goals, change APPROVED/REJECTED, or update progress statuses
-    // Admins have full permissions to update any status
+    // ── MANAGER/ADMIN permissions ──
     if (isManagerOrAdmin) {
-      // Admins can update any status to any status
       if (session.user.role === 'ADMIN') {
-        // No restrictions for admins - they can update any status
-      } else if (goal.status === 'DRAFT') {
-        // Managers can approve or reject DRAFT goals
-        if (status !== 'APPROVED' && status !== 'REJECTED') {
+        // Admins: no restrictions
+      } else if (goal.status === 'DRAFT' || goal.status === 'PENDING') {
+        // Managers review: can approve, reject, or request modifications
+        const allowed = ['APPROVED', 'REJECTED', 'MODIFIED'];
+        if (!allowed.includes(status)) {
           return NextResponse.json(
-            { error: 'Managers can only approve or reject draft goals' },
+            { error: `Managers can approve, reject, or request modifications for ${goal.status} goals` },
             { status: 400 }
           );
         }
       } else if (goal.status === 'APPROVED' || goal.status === 'REJECTED') {
-        // Managers can change between APPROVED and REJECTED multiple times
-        if (status !== 'APPROVED' && status !== 'REJECTED') {
+        // Managers can change between APPROVED/REJECTED or request modifications
+        const allowed = ['APPROVED', 'REJECTED', 'MODIFIED'];
+        if (!allowed.includes(status)) {
           return NextResponse.json(
-            { error: 'Managers can only change between Approved and Rejected status' },
+            { error: `Managers can change between Approved, Rejected, and Modified` },
             { status: 400 }
           );
         }
-      } else if (goal.status === 'IN_PROGRESS' || goal.status === 'ON_HOLD' || goal.status === 'BLOCKED' || goal.status === 'COMPLETED') {
-        // Managers can update progress statuses
-        const managerAllowedStatuses = ['IN_PROGRESS', 'COMPLETED', 'ON_HOLD', 'BLOCKED', 'NOT_STARTED'];
-        if (!managerAllowedStatuses.includes(status)) {
+      } else if (['IN_PROGRESS', 'ON_HOLD', 'BLOCKED', 'COMPLETED'].includes(goal.status)) {
+        // Managers can update work statuses
+        const allowed = ['IN_PROGRESS', 'COMPLETED', 'ON_HOLD', 'BLOCKED'];
+        if (!allowed.includes(status)) {
           return NextResponse.json(
-            { error: `Invalid status for manager. Allowed: ${managerAllowedStatuses.join(', ')}` },
+            { error: `Invalid status for manager. Allowed: ${allowed.join(', ')}` },
+            { status: 400 }
+          );
+        }
+      } else if (goal.status === 'MODIFIED') {
+        // Modified goals can be re-approved or re-rejected by manager
+        const allowed = ['APPROVED', 'REJECTED'];
+        if (!allowed.includes(status)) {
+          return NextResponse.json(
+            { error: `Modified goals can be approved or rejected` },
             { status: 400 }
           );
         }
       } else {
         return NextResponse.json(
-          { error: 'Managers can only update draft, approved, rejected, or progress status goals' },
+          { error: 'Cannot update goals with this status' },
           { status: 400 }
         );
       }

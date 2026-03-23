@@ -51,12 +51,6 @@ export const STATUS_STYLES: Record<Exclude<GoalStatus, 'DELETED'>, StatusStyle> 
     icon: createIcon(BsPlayCircle, 'w-4 h-4'),
     gradient: 'from-blue-500/10'
   },
-  NOT_STARTED: {
-    bg: 'bg-gray-500/10',
-    text: 'text-gray-400',
-    icon: createIcon(BsStopCircle, 'w-4 h-4'),
-    gradient: 'from-gray-500/10'
-  },
   ON_HOLD: {
     bg: 'bg-amber-500/10',
     text: 'text-amber-400',
