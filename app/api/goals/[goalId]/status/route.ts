@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { sanitizeInput } from '@/lib/securityUtils';
+import { statusUpdateSchema } from '@/lib/validation';
 
 // Status update endpoint for goals
 // Manager-assigned goals: Start as APPROVED → Employee can update to IN_PROGRESS → COMPLETED and others
@@ -19,13 +20,12 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { status } = await req.json();
-    
-    if (!status) {
-      return NextResponse.json({ error: 'Status is required' }, { status: 400 });
+    const body = await req.json();
+    const parsed = statusUpdateSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
     }
-
-    // Removed: Sensitive data logging (userId, role)
+    const { status } = parsed.data;
 
     // Get the goal with employee's managerId in a single query (eliminates N+1)
     const goal = await prisma.goal.findUnique({

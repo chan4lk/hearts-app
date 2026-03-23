@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { GoalStatus, NotificationType } from '@prisma/client';
 import { sanitizeInput } from '@/lib/securityUtils';
+import { approveRejectSchema } from '@/lib/validation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { logger } from '@/lib/logger';
@@ -23,7 +24,11 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { managerComments } = body;
+    const parsed = approveRejectSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
+    }
+    const { managerComments } = parsed.data;
 
     // Check if goal exists, is in valid status, and manager has authority
     const existingGoal = await prisma.goal.findUnique({

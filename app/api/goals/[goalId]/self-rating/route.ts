@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth';
 import { NotificationType } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { handleApiError } from '@/app/api/utils/error-handler';
+import { ratingSubmitSchema } from '@/lib/validation';
 
 export async function POST(
   request: Request,
@@ -16,15 +17,12 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { score, comments } = await request.json();
-
-    // Allow score to be 0 to clear the rating, or between 1-5 for valid ratings
-    if (score !== null && score !== undefined && score !== 0 && (score < 1 || score > 5)) {
-      return NextResponse.json(
-        { error: 'Score must be between 1 and 5, or 0 to clear rating' },
-        { status: 400 }
-      );
+    const body = await request.json();
+    const parsed = ratingSubmitSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
     }
+    const { score, comments } = parsed.data;
 
     const goal = await prisma.goal.findUnique({
       where: {

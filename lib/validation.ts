@@ -191,6 +191,47 @@ export const notificationQuerySchema = z.object({
 });
 
 // ============================================
+// STATUS UPDATE VALIDATION
+// ============================================
+
+export const statusUpdateSchema = z.object({
+  status: z.enum([
+    'DRAFT', 'PENDING', 'APPROVED', 'REJECTED', 'MODIFIED',
+    'COMPLETED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED',
+  ], { required_error: 'Status is required' }),
+});
+
+// ============================================
+// PROGRESS UPDATE VALIDATION
+// ============================================
+
+export const progressUpdateSchema = z.object({
+  progress: z
+    .number({ required_error: 'Progress is required' })
+    .min(0, 'Progress must be 0 or more')
+    .max(100, 'Progress must be 100 or less'),
+  notes: z.string().max(2000, 'Notes too long').optional(),
+  progressStatus: z.enum(['NOT_STARTED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED', 'COMPLETED']).optional(),
+});
+
+// ============================================
+// SELF-RATING / MANAGER-RATING VALIDATION
+// ============================================
+
+export const ratingSubmitSchema = z.object({
+  score: z.number().min(0).max(5, 'Score must be 0-5'),
+  comments: z.string().max(2000, 'Comments too long').optional(),
+});
+
+// ============================================
+// APPROVE/REJECT VALIDATION
+// ============================================
+
+export const approveRejectSchema = z.object({
+  managerComments: z.string().max(2000, 'Comments too long').optional(),
+});
+
+// ============================================
 // HELPER FUNCTION TO USE IN API ROUTES
 // ============================================
 

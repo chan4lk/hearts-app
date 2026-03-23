@@ -5,13 +5,13 @@ import { prisma } from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
 import { rateLimiters } from '@/lib/rateLimit';
 import { logger } from '@/lib/logger';
+import { progressUpdateSchema } from '@/lib/validation';
 import { handleApiError } from '@/app/api/utils/error-handler';
 
 // Valid statuses for progress updates — employees track progress while working
 const ALLOWED_STATUSES_FOR_PROGRESS = ['APPROVED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED'];
 
-// Valid progress status values
-const VALID_PROGRESS_STATUSES = ['NOT_STARTED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED', 'COMPLETED'];
+// Progress status values are now validated by Zod schema (progressUpdateSchema)
 
 export async function PUT(
   req: NextRequest,
@@ -30,16 +30,11 @@ export async function PUT(
     }
 
     const body = await req.json();
-    const { progress, notes, progressStatus } = body;
-
-    if (typeof progress !== 'number' || progress < 0 || progress > 100) {
-      return new NextResponse('Invalid progress value', { status: 400 });
+    const parsed = progressUpdateSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
     }
-
-    // Validate progressStatus if provided
-    if (progressStatus && !VALID_PROGRESS_STATUSES.includes(progressStatus)) {
-      return new NextResponse('Invalid progress status value', { status: 400 });
-    }
+    const { progress, notes, progressStatus } = parsed.data;
 
     // Get the goal to check ownership and status
     const goal = await prisma.goal.findUnique({

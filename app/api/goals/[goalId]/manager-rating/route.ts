@@ -5,6 +5,7 @@ import { authOptions } from '@/lib/auth';
 import { NotificationType } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { handleApiError } from '@/app/api/utils/error-handler';
+import { ratingSubmitSchema } from '@/lib/validation';
 
 export async function POST(
   request: Request,
@@ -33,7 +34,11 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { score, comments } = body;
+    const parsed = ratingSubmitSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
+    }
+    const { score, comments } = parsed.data;
 
     // Handle score = 0 to remove rating
     if (score === 0) {
