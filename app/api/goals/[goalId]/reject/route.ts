@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { GoalStatus, NotificationType } from '@prisma/client';
+import { sanitizeInput } from '@/lib/securityUtils';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { logger } from '@/lib/logger';
@@ -67,11 +68,11 @@ export async function PUT(
       }
     });
 
-    // Notify the employee that their goal was rejected
+    // Notify the employee (sanitize to prevent stored XSS)
     await prisma.notification.create({
       data: {
         type: NotificationType.GOAL_REJECTED,
-        message: `Your goal "${goal.title}" has been rejected${managerComments ? ': ' + managerComments : ''}`,
+        message: `Your goal "${sanitizeInput(goal.title, 200)}" has been rejected${managerComments ? ': ' + sanitizeInput(managerComments, 300) : ''}`,
         userId: goal.employeeId,
         goalId: goal.id,
       },

@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
 import { logger } from '@/lib/logger';
+import { sanitizeInput } from '@/lib/securityUtils';
 
 // Status update endpoint for goals
 // Manager-assigned goals: Start as APPROVED → Employee can update to IN_PROGRESS → COMPLETED and others
@@ -37,6 +38,11 @@ export async function PATCH(
 
     if (!goal) {
       return NextResponse.json({ error: 'Goal not found' }, { status: 404 });
+    }
+
+    // Block operations on deleted goals
+    if (goal.status === 'DELETED') {
+      return NextResponse.json({ error: 'Cannot update a deleted goal' }, { status: 400 });
     }
 
     const isEmployee = goal.employeeId === session.user.id;
@@ -158,16 +164,18 @@ export async function PATCH(
     });
 
     // Create notifications based on status change
+    // Sanitize user-provided content to prevent stored XSS
     const oldStatus = goal.status;
     const newStatus = status;
-    const actorName = session.user.name || session.user.email || 'User';
+    const safeTitle = sanitizeInput(goal.title, 200);
+    const safeName = sanitizeInput(session.user.name || session.user.email || 'User', 100);
+    const safeEmpName = sanitizeInput(goal.employee?.name || 'Employee', 100);
 
-    // Notify employee about status changes
     if (newStatus === 'APPROVED' && oldStatus !== 'APPROVED') {
       await prisma.notification.create({
         data: {
           type: NotificationType.GOAL_APPROVED,
-          message: `Your goal "${goal.title}" has been approved by ${actorName}`,
+          message: `Your goal "${safeTitle}" has been approved by ${safeName}`,
           userId: goal.employeeId,
           goalId: goal.id,
         },
@@ -176,39 +184,36 @@ export async function PATCH(
       await prisma.notification.create({
         data: {
           type: NotificationType.GOAL_REJECTED,
-          message: `Your goal "${goal.title}" has been rejected by ${actorName}`,
+          message: `Your goal "${safeTitle}" has been rejected by ${safeName}`,
           userId: goal.employeeId,
           goalId: goal.id,
         },
       });
     } else if (newStatus === 'COMPLETED' && oldStatus !== 'COMPLETED') {
-      // Notify manager when employee completes goal
       if (goal.managerId) {
         await prisma.notification.create({
           data: {
             type: NotificationType.GOAL_COMPLETED,
-            message: `${goal.employee?.name || 'Employee'} completed the goal "${goal.title}"`,
+            message: `${safeEmpName} completed the goal "${safeTitle}"`,
             userId: goal.managerId,
             goalId: goal.id,
           },
         });
       }
-      // Also notify employee
       await prisma.notification.create({
         data: {
           type: NotificationType.GOAL_COMPLETED,
-          message: `You completed the goal "${goal.title}"`,
+          message: `You completed the goal "${safeTitle}"`,
           userId: goal.employeeId,
           goalId: goal.id,
         },
       });
     } else if (newStatus !== oldStatus && (newStatus === 'IN_PROGRESS' || newStatus === 'ON_HOLD' || newStatus === 'BLOCKED')) {
-      // Notify manager about progress status changes
       if (goal.managerId && isEmployee) {
         await prisma.notification.create({
           data: {
             type: NotificationType.GOAL_UPDATED,
-            message: `${goal.employee?.name || 'Employee'} updated goal "${goal.title}" status to ${newStatus.replace('_', ' ')}`,
+            message: `${safeEmpName} updated goal "${safeTitle}" status to ${newStatus.replace('_', ' ')}`,
             userId: goal.managerId,
             goalId: goal.id,
           },
@@ -216,15 +221,14 @@ export async function PATCH(
       }
     }
 
-    // Notify manager when employee creates DRAFT goal and it gets approved/rejected
-    // Use employee.managerId from the already-loaded relation (no extra query)
+    // Notify manager when DRAFT goal gets approved/rejected
     if ((newStatus === 'APPROVED' || newStatus === 'REJECTED') && oldStatus === 'DRAFT') {
       const empManagerId = goal.employee?.managerId;
       if (empManagerId) {
         await prisma.notification.create({
           data: {
             type: newStatus === 'APPROVED' ? NotificationType.GOAL_APPROVED : NotificationType.GOAL_REJECTED,
-            message: `You ${newStatus === 'APPROVED' ? 'approved' : 'rejected'} ${goal.employee?.name || 'employee'}'s goal "${goal.title}"`,
+            message: `You ${newStatus === 'APPROVED' ? 'approved' : 'rejected'} ${safeEmpName}'s goal "${safeTitle}"`,
             userId: empManagerId,
             goalId: goal.id,
           },
