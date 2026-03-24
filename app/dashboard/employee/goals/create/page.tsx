@@ -321,35 +321,23 @@ function GoalsPageContent() {
                   title: 'Total Goals',
                   value: totalGoals,
                   icon: <BsClipboardData className="w-4 h-4" />,
-                  gradient: 'from-indigo-500 to-purple-500',
-                  bgColor: 'bg-indigo-500/10',
-                  borderColor: 'border-indigo-500/30'
                 },
                 {
                   title: 'Draft',
                   value: draftCount,
                   icon: <BsPencil className="w-4 h-4" />,
-                  gradient: 'from-gray-500 to-slate-500',
-                  bgColor: 'bg-gray-500/10',
-                  borderColor: 'border-gray-500/30',
                   onClick: () => setSelectedStatus('DRAFT')
                 },
                 {
                   title: 'Approved',
                   value: approvedCount,
                   icon: <BsCheckCircle className="w-4 h-4" />,
-                  gradient: 'from-emerald-500 to-teal-500',
-                  bgColor: 'bg-emerald-500/10',
-                  borderColor: 'border-emerald-500/30',
                   onClick: () => setSelectedStatus('APPROVED')
                 },
                 {
                   title: 'Rejected',
                   value: rejectedCount,
                   icon: <BsXCircle className="w-4 h-4" />,
-                  gradient: 'from-rose-500 to-red-500',
-                  bgColor: 'bg-rose-500/10',
-                  borderColor: 'border-rose-500/30',
                   onClick: () => setSelectedStatus('REJECTED')
                 }
               ];

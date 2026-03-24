@@ -82,12 +82,12 @@ export default function ReviewCycleTable({ reviewCycles, onEdit, onDelete, onRef
                       <td className={TABLE_STYLES.tdPrimary}>{cycle.reportingPerson?.name || <span className="text-secondary">-</span>}</td>
                       <td className={TABLE_STYLES.tdPrimary}>{cycle.jobCategory || <span className="text-secondary">-</span>}</td>
                       <td className={TABLE_STYLES.tdPrimary}>{cycle.designation || <span className="text-secondary">-</span>}</td>
-                      <td className={`${TABLE_STYLES.td} text-[13px] text-primary whitespace-nowrap`}>{formatDate(cycle.dateOfAppointment)}</td>
-                      <td className={`${TABLE_STYLES.td} text-[13px] text-primary whitespace-nowrap`}>{cycle.after6Months || <span className="text-secondary">-</span>}</td>
-                      <td className={`${TABLE_STYLES.td} text-[13px] whitespace-nowrap ${hasAdj ? 'text-secondary line-through' : 'text-primary'}`}>{cycle.reviewMonth || <span className="text-secondary">-</span>}</td>
-                      <td className={`${TABLE_STYLES.td} text-[13px] whitespace-nowrap ${hasAdj ? 'text-blue-600 dark:text-blue-400 font-semibold' : 'text-primary'}`}>
+                      <td className={`${TABLE_STYLES.td} text-xs text-primary whitespace-nowrap`}>{formatDate(cycle.dateOfAppointment)}</td>
+                      <td className={`${TABLE_STYLES.td} text-xs text-primary whitespace-nowrap`}>{cycle.after6Months || <span className="text-secondary">-</span>}</td>
+                      <td className={`${TABLE_STYLES.td} text-xs whitespace-nowrap ${hasAdj ? 'text-secondary line-through' : 'text-primary'}`}>{cycle.reviewMonth || <span className="text-secondary">-</span>}</td>
+                      <td className={`${TABLE_STYLES.td} text-xs whitespace-nowrap ${hasAdj ? 'text-info font-semibold' : 'text-primary'}`}>
                         {hasAdj ? (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-blue-500/10 text-blue-600 dark:text-blue-300">{cycle.adjustedReviewMonth}</span>
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-2xs bg-blue-500/10 text-blue-600 dark:text-blue-300">{cycle.adjustedReviewMonth}</span>
                         ) : (cycle.adjustedReviewMonth || <span className="text-secondary">-</span>)}
                       </td>
                       <td className={TABLE_STYLES.td}>

@@ -86,7 +86,7 @@ export function AIGoalSuggestions({
             ) : (
               <>
                 <div className="relative">
-                  <BsStars className="h-3 w-3 text-yellow-400 animate-pulse" />
+                  <BsStars className="h-3 w-3 text-warning animate-pulse" />
                   <motion.div
                     animate={{
                       scale: [1, 1.2, 1],
@@ -139,7 +139,7 @@ export function AIGoalSuggestions({
 
                 <div className="relative flex items-start gap-3">
                   <div className="flex-shrink-0 p-2 rounded-lg bg-gradient-to-r from-blue-500/10 to-purple-500/10">
-                    <BsLightning className="h-4 w-4 text-yellow-400" />
+                    <BsLightning className="h-4 w-4 text-warning" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-primary group-hover:text-transparent 

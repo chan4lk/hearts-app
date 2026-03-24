@@ -151,16 +151,16 @@ function EmployeeEventsContent() {
           <div className="flex-shrink-0 pb-3">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: 'Total Events', value: participations.length, icon: <BsFilter className="w-4 h-4" />, color: 'text-blue-600 dark:text-blue-400' },
-                { label: 'Upcoming', value: upcomingEvents.length, icon: <BsSearch className="w-4 h-4" />, color: 'text-indigo-600 dark:text-indigo-400' },
-                { label: 'Attended', value: pastEvents.filter((p) => p.participationStatus === 'ATTENDED').length, icon: <BsCalendarPlus className="w-4 h-4" />, color: 'text-emerald-600 dark:text-emerald-400' },
-                { label: 'Total Hours', value: `${participations.reduce((sum, p) => sum + (p.hoursContributed || 0), 0)}h`, icon: <BsCalendarPlus className="w-4 h-4" />, color: 'text-amber-600 dark:text-amber-400' },
+                { label: 'Total Events', value: participations.length, icon: <BsFilter className="w-4 h-4" />, color: 'text-info' },
+                { label: 'Upcoming', value: upcomingEvents.length, icon: <BsSearch className="w-4 h-4" />, color: 'text-accent' },
+                { label: 'Attended', value: pastEvents.filter((p) => p.participationStatus === 'ATTENDED').length, icon: <BsCalendarPlus className="w-4 h-4" />, color: 'text-success' },
+                { label: 'Total Hours', value: `${participations.reduce((sum, p) => sum + (p.hoursContributed || 0), 0)}h`, icon: <BsCalendarPlus className="w-4 h-4" />, color: 'text-warning' },
               ].map((stat, i) => (
                 <div key={i} className="flex items-center gap-3.5 px-4 py-3.5 rounded-xl bg-surface-elevated border border-theme">
                   <div className={`flex-shrink-0 w-10 h-10 rounded-lg bg-surface-secondary flex items-center justify-center ${stat.color}`}>{stat.icon}</div>
                   <div>
-                    <div className="text-[18px] font-bold text-primary">{stat.value}</div>
-                    <div className="text-[12px] font-medium text-secondary">{stat.label}</div>
+                    <div className="text-lg font-bold text-primary">{stat.value}</div>
+                    <div className="text-xs font-medium text-secondary">{stat.label}</div>
                   </div>
                 </div>
               ))}

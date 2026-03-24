@@ -369,7 +369,7 @@ export default function UserTable({
                   className={`border-b border-theme hover:bg-surface-secondary/50 transition-colors ${selectedIds.has(user.id) ? 'bg-indigo-500/5' : ''}`}
                 >
                   <CheckboxCell checked={selectedIds.has(user.id)} onToggle={() => toggleSelect(user.id)} />
-                  <td className="py-2.5 px-3 text-[13px]">
+                  <td className="py-2.5 px-3 text-xs">
                     <div className="flex items-center gap-2.5">
                       <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
                         user.role === Role.ADMIN ? 'bg-purple-500/20 text-purple-400' :
@@ -378,10 +378,10 @@ export default function UserTable({
                       }`}>
                         <BsPerson className="w-3.5 h-3.5" />
                       </div>
-                      <div className="text-[13px] font-medium text-primary truncate">{user.name}</div>
+                      <div className="text-xs font-medium text-primary truncate">{user.name}</div>
                     </div>
                   </td>
-                  <td className="py-2.5 px-3 text-[12px] text-secondary truncate">
+                  <td className="py-2.5 px-3 text-xs text-secondary truncate">
                     {user.email}
                   </td>
                   <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>

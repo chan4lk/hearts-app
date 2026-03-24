@@ -6,11 +6,11 @@ import { BsSquare, BsCheckSquare, BsDashSquare } from 'react-icons/bs';
 // ─── Styles (single source of truth) ────────────────────────────
 export const TABLE_STYLES = {
   thead: 'sticky top-0 z-20 bg-surface-secondary border-b border-theme',
-  th: 'text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider whitespace-nowrap select-none',
-  thSortable: 'text-left py-2.5 px-3 text-[12px] font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap select-none',
+  th: 'text-left py-2.5 px-3 text-xs font-semibold text-secondary uppercase tracking-wider whitespace-nowrap select-none',
+  thSortable: 'text-left py-2.5 px-3 text-xs font-semibold text-secondary uppercase tracking-wider cursor-pointer hover:bg-surface-tertiary transition-colors whitespace-nowrap select-none',
   td: 'py-2.5 px-3',
-  tdPrimary: 'py-2.5 px-3 text-[13px] text-primary truncate',
-  tdSecondary: 'py-2.5 px-3 text-[12px] text-secondary truncate',
+  tdPrimary: 'py-2.5 px-3 text-xs text-primary truncate',
+  tdSecondary: 'py-2.5 px-3 text-xs text-secondary truncate',
   row: 'border-b border-theme hover:bg-surface-secondary/50 transition-colors cursor-pointer',
   rowSelected: 'border-b border-theme hover:bg-surface-secondary/50 transition-colors cursor-pointer bg-indigo-500/5',
 } as const;
@@ -118,10 +118,10 @@ export function SelectionBanner({ count, onBulkDelete, onClear }: {
 }) {
   if (count === 0) return null;
   return (
-    <div className="flex items-center gap-3 px-3 py-2 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-lg text-[12px]">
-      <span className="font-medium text-indigo-700 dark:text-indigo-300">{count} selected</span>
+    <div className="flex items-center gap-3 px-3 py-2 bg-accent-muted border border-indigo-200 dark:border-indigo-500/20 rounded-lg text-xs">
+      <span className="font-medium text-accent">{count} selected</span>
       {onBulkDelete && (
-        <button onClick={onBulkDelete} className="ml-auto text-red-600 dark:text-red-400 hover:underline font-medium cursor-pointer">Delete selected</button>
+        <button onClick={onBulkDelete} className="ml-auto text-error hover:underline font-medium cursor-pointer">Delete selected</button>
       )}
       <button onClick={onClear} className="text-secondary hover:text-primary font-medium cursor-pointer">Clear</button>
     </div>
@@ -143,8 +143,8 @@ export function TableEmptyState({ colSpan, icon, title, subtitle }: {
             {icon}
           </div>
           <div>
-            <p className="text-[13px] font-medium text-primary">{title}</p>
-            {subtitle && <p className="text-[12px] text-tertiary mt-0.5">{subtitle}</p>}
+            <p className="text-xs font-medium text-primary">{title}</p>
+            {subtitle && <p className="text-xs text-tertiary mt-0.5">{subtitle}</p>}
           </div>
         </div>
       </td>

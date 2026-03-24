@@ -29,7 +29,6 @@ export function Pagination({
   showLimitSelector = true,
   className = ''
 }: PaginationProps) {
-  // Only show pagination when there are more items than the limit
   if (total <= limit && page === 1) return null;
   if (total === 0) return null;
 
@@ -52,7 +51,7 @@ export function Pagination({
 
   return (
     <div className={`flex flex-col sm:flex-row items-center justify-between gap-3 ${className}`}>
-      <div className="text-[13px] text-secondary">
+      <div className="text-xs text-secondary tabular-nums">
         <span className="font-medium text-primary">{start}-{end}</span> of <span className="font-medium text-primary">{total}</span>
       </div>
 
@@ -61,7 +60,8 @@ export function Pagination({
           <select
             value={limit}
             onChange={(e) => onLimitChange(parseInt(e.target.value))}
-            className="h-8 px-2 text-[12px] bg-surface-secondary border border-theme rounded-lg text-primary cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500 mr-2"
+            className="h-8 px-2 text-xs bg-surface-secondary border border-theme rounded-lg text-primary cursor-pointer focus-ring mr-2"
+            aria-label="Items per page"
           >
             {limitOptions.map((opt) => (
               <option key={opt} value={opt}>{opt} / page</option>
@@ -72,25 +72,28 @@ export function Pagination({
         <button
           onClick={() => hasPrev && onPageChange(page - 1)}
           disabled={!hasPrev}
-          className="h-8 w-8 flex items-center justify-center rounded-lg border border-theme text-secondary hover:text-primary hover:bg-surface-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          className="h-8 w-8 flex items-center justify-center rounded-lg border border-theme text-secondary hover:text-primary hover:bg-surface-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer focus-ring"
+          aria-label="Previous page"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
 
         {getPageNumbers().map((pageNum, index) => {
           if (pageNum === '...') {
-            return <span key={`e-${index}`} className="px-1.5 text-tertiary text-[12px]">...</span>;
+            return <span key={`e-${index}`} className="px-1.5 text-tertiary text-xs">...</span>;
           }
           const n = pageNum as number;
           return (
             <button
               key={n}
               onClick={() => onPageChange(n)}
-              className={`h-8 min-w-[2rem] px-2 text-[12px] font-medium rounded-lg transition-colors cursor-pointer ${
+              className={`h-8 min-w-[2rem] px-2 text-xs font-medium rounded-lg transition-all duration-150 cursor-pointer focus-ring ${
                 n === page
-                  ? 'bg-indigo-600 text-white'
+                  ? 'bg-accent text-[rgb(var(--color-text-inverse))] shadow-theme-sm'
                   : 'border border-theme text-secondary hover:text-primary hover:bg-surface-secondary'
               }`}
+              aria-label={`Page ${n}`}
+              aria-current={n === page ? 'page' : undefined}
             >
               {n}
             </button>
@@ -100,7 +103,8 @@ export function Pagination({
         <button
           onClick={() => hasNext && onPageChange(page + 1)}
           disabled={!hasNext}
-          className="h-8 w-8 flex items-center justify-center rounded-lg border border-theme text-secondary hover:text-primary hover:bg-surface-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+          className="h-8 w-8 flex items-center justify-center rounded-lg border border-theme text-secondary hover:text-primary hover:bg-surface-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer focus-ring"
+          aria-label="Next page"
         >
           <ChevronRight className="h-4 w-4" />
         </button>

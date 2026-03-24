@@ -93,8 +93,8 @@ export function Features() {
                 </div>
 
                 {/* Content */}
-                <h3 className="text-[15px] font-semibold text-primary mb-2 tracking-tight">{title}</h3>
-                <p className="text-[13px] text-secondary leading-relaxed">{description}</p>
+                <h3 className="text-sm font-semibold text-primary mb-2 tracking-tight">{title}</h3>
+                <p className="text-xs text-secondary leading-relaxed">{description}</p>
               </div>
             </MotionDiv>
           ))}

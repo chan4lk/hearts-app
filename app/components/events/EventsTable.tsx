@@ -75,15 +75,15 @@ export const EventsTable = ({ events, onEdit, onDelete, onView, onBulkDelete, is
                 <tr key={event.id} className={selectedIds.has(event.id) ? TABLE_STYLES.rowSelected : TABLE_STYLES.row}>
                   <CheckboxCell checked={selectedIds.has(event.id)} onToggle={() => toggleSelect(event.id)} />
                   <td className={TABLE_STYLES.td} onClick={() => onView(event)}>
-                    <p className="text-[13px] font-medium text-primary truncate">{event.title}</p>
+                    <p className="text-xs font-medium text-primary truncate">{event.title}</p>
                     {event.location && (
-                      <p className="flex items-center gap-1 text-[12px] text-secondary truncate">
+                      <p className="flex items-center gap-1 text-xs text-secondary truncate">
                         <BsGeoAlt className="w-3 h-3 shrink-0" /> {event.location}
                       </p>
                     )}
                   </td>
                   <td className={TABLE_STYLES.td}>
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${TYPE_COLORS[event.eventType] || 'bg-slate-500/20 text-secondary'}`}>
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-2xs font-medium ${TYPE_COLORS[event.eventType] || 'bg-slate-500/20 text-secondary'}`}>
                       {event.eventType.replace(/_/g, ' ')}
                     </span>
                   </td>
@@ -99,7 +99,7 @@ export const EventsTable = ({ events, onEdit, onDelete, onView, onBulkDelete, is
                     {event.participations?.length || 0}{event.capacity ? `/${event.capacity}` : ''}
                   </td>
                   <td className={TABLE_STYLES.td}>
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_COLORS[event.status] || 'bg-slate-500/20 text-secondary'}`}>
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-2xs font-medium ${STATUS_COLORS[event.status] || 'bg-slate-500/20 text-secondary'}`}>
                       {event.status}
                     </span>
                   </td>

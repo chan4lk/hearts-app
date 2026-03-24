@@ -4,15 +4,15 @@ import { ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BsX } from 'react-icons/bs';
 
-// ─── Styles (single source of truth) ────────────────────────────
+// ─── Styles (single source of truth for ALL forms/modals) ────────
 export const FORM_STYLES = {
-  label: 'block text-[12px] font-medium text-secondary mb-1',
-  input: 'w-full h-9 px-3 text-[13px] bg-surface-secondary border border-theme rounded-lg text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-colors',
-  textarea: 'w-full px-3 py-2 text-[13px] bg-surface-secondary border border-theme rounded-lg text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-colors resize-none',
-  select: 'w-full h-9 px-3 text-[13px] bg-surface-secondary border border-theme rounded-lg text-primary focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-colors',
-  btnPrimary: 'inline-flex items-center justify-center gap-1.5 h-9 px-4 text-[13px] font-medium rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed',
-  btnSecondary: 'inline-flex items-center justify-center gap-1.5 h-9 px-4 text-[13px] font-medium rounded-lg bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary transition-colors cursor-pointer',
-  btnDanger: 'inline-flex items-center justify-center gap-1.5 h-9 px-4 text-[13px] font-medium rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed',
+  label: 'block text-xs font-semibold text-secondary mb-1.5 tracking-wide uppercase',
+  input: 'w-full h-10 px-3 text-sm bg-surface-secondary border border-theme rounded-lg text-primary placeholder:text-tertiary focus-ring transition-colors',
+  textarea: 'w-full px-3 py-2.5 text-sm bg-surface-secondary border border-theme rounded-lg text-primary placeholder:text-tertiary focus-ring transition-colors resize-none leading-relaxed',
+  select: 'w-full h-10 px-3 text-sm bg-surface-secondary border border-theme rounded-lg text-primary focus-ring transition-colors',
+  btnPrimary: 'inline-flex items-center justify-center gap-2 h-10 px-5 text-sm font-semibold rounded-lg bg-accent text-[rgb(var(--color-text-inverse))] hover:opacity-90 transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-ring',
+  btnSecondary: 'inline-flex items-center justify-center gap-2 h-10 px-5 text-sm font-medium rounded-lg bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary transition-all duration-150 cursor-pointer focus-ring',
+  btnDanger: 'inline-flex items-center justify-center gap-2 h-10 px-5 text-sm font-semibold rounded-lg bg-error-muted text-error hover:opacity-80 transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-ring',
 } as const;
 
 // ─── ModalShell ─────────────────────────────────────────────────
@@ -29,7 +29,7 @@ export function ModalShell({ open, onClose, title, icon, children, maxWidth = 'm
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[60] flex items-center justify-center p-3"
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -40,35 +40,40 @@ export function ModalShell({ open, onClose, title, icon, children, maxWidth = 'm
 
           {/* Content */}
           <motion.div
-            className={`relative modal-content rounded-xl w-full ${maxWidth} shadow-2xl border border-theme flex flex-col max-h-[90vh] min-h-0`}
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            className={`relative modal-content rounded-2xl w-full ${maxWidth} shadow-theme-xl border border-theme flex flex-col max-h-[90vh] min-h-0`}
+            initial={{ scale: 0.96, opacity: 0, y: 8 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.96, opacity: 0, y: 8 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-theme shrink-0">
-              <div className="flex items-center gap-2.5">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-theme shrink-0">
+              <div className="flex items-center gap-3">
                 {icon && (
-                  <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                  <div className="w-9 h-9 rounded-xl bg-accent-muted flex items-center justify-center text-accent">
                     {icon}
                   </div>
                 )}
-                <h2 className="text-[14px] font-semibold text-primary">{title}</h2>
+                <h2 className="text-base font-semibold text-primary">{title}</h2>
               </div>
-              <button type="button" onClick={onClose} className="p-1.5 rounded-lg text-tertiary hover:text-primary hover:bg-surface-secondary transition-colors cursor-pointer">
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-1.5 rounded-lg text-tertiary hover:text-primary hover:bg-surface-secondary transition-colors cursor-pointer focus-ring"
+                aria-label="Close"
+              >
                 <BsX className="w-5 h-5" />
               </button>
             </div>
 
             {/* Body */}
-            <div className="flex-1 overflow-y-auto px-4 py-4 min-h-0">
+            <div className="flex-1 overflow-y-auto px-5 py-5 min-h-0">
               {children}
             </div>
 
             {/* Footer */}
             {footer && (
-              <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-theme shrink-0">
+              <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-theme shrink-0 bg-surface-secondary/50">
                 {footer}
               </div>
             )}
@@ -87,12 +92,12 @@ export function FormField({ label, required, error, children }: {
   children: ReactNode;
 }) {
   return (
-    <div>
+    <div className="space-y-1.5">
       <label className={FORM_STYLES.label}>
-        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+        {label}{required && <span className="text-error ml-0.5">*</span>}
       </label>
       {children}
-      {error && <p className="text-[11px] text-red-500 mt-1">{error}</p>}
+      {error && <p className="text-xs text-error mt-1">{error}</p>}
     </div>
   );
 }
@@ -110,7 +115,15 @@ export function FormActions({ onCancel, submitLabel = 'Save', loading, disabled,
     <>
       <button type="button" onClick={onCancel} className={FORM_STYLES.btnSecondary}>Cancel</button>
       <button type="submit" form={formId} disabled={loading || disabled} className={danger ? FORM_STYLES.btnDanger : FORM_STYLES.btnPrimary}>
-        {loading ? 'Saving...' : submitLabel}
+        {loading ? (
+          <span className="flex items-center gap-2">
+            <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            Saving...
+          </span>
+        ) : submitLabel}
       </button>
     </>
   );

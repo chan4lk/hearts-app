@@ -32,9 +32,9 @@ const INSIGHT_BG: Record<string, string> = {
 };
 
 const PRIORITY_STYLE: Record<string, string> = {
-  high: 'bg-red-500/10 text-red-600 dark:text-red-400',
-  medium: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
-  low: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+  high: 'bg-red-500/10 text-error',
+  medium: 'bg-amber-500/10 text-warning',
+  low: 'bg-blue-500/10 text-info',
 };
 
 export default function AIPerformanceInsights({ userId, autoLoad = false, className = '' }: AIPerformanceInsightsProps) {
@@ -74,16 +74,16 @@ export default function AIPerformanceInsights({ userId, autoLoad = false, classN
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
           {[
             { label: 'Total Goals', value: metrics.totalGoals, color: 'text-primary' },
-            { label: 'Completion Rate', value: `${metrics.completionRate}%`, color: 'text-emerald-600 dark:text-emerald-400' },
-            { label: 'Avg Rating', value: `${metrics.averageRating}/5`, color: 'text-indigo-600 dark:text-indigo-400' },
+            { label: 'Completion Rate', value: `${metrics.completionRate}%`, color: 'text-success' },
+            { label: 'Avg Rating', value: `${metrics.averageRating}/5`, color: 'text-accent' },
           ].map((m, i) => (
             <div key={i} className="bg-surface-secondary rounded-lg px-4 py-3">
-              <p className="text-[11px] text-secondary uppercase tracking-wider mb-1">{m.label}</p>
+              <p className="text-2xs text-secondary uppercase tracking-wider mb-1">{m.label}</p>
               <p className={`text-xl font-bold ${m.color}`}>{m.value}</p>
             </div>
           ))}
           <div className="bg-surface-secondary rounded-lg px-4 py-3">
-            <p className="text-[11px] text-secondary uppercase tracking-wider mb-1">Trend</p>
+            <p className="text-2xs text-secondary uppercase tracking-wider mb-1">Trend</p>
             <div className="flex items-center gap-1.5">
               {metrics.recentTrend === 'improving' ? <BsArrowUp className="w-4 h-4 text-emerald-500" /> :
                metrics.recentTrend === 'declining' ? <BsArrowDown className="w-4 h-4 text-red-500" /> :
@@ -97,7 +97,7 @@ export default function AIPerformanceInsights({ userId, autoLoad = false, classN
       {/* Error */}
       {error && (
         <div className="bg-red-50 dark:bg-red-500/5 rounded-lg px-4 py-3 mb-5">
-          <p className="text-[13px] text-red-600 dark:text-red-400">{error}</p>
+          <p className="text-xs text-error">{error}</p>
         </div>
       )}
 
@@ -117,15 +117,15 @@ export default function AIPerformanceInsights({ userId, autoLoad = false, classN
                 <div className="mt-0.5 shrink-0">{INSIGHT_ICON[insight.type] || INSIGHT_ICON.opportunity}</div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2 mb-1.5">
-                    <h4 className="text-[13px] font-semibold text-primary">{insight.title}</h4>
-                    <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${PRIORITY_STYLE[insight.priority] || PRIORITY_STYLE.medium}`}>
+                    <h4 className="text-xs font-semibold text-primary">{insight.title}</h4>
+                    <span className={`shrink-0 px-2 py-0.5 rounded-full text-2xs font-semibold uppercase ${PRIORITY_STYLE[insight.priority] || PRIORITY_STYLE.medium}`}>
                       {insight.priority}
                     </span>
                   </div>
-                  <p className="text-[12px] text-secondary mb-2.5 leading-relaxed">{insight.description}</p>
+                  <p className="text-xs text-secondary mb-2.5 leading-relaxed">{insight.description}</p>
                   <div className="bg-surface-secondary rounded-lg px-3 py-2.5">
-                    <p className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Recommendation</p>
-                    <p className="text-[12px] text-primary leading-relaxed">{insight.recommendation}</p>
+                    <p className="text-2xs font-semibold text-secondary uppercase tracking-wider mb-1">Recommendation</p>
+                    <p className="text-xs text-primary leading-relaxed">{insight.recommendation}</p>
                   </div>
                 </div>
               </div>
@@ -140,7 +140,7 @@ export default function AIPerformanceInsights({ userId, autoLoad = false, classN
           <div className="w-12 h-12 rounded-xl bg-surface-secondary flex items-center justify-center mx-auto mb-3">
             <BsLightbulb className="w-5 h-5 text-secondary" />
           </div>
-          <p className="text-[13px] text-secondary">No insights available yet</p>
+          <p className="text-xs text-secondary">No insights available yet</p>
         </div>
       )}
     </div>

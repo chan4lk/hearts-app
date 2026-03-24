@@ -8,38 +8,23 @@ import { ReactNode } from 'react';
 export const STATUS_CONFIG = {
   DRAFT: {
     label: 'Draft',
-    borderColor: 'border-gray-500/30',
-    bgColor: 'bg-gray-500/10',
     textColor: 'text-secondary',
-    gradient: 'from-gray-500 to-slate-500'
   },
   APPROVED: {
     label: 'Approved',
-    borderColor: 'border-emerald-500/30',
-    bgColor: 'bg-emerald-500/10',
     textColor: 'text-emerald-300',
-    gradient: 'from-emerald-500 to-teal-500'
   },
   REJECTED: {
     label: 'Rejected',
-    borderColor: 'border-rose-500/30',
-    bgColor: 'bg-rose-500/10',
     textColor: 'text-rose-300',
-    gradient: 'from-rose-500 to-red-500'
   },
   COMPLETED: {
     label: 'Completed',
-    borderColor: 'border-green-500/30',
-    bgColor: 'bg-green-500/10',
     textColor: 'text-green-300',
-    gradient: 'from-green-500 to-emerald-500'
   },
   PENDING: {
     label: 'Pending',
-    borderColor: 'border-amber-500/30',
-    bgColor: 'bg-amber-500/10',
     textColor: 'text-amber-300',
-    gradient: 'from-amber-500 to-orange-500'
   }
 };
 
@@ -47,31 +32,19 @@ export const STATUS_CONFIG = {
 export const PRIORITY_CONFIG = {
   LOW: {
     label: 'Low',
-    borderColor: 'border-gray-500/30',
-    bgColor: 'bg-gray-500/10',
     textColor: 'text-secondary',
-    gradient: 'from-gray-400 to-gray-500'
   },
   MEDIUM: {
     label: 'Medium',
-    borderColor: 'border-yellow-500/30',
-    bgColor: 'bg-yellow-500/10',
     textColor: 'text-yellow-300',
-    gradient: 'from-yellow-400 to-orange-500'
   },
   HIGH: {
     label: 'High',
-    borderColor: 'border-orange-500/30',
-    bgColor: 'bg-orange-500/10',
     textColor: 'text-orange-300',
-    gradient: 'from-orange-400 to-red-500'
   },
   URGENT: {
     label: 'Urgent',
-    borderColor: 'border-red-500/30',
-    bgColor: 'bg-red-500/10',
     textColor: 'text-red-300',
-    gradient: 'from-red-400 to-red-600'
   }
 };
 

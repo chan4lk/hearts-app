@@ -40,7 +40,7 @@ export default function AdminGoalsTable({
     const config = getStatusConfig(status);
     const Icon = config.icon;
     return (
-      <Badge className={`${config.bg} ${config.text} border-0 text-[10px] px-1.5 py-0.5 flex items-center gap-1 font-medium whitespace-nowrap`}>
+      <Badge className={`${config.bg} ${config.text} border-0 text-2xs px-1.5 py-0.5 flex items-center gap-1 font-medium whitespace-nowrap`}>
         <Icon className="w-3 h-3" />
         <span>{status.replace('_', ' ')}</span>
       </Badge>
@@ -52,7 +52,7 @@ export default function AdminGoalsTable({
     const config = getPriorityConfig(priority);
     
     return (
-      <Badge className={`${config.bg} ${config.text} border-0 text-[10px] px-1.5 py-0.5 font-medium whitespace-nowrap`}>
+      <Badge className={`${config.bg} ${config.text} border-0 text-2xs px-1.5 py-0.5 font-medium whitespace-nowrap`}>
         {priority || 'MEDIUM'}
       </Badge>
     );
@@ -240,8 +240,8 @@ export default function AdminGoalsTable({
                         onClick={() => onGoalClick?.(goal)}
                       >
                         <div className="max-w-xs">
-                          <div className="text-[13px] font-medium text-primary truncate">{goal.title}</div>
-                          <div className="text-[12px] text-secondary truncate mt-0.5">{goal.description}</div>
+                          <div className="text-xs font-medium text-primary truncate">{goal.title}</div>
+                          <div className="text-xs text-secondary truncate mt-0.5">{goal.description}</div>
                         </div>
                       </td>
                       <td className="py-2 px-3">
@@ -251,14 +251,14 @@ export default function AdminGoalsTable({
                         {getPriorityBadge(goal.priority || 'MEDIUM')}
                       </td>
                       <td
-                        className="py-2 px-3 text-[13px] text-primary whitespace-nowrap cursor-pointer"
+                        className="py-2 px-3 text-xs text-primary whitespace-nowrap cursor-pointer"
                         onClick={() => onGoalClick?.(goal)}
                       >
                         {new Date(goal.dueDate).toLocaleDateString()}
                       </td>
                       {showEmployee && (
                         <td
-                          className="py-2 px-3 text-[13px] text-primary truncate cursor-pointer"
+                          className="py-2 px-3 text-xs text-primary truncate cursor-pointer"
                           onClick={() => onGoalClick?.(goal)}
                         >
                           {goal.employee?.name || <span className="text-secondary">Unassigned</span>}
@@ -266,7 +266,7 @@ export default function AdminGoalsTable({
                       )}
                       {showManager && (
                         <td
-                          className="py-2 px-3 text-[13px] text-primary truncate cursor-pointer"
+                          className="py-2 px-3 text-xs text-primary truncate cursor-pointer"
                           onClick={() => onGoalClick?.(goal)}
                         >
                           {(() => {
@@ -277,19 +277,19 @@ export default function AdminGoalsTable({
                                goal.managerId === '');
 
                             if (isSelfCreated) {
-                              return <span className="text-blue-600 dark:text-blue-400">Self-Created</span>;
+                              return <span className="text-info">Self-Created</span>;
                             }
                             return goal.manager?.name || <span className="text-secondary">Unassigned</span>;
                           })()}
                         </td>
                       )}
                       <td
-                        className="py-2 px-3 text-[13px] text-primary whitespace-nowrap cursor-pointer"
+                        className="py-2 px-3 text-xs text-primary whitespace-nowrap cursor-pointer"
                         onClick={() => onGoalClick?.(goal)}
                       >
                         {goal.category}
                       </td>
-                      <td className="py-2 px-3 text-[13px]" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-2 px-3 text-xs" onClick={(e) => e.stopPropagation()}>
                         {onDelete && (
                           <button
                             onClick={() => onDelete(goal)}

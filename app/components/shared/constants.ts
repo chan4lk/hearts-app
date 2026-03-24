@@ -151,7 +151,7 @@ export const GOAL_TEMPLATES = [
     title: 'Customer Satisfaction (CSAT)',
     category: 'KPI',
     icon: 'BsStars',
-    iconColor: 'text-yellow-400',
+    iconColor: 'text-warning',
     description: 'Maintain CSAT score above [Target %] and reduce customer churn to [Target %]',
     subtitle: 'Customer Success Metrics',
     bgGradient: 'from-yellow-500/10 to-transparent',
@@ -273,7 +273,7 @@ export const getStatusBadge = (status: string) => {
 export const RATING_COLORS = {
   1: 'bg-red-500/10 text-red-400',
   2: 'bg-orange-500/10 text-orange-400',
-  3: 'bg-yellow-500/10 text-yellow-400',
+  3: 'bg-yellow-500/10 text-warning',
   4: 'bg-blue-500/10 text-blue-400',
   5: 'bg-green-500/10 text-green-400'
 } as const;
@@ -306,9 +306,9 @@ export const STATUS_COLORS = {
   DRAFT: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
   PENDING: 'bg-gray-500/10 text-gray-600 dark:text-gray-400',
   COMPLETED: 'bg-green-500/10 text-green-600 dark:text-green-400',
-  APPROVED: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
-  REJECTED: 'bg-red-500/10 text-red-600 dark:text-red-400',
-  MODIFIED: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400'
+  APPROVED: 'bg-blue-500/10 text-info',
+  REJECTED: 'bg-red-500/10 text-error',
+  MODIFIED: 'bg-yellow-500/10 text-yellow-600 dark:text-warning'
 } as const;
 
 /** Shared status badge styles for GoalsTable and AdminGoalsTable. Use for consistent goal status UI. */
@@ -396,7 +396,7 @@ export const PRIORITIES = [
     value: 'MEDIUM',
     label: 'Medium',
     icon: BsDash,
-    iconColor: 'text-yellow-400',
+    iconColor: 'text-warning',
     color: 'from-yellow-400 to-orange-500',
     bgColor: 'bg-yellow-500/10'
   },
@@ -422,26 +422,26 @@ export const PRIORITIES = [
 export const THEME_COLORS = {
   primary: {
     gradient: 'from-indigo-600/90 via-purple-600/90 to-pink-600/90',
-    text: 'text-indigo-600 dark:text-indigo-400',
+    text: 'text-accent',
     bg: 'bg-indigo-500/10',
     border: 'border-indigo-500/50',
     hover: 'hover:bg-indigo-500/20',
   },
   secondary: {
     gradient: 'from-blue-500/10 to-blue-600/10',
-    text: 'text-blue-600 dark:text-blue-400',
+    text: 'text-info',
     bg: 'bg-blue-500/10',
     border: 'border-blue-200/20 dark:border-blue-600/20',
   },
   success: {
     gradient: 'from-emerald-500/10 to-emerald-600/10',
-    text: 'text-emerald-600 dark:text-emerald-400',
+    text: 'text-success',
     bg: 'bg-emerald-500/10',
     border: 'border-emerald-200/20 dark:border-emerald-600/20',
   },
   warning: {
     gradient: 'from-amber-500/10 to-amber-600/10',
-    text: 'text-amber-600 dark:text-amber-400',
+    text: 'text-warning',
     bg: 'bg-amber-500/10',
     border: 'border-amber-200/20 dark:border-amber-600/20',
   },

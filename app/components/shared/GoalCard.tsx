@@ -13,29 +13,32 @@ interface GoalCardProps {
   showEmployee?: boolean;
 }
 
-type StatusConfig = { bg: string; text: string; icon: IconType; border?: string; label?: string };
-type StatusConfigs = { [key in 'APPROVED' | 'REJECTED' | 'COMPLETED' | 'MODIFIED' | 'PENDING' | 'DRAFT' | 'DELETED']: StatusConfig };
+type StatusConfig = { bg: string; text: string; icon: IconType };
 
-const STATUS_CONFIGS: StatusConfigs = {
-  APPROVED: { bg: 'bg-emerald-50 dark:bg-emerald-500/10', text: 'text-emerald-700 dark:text-emerald-400', icon: BsCheckCircle, border: 'border-emerald-200 dark:border-emerald-500/20' },
-  REJECTED: { bg: 'bg-red-50 dark:bg-red-500/10', text: 'text-red-700 dark:text-red-400', icon: BsXCircle, border: 'border-red-200 dark:border-red-500/20' },
-  COMPLETED: { bg: 'bg-blue-50 dark:bg-blue-500/10', text: 'text-blue-700 dark:text-blue-400', icon: BsCheckCircle, border: 'border-blue-200 dark:border-blue-500/20' },
-  MODIFIED: { bg: 'bg-amber-50 dark:bg-amber-500/10', text: 'text-amber-700 dark:text-amber-400', icon: BsClock, border: 'border-amber-200 dark:border-amber-500/20' },
-  PENDING: { bg: 'bg-amber-50 dark:bg-amber-500/10', text: 'text-amber-700 dark:text-amber-400', icon: BsClock, border: 'border-amber-200 dark:border-amber-500/20' },
-  DRAFT: { bg: 'bg-surface-secondary dark:bg-gray-500/10', text: 'text-secondary dark:text-secondary', icon: BsPencil, border: 'border-gray-200 dark:border-gray-500/20' },
-  DELETED: { bg: 'bg-red-100 dark:bg-red-900/10', text: 'text-red-700 dark:text-red-400', icon: BsTrash, border: 'border-red-200 dark:border-red-900/20' },
+// Uses semantic CSS variables — no hardcoded colors
+const STATUS_CONFIGS: Record<string, StatusConfig> = {
+  APPROVED:    { bg: 'bg-success-muted',  text: 'text-success',  icon: BsCheckCircle },
+  REJECTED:    { bg: 'bg-error-muted',    text: 'text-error',    icon: BsXCircle },
+  COMPLETED:   { bg: 'bg-info-muted',     text: 'text-info',     icon: BsCheckCircle },
+  MODIFIED:    { bg: 'bg-warning-muted',   text: 'text-warning',  icon: BsClock },
+  PENDING:     { bg: 'bg-warning-muted',   text: 'text-warning',  icon: BsClock },
+  IN_PROGRESS: { bg: 'bg-info-muted',     text: 'text-info',     icon: BsPlayCircle },
+  ON_HOLD:     { bg: 'bg-warning-muted',   text: 'text-warning',  icon: BsPauseCircle },
+  BLOCKED:     { bg: 'bg-error-muted',    text: 'text-error',    icon: BsFlag },
+  DRAFT:       { bg: 'bg-surface-secondary', text: 'text-secondary', icon: BsPencil },
+  DELETED:     { bg: 'bg-error-muted',    text: 'text-error',    icon: BsTrash },
 };
 
 const PROGRESS_STATUS_CONFIG: Record<ProgressStatus, { label: string; color: string; icon: IconType }> = {
-  'NOT_STARTED': { label: 'Not Started', color: 'text-tertiary dark:text-secondary', icon: BsCircle },
-  'IN_PROGRESS': { label: 'In Progress', color: 'text-blue-600 dark:text-blue-400', icon: BsPlayCircle },
-  'ON_HOLD': { label: 'On Hold', color: 'text-amber-600 dark:text-amber-400', icon: BsPauseCircle },
-  'BLOCKED': { label: 'Blocked', color: 'text-red-600 dark:text-red-400', icon: BsFlag },
-  'COMPLETED': { label: 'Completed', color: 'text-green-600 dark:text-green-400', icon: BsCheckCircle },
+  'NOT_STARTED': { label: 'Not Started', color: 'text-tertiary', icon: BsCircle },
+  'IN_PROGRESS': { label: 'In Progress', color: 'text-info', icon: BsPlayCircle },
+  'ON_HOLD':     { label: 'On Hold',     color: 'text-warning', icon: BsPauseCircle },
+  'BLOCKED':     { label: 'Blocked',     color: 'text-error', icon: BsFlag },
+  'COMPLETED':   { label: 'Completed',   color: 'text-success', icon: BsCheckCircle },
 };
 
 export default function GoalCard({ goal, onClick, onEdit, onDelete, showActions = false, showEmployee = false }: GoalCardProps) {
-  const statusConfig = STATUS_CONFIGS[goal.status as keyof StatusConfigs] || STATUS_CONFIGS.PENDING;
+  const statusConfig = STATUS_CONFIGS[goal.status] || STATUS_CONFIGS.PENDING;
   const categoryConfig = CATEGORIES.find(c => c.value === goal.category) || CATEGORIES[0];
   const Icon = categoryConfig.icon;
 
@@ -51,7 +54,7 @@ export default function GoalCard({ goal, onClick, onEdit, onDelete, showActions 
   return (
     <button
       onClick={onClick}
-      className="group w-full text-left p-4 rounded-xl bg-surface-elevated border border-theme hover:border-[rgba(var(--color-accent),0.2)] hover:shadow-theme-sm transition-all duration-200 cursor-pointer h-[200px] flex flex-col"
+      className="group w-full text-left p-4 rounded-xl bg-surface-elevated border border-theme hover:border-[rgba(var(--color-accent),0.3)] hover:shadow-theme-md transition-all duration-200 cursor-pointer h-[200px] flex flex-col focus-ring"
     >
       {/* Header */}
       <div className="flex items-start gap-3 mb-2">
@@ -59,25 +62,25 @@ export default function GoalCard({ goal, onClick, onEdit, onDelete, showActions 
           <Icon className="w-4 h-4" />
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="text-[14px] font-semibold text-primary truncate leading-tight">{goal.title}</h3>
+          <h3 className="text-sm font-semibold text-primary truncate leading-tight">{goal.title}</h3>
           {showEmployee && (
-            <div className="flex items-center gap-1.5 text-[11px] text-secondary mt-0.5">
+            <div className="flex items-center gap-1.5 text-xs text-secondary mt-0.5">
               <BsPerson className="w-3 h-3 flex-shrink-0" />
               <span className="truncate">{getEmployeeName()}</span>
             </div>
           )}
         </div>
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium ${statusConfig.bg} ${statusConfig.text} flex-shrink-0`}>
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-2xs font-medium ${statusConfig.bg} ${statusConfig.text} flex-shrink-0`}>
           <statusConfig.icon className="w-3 h-3" />
-          {goal.status.charAt(0) + goal.status.slice(1).toLowerCase()}
+          {goal.status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).replace(/\B\w+/g, w => w.toLowerCase())}
         </span>
       </div>
 
       {/* Description */}
-      <p className="text-[13px] text-secondary leading-relaxed line-clamp-2 mb-auto">{goal.description}</p>
+      <p className="text-xs text-secondary leading-relaxed line-clamp-2 mb-auto">{goal.description}</p>
 
       {/* Progress */}
-      {['DRAFT', 'PENDING', 'APPROVED'].includes(goal.status) && (
+      {['APPROVED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED'].includes(goal.status) && (
         <div className="mt-2 mb-2">
           <div className="flex items-center justify-between mb-1">
             {(() => {
@@ -85,13 +88,13 @@ export default function GoalCard({ goal, onClick, onEdit, onDelete, showActions 
               const pConfig = PROGRESS_STATUS_CONFIG[progressStatusKey];
               const StatusIcon = pConfig.icon;
               return (
-                <div className={`flex items-center gap-1 text-[11px] ${pConfig.color}`}>
+                <div className={`flex items-center gap-1 text-2xs ${pConfig.color}`}>
                   <StatusIcon className="w-3 h-3" />
                   <span>{pConfig.label}</span>
                 </div>
               );
             })()}
-            <span className="text-[11px] font-medium text-secondary">{goal.progress || 0}%</span>
+            <span className="text-2xs font-medium text-secondary tabular-nums">{goal.progress || 0}%</span>
           </div>
           <Progress value={goal.progress || 0} className="h-1" />
         </div>
@@ -99,7 +102,7 @@ export default function GoalCard({ goal, onClick, onEdit, onDelete, showActions 
 
       {/* Footer */}
       <div className="flex items-center justify-between pt-2 border-t border-theme mt-2">
-        <div className="flex items-center gap-3 text-[11px] text-tertiary">
+        <div className="flex items-center gap-3 text-2xs text-tertiary">
           <span className="flex items-center gap-1">
             <BsCalendar className="w-3 h-3" />
             {formatDate(goal.dueDate)}
@@ -114,8 +117,9 @@ export default function GoalCard({ goal, onClick, onEdit, onDelete, showActions 
             {onEdit && (
               <button
                 onClick={(e) => { e.stopPropagation(); onEdit(goal); }}
-                className="p-1.5 text-secondary hover:text-indigo-600 dark:hover:text-indigo-400 rounded-md hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors cursor-pointer"
+                className="p-1.5 text-secondary hover:text-accent rounded-md hover:bg-accent-muted transition-colors cursor-pointer focus-ring"
                 title="Edit"
+                aria-label="Edit goal"
               >
                 <BsGear className="w-3.5 h-3.5" />
               </button>
@@ -123,8 +127,9 @@ export default function GoalCard({ goal, onClick, onEdit, onDelete, showActions 
             {onDelete && (
               <button
                 onClick={(e) => { e.stopPropagation(); onDelete(goal); }}
-                className="p-1.5 text-secondary hover:text-red-600 dark:hover:text-red-400 rounded-md hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
+                className="p-1.5 text-secondary hover:text-error rounded-md hover:bg-error-muted transition-colors cursor-pointer focus-ring"
                 title="Delete"
+                aria-label="Delete goal"
               >
                 <BsXCircle className="w-3.5 h-3.5" />
               </button>

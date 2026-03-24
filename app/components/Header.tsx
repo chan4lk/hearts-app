@@ -46,7 +46,7 @@ const Header = ({ userName }: { userName?: string }) => {
               <span className="text-base sm:text-lg font-bold text-primary tracking-tight leading-tight">
                 AspireHub
               </span>
-              <span className="text-[10px] font-medium text-indigo-600 dark:text-indigo-400 tracking-wide leading-tight">
+              <span className="text-2xs font-medium text-accent tracking-wide leading-tight">
                 Bistec Global
               </span>
             </div>
@@ -58,7 +58,7 @@ const Header = ({ userName }: { userName?: string }) => {
               <a
                 key={item}
                 href={`#${item.toLowerCase()}`}
-                className="px-3.5 py-2 text-[13px] font-medium text-secondary hover:text-primary transition-colors duration-200 rounded-lg hover:bg-surface-secondary"
+                className="px-3.5 py-2 text-xs font-medium text-secondary hover:text-primary transition-colors duration-200 rounded-lg hover:bg-surface-secondary"
               >
                 {item}
               </a>
@@ -70,7 +70,7 @@ const Header = ({ userName }: { userName?: string }) => {
             <ThemeToggle />
             <Link
               href="/login"
-              className="hidden sm:inline-flex items-center gap-2 px-5 py-2 text-[13px] font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 rounded-lg shadow-sm shadow-indigo-500/20 hover:shadow-md hover:shadow-indigo-500/25 transition-all duration-200"
+              className="hidden sm:inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 rounded-lg shadow-sm shadow-indigo-500/20 hover:shadow-md hover:shadow-indigo-500/25 transition-all duration-200"
             >
               Sign in
             </Link>

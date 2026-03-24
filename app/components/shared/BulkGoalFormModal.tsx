@@ -391,7 +391,7 @@ export function BulkGoalFormModal({
                     {/* Title & Employee Row */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-[11px] font-medium text-secondary mb-1">Goal Title *</label>
+                        <label className="block text-2xs font-medium text-secondary mb-1">Goal Title *</label>
                         <Input
                           value={goal.title}
                           onChange={(e) => updateGoal(goal.id, 'title', e.target.value)}
@@ -399,11 +399,11 @@ export function BulkGoalFormModal({
                           className="bg-black/20 border-theme text-primary text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20"
                         />
                         {errors[goal.id]?.title && (
-                          <div className="text-red-400 text-[10px] mt-1 font-semibold animate-pulse">{errors[goal.id].title}</div>
+                          <div className="text-red-400 text-2xs mt-1 font-semibold animate-pulse">{errors[goal.id].title}</div>
                         )}
                       </div>
                       <div>
-                        <label className="block text-[11px] font-medium text-secondary mb-1">Employee *</label>
+                        <label className="block text-2xs font-medium text-secondary mb-1">Employee *</label>
                         <Select
                           value={goal.employeeId}
                           onValueChange={(v) => updateGoal(goal.id, 'employeeId', v)}
@@ -421,7 +421,7 @@ export function BulkGoalFormModal({
                           </SelectContent>
                         </Select>
                         {errors[goal.id]?.employeeId && (
-                          <div className="text-red-400 text-[10px] mt-1 font-semibold animate-pulse">{errors[goal.id].employeeId}</div>
+                          <div className="text-red-400 text-2xs mt-1 font-semibold animate-pulse">{errors[goal.id].employeeId}</div>
                         )}
                       </div>
                     </div>
@@ -429,7 +429,7 @@ export function BulkGoalFormModal({
                     {/* Category, Department, Priority - dark dropdown for clear view */}
                     <div className="grid grid-cols-3 gap-2">
                       <div>
-                        <label className="block text-[11px] font-medium text-secondary mb-1">Category</label>
+                        <label className="block text-2xs font-medium text-secondary mb-1">Category</label>
                         <Select
                           value={goal.category}
                           onValueChange={(v) => updateGoal(goal.id, 'category', v)}
@@ -448,7 +448,7 @@ export function BulkGoalFormModal({
                         </Select>
                       </div>
                       <div>
-                        <label className="block text-[11px] font-medium text-secondary mb-1">Department</label>
+                        <label className="block text-2xs font-medium text-secondary mb-1">Department</label>
                         <Select
                           value={goal.department}
                           onValueChange={(v) => updateGoal(goal.id, 'department', v)}
@@ -467,7 +467,7 @@ export function BulkGoalFormModal({
                         </Select>
                       </div>
                       <div>
-                        <label className="block text-[11px] font-medium text-secondary mb-1">Priority</label>
+                        <label className="block text-2xs font-medium text-secondary mb-1">Priority</label>
                         <Select
                           value={goal.priority}
                           onValueChange={(v) => updateGoal(goal.id, 'priority', v)}
@@ -490,7 +490,7 @@ export function BulkGoalFormModal({
                     {/* Due Date & Description Row */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <div>
-                        <label className="block text-[11px] font-medium text-secondary mb-1">Due Date</label>
+                        <label className="block text-2xs font-medium text-secondary mb-1">Due Date</label>
                         <Input
                           type="date"
                           value={goal.dueDate}
@@ -499,7 +499,7 @@ export function BulkGoalFormModal({
                         />
                       </div>
                       <div className="sm:col-span-2">
-                        <label className="block text-[11px] font-medium text-secondary mb-1">Description</label>
+                        <label className="block text-2xs font-medium text-secondary mb-1">Description</label>
                         <Textarea
                           value={goal.description}
                           onChange={(e) => updateGoal(goal.id, 'description', e.target.value)}

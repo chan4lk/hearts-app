@@ -36,7 +36,12 @@ export function DeleteConfirmationModal({
         </>
       }
     >
-      <p className="text-secondary text-[13px] leading-relaxed">{message}</p>
+      <div className="flex gap-3">
+        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-error-muted flex items-center justify-center">
+          <BsExclamationTriangle className="w-5 h-5 text-error" />
+        </div>
+        <p className="text-secondary text-sm leading-relaxed">{message}</p>
+      </div>
     </ModalShell>
   );
 }

@@ -449,17 +449,11 @@ export default function EmployeeDashboard() {
                   title: 'Total Goals',
                   value: goalStats.totalGoals,
                   icon: <BsClipboardData className="w-4 h-4" />,
-                  gradient: 'from-indigo-500 to-purple-500',
-                  bgColor: 'bg-indigo-500/10',
-                  borderColor: 'border-indigo-500/30'
                 },
                 {
                   title: 'Draft',
                   value: goalStats.draftGoals,
                   icon: <BsPencil className="w-4 h-4" />,
-                  gradient: 'from-gray-500 to-slate-500',
-                  bgColor: 'bg-gray-500/10',
-                  borderColor: 'border-gray-500/30',
                   onClick: () => {
                     setSelectedStatus('DRAFT');
                     setPage(1);
@@ -469,9 +463,6 @@ export default function EmployeeDashboard() {
                   title: 'Approved',
                   value: goalStats.approved,
                   icon: <BsCheckCircle className="w-4 h-4" />,
-                  gradient: 'from-emerald-500 to-teal-500',
-                  bgColor: 'bg-emerald-500/10',
-                  borderColor: 'border-emerald-500/30',
                   onClick: () => {
                     setSelectedStatus('APPROVED');
                     setPage(1);
@@ -481,9 +472,6 @@ export default function EmployeeDashboard() {
                   title: 'Rejected',
                   value: goalStats.rejected,
                   icon: <BsXCircle className="w-4 h-4" />,
-                  gradient: 'from-rose-500 to-red-500',
-                  bgColor: 'bg-rose-500/10',
-                  borderColor: 'border-rose-500/30',
                   onClick: () => {
                     setSelectedStatus('REJECTED');
                     setPage(1);
@@ -493,9 +481,6 @@ export default function EmployeeDashboard() {
                   title: 'Completed',
                   value: goalStats.completed,
                   icon: <BsCheckCircle className="w-4 h-4" />,
-                  gradient: 'from-green-500 to-emerald-500',
-                  bgColor: 'bg-green-500/10',
-                  borderColor: 'border-green-500/30',
                   onClick: () => {
                     setSelectedStatus('COMPLETED');
                     setPage(1);
@@ -807,7 +792,7 @@ export default function EmployeeDashboard() {
                       </div>
                       <div>
                         <h3 className="text-lg font-bold text-white">Manager Ratings</h3>
-                        <p className="text-[11px] text-amber-200/80">Feedback on your performance</p>
+                        <p className="text-2xs text-amber-200/80">Feedback on your performance</p>
                       </div>
                     </div>
                     <button
@@ -843,7 +828,7 @@ export default function EmployeeDashboard() {
                             const ratingColors = {
                               1: { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/20', icon: 'from-red-500 to-red-600' },
                               2: { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/20', icon: 'from-orange-500 to-orange-600' },
-                              3: { bg: 'bg-yellow-500/10', text: 'text-yellow-400', border: 'border-yellow-500/20', icon: 'from-yellow-500 to-yellow-600' },
+                              3: { bg: 'bg-yellow-500/10', text: 'text-warning', border: 'border-yellow-500/20', icon: 'from-yellow-500 to-yellow-600' },
                               4: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20', icon: 'from-blue-500 to-blue-600' },
                               5: { bg: 'bg-green-500/10', text: 'text-green-400', border: 'border-green-500/20', icon: 'from-green-500 to-green-600' }
                             };

@@ -33,34 +33,33 @@ interface NavItem {
 
 type Role = 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
 
-// ─── Sidebar Nav Item ─────────────────────────────────────────────
+// ─── Nav Link ────────────────────────────────────────────────────
 function NavLink({ item, isActive, onClick }: { item: NavItem; isActive: boolean; onClick?: () => void }) {
   return (
     <Link
       href={item.href}
       onClick={onClick}
-      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-200 cursor-pointer ${
+      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 focus-ring ${
         isActive
-          ? 'bg-indigo-600 dark:bg-indigo-600 text-white shadow-sm shadow-indigo-500/20'
+          ? 'bg-accent-muted text-accent border border-[rgba(var(--color-accent),0.15)]'
           : 'text-secondary hover:text-primary hover:bg-surface-secondary'
       }`}
     >
-      <item.icon className={`text-base flex-shrink-0 ${isActive ? 'text-white' : ''}`} />
+      <item.icon className="text-base flex-shrink-0" />
       <span>{item.label}</span>
     </Link>
   );
 }
 
-// ─── User Avatar ──────────────────────────────────────────────────
-function UserAvatar({ size = 'sm' }: { size?: 'sm' | 'md' }) {
-  const s = size === 'sm' ? 'w-8 h-8' : 'w-9 h-9';
+// ─── User Avatar ─────────────────────────────────────────────────
+function UserAvatar() {
   return (
-    <div className={`${s} rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center relative`}>
-      <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center relative">
+      <svg className="w-4 h-4 text-[rgb(var(--color-text-inverse))]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" />
         <path d="M6 21V19C6 17.9391 6.42143 16.9217 7.17157 16.1716C7.92172 15.4214 8.93913 15 10 15H14C15.0609 15 16.0783 15.4214 16.8284 16.1716C17.5786 16.9217 18 17.9391 18 19V21" />
       </svg>
-      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[rgb(var(--color-bg-primary))]" />
+      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[rgb(var(--color-success))] ring-2 ring-[rgb(var(--color-bg-primary))]" />
     </div>
   );
 }
@@ -150,12 +149,29 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
   const handleSignOut = async () => {
     try {
       await signOut({ callbackUrl: '/login', redirect: true });
-    } catch {
+    } catch { // handled silently
       router.push('/login');
     }
   };
 
-  // ─── Sidebar content (shared between mobile & desktop) ──────────
+  // Helper for dashboard switch links
+  const dashLink = (href: string, icon: IconType, label: string) => {
+    const Icon = icon;
+    const active = pathname.startsWith(href.split('/').slice(0, 4).join('/'));
+    return (
+      <Link
+        href={href}
+        onClick={() => setIsUserMenuOpen(false)}
+        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors focus-ring ${
+          active ? 'bg-accent-muted text-accent' : 'text-secondary hover:text-primary hover:bg-surface-secondary'
+        }`}
+      >
+        <Icon className="text-sm" /> {label}
+      </Link>
+    );
+  };
+
+  // ─── Sidebar content ──────────────────────────────────────────
   const SidebarContent = ({ onNavClick }: { onNavClick?: () => void }) => (
     <>
       {/* Logo */}
@@ -164,16 +180,16 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
           <Image src="/logo.png" alt="Bistec Global" width={100} height={36} className="h-9 w-auto object-contain" />
           <div className="flex flex-col">
             <span className="text-sm font-bold text-primary leading-tight">AspireHub</span>
-            <span className="text-[10px] font-medium text-indigo-600 dark:text-indigo-400 leading-tight">Bistec Global</span>
+            <span className="text-2xs font-medium text-accent leading-tight">Bistec Global</span>
           </div>
         </Link>
       </div>
 
       {/* Portal badge */}
       <div className="px-4 mb-4">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/15">
-          <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-          <span className="text-[11px] font-semibold text-indigo-700 dark:text-indigo-300 tracking-wide">{portalLabel} Portal</span>
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-accent-muted border border-[rgba(var(--color-accent),0.12)]">
+          <div className="w-1.5 h-1.5 rounded-full bg-accent" />
+          <span className="text-2xs font-semibold text-accent tracking-wide">{portalLabel} Portal</span>
         </div>
       </div>
 
@@ -188,7 +204,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       <div className="px-3 py-4 mt-auto border-t border-theme">
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg text-[13px] font-medium text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors duration-200 cursor-pointer"
+          className="flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm font-medium text-error hover:bg-error-muted transition-colors duration-150 cursor-pointer focus-ring"
         >
           <BsBoxArrowRight className="text-base" />
           Sign out
@@ -219,7 +235,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
               className="fixed left-0 top-0 h-full w-64 bg-surface-sidebar border-r border-theme z-30 md:hidden flex flex-col"
             >
               <div className="flex items-center justify-end p-3">
-                <button onClick={() => setIsMobileMenuOpen(false)} className="p-1.5 rounded-lg text-secondary hover:text-primary hover:bg-surface-secondary" aria-label="Close">
+                <button onClick={() => setIsMobileMenuOpen(false)} className="p-1.5 rounded-lg text-secondary hover:text-primary hover:bg-surface-secondary focus-ring" aria-label="Close menu">
                   <BsX className="w-5 h-5" />
                 </button>
               </div>
@@ -237,26 +253,25 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       {/* Header */}
       <header className="fixed top-0 right-0 left-0 h-14 bg-surface-header/80 backdrop-blur-xl border-b border-theme md:pl-60 z-20">
         <div className="flex items-center justify-between h-full px-4 sm:px-6">
-          {/* Left — page title */}
+          {/* Left */}
           <div className="flex items-center gap-3">
-            <button onClick={() => setIsMobileMenuOpen(true)} className="text-secondary hover:text-primary md:hidden" aria-label="Open menu">
+            <button onClick={() => setIsMobileMenuOpen(true)} className="text-secondary hover:text-primary md:hidden focus-ring rounded-lg p-1" aria-label="Open menu">
               <BsList className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2 md:hidden">
               <Image src="/logo.png" alt="Logo" width={80} height={28} className="h-7 w-auto object-contain" />
             </div>
-            {/* Page title from current nav item */}
             <div className="hidden md:flex items-center gap-2">
               {(() => {
                 const activeItem = navItems.find(item => isPathActive(item.href));
                 const ActiveIcon = activeItem?.icon;
                 return activeItem ? (
                   <>
-                    {ActiveIcon && <ActiveIcon className="w-4 h-4 text-secondary" />}
-                    <h1 className="text-[15px] font-semibold text-primary">{activeItem.label}</h1>
+                    {ActiveIcon && <ActiveIcon className="w-4 h-4 text-tertiary" />}
+                    <h1 className="text-sm font-semibold text-primary">{activeItem.label}</h1>
                   </>
                 ) : (
-                  <h1 className="text-[15px] font-semibold text-primary">{portalLabel} Dashboard</h1>
+                  <h1 className="text-sm font-semibold text-primary">{portalLabel} Dashboard</h1>
                 );
               })()}
             </div>
@@ -269,7 +284,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
 
             {/* User menu */}
             <div className="relative" ref={userMenuRef}>
-              <button onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} className="cursor-pointer" aria-label="User menu">
+              <button onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} className="cursor-pointer focus-ring rounded-full" aria-label="User menu">
                 <UserAvatar />
               </button>
 
@@ -286,39 +301,29 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                     <div className="px-3 py-3 border-b border-theme">
                       <p className="text-sm font-medium text-primary truncate">{session?.user?.email}</p>
                       <div className="flex items-center gap-1.5 mt-1">
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-500/15">
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-2xs font-semibold bg-accent-muted text-accent border border-[rgba(var(--color-accent),0.12)]">
                           {session?.user?.role}
                         </span>
-                        <span className="flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400">
-                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Online
+                        <span className="flex items-center gap-1 text-2xs text-success">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--color-success))]" /> Online
                         </span>
                       </div>
                     </div>
 
-                    {/* Dashboard links for admin/manager */}
+                    {/* Dashboard links */}
                     {(session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER') && (
                       <div className="p-2 border-b border-theme space-y-0.5">
                         {session?.user?.role === 'ADMIN' && (
                           <>
-                            <Link href="/dashboard/admin" onClick={() => setIsUserMenuOpen(false)} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${pathname.startsWith('/dashboard/admin') ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300' : 'text-secondary hover:text-primary hover:bg-surface-secondary'}`}>
-                              <BsShield className="text-sm" /> Admin
-                            </Link>
-                            <Link href="/dashboard/manager" onClick={() => setIsUserMenuOpen(false)} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${pathname.startsWith('/dashboard/manager') ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300' : 'text-secondary hover:text-primary hover:bg-surface-secondary'}`}>
-                              <BsGraphUp className="text-sm" /> Manager
-                            </Link>
-                            <Link href="/dashboard/employee" onClick={() => setIsUserMenuOpen(false)} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${pathname.startsWith('/dashboard/employee') ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300' : 'text-secondary hover:text-primary hover:bg-surface-secondary'}`}>
-                              <BsPerson className="text-sm" /> Employee
-                            </Link>
+                            {dashLink('/dashboard/admin', BsShield, 'Admin')}
+                            {dashLink('/dashboard/manager', BsGraphUp, 'Manager')}
+                            {dashLink('/dashboard/employee', BsPerson, 'Employee')}
                           </>
                         )}
                         {session?.user?.role === 'MANAGER' && (
                           <>
-                            <Link href="/dashboard/manager" onClick={() => setIsUserMenuOpen(false)} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${pathname.startsWith('/dashboard/manager') ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300' : 'text-secondary hover:text-primary hover:bg-surface-secondary'}`}>
-                              <BsGraphUp className="text-sm" /> Manager
-                            </Link>
-                            <Link href="/dashboard/employee" onClick={() => setIsUserMenuOpen(false)} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${pathname.startsWith('/dashboard/employee') ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300' : 'text-secondary hover:text-primary hover:bg-surface-secondary'}`}>
-                              <BsPerson className="text-sm" /> Employee
-                            </Link>
+                            {dashLink('/dashboard/manager', BsGraphUp, 'Manager')}
+                            {dashLink('/dashboard/employee', BsPerson, 'Employee')}
                           </>
                         )}
                       </div>
@@ -328,7 +333,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                     <div className="p-2">
                       <button
                         onClick={handleSignOut}
-                        className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-[13px] font-medium text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
+                        className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm font-medium text-error hover:bg-error-muted transition-colors cursor-pointer focus-ring"
                       >
                         <BsBoxArrowRight className="text-sm" />
                         Sign out
@@ -344,7 +349,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
 
       {/* Main Content */}
       <main className="md:pl-60 pt-14">
-        <div className="p-5 sm:p-6">
+        <div className="p-4 sm:p-6">
           {children}
         </div>
       </main>

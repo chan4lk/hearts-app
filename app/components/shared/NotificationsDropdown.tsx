@@ -167,7 +167,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
     // Simple colored circle indicators instead of emojis
     const colorClass = getNotificationColor(type);
     // Convert text color to background color
-    const bgColor = colorClass.replace('text-indigo-400', 'bg-indigo-400')
+    const bgColor = colorClass.replace('text-indigo-400', 'bg-[rgb(var(--color-accent))]')
       .replace('text-green-400', 'bg-green-400')
       .replace('text-red-400', 'bg-red-400')
       .replace('text-blue-400', 'bg-blue-400');
@@ -197,7 +197,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2.5 text-secondary hover:text-primary transition-all duration-200 rounded-lg hover:bg-indigo-500/10 group"
+        className="relative p-2.5 text-secondary hover:text-primary transition-all duration-200 rounded-lg hover:bg-accent-muted group"
         aria-label="Notifications"
       >
         <motion.div
@@ -217,7 +217,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
         )}
         {/* Pulse animation for unread notifications */}
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full opacity-75 animate-ping"></span>
+          <span className="absolute -top-1 -right-1 w-5 h-5 bg-[rgb(var(--color-error))] rounded-full opacity-75 animate-ping"></span>
         )}
       </button>
 
@@ -236,7 +236,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                 <BsBell className="w-4 h-4 text-indigo-400" />
                 <h3 className="text-sm font-semibold text-primary">Notifications</h3>
                 {unreadCount > 0 && (
-                  <span className="text-xs font-medium bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full">
+                  <span className="text-xs font-medium bg-accent-muted text-accent px-2 py-0.5 rounded-full">
                     {unreadCount} new
                   </span>
                 )}
@@ -297,7 +297,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                     >
                       {/* Unread indicator dot */}
                       {!notification.isRead && (
-                        <div className="absolute left-2 top-1/2 -translate-y-1/2 w-2 h-2 bg-indigo-400 rounded-full animate-pulse"></div>
+                        <div className="absolute left-2 top-1/2 -translate-y-1/2 w-2 h-2 bg-[rgb(var(--color-accent))] rounded-full animate-pulse"></div>
                       )}
                       
                       <div className="flex items-start gap-3 pl-2">
@@ -322,7 +322,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                               {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                             </p>
                             {!notification.isRead && (
-                              <span className="text-xs px-1.5 py-0.5 bg-indigo-500/20 text-indigo-300 rounded-full font-medium">
+                              <span className="text-xs px-1.5 py-0.5 bg-accent-muted text-accent rounded-full font-medium">
                                 New
                               </span>
                             )}
@@ -335,15 +335,15 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                                 e.stopPropagation();
                                 markAsRead(notification.id);
                               }}
-                              className="p-2 rounded-lg hover:bg-indigo-500/20 transition-colors"
+                              className="p-2 rounded-lg hover:bg-accent-muted transition-colors"
                               title="Mark as read"
                             >
-                              <BsCheckCircle className="w-4 h-4 text-indigo-400 hover:text-indigo-300" />
+                              <BsCheckCircle className="w-4 h-4 text-accent hover:opacity-80" />
                             </button>
                           )}
                           <button
                             onClick={(e) => deleteNotification(notification.id, e)}
-                            className="p-2 rounded-lg hover:bg-red-500/20 transition-colors"
+                            className="p-2 rounded-lg hover:bg-error-muted transition-colors"
                             title="Delete"
                           >
                             <BsTrash className="w-4 h-4 text-secondary hover:text-red-400" />
@@ -367,7 +367,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                         .filter(n => !n.isRead)
                         .forEach(n => markAsRead(n.id));
                     }}
-                    className="text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-indigo-500/10"
+                    className="text-xs font-medium text-accent hover:opacity-80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-accent-muted"
                     disabled={unreadCount === 0}
                   >
                     <BsCheckCircle className="w-3.5 h-3.5" />
@@ -375,7 +375,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                   </button>
                   <button
                     onClick={clearAllNotifications}
-                    className="text-xs font-medium text-red-400 hover:text-red-300 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-red-500/10"
+                    className="text-xs font-medium text-error hover:opacity-80 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-red-500/10"
                   >
                     <BsTrash className="w-3.5 h-3.5" />
                     Clear All

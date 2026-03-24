@@ -204,9 +204,6 @@ export default function ManagerDashboard() {
                 title: 'Total Goals',
                 value: stats.employeeGoals.total,
                 icon: <BsStars className="w-4 h-4" />,
-                gradient: 'from-indigo-500 to-purple-500',
-                bgColor: 'bg-indigo-500/10',
-                borderColor: 'border-indigo-500/30',
                 onClick: () => {
                   setSelectedStatus('');
                   setPage(1);
@@ -216,9 +213,6 @@ export default function ManagerDashboard() {
                 title: 'Draft',
                 value: stats.employeeGoals.draft,
                 icon: <BsPencil className="w-4 h-4" />,
-                gradient: 'from-gray-500 to-slate-500',
-                bgColor: 'bg-gray-500/10',
-                borderColor: 'border-gray-500/30',
                 onClick: () => {
                   setSelectedStatus('DRAFT');
                   setPage(1);
@@ -228,9 +222,6 @@ export default function ManagerDashboard() {
                 title: 'Approved',
                 value: stats.employeeGoals.approved,
                 icon: <BsCheckCircle className="w-4 h-4" />,
-                gradient: 'from-emerald-500 to-teal-500',
-                bgColor: 'bg-emerald-500/10',
-                borderColor: 'border-emerald-500/30',
                 onClick: () => {
                   setSelectedStatus('APPROVED');
                   setPage(1);
@@ -240,9 +231,6 @@ export default function ManagerDashboard() {
                 title: 'Rejected',
                 value: stats.employeeGoals.rejected,
                 icon: <BsXCircle className="w-4 h-4" />,
-                gradient: 'from-rose-500 to-red-500',
-                bgColor: 'bg-rose-500/10',
-                borderColor: 'border-rose-500/30',
                 onClick: () => {
                   setSelectedStatus('REJECTED');
                   setPage(1);
@@ -252,9 +240,6 @@ export default function ManagerDashboard() {
                 title: 'Completed',
                 value: stats.employeeGoals.completed,
                 icon: <BsCheckCircle className="w-4 h-4" />,
-                gradient: 'from-green-500 to-emerald-500',
-                bgColor: 'bg-green-500/10',
-                borderColor: 'border-green-500/30',
                 onClick: () => {
                   setSelectedStatus('COMPLETED');
                   setPage(1);
@@ -264,9 +249,6 @@ export default function ManagerDashboard() {
                 title: 'Total Employees',
                 value: stats.employeeCount,
                 icon: <BsPeople className="w-4 h-4" />,
-                gradient: 'from-cyan-500 to-blue-500',
-                bgColor: 'bg-cyan-500/10',
-                borderColor: 'border-cyan-500/30'
               }
             ];
             return <StatsSection stats={statItems} variant="auto" />;
@@ -345,8 +327,8 @@ export default function ManagerDashboard() {
                   <BsLightbulb className="w-4 h-4 text-indigo-500" />
                 </div>
                 <div>
-                  <h3 className="text-[14px] font-semibold text-primary">AI Performance Insights</h3>
-                  <p className="text-[12px] text-secondary">
+                  <h3 className="text-sm font-semibold text-primary">AI Performance Insights</h3>
+                  <p className="text-xs text-secondary">
                     Analysis for {employees.find(e => e.email === selectedEmployee)?.name || 'selected employee'}
                   </p>
                 </div>
@@ -364,8 +346,8 @@ export default function ManagerDashboard() {
               <div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center mx-auto mb-3">
                 <BsLightbulb className="w-5 h-5 text-indigo-500" />
               </div>
-              <h3 className="text-[14px] font-semibold text-primary mb-1">Select an Employee</h3>
-              <p className="text-[12px] text-secondary">Choose a specific employee from the filter above to view AI insights</p>
+              <h3 className="text-sm font-semibold text-primary mb-1">Select an Employee</h3>
+              <p className="text-xs text-secondary">Choose a specific employee from the filter above to view AI insights</p>
             </div>
           )}
 

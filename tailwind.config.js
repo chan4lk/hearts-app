@@ -16,7 +16,15 @@ module.exports = {
       },
     },
     extend: {
+      /* ── Spacing scale (8px base) ── */
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem',
+      },
+
+      /* ── Colors: Shadcn/Radix HSL + Semantic RGB ── */
       colors: {
+        /* Shadcn/Radix UI compatibility */
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -51,19 +59,32 @@ module.exports = {
           foreground: "hsl(var(--card-foreground))",
         },
       },
+
+      /* ── Border Radius ── */
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+
+      /* ── Typography ── */
+      fontSize: {
+        '2xs': ['0.625rem', { lineHeight: '0.875rem' }],  /* 10px */
+      },
+
+      /* ── Keyframes ── */
       keyframes: {
         "accordion-down": {
-          from: { height: 0 },
+          from: { height: "0" },
           to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
           from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: 0 },
+          to: { height: "0" },
+        },
+        "fade-in": {
+          from: { opacity: "0", transform: "translateY(4px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
         },
         gradient: {
           '0%': { backgroundPosition: '0% 50%' },
@@ -79,21 +100,25 @@ module.exports = {
           '0%, 100%': { opacity: '0.2' },
           '50%': { opacity: '0.3' },
         },
-        'pulse-medium': {
-          '0%, 100%': { opacity: '0.2' },
-          '50%': { opacity: '0.25' },
-        },
       },
+
+      /* ── Animations ── */
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fade-in 0.2s ease-out",
         'gradient': 'gradient 6s linear infinite',
         'float-slow': 'float 6s ease-in-out infinite',
         'float-medium': 'float 5s ease-in-out infinite',
         'pulse-slow': 'pulse-slow 4s ease-in-out infinite',
-        'pulse-medium': 'pulse-medium 3s ease-in-out infinite',
+      },
+
+      /* ── Transitions ── */
+      transitionDuration: {
+        '150': '150ms',
+        '200': '200ms',
       },
     },
   },
   plugins: [require("tailwindcss-animate")],
-} 
+}

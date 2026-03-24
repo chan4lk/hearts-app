@@ -250,7 +250,7 @@ const getStatusBadge = (status: string, goal?: Goal | GoalWithRatingExtended, se
     >
       <Icon className="w-3 h-3" />
       {status.replace('_', ' ')}
-      {isEmployeeViewingDraft && <span className="ml-1 text-[10px] opacity-50"></span>}
+      {isEmployeeViewingDraft && <span className="ml-1 text-2xs opacity-50"></span>}
     </Badge>
   );
 };
@@ -1006,21 +1006,21 @@ export default function GoalsTable({
                   className={TABLE_STYLES.row}
                   onClick={() => onGoalClick?.(goal)}
                 >
-                  <td className="py-2.5 px-3 text-[13px]">
+                  <td className="py-2.5 px-3 text-xs">
                     <div className="truncate">
                       <div className="font-medium text-primary truncate">{goal.title}</div>
-                      <div className="text-secondary truncate mt-0.5 text-[12px]">{goal.description}</div>
+                      <div className="text-secondary truncate mt-0.5 text-xs">{goal.description}</div>
                     </div>
                   </td>
-                  <td className="py-2.5 px-3 text-[11px]">
+                  <td className="py-2.5 px-3 text-2xs">
                     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                       {getStatusBadge(goal.status, goal, session, disableStatusUpdate ? undefined : handleQuickStatusUpdate, updatingStatus, disableStatusUpdate, allowedStatuses)}
                     </div>
                   </td>
-                  <td className="py-2.5 px-3 text-[11px]" onClick={(e) => e.stopPropagation()}>
+                  <td className="py-2.5 px-3 text-2xs" onClick={(e) => e.stopPropagation()}>
                     {getPriorityBadge(goal.priority || 'MEDIUM', goal, session, onPriorityUpdate ? handleQuickPriorityUpdate : undefined, updatingPriority, canEditPriority)}
                   </td>
-                  <td className="py-2.5 px-3 text-[11px]" onClick={(e) => e.stopPropagation()}>
+                  <td className="py-2.5 px-3 text-2xs" onClick={(e) => e.stopPropagation()}>
                     {onDueDateUpdate && (!canEditDueDate || canEditDueDate(goal)) ? (
                       <div className="relative">
                         <input
@@ -1032,7 +1032,7 @@ export default function GoalsTable({
                             }
                           }}
                           disabled={updatingDueDate === goal.id}
-                          className="bg-surface-secondary border border-white/10 text-primary text-[10px] px-2 py-1 pr-6 rounded-md hover:bg-surface-secondary/50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="bg-surface-secondary border border-white/10 text-primary text-2xs px-2 py-1 pr-6 rounded-md hover:bg-surface-secondary/50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
                         />
                         <BsCalendar className="absolute right-1.5 top-1/2 transform -translate-y-1/2 text-secondary pointer-events-none w-2.5 h-2.5" />
                       </div>
@@ -1041,12 +1041,12 @@ export default function GoalsTable({
                     )}
                   </td>
                   {showEmployee && (
-                    <td className="py-2.5 px-3 text-[11px] text-secondary truncate">
+                    <td className="py-2.5 px-3 text-2xs text-secondary truncate">
                       {goal.employee?.name || 'Unassigned'}
                     </td>
                   )}
                   {showManager && (
-                    <td className="py-2.5 px-3 text-[11px] text-secondary truncate">
+                    <td className="py-2.5 px-3 text-2xs text-secondary truncate">
                       {(() => {
                         // Check if this is a self-created goal
                         // Self-created goals have no manager assigned
@@ -1063,7 +1063,7 @@ export default function GoalsTable({
                       })()}
                     </td>
                   )}
-                  <td className="py-2.5 px-3 text-[11px] text-secondary truncate">
+                  <td className="py-2.5 px-3 text-2xs text-secondary truncate">
                     {goal.category}
                   </td>
                   {showRating && (() => {
@@ -1078,7 +1078,7 @@ export default function GoalsTable({
                     const displayValue = currentRatingValue ?? 0;
                     
                     return (
-                      <td className="py-2.5 px-3 text-[11px]" onClick={(e) => e.stopPropagation()}>
+                      <td className="py-2.5 px-3 text-2xs" onClick={(e) => e.stopPropagation()}>
                         {onRatingChange ? (
                           <Select
                             key={`rating-${goal.id}-${displayValue}-${ratingUpdateCounter}`}
@@ -1120,7 +1120,7 @@ export default function GoalsTable({
                                 className="text-primary hover:bg-surface-secondary focus:bg-surface-secondary"
                               >
                                 <div className="flex items-center gap-2">
-                                  {option.value > 0 && <BsStarFill className="w-3 h-3 text-yellow-400" />}
+                                  {option.value > 0 && <BsStarFill className="w-3 h-3 text-warning" />}
                                   <span>{option.label}</span>
                                 </div>
                               </SelectItem>
@@ -1133,7 +1133,7 @@ export default function GoalsTable({
                               const ratingValue = getRatingValue(goal, showRating);
                               return ratingValue > 0 ? (
                                 <>
-                                  <BsStarFill className="w-3 h-3 text-yellow-400" />
+                                  <BsStarFill className="w-3 h-3 text-warning" />
                                   <span>{getRatingDisplay(ratingValue)}</span>
                                 </>
                               ) : (
@@ -1146,7 +1146,7 @@ export default function GoalsTable({
                     );
                   })()}
                   {showActions && (
-                    <td className="py-2.5 px-3 text-[11px]">
+                    <td className="py-2.5 px-3 text-2xs">
                       <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                         {onGoalClick && (
                           <button

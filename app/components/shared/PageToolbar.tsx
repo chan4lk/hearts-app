@@ -21,11 +21,11 @@ interface PageToolbarProps {
   hasActiveFilters?: boolean;
 }
 
-const BTN = {
-  primary: 'bg-indigo-600 hover:bg-indigo-700 text-white',
+const BTN: Record<string, string> = {
+  primary: 'bg-accent text-[rgb(var(--color-text-inverse))] hover:opacity-90',
   secondary: 'bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary',
-  danger: 'bg-red-600 hover:bg-red-700 text-white',
-  export: 'bg-emerald-600 hover:bg-emerald-700 text-white',
+  danger: 'bg-error-muted text-error hover:opacity-90',
+  export: 'bg-success-muted text-success hover:opacity-90',
 };
 
 export default function PageToolbar({
@@ -41,14 +41,14 @@ export default function PageToolbar({
     <div className="flex items-center gap-2 py-2 overflow-x-auto">
       {/* Search */}
       {onSearchChange && (
-        <div className="relative shrink-0" style={{ width: 200 }}>
-          <BsSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-tertiary pointer-events-none" />
+        <div className="relative shrink-0 w-[180px] sm:w-[220px]">
+          <BsSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-tertiary pointer-events-none" />
           <input
             type="text"
             value={searchValue || ''}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={searchPlaceholder}
-            className="w-full h-8 pl-8 pr-3 text-[12px] bg-surface-secondary border border-theme rounded-lg text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-colors"
+            className="w-full h-8 pl-8 pr-3 text-xs bg-surface-secondary border border-theme rounded-lg text-primary placeholder:text-tertiary focus-ring transition-colors"
           />
         </div>
       )}
@@ -65,7 +65,7 @@ export default function PageToolbar({
       {hasActiveFilters && onClearFilters && (
         <button
           onClick={onClearFilters}
-          className="shrink-0 inline-flex items-center gap-1 h-8 px-2.5 text-[11px] font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg hover:bg-red-100 dark:hover:bg-red-500/15 transition-colors cursor-pointer"
+          className="shrink-0 inline-flex items-center gap-1 h-8 px-2.5 text-xs font-medium text-error bg-error-muted border border-[rgb(var(--color-error)/.2)] rounded-lg hover:opacity-80 transition-colors cursor-pointer focus-ring"
         >
           <BsXCircle className="w-3 h-3" />
           Clear
@@ -73,7 +73,7 @@ export default function PageToolbar({
       )}
 
       {/* Spacer */}
-      <div className="flex-1 min-w-[8px]" />
+      <div className="flex-1 min-w-2" />
 
       {/* Actions */}
       {actions.map((action, i) => (
@@ -81,7 +81,7 @@ export default function PageToolbar({
           key={i}
           onClick={action.onClick}
           disabled={action.disabled}
-          className={`shrink-0 inline-flex items-center gap-1.5 h-8 px-3 text-[12px] font-semibold rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap ${BTN[action.variant || 'primary']}`}
+          className={`shrink-0 inline-flex items-center gap-1.5 h-8 px-3 text-xs font-semibold rounded-lg transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap focus-ring ${BTN[action.variant || 'primary']}`}
         >
           {action.icon || (action.variant === 'export' ? <BsDownload className="w-3 h-3" /> : <BsPlus className="w-3.5 h-3.5" />)}
           <span className="hidden sm:inline">{action.label}</span>
@@ -109,13 +109,14 @@ export function FilterSelect({
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="shrink-0 h-8 px-2 pr-6 text-[12px] font-medium bg-surface-secondary border border-theme rounded-lg text-primary cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-colors appearance-none"
+      className="shrink-0 h-8 px-2 pr-7 text-xs font-medium bg-surface-secondary border border-theme rounded-lg text-primary cursor-pointer focus-ring transition-colors appearance-none"
       style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%239CA3AF' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
         backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'right 6px center',
+        backgroundPosition: 'right 8px center',
       }}
       title={label}
+      aria-label={label || placeholder}
     >
       <option value="">{placeholder}</option>
       {options.map((opt) => (

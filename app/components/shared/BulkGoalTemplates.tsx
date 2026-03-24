@@ -136,7 +136,7 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
           </h3>
           <button
             onClick={handleSelectAll}
-            className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+            className="text-sm text-blue-600 hover:text-info dark:hover:text-blue-300 font-medium"
           >
             {selectedEmployees.length === assignedEmployees.length ? 'Deselect All' : 'Select All'}
           </button>

@@ -92,33 +92,21 @@ import RatingGoalCard from '@/app/components/shared/RatingGoalCard';
          title: 'My Goals',
          value: total,
          icon: <BsClipboardData className="w-4 h-4" />,
-         gradient: 'from-indigo-500 to-purple-500',
-         bgColor: 'bg-indigo-500/10',
-         borderColor: 'border-indigo-500/30'
        },
        {
          title: 'Completed',
          value: completed,
          icon: <BsCheckCircle className="w-4 h-4" />,
-         gradient: 'from-emerald-500 to-teal-500',
-         bgColor: 'bg-emerald-500/10',
-         borderColor: 'border-emerald-500/30'
        },
        {
          title: 'Self Rated',
          value: rated,
          icon: <BsStarFill className="w-4 h-4" />,
-         gradient: 'from-amber-500 to-orange-500',
-         bgColor: 'bg-amber-500/10',
-         borderColor: 'border-amber-500/30'
        },
        {
          title: 'Completion Rate',
          value: `${completionRate}%`,
          icon: <BsPercent className="w-4 h-4" />,
-         gradient: 'from-blue-500 to-cyan-500',
-         bgColor: 'bg-blue-500/10',
-         borderColor: 'border-blue-500/30'
        }
      ];
    }, [filteredGoals]);

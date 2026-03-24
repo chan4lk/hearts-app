@@ -68,14 +68,14 @@ export default function PerformanceTable({ data, userRole }: PerformanceTablePro
                       <span className="text-green-400 font-medium">{emp.completedGoals}</span>
                     </td>
                     <td className="py-3 px-3 text-center">
-                      <span className={`font-semibold ${emp.completionRate >= 80 ? 'text-green-400' : emp.completionRate >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
+                      <span className={`font-semibold ${emp.completionRate >= 80 ? 'text-green-400' : emp.completionRate >= 50 ? 'text-warning' : 'text-red-400'}`}>
                         {emp.completionRate.toFixed(1)}%
                       </span>
                     </td>
                     <td className="py-3 px-3 text-center">
                       <div className="flex items-center justify-center gap-1">
-                        <span className="text-yellow-400 font-medium">{emp.averageRating.toFixed(1)}</span>
-                        <BsStarFill className="w-3 h-3 text-yellow-400" />
+                        <span className="text-warning font-medium">{emp.averageRating.toFixed(1)}</span>
+                        <BsStarFill className="w-3 h-3 text-warning" />
                       </div>
                     </td>
                   </motion.tr>

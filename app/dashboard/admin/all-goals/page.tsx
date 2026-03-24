@@ -256,17 +256,11 @@ function AllGoalsPageContent() {
                   title: 'Total Goals',
                   value: totalStats.total,
                   icon: <BsClipboardData className="w-4 h-4" />,
-                  gradient: 'from-indigo-500 to-purple-500',
-                  bgColor: 'bg-indigo-500/10',
-                  borderColor: 'border-indigo-500/30'
                 },
                 {
                   title: 'Draft',
                   value: totalStats.draft,
                   icon: <BsPencil className="w-4 h-4" />,
-                  gradient: 'from-gray-500 to-slate-500',
-                  bgColor: 'bg-gray-500/10',
-                  borderColor: 'border-gray-500/30',
                   onClick: () => {
                     setSelectedStatus('DRAFT');
                     setPage(1);
@@ -280,9 +274,6 @@ function AllGoalsPageContent() {
                   title: 'Approved',
                   value: totalStats.approved,
                   icon: <BsCheckCircle className="w-4 h-4" />,
-                  gradient: 'from-emerald-500 to-teal-500',
-                  bgColor: 'bg-emerald-500/10',
-                  borderColor: 'border-emerald-500/30',
                   onClick: () => {
                     setSelectedStatus('APPROVED');
                     setPage(1);
@@ -296,9 +287,6 @@ function AllGoalsPageContent() {
                   title: 'Rejected',
                   value: totalStats.rejected,
                   icon: <BsXCircle className="w-4 h-4" />,
-                  gradient: 'from-rose-500 to-red-500',
-                  bgColor: 'bg-rose-500/10',
-                  borderColor: 'border-rose-500/30',
                   onClick: () => {
                     setSelectedStatus('REJECTED');
                     setPage(1);
@@ -312,9 +300,6 @@ function AllGoalsPageContent() {
                   title: 'Completed',
                   value: totalStats.completed,
                   icon: <BsCheckCircle className="w-4 h-4" />,
-                  gradient: 'from-green-500 to-emerald-500',
-                  bgColor: 'bg-green-500/10',
-                  borderColor: 'border-green-500/30',
                   onClick: () => {
                     setSelectedStatus('COMPLETED');
                     setPage(1);

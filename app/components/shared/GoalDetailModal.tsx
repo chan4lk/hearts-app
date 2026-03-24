@@ -121,17 +121,18 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
   }, [goal.id]);
 
 
+  // Uses semantic color system — no hardcoded Tailwind colors
   const getStatusConfig = (status: string): StatusConfig => {
     const configs: Record<string, StatusConfig> = {
-      APPROVED: { bgColor: 'bg-emerald-500/20', textColor: 'text-emerald-400', icon: BsCheckCircle, label: 'Approved' },
-      REJECTED: { bgColor: 'bg-rose-500/20', textColor: 'text-rose-400', icon: BsXCircle, label: 'Rejected' },
-      COMPLETED: { bgColor: 'bg-green-500/20', textColor: 'text-green-400', icon: BsCheckCircle, label: 'Completed' },
-      IN_PROGRESS: { bgColor: 'bg-blue-500/20', textColor: 'text-blue-400', icon: BsPlayCircle, label: 'In Progress' },
-      ON_HOLD: { bgColor: 'bg-amber-500/20', textColor: 'text-amber-400', icon: BsPauseCircle, label: 'On Hold' },
-      BLOCKED: { bgColor: 'bg-red-500/20', textColor: 'text-red-400', icon: BsFlag, label: 'Blocked' },
-      MODIFIED: { bgColor: 'bg-amber-500/20', textColor: 'text-amber-400', icon: BsClock, label: 'Modified' },
-      PENDING: { bgColor: 'bg-amber-500/20', textColor: 'text-amber-400', icon: BsClock, label: 'Pending' },
-      DRAFT: { bgColor: 'bg-slate-500/20', textColor: 'text-slate-400', icon: BsGear, label: 'Draft' }
+      APPROVED:    { bgColor: 'bg-success-muted', textColor: 'text-success', icon: BsCheckCircle, label: 'Approved' },
+      REJECTED:    { bgColor: 'bg-error-muted',   textColor: 'text-error',   icon: BsXCircle,     label: 'Rejected' },
+      COMPLETED:   { bgColor: 'bg-info-muted',    textColor: 'text-info',    icon: BsCheckCircle, label: 'Completed' },
+      IN_PROGRESS: { bgColor: 'bg-info-muted',    textColor: 'text-info',    icon: BsPlayCircle,  label: 'In Progress' },
+      ON_HOLD:     { bgColor: 'bg-warning-muted',  textColor: 'text-warning', icon: BsPauseCircle, label: 'On Hold' },
+      BLOCKED:     { bgColor: 'bg-error-muted',   textColor: 'text-error',   icon: BsFlag,        label: 'Blocked' },
+      MODIFIED:    { bgColor: 'bg-warning-muted',  textColor: 'text-warning', icon: BsClock,       label: 'Modified' },
+      PENDING:     { bgColor: 'bg-warning-muted',  textColor: 'text-warning', icon: BsClock,       label: 'Pending' },
+      DRAFT:       { bgColor: 'bg-surface-secondary', textColor: 'text-secondary', icon: BsGear,   label: 'Draft' }
     };
     return configs[status] || configs.PENDING;
   };
@@ -237,18 +238,11 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             onClick={e => e.stopPropagation()}
-            className="relative modal-content rounded-xl sm:rounded-2xl md:rounded-3xl w-full max-w-[95vw] sm:max-w-md mx-auto
-                     shadow-2xl overflow-hidden transform transition-all max-h-[90vh] sm:max-h-[85vh] flex flex-col"
+            className="relative modal-content rounded-2xl w-full max-w-[95vw] sm:max-w-md mx-auto
+                     shadow-theme-xl overflow-hidden max-h-[90vh] sm:max-h-[85vh] flex flex-col"
          >
-
-                      {/* Decorative Elements */}
-                      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-16 -right-16 w-32 h-32 sm:w-48 sm:h-48 bg-indigo-500/10 rounded-full"></div>
-                <div className="absolute -bottom-16 -left-16 w-32 h-32 sm:w-48 sm:h-48 bg-purple-500/10 rounded-full"></div>
-              </div>
-
         {/* Header */}
-        <div className="relative px-3 sm:px-4 py-2.5 sm:py-3 flex items-start justify-between flex-shrink-0">
+        <div className="relative px-4 sm:px-5 py-3 sm:py-4 flex items-start justify-between flex-shrink-0 border-b border-theme">
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
               {/* Status Dropdown - Show for employees on PENDING/APPROVED goals, or managers/admins on any goal */}
@@ -259,7 +253,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                   onValueChange={handleQuickStatusUpdate}
                   disabled={isUpdatingStatus}
                 >
-                  <SelectTrigger className={`text-[10px] sm:text-xs px-2 py-1 h-auto ${statusConfig.bgColor} ${statusConfig.textColor} border-0 hover:opacity-80 transition-opacity`}>
+                  <SelectTrigger className={`text-2xs sm:text-xs px-2 py-1 h-auto ${statusConfig.bgColor} ${statusConfig.textColor} border-0 hover:opacity-80 transition-opacity`}>
                     <div className="flex items-center gap-1">
                       <statusConfig.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                       <SelectValue>{statusConfig.label}</SelectValue>
@@ -295,16 +289,16 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                   </SelectContent>
                 </Select>
               ) : (
-                <Badge className={`text-[10px] sm:text-xs px-1.5 py-0.5 ${statusConfig.bgColor} ${statusConfig.textColor} border-0`}>
+                <Badge className={`text-2xs sm:text-xs px-1.5 py-0.5 ${statusConfig.bgColor} ${statusConfig.textColor} border-0`}>
                   <statusConfig.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
                   {statusConfig.label}
                 </Badge>
               )}
-              <Badge className={`text-[10px] sm:text-xs px-1.5 py-0.5 ${priorityConfig.bg} ${priorityConfig.color} border-0`}>
+              <Badge className={`text-2xs sm:text-xs px-1.5 py-0.5 ${priorityConfig.bg} ${priorityConfig.color} border-0`}>
                 <priorityConfig.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
                 {priorityConfig.label}
               </Badge>
-              <Badge className={`text-[10px] sm:text-xs px-1.5 py-0.5 ${departmentConfig.bg} ${departmentConfig.color} border-0`}>
+              <Badge className={`text-2xs sm:text-xs px-1.5 py-0.5 ${departmentConfig.bg} ${departmentConfig.color} border-0`}>
                 <departmentConfig.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
                 {departmentConfig.label}
               </Badge>
@@ -445,15 +439,15 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                     <BsChat className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
                     <span className="text-xs font-medium">Manager's Decision</span>
                   </div>
-                  <Badge className={`text-[10px] sm:text-xs px-1.5 py-0.5 ${
-                    currentGoal.status === 'APPROVED' 
-                      ? 'bg-emerald-500/20 text-emerald-400' 
-                      : 'bg-rose-500/20 text-rose-400'
+                  <Badge className={`text-2xs sm:text-xs px-1.5 py-0.5 ${
+                    currentGoal.status === 'APPROVED'
+                      ? 'bg-success-muted text-success'
+                      : 'bg-error-muted text-error'
                   } border-0`}>
                     {currentGoal.status}
                   </Badge>
                 </div>
-                <div className="text-[10px] sm:text-xs text-tertiary">
+                <div className="text-2xs sm:text-xs text-tertiary">
                   {goal.updatedAt ? new Date(goal.updatedAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
@@ -492,7 +486,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
               className="bg-gradient-to-br from-blue-900/20 via-indigo-900/20 to-purple-900/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-blue-500/20"
             >
               <h4 className="text-xs sm:text-sm font-semibold text-primary mb-3 flex items-center gap-2">
-                <BsPlayCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400" />
+                <BsPlayCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-info" />
                 Update Status
               </h4>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -500,7 +494,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                   onClick={() => handleQuickStatusUpdate('IN_PROGRESS')}
                   disabled={isUpdatingStatus}
                   variant="outline"
-                  className="flex items-center gap-2 bg-blue-800/50 border-blue-700 text-blue-300 hover:bg-blue-700 hover:text-white text-xs"
+                  className="flex items-center gap-2 bg-info-muted text-info border-[rgba(var(--color-info),0.2)] hover:opacity-80 text-xs"
                 >
                   {isUpdatingStatus ? (
                     <BsArrowRepeat className="w-3 h-3 animate-spin" />
@@ -513,7 +507,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                   onClick={() => handleQuickStatusUpdate('ON_HOLD')}
                   disabled={isUpdatingStatus}
                   variant="outline"
-                  className="flex items-center gap-2 bg-amber-800/50 border-amber-700 text-amber-300 hover:bg-amber-700 hover:text-white text-xs"
+                  className="flex items-center gap-2 bg-warning-muted text-warning border-[rgba(var(--color-warning),0.2)] hover:opacity-80 text-xs"
                 >
                   {isUpdatingStatus ? (
                     <BsArrowRepeat className="w-3 h-3 animate-spin" />
@@ -526,7 +520,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                   onClick={() => handleQuickStatusUpdate('BLOCKED')}
                   disabled={isUpdatingStatus}
                   variant="outline"
-                  className="flex items-center gap-2 bg-red-800/50 border-red-700 text-red-300 hover:bg-red-700 hover:text-white text-xs"
+                  className="flex items-center gap-2 bg-error-muted text-error border-[rgba(var(--color-error),0.2)] hover:opacity-80 text-xs"
                 >
                   {isUpdatingStatus ? (
                     <BsArrowRepeat className="w-3 h-3 animate-spin" />
@@ -539,7 +533,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                   onClick={() => handleQuickStatusUpdate('COMPLETED')}
                   disabled={isUpdatingStatus}
                   variant="outline"
-                  className="flex items-center gap-2 bg-green-800/50 border-green-700 text-green-300 hover:bg-green-700 hover:text-white text-xs"
+                  className="flex items-center gap-2 bg-success-muted text-success border-[rgba(var(--color-success),0.2)] hover:opacity-80 text-xs"
                 >
                   {isUpdatingStatus ? (
                     <BsArrowRepeat className="w-3 h-3 animate-spin" />
@@ -640,7 +634,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
             <Button
               variant="ghost"
               onClick={handleClose}
-              className="bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary text-[13px] font-medium h-9 px-4 rounded-lg"
+              className="bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary text-xs font-medium h-9 px-4 rounded-lg"
             >
               Close
             </Button>

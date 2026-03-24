@@ -185,7 +185,7 @@ export default function ManagerSelector({
                 placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-sm bg-surface-secondary border border-theme rounded-md text-primary placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
+                className="w-full pl-9 pr-3 py-2 text-sm bg-surface-secondary border border-theme rounded-md text-primary placeholder-gray-500 focus:outline-none focus-ring/50 focus:border-[rgba(var(--color-accent),0.5)] transition-all"
                 autoFocus
               />
             </div>
@@ -252,7 +252,7 @@ export default function ManagerSelector({
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <span className="text-sm text-primary truncate">{manager.name}</span>
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 ${
+                              <span className={`text-2xs px-1.5 py-0.5 rounded flex-shrink-0 ${
                                 isAdmin ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'
                               }`}>
                                 {isAdmin ? 'ADMIN' : 'MGR'}

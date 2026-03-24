@@ -107,7 +107,7 @@ export function GoalFormModal({
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.category && <p className="text-red-400 text-[10px] mt-0.5">{errors.category}</p>}
+                {errors.category && <p className="text-red-400 text-2xs mt-0.5">{errors.category}</p>}
               </div>
               <div>
                 <label className="block text-xs font-medium text-secondary mb-1">Department</label>
@@ -129,7 +129,7 @@ export function GoalFormModal({
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.department && <p className="text-red-400 text-[10px] mt-0.5">{errors.department}</p>}
+                {errors.department && <p className="text-red-400 text-2xs mt-0.5">{errors.department}</p>}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -153,7 +153,7 @@ export function GoalFormModal({
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.priority && <p className="text-red-400 text-[10px] mt-0.5">{errors.priority}</p>}
+                {errors.priority && <p className="text-red-400 text-2xs mt-0.5">{errors.priority}</p>}
               </div>
               <div>
                 <label className="block text-xs font-medium text-secondary mb-1">Employee</label>
@@ -175,7 +175,7 @@ export function GoalFormModal({
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.employeeId && <p className="text-red-400 text-[10px] mt-0.5">{errors.employeeId}</p>}
+                {errors.employeeId && <p className="text-red-400 text-2xs mt-0.5">{errors.employeeId}</p>}
               </div>
             </div>
             <div>
@@ -202,7 +202,7 @@ export function GoalFormModal({
                 placeholder="Enter goal title"
                 className="bg-surface-secondary border border-theme text-primary text-xs h-9 rounded-lg"
               />
-              {errors.title && <p className="text-red-400 text-[10px] mt-0.5">{errors.title}</p>}
+              {errors.title && <p className="text-red-400 text-2xs mt-0.5">{errors.title}</p>}
             </div>
             <div>
               <label className="block text-xs font-medium text-secondary mb-1">Description</label>
@@ -229,7 +229,7 @@ export function GoalFormModal({
               type="button"
               variant="outline"
               onClick={onReset}
-              className="bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary text-[13px] font-medium h-9 px-4 rounded-lg"
+              className="bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary text-xs font-medium h-9 px-4 rounded-lg"
             >
               <BsArrowCounterclockwise className="h-3.5 w-3.5 mr-1.5" />
               Reset
@@ -239,7 +239,7 @@ export function GoalFormModal({
                 type="button"
                 variant="outline"
                 onClick={onTemplateClick}
-                className="bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary text-[13px] font-medium h-9 px-4 rounded-lg"
+                className="bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary text-xs font-medium h-9 px-4 rounded-lg"
               >
                 <BsListTask className="h-3.5 w-3.5 mr-1.5" />
                 Templates
@@ -266,7 +266,7 @@ export function GoalFormModal({
               type="button"
               variant="outline"
               onClick={onClose}
-              className="bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary text-[13px] font-medium h-9 px-4 rounded-lg"
+              className="bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary text-xs font-medium h-9 px-4 rounded-lg"
             >
               Cancel
             </Button>

@@ -435,49 +435,31 @@ function ManagerGoalSettingPageContent() {
                 title: 'Total Goals',
                 value: stats.totalGoals,
                 icon: <BsListCheck className="w-4 h-4" />,
-                gradient: 'from-blue-500 to-indigo-500',
-                bgColor: 'bg-blue-500/10',
-                borderColor: 'border-blue-500/30'
               },
               {
                 title: 'Draft',
                 value: stats.draftGoals,
                 icon: <BsFileEarmarkText className="w-4 h-4" />,
-                gradient: 'from-gray-500 to-slate-500',
-                bgColor: 'bg-gray-500/10',
-                borderColor: 'border-gray-500/30'
               },
               {
                 title: 'Pending',
                 value: stats.pendingGoals,
                 icon: <BsClock className="w-4 h-4" />,
-                gradient: 'from-amber-500 to-orange-500',
-                bgColor: 'bg-amber-500/10',
-                borderColor: 'border-amber-500/30'
               },
               {
                 title: 'Approved',
                 value: stats.approvedGoals,
                 icon: <BsCheck2Circle className="w-4 h-4" />,
-                gradient: 'from-emerald-500 to-teal-500',
-                bgColor: 'bg-emerald-500/10',
-                borderColor: 'border-emerald-500/30'
               },
               {
                 title: 'Rejected',
                 value: stats.rejectedGoals,
                 icon: <BsXCircle className="w-4 h-4" />,
-                gradient: 'from-red-500 to-rose-500',
-                bgColor: 'bg-red-500/10',
-                borderColor: 'border-red-500/30'
               },
               {
                 title: 'Completed',
                 value: stats.completedGoals,
                 icon: <BsCheckCircle className="w-4 h-4" />,
-                gradient: 'from-green-500 to-lime-500',
-                bgColor: 'bg-green-500/10',
-                borderColor: 'border-green-500/30'
               }
             ];
             return <StatsSection stats={statItems} variant="auto" />;

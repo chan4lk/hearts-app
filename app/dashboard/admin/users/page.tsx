@@ -353,35 +353,23 @@ function UsersPageContent() {
                   title: 'Total Users',
                   value: userStats.total,
                   icon: <BsPeople className="w-4 h-4" />,
-                  gradient: 'from-blue-500 to-cyan-500',
-                  bgColor: 'bg-blue-500/10',
-                  borderColor: 'border-blue-500/30'
                 },
                 {
                   title: 'Employees',
                   value: userStats.employees,
                   icon: <BsPeople className="w-4 h-4" />,
-                  gradient: 'from-emerald-500 to-teal-500',
-                  bgColor: 'bg-emerald-500/10',
-                  borderColor: 'border-emerald-500/30',
                   onClick: () => handleStatFilter('role', 'EMPLOYEE')
                 },
                 {
                   title: 'Managers',
                   value: userStats.managers,
                   icon: <BsGraphUp className="w-4 h-4" />,
-                  gradient: 'from-purple-500 to-pink-500',
-                  bgColor: 'bg-purple-500/10',
-                  borderColor: 'border-purple-500/30',
                   onClick: () => handleStatFilter('role', 'MANAGER')
                 },
                 {
                   title: 'Admins',
                   value: userStats.admins,
                   icon: <BsShieldExclamation className="w-4 h-4" />,
-                  gradient: 'from-orange-500 to-red-500',
-                  bgColor: 'bg-orange-500/10',
-                  borderColor: 'border-orange-500/30',
                   onClick: () => handleStatFilter('role', 'ADMIN')
                 }
               ];

@@ -49,7 +49,7 @@ export default function GoalsSection({
   const Tab = ({ view, icon: Icon, label, shortLabel, count }: { view: ViewType; icon: any; label: string; shortLabel: string; count: number }) => (
     <button
       onClick={() => setActiveView(view)}
-      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors cursor-pointer ${
+      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
         activeView === view
           ? 'bg-indigo-600 text-white'
           : 'text-secondary hover:text-primary hover:bg-surface-tertiary'
@@ -58,7 +58,7 @@ export default function GoalsSection({
       <Icon className="w-3.5 h-3.5" />
       <span className="hidden sm:inline">{label}</span>
       <span className="sm:hidden">{shortLabel}</span>
-      <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${activeView === view ? 'bg-white/20' : 'bg-surface-secondary'}`}>{count}</span>
+      <span className={`px-1.5 py-0.5 rounded text-2xs font-semibold ${activeView === view ? 'bg-white/20' : 'bg-surface-secondary'}`}>{count}</span>
     </button>
   );
 
@@ -67,10 +67,10 @@ export default function GoalsSection({
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-theme">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-surface-secondary flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+          <div className="w-8 h-8 rounded-lg bg-surface-secondary flex items-center justify-center text-accent">
             <BsListUl className="w-4 h-4" />
           </div>
-          <h2 className="text-[14px] font-semibold text-primary">Goals Overview</h2>
+          <h2 className="text-sm font-semibold text-primary">Goals Overview</h2>
         </div>
         <div className="flex gap-1 p-1 bg-surface-secondary rounded-lg">
           <Tab view="assigned" icon={BsShield} label="Assigned Goals" shortLabel="Assigned" count={assignedGoals.length} />

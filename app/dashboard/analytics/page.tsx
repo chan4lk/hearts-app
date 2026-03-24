@@ -103,10 +103,10 @@ export default function AnalyticsPage() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-xl rounded-xl p-12 border border-theme shadow-xl text-center"
+            className="bg-surface-elevated rounded-xl p-12 border border-theme shadow-theme-md text-center"
           >
             <div className="flex flex-col items-center justify-center">
-              <div className="p-4 bg-gray-800/50 rounded-full mb-4">
+              <div className="p-4 bg-surface-secondary rounded-full mb-4">
                 <BsBarChart className="w-16 h-16 text-tertiary" />
               </div>
               <h3 className="text-xl font-semibold text-primary mb-2">No Analytics Data Available</h3>
@@ -163,22 +163,18 @@ function keyMetrics(summary: { totalGoals: number; completedGoals: number; compl
     {
       title: 'Total Goals', value: summary.totalGoals,
       icon: <BsClipboardData className="w-4 h-4" />,
-      gradient: 'from-indigo-500 to-purple-500', bgColor: 'bg-indigo-500/10', borderColor: 'border-indigo-500/30'
     },
     {
       title: 'Completed', value: summary.completedGoals,
       icon: <BsCheckCircle className="w-4 h-4" />,
-      gradient: 'from-emerald-500 to-teal-500', bgColor: 'bg-emerald-500/10', borderColor: 'border-emerald-500/30'
     },
     {
       title: 'Completion Rate', value: `${summary.completionRate.toFixed(1)}%`,
       icon: <BsPercent className="w-4 h-4" />,
-      gradient: 'from-blue-500 to-cyan-500', bgColor: 'bg-blue-500/10', borderColor: 'border-blue-500/30'
     },
     {
       title: 'Avg Rating', value: summary.averageRating.toFixed(2),
       icon: <BsStarFill className="w-4 h-4" />,
-      gradient: 'from-amber-500 to-orange-500', bgColor: 'bg-amber-500/10', borderColor: 'border-amber-500/30'
     }
   ];
 }
@@ -188,32 +184,26 @@ function statusBreakdownStats(byStatus: Record<string, number>): StatItem[] {
     {
       title: 'Draft', value: byStatus['DRAFT'] || 0,
       icon: <BsFileEarmarkText className="w-4 h-4" />,
-      gradient: 'from-gray-500 to-slate-500', bgColor: 'bg-gray-500/10', borderColor: 'border-gray-500/30'
     },
     {
       title: 'Pending', value: byStatus['PENDING'] || 0,
       icon: <BsClock className="w-4 h-4" />,
-      gradient: 'from-amber-500 to-orange-500', bgColor: 'bg-amber-500/10', borderColor: 'border-amber-500/30'
     },
     {
       title: 'Approved', value: byStatus['APPROVED'] || 0,
       icon: <BsCheck2Circle className="w-4 h-4" />,
-      gradient: 'from-emerald-500 to-teal-500', bgColor: 'bg-emerald-500/10', borderColor: 'border-emerald-500/30'
     },
     {
       title: 'Rejected', value: byStatus['REJECTED'] || 0,
       icon: <BsXCircle className="w-4 h-4" />,
-      gradient: 'from-red-500 to-rose-500', bgColor: 'bg-red-500/10', borderColor: 'border-red-500/30'
     },
     {
       title: 'Modified', value: byStatus['MODIFIED'] || 0,
       icon: <BsListCheck className="w-4 h-4" />,
-      gradient: 'from-blue-500 to-indigo-500', bgColor: 'bg-blue-500/10', borderColor: 'border-blue-500/30'
     },
     {
       title: 'Completed', value: byStatus['COMPLETED'] || 0,
       icon: <BsCheckCircle className="w-4 h-4" />,
-      gradient: 'from-green-500 to-lime-500', bgColor: 'bg-green-500/10', borderColor: 'border-green-500/30'
     }
   ];
 }

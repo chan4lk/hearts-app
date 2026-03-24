@@ -325,9 +325,6 @@ export default function AdminDashboard() {
                   title: 'Total Users',
                   value: stats.totalUsers,
                   icon: <BsPeople className="w-4 h-4" />,
-                  gradient: 'from-blue-500 to-cyan-500',
-                  bgColor: 'bg-blue-500/10',
-                  borderColor: 'border-blue-500/30',
                   onClick: () => router.push('/dashboard/admin/users'),
                   tooltip: 'Click to view all users'
                 },
@@ -335,9 +332,6 @@ export default function AdminDashboard() {
                   title: 'Employees',
                   value: stats.employeeCount,
                   icon: <BsPeople className="w-4 h-4" />,
-                  gradient: 'from-emerald-500 to-teal-500',
-                  bgColor: 'bg-emerald-500/10',
-                  borderColor: 'border-emerald-500/30',
                   onClick: () => router.push('/dashboard/admin/users?role=EMPLOYEE'),
                   tooltip: 'View all employees'
                 },
@@ -345,9 +339,6 @@ export default function AdminDashboard() {
                   title: 'Managers',
                   value: stats.managerCount,
                   icon: <BsBullseye className="w-4 h-4" />,
-                  gradient: 'from-purple-500 to-pink-500',
-                  bgColor: 'bg-purple-500/10',
-                  borderColor: 'border-purple-500/30',
                   onClick: () => router.push('/dashboard/admin/users?role=MANAGER'),
                   tooltip: 'View all managers'
                 },
@@ -355,9 +346,6 @@ export default function AdminDashboard() {
                   title: 'Admins',
                   value: stats.adminCount,
                   icon: <BsBullseye className="w-4 h-4" />,
-                  gradient: 'from-orange-500 to-red-500',
-                  bgColor: 'bg-orange-500/10',
-                  borderColor: 'border-orange-500/30',
                   onClick: () => router.push('/dashboard/admin/users?role=ADMIN'),
                   tooltip: 'View all admins'
                 },
@@ -365,9 +353,6 @@ export default function AdminDashboard() {
                   title: 'Total Goals',
                   value: stats.totalGoals,
                   icon: <BsBullseye className="w-4 h-4" />,
-                  gradient: 'from-indigo-500 to-purple-500',
-                  bgColor: 'bg-indigo-500/10',
-                  borderColor: 'border-indigo-500/30',
                   onClick: () => router.push('/dashboard/admin/all-goals'),
                   tooltip: 'View all goals'
                 }

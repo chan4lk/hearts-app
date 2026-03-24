@@ -254,33 +254,21 @@ export default function ReviewCyclesPage() {
                   title: 'Total Cycles',
                   value: pagination?.total || reviewCycles.length,
                   icon: <BsClipboardPlus className="w-4 h-4" />,
-                  gradient: 'from-blue-500 to-cyan-500',
-                  bgColor: 'bg-blue-500/10',
-                  borderColor: 'border-blue-500/30'
                 },
                 {
                   title: 'Completed',
                   value: completedCount,
                   icon: <BsCheckCircle className="w-4 h-4" />,
-                  gradient: 'from-emerald-500 to-teal-500',
-                  bgColor: 'bg-emerald-500/10',
-                  borderColor: 'border-emerald-500/30'
                 },
                 {
                   title: 'Pending',
                   value: pendingCount,
                   icon: <BsClock className="w-4 h-4" />,
-                  gradient: 'from-amber-500 to-orange-500',
-                  bgColor: 'bg-amber-500/10',
-                  borderColor: 'border-amber-500/30'
                 },
                 {
                   title: 'Users',
                   value: new Set(reviewCycles.map(c => c.userId)).size,
                   icon: <BsPerson className="w-4 h-4" />,
-                  gradient: 'from-purple-500 to-pink-500',
-                  bgColor: 'bg-purple-500/10',
-                  borderColor: 'border-purple-500/30'
                 }
               ];
               return <StatsSection stats={statItems} variant="auto" />;

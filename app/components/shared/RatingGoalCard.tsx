@@ -128,12 +128,12 @@ export default function RatingGoalCard({
                 <span
                   className={`px-2 py-0.5 text-xs font-medium rounded-full ${
                     goal.status === 'APPROVED'
-                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
+                      ? 'bg-success-muted text-success'
                       : goal.status === 'PENDING'
-                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
+                        ? 'bg-warning-muted text-warning'
                         : goal.status === 'REJECTED'
-                          ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300'
-                          : 'bg-surface-secondary text-gray-700 dark:bg-gray-500/20 dark:text-secondary'
+                          ? 'bg-error-muted text-error'
+                          : 'bg-surface-secondary text-secondary'
                   }`}
                 >
                   {goal.status}
@@ -192,11 +192,11 @@ export default function RatingGoalCard({
                     className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors ${
                       isGridView
                         ? currentScore === rating
-                          ? 'bg-white/20 text-yellow-300'
+                          ? 'bg-white/20 text-warning'
                           : 'bg-white/5 text-white/40 hover:bg-white/10'
                         : currentScore === rating
-                          ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-300'
-                          : 'bg-gray-50 text-secondary hover:bg-surface-secondary dark:bg-surface-tertiary/50 dark:hover:bg-gray-700'
+                          ? 'bg-warning-muted text-warning'
+                          : 'bg-surface-secondary text-secondary hover:bg-surface-tertiary'
                     }`}
                   >
                     <BsStarFill className="w-4 h-4" />

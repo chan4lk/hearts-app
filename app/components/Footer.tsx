@@ -12,10 +12,10 @@ export default function Footer() {
               <img src="/logo.png" alt="Bistec Global" className="h-8 w-auto object-contain" />
               <div className="flex flex-col">
                 <span className="text-sm font-semibold text-primary leading-tight">AspireHub</span>
-                <span className="text-[10px] font-medium text-indigo-600 dark:text-indigo-400 leading-tight">Bistec Global</span>
+                <span className="text-2xs font-medium text-accent leading-tight">Bistec Global</span>
               </div>
             </Link>
-            <p className="text-[13px] text-secondary leading-relaxed max-w-[200px]">
+            <p className="text-xs text-secondary leading-relaxed max-w-[200px]">
               Performance management built for modern teams.
             </p>
           </div>
@@ -27,11 +27,11 @@ export default function Footer() {
             { title: 'Legal', links: ['Privacy', 'Terms', 'Cookies'] },
           ].map(({ title, links }) => (
             <div key={title}>
-              <h4 className="text-[12px] font-semibold text-tertiary uppercase tracking-wider mb-3">{title}</h4>
+              <h4 className="text-xs font-semibold text-tertiary uppercase tracking-wider mb-3">{title}</h4>
               <ul className="space-y-2">
                 {links.map((link) => (
                   <li key={link}>
-                    <Link href="#" className="text-[13px] text-secondary hover:text-primary transition-colors duration-200">
+                    <Link href="#" className="text-xs text-secondary hover:text-primary transition-colors duration-200">
                       {link}
                     </Link>
                   </li>
@@ -43,12 +43,12 @@ export default function Footer() {
 
         {/* Bottom */}
         <div className="mt-12 pt-6 border-t border-theme flex flex-col sm:flex-row justify-between items-center gap-3">
-          <p className="text-[12px] text-tertiary">
+          <p className="text-xs text-tertiary">
             &copy; {new Date().getFullYear()} AspireHub by Bistec Global. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             {['Twitter', 'LinkedIn', 'GitHub'].map((social) => (
-              <a key={social} href="#" className="text-[12px] text-tertiary hover:text-secondary transition-colors duration-200">
+              <a key={social} href="#" className="text-xs text-tertiary hover:text-secondary transition-colors duration-200">
                 {social}
               </a>
             ))}

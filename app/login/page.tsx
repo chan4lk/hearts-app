@@ -184,7 +184,7 @@ function LoginForm() {
   return (
     <main className="relative flex flex-col min-h-screen overflow-hidden">
       {/* Light mode background */}
-      <div className="fixed inset-0 bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/30 dark:hidden" />
+      <div className="fixed inset-0 bg-gradient-to-br from-[rgba(var(--color-accent-muted),1)] via-[rgb(var(--color-bg-elevated))] to-[rgba(var(--color-accent-subtle),0.3)] dark:hidden" />
       <ConstellationBackground />
 
       <div className="relative flex-1 flex items-center justify-center px-4 py-12 sm:py-16">
@@ -236,21 +236,21 @@ function LoginForm() {
                 </div>
 
                 {/* Status badge */}
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/[0.07] border border-indigo-500/[0.12]">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-accent-muted border border-[rgba(var(--color-accent),0.12)]">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
                   </span>
-                  <span className="text-accent text-[11px] font-semibold tracking-[0.15em] uppercase">
+                  <span className="text-accent text-2xs font-semibold tracking-[0.15em] uppercase">
                     AspireHub Portal
                   </span>
                 </div>
 
                 <div className="space-y-2">
-                  <h1 className="text-[30px] sm:text-[34px] font-bold tracking-tight text-primary leading-none">
+                  <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-primary leading-none">
                     Welcome back
                   </h1>
-                  <p className="text-[14px] text-secondary leading-relaxed max-w-[260px] mx-auto">
+                  <p className="text-sm text-secondary leading-relaxed max-w-[260px] mx-auto">
                     Sign in to track and elevate your performance journey
                   </p>
                 </div>
@@ -258,7 +258,7 @@ function LoginForm() {
 
               {/* ─── Divider line ─── */}
               <motion.div variants={itemVariants}>
-                <div className="w-full h-px bg-gradient-to-r from-transparent via-slate-700/40 to-transparent" />
+                <div className="w-full h-px bg-gradient-to-r from-transparent via-[rgb(var(--color-border-primary))] to-transparent" />
               </motion.div>
 
               {/* ─── Microsoft SSO Button ─── */}
@@ -283,7 +283,7 @@ function LoginForm() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                         </svg>
-                        <span className="text-[14px]">Connecting to Microsoft...</span>
+                        <span className="text-sm">Connecting to Microsoft...</span>
                       </motion.span>
                     ) : (
                       <motion.span
@@ -300,7 +300,7 @@ function LoginForm() {
                           <rect x="1" y="11" width="9" height="9" fill="#00A4EF" />
                           <rect x="11" y="11" width="9" height="9" fill="#FFB900" />
                         </svg>
-                        <span className="text-[14px]">Sign in with Microsoft</span>
+                        <span className="text-sm">Sign in with Microsoft</span>
                         <svg className="w-4 h-4 opacity-60 group-hover:translate-x-0.5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                         </svg>
@@ -312,7 +312,7 @@ function LoginForm() {
 
               {/* ─── Footer info ─── */}
               <motion.div variants={itemVariants} className="text-center space-y-3 pt-1">
-                <p className="text-[12px] text-tertiary leading-relaxed">
+                <p className="text-xs text-tertiary leading-relaxed">
                   Access your dashboard securely with your <br className="sm:hidden" />
                   organization&apos;s Microsoft account
                 </p>
@@ -321,7 +321,7 @@ function LoginForm() {
                     <svg className="w-3 h-3 text-emerald-500/60" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                     </svg>
-                    <span className="text-[10px] text-tertiary font-medium tracking-wide">
+                    <span className="text-2xs text-tertiary font-medium tracking-wide">
                       SSO Protected
                     </span>
                   </div>
@@ -330,7 +330,7 @@ function LoginForm() {
                     <svg className="w-3 h-3 text-indigo-400/50" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                     </svg>
-                    <span className="text-[10px] text-tertiary font-medium tracking-wide">
+                    <span className="text-2xs text-tertiary font-medium tracking-wide">
                       Enterprise Grade
                     </span>
                   </div>

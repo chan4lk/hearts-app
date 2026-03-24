@@ -43,7 +43,7 @@ export function AzureIntegration() {
             >
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/8 dark:bg-blue-500/10 border border-blue-500/12 dark:border-blue-500/15 mb-5">
                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                <span className="text-blue-600 dark:text-blue-400 text-xs font-semibold tracking-wide uppercase">Integration</span>
+                <span className="text-info text-xs font-semibold tracking-wide uppercase">Integration</span>
               </div>
               <h2 className="text-3xl sm:text-4xl md:text-[42px] font-bold text-primary tracking-tight leading-[1.15] mb-4">
                 Secure by default <br className="hidden sm:block" />
@@ -65,8 +65,8 @@ export function AzureIntegration() {
                 <MotionDiv key={title} variants={item}>
                   <div className="group p-4 rounded-xl bg-surface-elevated border border-theme hover:border-[rgba(var(--color-accent),0.15)] hover:shadow-theme-sm transition-all duration-300">
                     <Icon className="w-5 h-5 text-accent mb-3 group-hover:scale-110 transition-transform duration-300" />
-                    <h3 className="text-[14px] font-semibold text-primary mb-1">{title}</h3>
-                    <p className="text-[12px] text-secondary leading-relaxed">{description}</p>
+                    <h3 className="text-sm font-semibold text-primary mb-1">{title}</h3>
+                    <p className="text-xs text-secondary leading-relaxed">{description}</p>
                   </div>
                 </MotionDiv>
               ))}
@@ -104,14 +104,14 @@ export function AzureIntegration() {
                 </div>
 
                 {/* Floating badges */}
-                <div className="absolute top-4 right-8 px-3 py-1.5 rounded-lg bg-surface-elevated border border-theme shadow-theme-md text-[11px] font-medium text-primary">
+                <div className="absolute top-4 right-8 px-3 py-1.5 rounded-lg bg-surface-elevated border border-theme shadow-theme-md text-2xs font-medium text-primary">
                   SSO Enabled
                 </div>
-                <div className="absolute bottom-8 left-2 px-3 py-1.5 rounded-lg bg-surface-elevated border border-theme shadow-theme-md text-[11px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                <div className="absolute bottom-8 left-2 px-3 py-1.5 rounded-lg bg-surface-elevated border border-theme shadow-theme-md text-2xs font-medium text-success flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   Connected
                 </div>
-                <div className="absolute top-1/2 -right-2 px-3 py-1.5 rounded-lg bg-surface-elevated border border-theme shadow-theme-md text-[11px] font-medium text-primary">
+                <div className="absolute top-1/2 -right-2 px-3 py-1.5 rounded-lg bg-surface-elevated border border-theme shadow-theme-md text-2xs font-medium text-primary">
                   256-bit
                 </div>
               </div>

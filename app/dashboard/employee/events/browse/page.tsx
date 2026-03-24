@@ -151,16 +151,16 @@ export default function BrowseEventsPage() {
           <div className="flex-shrink-0 pb-3">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: 'Available', value: events.length, icon: <BsSearch className="w-4 h-4" />, color: 'text-blue-600 dark:text-blue-400' },
-                { label: 'Open Seats', value: events.filter(e => !isCapacityFull(e)).length, icon: <BsCalendar className="w-4 h-4" />, color: 'text-emerald-600 dark:text-emerald-400' },
+                { label: 'Available', value: events.length, icon: <BsSearch className="w-4 h-4" />, color: 'text-info' },
+                { label: 'Open Seats', value: events.filter(e => !isCapacityFull(e)).length, icon: <BsCalendar className="w-4 h-4" />, color: 'text-success' },
                 { label: 'Full', value: events.filter(e => isCapacityFull(e)).length, icon: <BsCheckLg className="w-4 h-4" />, color: 'text-purple-600 dark:text-purple-400' },
-                { label: 'Pages', value: pagination.pages, icon: <BsFilter className="w-4 h-4" />, color: 'text-amber-600 dark:text-amber-400' },
+                { label: 'Pages', value: pagination.pages, icon: <BsFilter className="w-4 h-4" />, color: 'text-warning' },
               ].map((stat, i) => (
                 <div key={i} className="flex items-center gap-3.5 px-4 py-3.5 rounded-xl bg-surface-elevated border border-theme">
                   <div className={`flex-shrink-0 w-10 h-10 rounded-lg bg-surface-secondary flex items-center justify-center ${stat.color}`}>{stat.icon}</div>
                   <div>
-                    <div className="text-[18px] font-bold text-primary">{stat.value}</div>
-                    <div className="text-[12px] font-medium text-secondary">{stat.label}</div>
+                    <div className="text-lg font-bold text-primary">{stat.value}</div>
+                    <div className="text-xs font-medium text-secondary">{stat.label}</div>
                   </div>
                 </div>
               ))}

@@ -35,7 +35,7 @@ export default async function Home() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-500 opacity-60" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
               </div>
-              <span className="text-accent text-[12px] sm:text-[13px] font-semibold tracking-wide">
+              <span className="text-accent text-xs sm:text-xs font-semibold tracking-wide">
                 Performance Management Platform
               </span>
             </div>
@@ -60,7 +60,7 @@ export default async function Home() {
             <div className="flex flex-col sm:flex-row justify-center items-center gap-3">
               <Link
                 href="/login"
-                className="w-full sm:w-auto group inline-flex items-center justify-center gap-2 px-6 py-3 text-[14px] font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 rounded-lg shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-200 hover:-translate-y-px"
+                className="w-full sm:w-auto group inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 rounded-lg shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-200 hover:-translate-y-px"
               >
                 Start for free
                 <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -69,7 +69,7 @@ export default async function Home() {
               </Link>
               <a
                 href="#features"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 text-[14px] font-medium text-primary bg-surface-secondary hover:bg-surface-tertiary border border-theme rounded-lg transition-all duration-200"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-medium text-primary bg-surface-secondary hover:bg-surface-tertiary border border-theme rounded-lg transition-all duration-200"
               >
                 See how it works
               </a>
@@ -83,7 +83,7 @@ export default async function Home() {
                 {stats.map(({ value, label }) => (
                   <div key={label} className="text-center">
                     <div className="text-2xl sm:text-3xl font-bold text-primary tracking-tight">{value}</div>
-                    <div className="text-[12px] sm:text-[13px] text-tertiary font-medium mt-0.5">{label}</div>
+                    <div className="text-xs sm:text-xs text-tertiary font-medium mt-0.5">{label}</div>
                   </div>
                 ))}
               </div>
@@ -110,7 +110,7 @@ export default async function Home() {
             <div className="flex flex-col sm:flex-row justify-center gap-3">
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-[14px] font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-lg shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-200 hover:-translate-y-px"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-lg shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-200 hover:-translate-y-px"
               >
                 Get started free
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">

@@ -403,33 +403,21 @@ export default function ApproveGoalsPage() {
                   title: 'Total Goals',
                   value: goals.length,
                   icon: <BsClipboardData className="w-4 h-4" />,
-                  gradient: 'from-indigo-500 to-purple-500',
-                  bgColor: 'bg-indigo-500/10',
-                  borderColor: 'border-indigo-500/30'
                 },
                 {
                   title: 'Pending',
                   value: pendingCount,
                   icon: <BsPencil className="w-4 h-4" />,
-                  gradient: 'from-amber-500 to-orange-500',
-                  bgColor: 'bg-amber-500/10',
-                  borderColor: 'border-amber-500/30'
                 },
                 {
                   title: 'Approved',
                   value: approvedCount,
                   icon: <BsCheckCircle className="w-4 h-4" />,
-                  gradient: 'from-emerald-500 to-teal-500',
-                  bgColor: 'bg-emerald-500/10',
-                  borderColor: 'border-emerald-500/30'
                 },
                 {
                   title: 'Rejected',
                   value: rejectedCount,
                   icon: <BsXCircle className="w-4 h-4" />,
-                  gradient: 'from-rose-500 to-red-500',
-                  bgColor: 'bg-rose-500/10',
-                  borderColor: 'border-rose-500/30'
                 }
               ];
               return <StatsSection stats={statItems} variant="auto" />;
