@@ -118,7 +118,7 @@ export function SelectionBanner({ count, onBulkDelete, onClear }: {
 }) {
   if (count === 0) return null;
   return (
-    <div className="flex items-center gap-3 px-3 py-2 bg-accent-muted border border-indigo-200 dark:border-indigo-500/20 rounded-lg text-xs">
+    <div className="flex items-center gap-3 px-3 py-2 bg-accent-muted border border-theme dark:border-[rgb(var(--color-accent))]/20 rounded-lg text-xs">
       <span className="font-medium text-accent">{count} selected</span>
       {onBulkDelete && (
         <button onClick={onBulkDelete} className="ml-auto text-error hover:underline font-medium cursor-pointer">Delete selected</button>

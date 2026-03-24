@@ -231,7 +231,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
             className="absolute right-0 mt-2 w-96 bg-surface-elevated backdrop-blur-xl rounded-xl shadow-theme-lg border border-theme overflow-hidden z-50 max-h-[500px] flex flex-col"
           >
             {/* Header */}
-            <div className="px-4 py-3 border-b border-theme flex items-center justify-between bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10">
+            <div className="px-4 py-3 border-b border-theme flex items-center justify-between bg-gradient-to-r from-[rgb(var(--color-accent))]/10 via-[rgb(var(--color-cat-technical))]/10 to-pink-500/10">
               <div className="flex items-center gap-2">
                 <BsBell className="w-4 h-4 text-accent" />
                 <h3 className="text-sm font-semibold text-primary">Notifications</h3>
@@ -269,7 +269,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
             <div className="overflow-y-auto flex-1">
               {loading ? (
                 <div className="p-8 text-center text-secondary">
-                  <div className="inline-block w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                  <div className="inline-block w-6 h-6 border-2 border-[rgb(var(--color-accent))] border-t-transparent rounded-full animate-spin"></div>
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="p-8 text-center text-secondary">
@@ -284,9 +284,9 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                       initial={{ opacity: 0, x: -20, y: -10 }}
                       animate={{ opacity: 1, x: 0, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className={`group relative p-4 hover:bg-gradient-to-r hover:from-indigo-500/5 hover:to-purple-500/5 cursor-pointer transition-all duration-200 ${
+                      className={`group relative p-4 hover:bg-gradient-to-r hover:from-[rgb(var(--color-accent))]/5 hover:to-[rgb(var(--color-cat-technical))]/5 cursor-pointer transition-all duration-200 ${
                         !notification.isRead 
-                          ? 'bg-gradient-to-r from-indigo-500/10 to-indigo-500/5 border-l-4 border-indigo-500 shadow-sm' 
+                          ? 'bg-gradient-to-r from-[rgb(var(--color-accent))]/10 to-[rgb(var(--color-accent))]/5 border-l-4 border-[rgb(var(--color-accent))] shadow-sm' 
                           : 'hover:border-l-2 hover:border-theme'
                       }`}
                       onClick={() => {

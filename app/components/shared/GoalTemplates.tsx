@@ -51,14 +51,14 @@ export default function GoalTemplates({ onSelect }: GoalTemplatesProps) {
           onClick={() => setSelectedCategory('all')}
           className={`relative px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300
             ${selectedCategory === 'all' 
-              ? 'text-[rgb(var(--color-text-inverse))] bg-gradient-to-r from-blue-500/90 to-purple-500/90 shadow-purple-500/20' 
+              ? 'text-[rgb(var(--color-text-inverse))] bg-gradient-to-r from-[rgb(var(--color-info))]/90 to-[rgb(var(--color-cat-technical))]/90 shadow-purple-500/20' 
               : 'text-secondary hover:text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary'}`}
         >
           <span className="relative z-10">All Templates</span>
           {selectedCategory === 'all' && (
             <motion.div
               layoutId="activeCategory"
-              className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl blur-xl"
+              className="absolute inset-0 bg-gradient-to-r from-[rgb(var(--color-info))]/20 to-[rgb(var(--color-cat-technical))]/20 rounded-xl blur-xl"
             />
           )}
         </button>
@@ -68,14 +68,14 @@ export default function GoalTemplates({ onSelect }: GoalTemplatesProps) {
             onClick={() => setSelectedCategory(category)}
             className={`relative px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300
               ${selectedCategory === category 
-                ? 'text-[rgb(var(--color-text-inverse))] bg-gradient-to-r from-blue-500/90 to-purple-500/90 shadow-purple-500/20' 
+                ? 'text-[rgb(var(--color-text-inverse))] bg-gradient-to-r from-[rgb(var(--color-info))]/90 to-[rgb(var(--color-cat-technical))]/90 shadow-purple-500/20' 
                 : 'text-secondary hover:text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary'}`}
           >
             <span className="relative z-10">{category}</span>
             {selectedCategory === category && (
               <motion.div
                 layoutId="activeCategory"
-                className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl blur-xl"
+                className="absolute inset-0 bg-gradient-to-r from-[rgb(var(--color-info))]/20 to-[rgb(var(--color-cat-technical))]/20 rounded-xl blur-xl"
               />
             )}
           </button>

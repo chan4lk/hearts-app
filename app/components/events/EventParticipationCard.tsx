@@ -45,11 +45,11 @@ export const EventParticipationCard = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'REGISTERED':
-        return 'bg-cat-professional text-cat-professional border-blue-500/30';
+        return 'bg-cat-professional text-cat-professional border-[rgb(var(--color-info))]/30';
       case 'ATTENDED':
-        return 'bg-cat-training text-cat-training border-green-500/30';
+        return 'bg-cat-training text-cat-training border-[rgb(var(--color-cat-training))]/30';
       case 'NO_SHOW':
-        return 'bg-error-muted text-error border-red-500/30';
+        return 'bg-error-muted text-error border-[rgb(var(--color-error))]/30';
       case 'CANCELLED':
         return 'bg-surface-secondary text-secondary border-gray-500/30';
       default:
@@ -86,7 +86,7 @@ export const EventParticipationCard = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl border border-theme bg-surface-secondary p-5 backdrop-blur-xl hover:border-teal-500/50 transition"
+      className="rounded-xl border border-theme bg-surface-secondary p-5 backdrop-blur-xl hover:border-[rgb(var(--color-event-social))]/50 transition"
     >
       <div className="mb-4 flex items-start justify-between">
         <div className="flex-1">
@@ -139,7 +139,7 @@ export const EventParticipationCard = ({
               });
             }}
             disabled={isLoading}
-            className="w-full rounded-lg border border-theme bg-surface-secondary px-3 py-2 text-sm text-primary focus:border-teal-500 focus:outline-none disabled:opacity-50"
+            className="w-full rounded-lg border border-theme bg-surface-secondary px-3 py-2 text-sm text-primary focus:border-[rgb(var(--color-event-social))] focus:outline-none disabled:opacity-50"
           >
             <option value="">Select role…</option>
             {TOASTMASTER_ROLES.map((role) => (
@@ -166,7 +166,7 @@ export const EventParticipationCard = ({
               });
             }}
             disabled={isLoading}
-            className="w-full rounded-lg border border-theme bg-surface-secondary px-3 py-2 text-sm text-primary focus:border-teal-500 focus:outline-none disabled:opacity-50"
+            className="w-full rounded-lg border border-theme bg-surface-secondary px-3 py-2 text-sm text-primary focus:border-[rgb(var(--color-event-social))] focus:outline-none disabled:opacity-50"
           >
             <option value="">Select…</option>
             {HEARTS_TALK_ROLES.map((r) => (
@@ -182,7 +182,7 @@ export const EventParticipationCard = ({
       {isPastEvent && (
         <div className="mb-4 space-y-3">
           {hoursContributed && (
-            <div className="rounded-lg bg-cat-personal border border-teal-500/20 p-3">
+            <div className="rounded-lg bg-cat-personal border border-[rgb(var(--color-event-social))]/20 p-3">
               <p className="text-xs text-secondary mb-1">Hours Contributed</p>
               <p className="text-lg font-bold text-cat-personal">{hoursContributed}h</p>
             </div>

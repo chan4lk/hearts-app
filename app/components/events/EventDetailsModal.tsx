@@ -68,7 +68,7 @@ export const EventDetailsModal = ({
               </div>
 
               {/* Date & Time */}
-              <div className="flex items-start gap-3 rounded-lg bg-cat-personal border border-teal-500/20 p-3">
+              <div className="flex items-start gap-3 rounded-lg bg-cat-personal border border-[rgb(var(--color-event-social))]/20 p-3">
                 <BsCalendar className="text-cat-personal mt-1 flex-shrink-0" />
                 <div>
                   <p className="text-xs text-secondary mb-1">Date & Time</p>
@@ -112,7 +112,7 @@ export const EventDetailsModal = ({
               </div>
 
               {/* Registration Deadline */}
-              <div className="rounded-lg bg-warning-muted border border-amber-500/20 p-3">
+              <div className="rounded-lg bg-warning-muted border border-[rgb(var(--color-warning))]/20 p-3">
                 <p className="text-xs text-secondary mb-1">Registration Deadline</p>
                 <p className="text-primary font-medium">
                   {new Date(event.registrationDeadline).toLocaleString()}

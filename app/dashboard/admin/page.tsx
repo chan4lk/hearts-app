@@ -300,9 +300,9 @@ export default function AdminDashboard() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'operational':
-        return 'text-success bg-success-muted border-emerald-500/20';
+        return 'text-success bg-success-muted border-[rgb(var(--color-success))]/20';
       case 'degraded':
-        return 'text-warning bg-warning-muted border-amber-500/20';
+        return 'text-warning bg-warning-muted border-[rgb(var(--color-warning))]/20';
       case 'down':
         return 'text-error bg-error-muted border-[rgba(var(--color-error),0.2)]';
       default:

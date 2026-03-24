@@ -13,13 +13,13 @@ export const STATUS_STYLES: Record<Exclude<GoalStatus, 'DELETED'>, StatusStyle> 
     bg: 'bg-success-muted',
     text: 'text-success',
     icon: createIcon(BsShield, 'w-4 h-4'),
-    gradient: 'from-emerald-500/10'
+    gradient: 'from-[rgb(var(--color-success))]/10'
   },
   PENDING: {
     bg: 'bg-[rgb(var(--color-warning))]/10',
-    text: 'text-amber-400',
+    text: 'text-warning',
     icon: createIcon(BsClock, 'w-4 h-4'),
-    gradient: 'from-amber-500/10'
+    gradient: 'from-[rgb(var(--color-warning))]/10'
   },
   REJECTED: {
     bg: 'bg-error-muted',
@@ -31,13 +31,13 @@ export const STATUS_STYLES: Record<Exclude<GoalStatus, 'DELETED'>, StatusStyle> 
     bg: 'bg-cat-professional',
     text: 'text-cat-professional',
     icon: createIcon(BsArrowRight, 'w-4 h-4'),
-    gradient: 'from-blue-500/10'
+    gradient: 'from-[rgb(var(--color-info))]/10'
   },
   COMPLETED: {
     bg: 'bg-cat-technical',
     text: 'text-cat-technical',
     icon: createIcon(BsCheckCircle, 'w-4 h-4'),
-    gradient: 'from-purple-500/10'
+    gradient: 'from-[rgb(var(--color-cat-technical))]/10'
   },
   DRAFT: {
     bg: 'bg-surface-secondary',
@@ -49,13 +49,13 @@ export const STATUS_STYLES: Record<Exclude<GoalStatus, 'DELETED'>, StatusStyle> 
     bg: 'bg-cat-professional',
     text: 'text-cat-professional',
     icon: createIcon(BsPlayCircle, 'w-4 h-4'),
-    gradient: 'from-blue-500/10'
+    gradient: 'from-[rgb(var(--color-info))]/10'
   },
   ON_HOLD: {
     bg: 'bg-[rgb(var(--color-warning))]/10',
-    text: 'text-amber-400',
+    text: 'text-warning',
     icon: createIcon(BsPauseCircle, 'w-4 h-4'),
-    gradient: 'from-amber-500/10'
+    gradient: 'from-[rgb(var(--color-warning))]/10'
   },
   BLOCKED: {
     bg: 'bg-error-muted',

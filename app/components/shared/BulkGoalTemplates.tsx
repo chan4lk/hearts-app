@@ -152,7 +152,7 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
                 type="checkbox"
                 checked={selectedEmployees.includes(employee.id)}
                 onChange={() => handleEmployeeToggle(employee.id)}
-                className="rounded border-gray-300 text-info focus-ring"
+                className="rounded border-theme text-info focus-ring"
               />
               <span className="text-sm text-primary dark:text-secondary truncate">
                 {employee.name}

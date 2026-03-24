@@ -41,7 +41,7 @@ export function AzureIntegration() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[rgb(var(--color-info))]/8 dark:bg-cat-professional border border-blue-500/12 dark:border-blue-500/15 mb-5">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[rgb(var(--color-info))]/8 dark:bg-cat-professional border border-[rgb(var(--color-info))]/12 dark:border-[rgb(var(--color-info))]/15 mb-5">
                 <div className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--color-info))]" />
                 <span className="text-info text-xs font-semibold tracking-wide uppercase">Integration</span>
               </div>
@@ -82,7 +82,7 @@ export function AzureIntegration() {
           >
             <div className="relative">
               {/* Glow */}
-              <div className="absolute -inset-8 bg-gradient-to-r from-blue-500/5 via-indigo-500/8 to-purple-500/5 rounded-full blur-3xl" />
+              <div className="absolute -inset-8 bg-gradient-to-r from-[rgb(var(--color-info))]/5 via-indigo-500/8 to-[rgb(var(--color-cat-technical))]/5 rounded-full blur-3xl" />
 
               {/* Card stack visual */}
               <div className="relative w-72 h-72 sm:w-80 sm:h-80">
@@ -93,7 +93,7 @@ export function AzureIntegration() {
 
                 {/* Center logo */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[rgb(var(--color-info))] to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
                     <svg className="w-10 h-10 text-[rgb(var(--color-text-inverse))]" viewBox="0 0 21 21" fill="none">
                       <rect x="1" y="1" width="8.5" height="8.5" fill="#F25022" rx="1" />
                       <rect x="11.5" y="1" width="8.5" height="8.5" fill="#7FBA00" rx="1" />

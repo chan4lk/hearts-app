@@ -80,7 +80,7 @@ export default function AIWritingAssistant({
         <select
           value={tone}
           onChange={(e) => setTone(e.target.value as any)}
-          className="px-3 py-2 input-theme rounded-lg focus:border-purple-500 focus:outline-none text-sm"
+          className="px-3 py-2 input-theme rounded-lg focus:border-[rgb(var(--color-cat-technical))] focus:outline-none text-sm"
         >
           <option value="professional">Professional</option>
           <option value="constructive">Constructive</option>
@@ -93,9 +93,9 @@ export default function AIWritingAssistant({
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-4 bg-surface-secondary rounded-lg border border-purple-500/30 overflow-hidden"
+          className="mt-4 bg-surface-secondary rounded-lg border border-[rgb(var(--color-cat-technical))]/30 overflow-hidden"
         >
-          <div className="bg-gradient-to-r from-purple-600/20 to-indigo-600/20 p-3 border-b border-purple-500/30">
+          <div className="bg-gradient-to-r from-purple-600/20 to-indigo-600/20 p-3 border-b border-[rgb(var(--color-cat-technical))]/30">
             <h4 className="text-primary font-medium flex items-center gap-2">
               <BsStars className="w-4 h-4 text-cat-technical" />
               AI Suggestion
@@ -114,7 +114,7 @@ export default function AIWritingAssistant({
             {/* Improved */}
             <div>
               <p className="text-cat-technical text-xs font-medium mb-2">IMPROVED</p>
-              <div className="bg-cat-technical/20 rounded-lg p-3 border border-purple-500/30">
+              <div className="bg-cat-technical/20 rounded-lg p-3 border border-[rgb(var(--color-cat-technical))]/30">
                 <p className="text-primary text-sm">{improved}</p>
               </div>
             </div>

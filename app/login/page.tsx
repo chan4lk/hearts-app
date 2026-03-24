@@ -114,13 +114,13 @@ function OrbitalRings() {
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden="true">
       {/* Outer ring */}
       <div className="absolute w-[480px] h-[480px] sm:w-[560px] sm:h-[560px] login-orbit-ring">
-        <div className="absolute inset-0 rounded-full border border-indigo-500/[0.06]" />
+        <div className="absolute inset-0 rounded-full border border-[rgb(var(--color-accent))]/[0.06]" />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-accent/40" />
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-1 h-1 rounded-full bg-[rgba(var(--color-cat-technical),0.3)]" />
       </div>
       {/* Inner ring */}
       <div className="absolute w-[380px] h-[380px] sm:w-[440px] sm:h-[440px] login-orbit-ring-reverse">
-        <div className="absolute inset-0 rounded-full border border-purple-500/[0.05]" style={{ borderStyle: 'dashed' }} />
+        <div className="absolute inset-0 rounded-full border border-[rgb(var(--color-cat-technical))]/[0.05]" style={{ borderStyle: 'dashed' }} />
         <div className="absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-violet-400/40" />
       </div>
     </div>
@@ -198,7 +198,7 @@ function LoginForm() {
           className="w-full max-w-[380px] relative z-10"
         >
           {/* Ambient glow behind card */}
-          <div className="absolute -inset-4 rounded-[32px] bg-gradient-to-b from-indigo-500/15 via-purple-500/8 to-transparent blur-2xl opacity-70" />
+          <div className="absolute -inset-4 rounded-[32px] bg-gradient-to-b from-[rgb(var(--color-accent))]/15 via-[rgb(var(--color-cat-technical))]/8 to-transparent blur-2xl opacity-70" />
 
           <div className="login-glass-card rounded-[24px] p-8 sm:p-10 relative overflow-hidden">
             {/* Shimmer overlay */}
@@ -219,12 +219,12 @@ function LoginForm() {
                 <div className="flex justify-center">
                   <div className="relative">
                     {/* Outer glow pulse */}
-                    <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-indigo-500/20 to-purple-500/20 blur-xl animate-pulse-slow" />
+                    <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-[rgb(var(--color-accent))]/20 to-[rgb(var(--color-cat-technical))]/20 blur-xl animate-pulse-slow" />
                     {/* Logo container */}
                     <motion.div
                       whileHover={{ scale: 1.05, rotate: 2 }}
                       transition={{ type: 'spring', stiffness: 400 }}
-                      className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-700 flex items-center justify-center shadow-xl shadow-indigo-500/30"
+                      className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-[rgb(var(--color-accent))] via-indigo-600 to-purple-700 flex items-center justify-center shadow-xl shadow-[rgb(var(--color-accent))]/30"
                     >
                       {/* Inner shine */}
                       <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/15 to-transparent" />
@@ -268,7 +268,7 @@ function LoginForm() {
                   disabled={isLoading}
                   whileHover={{ scale: 1.02, y: -1 }}
                   whileTap={{ scale: 0.98 }}
-                  className="login-btn-primary group w-full relative flex items-center justify-center gap-3 h-[52px] px-6 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:via-indigo-400 hover:to-purple-500 text-[rgb(var(--color-text-inverse))] font-semibold shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="login-btn-primary group w-full relative flex items-center justify-center gap-3 h-[52px] px-6 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-[rgb(var(--color-accent))] hover:via-indigo-400 hover:to-[rgb(var(--color-cat-technical))] text-[rgb(var(--color-text-inverse))] font-semibold shadow-lg shadow-[rgb(var(--color-accent))]/25 hover:shadow-[rgb(var(--color-accent))]/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <AnimatePresence mode="wait">
                     {isLoading ? (

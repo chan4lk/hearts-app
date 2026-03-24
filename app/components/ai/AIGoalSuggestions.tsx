@@ -122,7 +122,7 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-surface-elevated rounded-xl shadow-theme-lg max-w-4xl w-full max-h-[80vh] overflow-hidden border border-purple-500/20"
+              className="bg-surface-elevated rounded-xl shadow-theme-lg max-w-4xl w-full max-h-[80vh] overflow-hidden border border-[rgb(var(--color-cat-technical))]/20"
             >
               {/* Header */}
               <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6">
@@ -144,7 +144,7 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
                     <BsXCircle className="w-6 h-6" />
                   </button>
                 </div>
-                <p className="text-purple-100 mt-2">
+                <p className="text-[rgb(var(--color-text-inverse))] mt-2">
                   Personalized goals based on your role, performance, and career development
                 </p>
               </div>
@@ -154,13 +154,13 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
                 {loading ? (
                   <div className="flex flex-col items-center justify-center py-12">
                     <BsStars className="w-12 h-12 text-cat-technical animate-spin mb-4" />
-                    <p className="text-purple-200 text-lg font-medium">Generating AI suggestions...</p>
+                    <p className="text-secondary text-lg font-medium">Generating AI suggestions...</p>
                     <p className="text-cat-technical text-sm mt-2">This may take a few moments</p>
                   </div>
                 ) : error ? (
                   <div className="flex flex-col items-center justify-center py-12">
                     <BsXCircle className="w-12 h-12 text-error mb-4" />
-                    <p className="text-red-200 text-lg font-medium">Error generating suggestions</p>
+                    <p className="text-error text-lg font-medium">Error generating suggestions</p>
                     <p className="text-error text-sm mt-2">{error}</p>
                   </div>
                 ) : suggestions.length > 0 ? (
@@ -171,7 +171,7 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="bg-surface-secondary rounded-xl p-6 border-2 border-theme hover:border-purple-500 transition-all shadow-lg"
+                      className="bg-surface-secondary rounded-xl p-6 border-2 border-theme hover:border-[rgb(var(--color-cat-technical))] transition-all shadow-lg"
                     >
                       {/* Title Row */}
                       <div className="mb-4">
@@ -180,23 +180,23 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
                         </h3>
                         <div className="flex flex-wrap gap-2">
                           {suggestion.category && (
-                            <span className="px-3 py-1.5 bg-cat-technical text-cat-technical text-sm rounded-lg border border-purple-500/30 font-medium">
+                            <span className="px-3 py-1.5 bg-cat-technical text-cat-technical text-sm rounded-lg border border-[rgb(var(--color-cat-technical))]/30 font-medium">
                               📁 {suggestion.category}
                             </span>
                           )}
                           {suggestion.priority && (
                             <span className={`px-3 py-1.5 text-sm rounded-lg border font-medium ${
                               suggestion.priority === 'High'
-                                ? 'bg-error-muted text-error border-red-500/30'
+                                ? 'bg-error-muted text-error border-[rgb(var(--color-error))]/30'
                                 : suggestion.priority === 'Medium'
-                                ? 'bg-warning-muted text-amber-300 border-amber-500/30'
-                                : 'bg-cat-training text-cat-training border-green-500/30'
+                                ? 'bg-warning-muted text-warning border-[rgba(var(--color-warning),0.3)]'
+                                : 'bg-cat-training text-cat-training border-[rgb(var(--color-cat-training))]/30'
                             }`}>
                               🎯 {suggestion.priority} Priority
                             </span>
                           )}
                           {suggestion.estimatedDuration && (
-                            <span className="px-3 py-1.5 bg-cat-professional text-cat-professional text-sm rounded-lg border border-blue-500/30 font-medium">
+                            <span className="px-3 py-1.5 bg-cat-professional text-cat-professional text-sm rounded-lg border border-[rgb(var(--color-info))]/30 font-medium">
                               ⏱️ {suggestion.estimatedDuration}
                             </span>
                           )}
@@ -216,7 +216,7 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => handleSelectGoal(suggestion)}
-                          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-[rgb(var(--color-text-inverse))] rounded-lg transition-all shadow-lg shadow-purple-500/30 font-semibold"
+                          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-[rgb(var(--color-cat-technical))] hover:to-[rgb(var(--color-accent))] text-[rgb(var(--color-text-inverse))] rounded-lg transition-all shadow-lg shadow-purple-500/30 font-semibold"
                         >
                           <BsCheckCircle className="w-5 h-5" />
                           <span>Use This Goal</span>
@@ -228,16 +228,16 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
                 ) : (
                   <div className="flex flex-col items-center justify-center py-12">
                     <BsStars className="w-12 h-12 text-cat-technical mb-4" />
-                    <p className="text-purple-200 text-lg font-medium">No suggestions available</p>
+                    <p className="text-secondary text-lg font-medium">No suggestions available</p>
                   </div>
                 )}
               </div>
 
               {/* Footer */}
-              <div className="bg-gradient-to-r from-purple-900/30 to-indigo-900/30 p-5 border-t border-purple-500/30">
+              <div className="bg-gradient-to-r from-purple-900/30 to-indigo-900/30 p-5 border-t border-[rgb(var(--color-cat-technical))]/30">
                 <div className="flex items-center justify-center gap-3">
                   <BsLightbulb className="w-5 h-5 text-cat-technical" />
-                  <p className="text-purple-200 text-sm font-medium">
+                  <p className="text-secondary text-sm font-medium">
                     Click "Use This Goal" to automatically open the goal creation form with pre-filled details!
                   </p>
                 </div>

@@ -296,7 +296,7 @@ function AdminEventsContent() {
                             onClick={() => setPage(p)}
                             className={`rounded-lg px-3 py-1 text-sm font-medium transition-all ${
                               page === p
-                                ? 'bg-accent hover:opacity-90 text-[rgb(var(--color-text-inverse))] shadow-cyan-500/30'
+                                ? 'bg-accent hover:opacity-90 text-[rgb(var(--color-text-inverse))] shadow-[rgb(var(--color-info))]/30'
                                 : 'border border-white/20 text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary'
                             }`}
                           >

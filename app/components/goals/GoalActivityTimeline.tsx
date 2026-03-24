@@ -56,15 +56,15 @@ export default function GoalActivityTimeline({ activities }: GoalActivityTimelin
   const getActivityColor = (type: string) => {
     switch (type) {
       case 'created':
-        return 'border-blue-500';
+        return 'border-[rgb(var(--color-info))]';
       case 'progress_update':
-        return 'border-green-500';
+        return 'border-[rgb(var(--color-cat-training))]';
       case 'status_change':
-        return 'border-amber-500';
+        return 'border-[rgb(var(--color-warning))]';
       case 'comment':
-        return 'border-purple-500';
+        return 'border-[rgb(var(--color-cat-technical))]';
       case 'completed':
-        return 'border-emerald-500';
+        return 'border-[rgb(var(--color-success))]';
       default:
         return 'border-gray-500';
     }
@@ -152,7 +152,7 @@ export default function GoalActivityTimeline({ activities }: GoalActivityTimelin
                 )}
 
                 {activity.data.comment && (
-                  <div className="mt-3 p-3 bg-cat-technical/20 rounded border border-purple-500/20">
+                  <div className="mt-3 p-3 bg-cat-technical/20 rounded border border-[rgb(var(--color-cat-technical))]/20">
                     <p className="text-sm text-secondary">{activity.data.comment}</p>
                   </div>
                 )}

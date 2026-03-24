@@ -6,17 +6,17 @@ export const CATEGORIES = [
     label: 'Professional Development',
     icon: BsBriefcase,
     iconColor: 'text-cat-professional',
-    color: 'from-blue-500 to-indigo-500',
-    bgGradient: 'from-blue-500/10 to-transparent',
+    color: 'from-[rgb(var(--color-info))] to-[rgb(var(--color-accent))]',
+    bgGradient: 'from-[rgb(var(--color-info))]/10 to-transparent',
     bgColor: 'bg-[#1a1f35]'
   },
   {
     value: 'TECHNICAL',
     label: 'Technical Skills',
     icon: BsLightningCharge,
-    iconColor: 'text-amber-400',
-    color: 'from-purple-500 to-pink-500',
-    bgGradient: 'from-amber-500/10 to-transparent',
+    iconColor: 'text-warning',
+    color: 'from-[rgb(var(--color-cat-technical))] to-pink-500',
+    bgGradient: 'from-[rgb(var(--color-warning))]/10 to-transparent',
     bgColor: 'bg-[#2a2520]'
   },
   {
@@ -24,8 +24,8 @@ export const CATEGORIES = [
     label: 'Leadership',
     icon: BsAward,
     iconColor: 'text-cat-technical',
-    color: 'from-emerald-500 to-teal-500',
-    bgGradient: 'from-purple-500/10 to-transparent',
+    color: 'from-[rgb(var(--color-success))] to-[rgb(var(--color-event-social))]',
+    bgGradient: 'from-[rgb(var(--color-cat-technical))]/10 to-transparent',
     bgColor: 'bg-[#251a35]'
   },
   {
@@ -33,8 +33,8 @@ export const CATEGORIES = [
     label: 'Personal Growth',
     icon: BsHeart,
     iconColor: 'text-success',
-    color: 'from-rose-500 to-red-500',
-    bgGradient: 'from-emerald-500/10 to-transparent',
+    color: 'from-[rgb(var(--color-error))] to-[rgb(var(--color-error))]',
+    bgGradient: 'from-[rgb(var(--color-success))]/10 to-transparent',
     bgColor: 'bg-[#1a2a25]'
   },
   {
@@ -42,8 +42,8 @@ export const CATEGORIES = [
     label: 'Training',
     icon: BsBook,
     iconColor: 'text-error',
-    color: 'from-amber-500 to-orange-500',
-    bgGradient: 'from-rose-500/10 to-transparent',
+    color: 'from-[rgb(var(--color-warning))] to-[rgb(var(--color-rating-2))]',
+    bgGradient: 'from-[rgb(var(--color-error))]/10 to-transparent',
     bgColor: 'bg-[#2a1a20]'
   },
   {
@@ -51,8 +51,8 @@ export const CATEGORIES = [
     label: 'Key Performance Indicators',
     icon: BsBarChart,
     iconColor: 'text-info',
-    color: 'from-cyan-500 to-blue-500',
-    bgGradient: 'from-cyan-500/10 to-transparent',
+    color: 'from-[rgb(var(--color-info))] to-[rgb(var(--color-info))]',
+    bgGradient: 'from-[rgb(var(--color-info))]/10 to-transparent',
     bgColor: 'bg-[#1a2a35]'
   }
 ] as const;
@@ -66,7 +66,7 @@ export const GOAL_TEMPLATES = [
     iconColor: 'text-cat-professional',
     description: 'Complete [Project Name] milestone by [Date] achieving [Specific Metrics]',
     subtitle: 'Project Excellence',
-    bgGradient: 'from-blue-500/10 to-transparent',
+    bgGradient: 'from-[rgb(var(--color-info))]/10 to-transparent',
     bgColor: 'bg-[#1a1f35]'
   },
   {
@@ -74,10 +74,10 @@ export const GOAL_TEMPLATES = [
     title: 'Skill Mastery',
     category: 'TECHNICAL',
     icon: 'BsLightbulb',
-    iconColor: 'text-amber-400',
+    iconColor: 'text-warning',
     description: 'Master [Technology/Skill] through [Training/Project] by [Date]',
     subtitle: 'Technical Growth',
-    bgGradient: 'from-amber-500/10 to-transparent',
+    bgGradient: 'from-[rgb(var(--color-warning))]/10 to-transparent',
     bgColor: 'bg-[#2a2520]'
   },
   {
@@ -88,7 +88,7 @@ export const GOAL_TEMPLATES = [
     iconColor: 'text-cat-technical',
     description: 'Lead [Team/Project] to achieve [Specific Outcome] by [Date]',
     subtitle: 'Leadership Development',
-    bgGradient: 'from-purple-500/10 to-transparent',
+    bgGradient: 'from-[rgb(var(--color-cat-technical))]/10 to-transparent',
     bgColor: 'bg-[#251a35]'
   },
   {
@@ -99,7 +99,7 @@ export const GOAL_TEMPLATES = [
     iconColor: 'text-success',
     description: 'Achieve [Career Milestone] through [Actions] by [Date]',
     subtitle: 'Professional Growth',
-    bgGradient: 'from-emerald-500/10 to-transparent',
+    bgGradient: 'from-[rgb(var(--color-success))]/10 to-transparent',
     bgColor: 'bg-[#1a2a25]'
   },
   {
@@ -110,7 +110,7 @@ export const GOAL_TEMPLATES = [
     iconColor: 'text-accent',
     description: 'Develop innovative solution for [Problem] achieving [Metrics]',
     subtitle: 'Innovation & Creativity',
-    bgGradient: 'from-indigo-500/10 to-transparent',
+    bgGradient: 'from-[rgb(var(--color-accent))]/10 to-transparent',
     bgColor: 'bg-[#1a1a35]'
   },
   {
@@ -121,7 +121,7 @@ export const GOAL_TEMPLATES = [
     iconColor: 'text-error',
     description: 'Obtain [Certification Name] certification by [Date]',
     subtitle: 'Professional Certification',
-    bgGradient: 'from-rose-500/10 to-transparent',
+    bgGradient: 'from-[rgb(var(--color-error))]/10 to-transparent',
     bgColor: 'bg-[#2a1a20]'
   },
   {
@@ -132,7 +132,7 @@ export const GOAL_TEMPLATES = [
     iconColor: 'text-cat-training',
     description: 'Improve team collaboration by implementing [Strategy] and achieving [Metrics] by [Date]',
     subtitle: 'Team Building',
-    bgGradient: 'from-green-500/10 to-transparent',
+    bgGradient: 'from-[rgba(var(--color-cat-training),0.1)] to-transparent',
     bgColor: 'bg-[#1a2a20]'
   },
   {
@@ -143,7 +143,7 @@ export const GOAL_TEMPLATES = [
     iconColor: 'text-info',
     description: 'Achieve quarterly revenue target of [Amount] with [Growth %] YoY growth by [Date]',
     subtitle: 'Financial Performance',
-    bgGradient: 'from-cyan-500/10 to-transparent',
+    bgGradient: 'from-[rgb(var(--color-info))]/10 to-transparent',
     bgColor: 'bg-[#1a2a2a]'
   },
   {
@@ -154,7 +154,7 @@ export const GOAL_TEMPLATES = [
     iconColor: 'text-warning',
     description: 'Maintain CSAT score above [Target %] and reduce customer churn to [Target %]',
     subtitle: 'Customer Success Metrics',
-    bgGradient: 'from-yellow-500/10 to-transparent',
+    bgGradient: 'from-[rgba(var(--color-rating-3),0.1)] to-transparent',
     bgColor: 'bg-[#2a2a1a]'
   },
   {
@@ -165,7 +165,7 @@ export const GOAL_TEMPLATES = [
     iconColor: 'text-cat-personal',
     description: 'Reduce operational costs by [Target %] while maintaining quality standards above [Target %]',
     subtitle: 'Process Optimization',
-    bgGradient: 'from-teal-500/10 to-transparent',
+    bgGradient: 'from-[rgb(var(--color-event-social))]/10 to-transparent',
     bgColor: 'bg-[#1a2a25]'
   },
   {
@@ -176,7 +176,7 @@ export const GOAL_TEMPLATES = [
     iconColor: 'text-accent',
     description: 'Achieve team productivity rate of [Target %] and maintain employee satisfaction above [Score]',
     subtitle: 'HR Metrics',
-    bgGradient: 'from-indigo-500/10 to-transparent',
+    bgGradient: 'from-[rgb(var(--color-accent))]/10 to-transparent',
     bgColor: 'bg-[#1a1a35]'
   },
   {
@@ -187,7 +187,7 @@ export const GOAL_TEMPLATES = [
     iconColor: 'text-cat-technical',
     description: 'Increase market share by [Target %] in [Market Segment] through [Strategic Actions]',
     subtitle: 'Market Performance',
-    bgGradient: 'from-purple-500/10 to-transparent',
+    bgGradient: 'from-[rgb(var(--color-cat-technical))]/10 to-transparent',
     bgColor: 'bg-[#251a35]'
   },
   {
@@ -198,7 +198,7 @@ export const GOAL_TEMPLATES = [
     iconColor: 'text-success',
     description: 'Maintain product/service quality rating of [Target %] with defect rate below [Target %]',
     subtitle: 'Quality Metrics',
-    bgGradient: 'from-emerald-500/10 to-transparent',
+    bgGradient: 'from-[rgb(var(--color-success))]/10 to-transparent',
     bgColor: 'bg-[#1a2a25]'
   },
   {
@@ -209,7 +209,7 @@ export const GOAL_TEMPLATES = [
     iconColor: 'text-cat-professional',
     description: 'Maintain [Target %] of development hours dedicated to core development activities',
     subtitle: 'Development Efficiency',
-    bgGradient: 'from-blue-500/10 to-transparent',
+    bgGradient: 'from-[rgb(var(--color-info))]/10 to-transparent',
     bgColor: 'bg-[#1a1f35]'
   },
   {
@@ -220,7 +220,7 @@ export const GOAL_TEMPLATES = [
     iconColor: 'text-error',
     description: 'Achieve maximum of [Number] bugs per story with [Number] peer test cycles',
     subtitle: 'Quality Assurance',
-    bgGradient: 'from-red-500/10 to-transparent',
+    bgGradient: 'from-[rgba(var(--color-error),0.1)] to-transparent',
     bgColor: 'bg-[#2a1a20]'
   },
   {
@@ -231,7 +231,7 @@ export const GOAL_TEMPLATES = [
     iconColor: 'text-cat-training',
     description: 'Maintain sprint delivery rate of [Target %] or higher',
     subtitle: 'Sprint Performance',
-    bgGradient: 'from-green-500/10 to-transparent',
+    bgGradient: 'from-[rgba(var(--color-cat-training),0.1)] to-transparent',
     bgColor: 'bg-[#1a2a20]'
   },
   {
@@ -242,7 +242,7 @@ export const GOAL_TEMPLATES = [
     iconColor: 'text-cat-technical',
     description: 'Achieve [Target %] participation in company events (Code Crunch, Toastmasters)',
     subtitle: 'Team Participation',
-    bgGradient: 'from-purple-500/10 to-transparent',
+    bgGradient: 'from-[rgb(var(--color-cat-technical))]/10 to-transparent',
     bgColor: 'bg-[#251a35]'
   },
   {
@@ -250,10 +250,10 @@ export const GOAL_TEMPLATES = [
     title: 'Knowledge Sharing',
     category: 'KPI',
     icon: 'BsLightbulb',
-    iconColor: 'text-amber-400',
+    iconColor: 'text-warning',
     description: 'Conduct [Number] Hearts Talks/podcasts for knowledge sharing',
     subtitle: 'Learning & Development',
-    bgGradient: 'from-amber-500/10 to-transparent',
+    bgGradient: 'from-[rgb(var(--color-warning))]/10 to-transparent',
     bgColor: 'bg-[#2a2520]'
   }
 ] as const;
@@ -297,7 +297,7 @@ export const RATING_DESCRIPTIONS = {
 export const RATING_HOVER_COLORS = {
   1: 'hover:bg-error-muted hover:text-error',
   2: 'hover:bg-rating-2 hover:text-rating-2',
-  3: 'hover:bg-rating-3 hover:text-yellow-300',
+  3: 'hover:bg-rating-3 hover:text-warning',
   4: 'hover:bg-cat-professional hover:text-cat-professional',
   5: 'hover:bg-cat-training hover:text-cat-training'
 } as const;
@@ -315,12 +315,12 @@ export const STATUS_COLORS = {
 export const GOAL_STATUS_BADGE_CONFIG: Record<string, { bg: string; text: string }> = {
   APPROVED: { bg: 'bg-success-muted', text: 'text-success' },
   REJECTED: { bg: 'bg-error-muted', text: 'text-error' },
-  PENDING: { bg: 'bg-warning-muted', text: 'text-amber-400' },
+  PENDING: { bg: 'bg-warning-muted', text: 'text-warning' },
   MODIFIED: { bg: 'bg-cat-professional', text: 'text-cat-professional' },
   COMPLETED: { bg: 'bg-cat-training', text: 'text-cat-training' },
   DRAFT: { bg: 'bg-surface-secondary', text: 'text-tertiary' },
   IN_PROGRESS: { bg: 'bg-cat-professional', text: 'text-cat-professional' },
-  ON_HOLD: { bg: 'bg-warning-muted', text: 'text-amber-400' },
+  ON_HOLD: { bg: 'bg-warning-muted', text: 'text-warning' },
   BLOCKED: { bg: 'bg-error-muted', text: 'text-error' },
 };
 
@@ -330,56 +330,56 @@ export const DEPARTMENTS = [
     label: 'Engineering',
     icon: 'BsCode',
     iconColor: 'text-cat-professional',
-    color: 'from-blue-500 to-indigo-500'
+    color: 'from-[rgb(var(--color-info))] to-[rgb(var(--color-accent))]'
   },
   {
     value: 'SALES',
     label: 'Sales',
     icon: 'BsGraphUp',
     iconColor: 'text-cat-training',
-    color: 'from-green-500 to-emerald-500'
+    color: 'from-[rgb(var(--color-cat-training))] to-[rgb(var(--color-success))]'
   },
   {
     value: 'MARKETING',
     label: 'Marketing',
     icon: 'BsMegaphone',
     iconColor: 'text-cat-technical',
-    color: 'from-purple-500 to-pink-500'
+    color: 'from-[rgb(var(--color-cat-technical))] to-pink-500'
   },
   {
     value: 'HR',
     label: 'Human Resources',
     icon: 'BsPeople',
-    iconColor: 'text-amber-400',
-    color: 'from-amber-500 to-orange-500'
+    iconColor: 'text-warning',
+    color: 'from-[rgb(var(--color-warning))] to-[rgb(var(--color-rating-2))]'
   },
   {
     value: 'FINANCE',
     label: 'Finance',
     icon: 'BsCalculator',
     iconColor: 'text-success',
-    color: 'from-emerald-500 to-teal-500'
+    color: 'from-[rgb(var(--color-success))] to-[rgb(var(--color-event-social))]'
   },
   {
     value: 'OPERATIONS',
     label: 'Operations',
     icon: 'BsGear',
     iconColor: 'text-tertiary',
-    color: 'from-gray-500 to-slate-500'
+    color: 'from-[rgb(var(--color-border-primary))] to-[rgb(var(--color-border-secondary))]'
   },
   {
     value: 'CUSTOMER_SUCCESS',
     label: 'Customer Success',
     icon: 'BsHeart',
     iconColor: 'text-error',
-    color: 'from-rose-500 to-red-500'
+    color: 'from-[rgb(var(--color-error))] to-[rgb(var(--color-error))]'
   },
   {
     value: 'PRODUCT',
     label: 'Product',
     icon: 'BsLightbulb',
     iconColor: 'text-info',
-    color: 'from-cyan-500 to-blue-500'
+    color: 'from-[rgb(var(--color-info))] to-[rgb(var(--color-info))]'
   }
 ] as const;
 
@@ -397,7 +397,7 @@ export const PRIORITIES = [
     label: 'Medium',
     icon: BsDash,
     iconColor: 'text-warning',
-    color: 'from-yellow-400 to-orange-500',
+    color: 'from-[rgb(var(--color-rating-3))] to-[rgb(var(--color-rating-2))]',
     bgColor: 'bg-rating-3'
   },
   {
@@ -405,7 +405,7 @@ export const PRIORITIES = [
     label: 'High',
     icon: BsArrowUp,
     iconColor: 'text-rating-2',
-    color: 'from-orange-400 to-red-500',
+    color: 'from-[rgb(var(--color-rating-2))] to-[rgb(var(--color-error))]',
     bgColor: 'bg-rating-2'
   },
   {
@@ -413,7 +413,7 @@ export const PRIORITIES = [
     label: 'Urgent',
     icon: BsExclamationTriangle,
     iconColor: 'text-error',
-    color: 'from-red-400 to-red-600',
+    color: 'from-[rgb(var(--color-error))] to-[rgb(var(--color-error))]',
     bgColor: 'bg-error-muted'
   }
 ] as const;
@@ -421,29 +421,29 @@ export const PRIORITIES = [
 // ─── Theme / UI colors (shared; was manager/setgoals/styles/colors) ───
 export const THEME_COLORS = {
   primary: {
-    gradient: 'from-indigo-600/90 via-purple-600/90 to-pink-600/90',
+    gradient: 'from-[rgba(var(--color-accent),0.9)] via-[rgba(var(--color-cat-technical),0.9)] to-[rgba(var(--color-cat-kpi),0.9)]',
     text: 'text-accent',
     bg: 'bg-accent-muted',
-    border: 'border-indigo-500/50',
+    border: 'border-[rgb(var(--color-accent))]/50',
     hover: 'hover:bg-accent-muted',
   },
   secondary: {
-    gradient: 'from-blue-500/10 to-blue-600/10',
+    gradient: 'from-[rgb(var(--color-info))]/10 to-[rgba(var(--color-info),0.1)]',
     text: 'text-info',
     bg: 'bg-cat-professional',
-    border: 'border-blue-200/20 dark:border-blue-600/20',
+    border: 'border-[rgba(var(--color-info),0.2)] dark:border-[rgba(var(--color-info),0.2)]',
   },
   success: {
-    gradient: 'from-emerald-500/10 to-emerald-600/10',
+    gradient: 'from-[rgb(var(--color-success))]/10 to-[rgba(var(--color-success),0.1)]',
     text: 'text-success',
     bg: 'bg-success-muted',
-    border: 'border-emerald-200/20 dark:border-emerald-600/20',
+    border: 'border-[rgba(var(--color-success),0.2)] dark:border-[rgba(var(--color-success),0.2)]',
   },
   warning: {
-    gradient: 'from-amber-500/10 to-amber-600/10',
+    gradient: 'from-[rgb(var(--color-warning))]/10 to-[rgba(var(--color-warning),0.1)]',
     text: 'text-warning',
     bg: 'bg-[rgb(var(--color-warning))]/10',
-    border: 'border-amber-200/20 dark:border-amber-600/20',
+    border: 'border-[rgba(var(--color-warning),0.2)] dark:border-[rgba(var(--color-warning),0.2)]',
   },
   background: {
     primary: 'bg-surface-primary',
@@ -451,7 +451,7 @@ export const THEME_COLORS = {
     gradient: 'from-[#0B1120] via-[#0B1120] to-[#0B1120]',
   },
   border: {
-    light: 'border-slate-800/60',
+    light: 'border-theme',
   },
   text: {
     primary: 'text-[rgb(var(--color-text-inverse))]',

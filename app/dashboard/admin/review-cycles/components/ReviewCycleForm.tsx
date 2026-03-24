@@ -392,7 +392,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                 placeholder={loadingUsers ? "Loading employees..." : "Search employee by name or email..."}
                 disabled={loadingUsers && users.length === 0}
                 className={`w-full pl-10 pr-10 py-2 bg-surface-secondary text-primary rounded-lg border ${
-                  errors.userId ? 'border-red-500' : 'border-theme'
+                  errors.userId ? 'border-[rgb(var(--color-error))]' : 'border-theme'
                 } focus:outline-none focus:ring-2 focus-ring disabled:opacity-50 disabled:cursor-wait`}
               />
               <button
@@ -407,7 +407,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
               <div className="absolute z-50 w-full mt-1 bg-surface-elevated border border-theme rounded-lg max-h-60 overflow-y-auto">
                 {loadingUsers ? (
                   <div className="px-4 py-8 text-center text-secondary text-sm">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-500 mx-auto mb-2"></div>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[rgb(var(--color-accent))] mx-auto mb-2"></div>
                     Loading employees...
                   </div>
                 ) : filteredUsers.length > 0 ? (
@@ -485,7 +485,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
               <div className="absolute z-50 w-full mt-1 bg-surface-elevated border border-theme rounded-lg max-h-60 overflow-y-auto">
                 {loadingEmployees ? (
                   <div className="px-4 py-8 text-center text-secondary text-sm">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-500 mx-auto mb-2"></div>
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[rgb(var(--color-accent))] mx-auto mb-2"></div>
                     Loading reporting persons...
                   </div>
                 ) : filteredEmployees.length > 0 ? (
@@ -742,7 +742,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
           {formData.adjustedReviewMonth && 
            formData.reviewMonth && 
            formData.adjustedReviewMonth !== formData.reviewMonth && (
-            <div className="mt-2 p-3 bg-warning-muted border border-amber-500/30 rounded-lg">
+            <div className="mt-2 p-3 bg-warning-muted border border-[rgba(var(--color-warning),0.3)] rounded-lg">
               <div className="flex flex-wrap items-center gap-2 text-sm">
                 <span className="text-warning font-medium">Original:</span>
                 <span className="px-2 py-1 bg-surface-secondary rounded text-secondary line-through decoration-amber-400 decoration-2">
@@ -750,12 +750,12 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                 </span>
                 <span className="text-tertiary">→</span>
                 <span className="text-cat-training font-medium">Adjusted:</span>
-                <span className="px-2 py-1 bg-cat-training rounded text-cat-training font-semibold border border-green-500/30">
+                <span className="px-2 py-1 bg-cat-training rounded text-cat-training font-semibold border border-[rgb(var(--color-cat-training))]/30">
                   {formData.adjustedReviewMonth}
                 </span>
               </div>
               {calculatedReviewMonth && formData.reviewMonth !== calculatedReviewMonth && (
-                <div className="mt-2 pt-2 border-t border-amber-500/20">
+                <div className="mt-2 pt-2 border-t border-[rgb(var(--color-warning))]/20">
                   <span className="text-xs text-secondary">
                     Note: Review Month was also changed from calculated: <span className="line-through">{calculatedReviewMonth}</span>
                   </span>

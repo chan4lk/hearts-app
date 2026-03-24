@@ -782,12 +782,12 @@ export default function EmployeeDashboard() {
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.95, opacity: 0 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="modal-content rounded-xl shadow-theme-lg w-full max-w-4xl max-h-[85vh] overflow-hidden border-2 border-amber-500/40 flex flex-col"
+                  className="modal-content rounded-xl shadow-theme-lg w-full max-w-4xl max-h-[85vh] overflow-hidden border-2 border-[rgb(var(--color-warning))]/40 flex flex-col"
                 >
                   {/* Compact Header - Sticky */}
-                  <div className="sticky top-0 z-10 bg-gradient-to-r from-amber-900/40 via-amber-800/40 to-orange-900/40 backdrop-blur-md border-b-2 border-amber-500/50 px-4 py-3 flex items-center justify-between flex-shrink-0">
+                  <div className="sticky top-0 z-10 bg-gradient-to-r from-amber-900/40 via-amber-800/40 to-orange-900/40 backdrop-blur-md border-b-2 border-[rgb(var(--color-warning))]/50 px-4 py-3 flex items-center justify-between flex-shrink-0">
                     <div className="flex items-center gap-2.5">
-                      <div className="p-1.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg">
+                      <div className="p-1.5 bg-gradient-to-r from-[rgb(var(--color-warning))] to-orange-500 rounded-lg">
                         <BsPersonCheck className="w-4 h-4 text-[rgb(var(--color-text-inverse))]" />
                       </div>
                       <div>
@@ -868,7 +868,7 @@ export default function EmployeeDashboard() {
 
                                 <div className="pr-20">
                                   {/* Goal Title */}
-                                  <h4 className="text-base font-bold text-[rgb(var(--color-text-inverse))] mb-2 group-hover:text-amber-300 transition-colors line-clamp-1">
+                                  <h4 className="text-base font-bold text-[rgb(var(--color-text-inverse))] mb-2 group-hover:text-warning transition-colors line-clamp-1">
                                     {goal.title}
                                   </h4>
                                   
@@ -895,7 +895,7 @@ export default function EmployeeDashboard() {
 
                                   {/* Manager Comments */}
                                   {goal.rating?.managerComments && (
-                                    <div className="mt-3 p-3 bg-black/30 rounded-lg border border-amber-500/20">
+                                    <div className="mt-3 p-3 bg-black/30 rounded-lg border border-[rgb(var(--color-warning))]/20">
                                       <div className="flex items-start gap-2">
                                         <div className="p-1 bg-warning-muted rounded flex-shrink-0 mt-0.5">
                                           <BsPersonCheck className="w-3 h-3 text-warning" />

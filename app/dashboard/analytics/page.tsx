@@ -92,7 +92,7 @@ export default function AnalyticsPage() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-error-muted border border-red-500/30 rounded-xl p-4 text-error text-sm"
+            className="bg-error-muted border border-[rgb(var(--color-error))]/30 rounded-xl p-4 text-error text-sm"
           >
             {error}
           </motion.div>

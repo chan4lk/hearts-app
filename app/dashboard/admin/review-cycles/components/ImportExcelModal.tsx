@@ -222,7 +222,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                     onDrop={handleDrop}
                     className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
                       file
-                        ? 'border-teal-500 bg-cat-personal'
+                        ? 'border-[rgb(var(--color-event-social))] bg-cat-personal'
                         : 'border-theme hover:border-theme'
                     }`}
                   >
@@ -270,10 +270,10 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                   <div
                     className={`p-3 rounded-lg border ${
                       importResult.success
-                        ? 'bg-[rgb(var(--color-cat-training))]/15 border-green-500/40'
+                        ? 'bg-[rgb(var(--color-cat-training))]/15 border-[rgb(var(--color-cat-training))]/40'
                         : importResult.imported > 0 
-                          ? 'bg-[rgb(var(--color-info))]/15 border-blue-500/40' 
-                          : 'bg-[rgb(var(--color-error))]/15 border-red-500/40'
+                          ? 'bg-[rgb(var(--color-info))]/15 border-[rgb(var(--color-info))]/40' 
+                          : 'bg-[rgb(var(--color-error))]/15 border-[rgb(var(--color-error))]/40'
                     }`}
                   >
                     <div className="flex items-start gap-2">
@@ -316,7 +316,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                         {importResult.skippedUsers.map((skip, idx) => (
                           <div key={idx} className="bg-surface-secondary border border-[rgba(var(--color-rating-3),0.2)] rounded px-2 py-1.5 text-xs">
                             <div className="flex gap-2 items-start">
-                              <span className="text-yellow-300 font-bold flex-shrink-0 min-w-fit">Row {skip.rowNumber}:</span>
+                              <span className="text-warning font-bold flex-shrink-0 min-w-fit">Row {skip.rowNumber}:</span>
                               <div className="flex-1 min-w-0">
                                 <p className="text-primary font-medium truncate text-xs">
                                   {skip.excelData?.Name || skip.excelData?.['Employee Name'] || skip.excelData?.['First Name'] || 'Unknown'}
@@ -334,7 +334,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
 
                   {/* Errors */}
                   {importResult.errors && importResult.errors.length > 0 && (
-                    <div className="p-3 bg-error-muted border border-red-500/30 rounded text-xs text-error">
+                    <div className="p-3 bg-error-muted border border-[rgb(var(--color-error))]/30 rounded text-xs text-error">
                       <p className="font-medium mb-1">Errors:</p>
                       <ul className="space-y-0.5">
                         {importResult.errors.map((error, idx) => (

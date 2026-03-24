@@ -50,11 +50,11 @@ export default function AIGoalRiskAnalysis({ goalId, className = '' }: AIGoalRis
   const getRiskColor = (level: string) => {
     switch (level) {
       case 'low':
-        return 'from-emerald-500/20 to-green-500/20 border-emerald-500/30 text-success';
+        return 'from-[rgb(var(--color-success))]/20 to-green-500/20 border-[rgb(var(--color-success))]/30 text-success';
       case 'medium':
-        return 'from-[rgba(var(--color-warning),0.2)] to-[rgba(var(--color-warning),0.1)] border-amber-500/30 text-warning';
+        return 'from-[rgba(var(--color-warning),0.2)] to-[rgba(var(--color-warning),0.1)] border-[rgba(var(--color-warning),0.3)] text-warning';
       case 'high':
-        return 'from-red-500/20 to-rose-500/20 border-red-500/30 text-error';
+        return 'from-red-500/20 to-rose-500/20 border-[rgb(var(--color-error))]/30 text-error';
       default:
         return 'from-gray-500/20 to-gray-500/20 border-gray-500/30 text-secondary';
     }
@@ -150,7 +150,7 @@ export default function AIGoalRiskAnalysis({ goalId, className = '' }: AIGoalRis
 
           {/* Recommendations */}
           {analysis.recommendations.length > 0 && (
-            <div className="bg-gradient-to-r from-purple-500/10 to-indigo-500/10 rounded-lg p-5 border border-purple-500/30">
+            <div className="bg-gradient-to-r from-[rgb(var(--color-cat-technical))]/10 to-[rgb(var(--color-accent))]/10 rounded-lg p-5 border border-[rgb(var(--color-cat-technical))]/30">
               <h4 className="text-primary font-semibold mb-3 flex items-center gap-2">
                 <BsCheckCircle className="w-4 h-4 text-cat-technical" />
                 Recommendations

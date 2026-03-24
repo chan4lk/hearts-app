@@ -67,8 +67,8 @@ export function AIGoalSuggestions({
             disabled={loading}
             variant="outline"
             className="group relative py-1.5 px-4 font-medium flex items-center justify-center gap-2 
-              bg-gradient-to-r from-blue-500/10 to-purple-500/10 hover:from-blue-500/20 hover:to-purple-500/20
-              border border-blue-500/30 hover:border-blue-500/50
+              bg-gradient-to-r from-[rgb(var(--color-info))]/10 to-[rgb(var(--color-cat-technical))]/10 hover:from-[rgb(var(--color-info))]/20 hover:to-[rgb(var(--color-cat-technical))]/20
+              border border-[rgb(var(--color-info))]/30 hover:border-[rgb(var(--color-info))]/50
               text-cat-professional hover:text-cat-professional text-xs sm:text-sm rounded-full overflow-hidden transition-all duration-300
               backdrop-blur-sm shadow-sm hover:shadow-md"
           >
@@ -116,7 +116,7 @@ export function AIGoalSuggestions({
             exit={{ opacity: 0, y: -20 }}
             className="space-y-3"
           >
-            <h3 className="text-sm font-medium text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500">
+            <h3 className="text-sm font-medium text-transparent bg-clip-text bg-gradient-to-r from-[rgb(var(--color-info))] to-[rgb(var(--color-cat-technical))]">
               AI Generated Suggestions
             </h3>
             {suggestions.map((suggestion, index) => (
@@ -135,10 +135,10 @@ export function AIGoalSuggestions({
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500
                   bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.1),transparent_50%)]" />
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500
-                  bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl" />
+                  bg-gradient-to-r from-[rgb(var(--color-info))]/20 to-[rgb(var(--color-cat-technical))]/20 rounded-xl" />
 
                 <div className="relative flex items-start gap-3">
-                  <div className="flex-shrink-0 p-2 rounded-lg bg-gradient-to-r from-blue-500/10 to-purple-500/10">
+                  <div className="flex-shrink-0 p-2 rounded-lg bg-gradient-to-r from-[rgb(var(--color-info))]/10 to-[rgb(var(--color-cat-technical))]/10">
                     <BsLightning className="h-4 w-4 text-warning" />
                   </div>
                   <div>

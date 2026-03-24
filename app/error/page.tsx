@@ -95,7 +95,7 @@ function ErrorContent() {
               <div className="flex justify-center gap-3 pt-2">
                 <Link
                   href="/login"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-[rgb(var(--color-text-inverse))] text-sm font-medium shadow-lg shadow-indigo-500/20 transition-all duration-300"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-[rgb(var(--color-accent))] hover:to-[rgb(var(--color-cat-technical))] text-[rgb(var(--color-text-inverse))] text-sm font-medium shadow-lg shadow-[rgb(var(--color-accent))]/20 transition-all duration-300"
                 >
                   Return to Login
                 </Link>

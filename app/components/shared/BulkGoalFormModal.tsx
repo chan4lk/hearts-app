@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CATEGORIES, DEPARTMENTS, PRIORITIES, GOAL_TEMPLATES } from './constants';
 
 const selectContentClass = 'bg-surface-elevated border border-theme text-primary z-[100] max-h-[min(14rem,45vh)]';
-const selectTriggerClass = 'bg-surface-tertiary border border-theme text-primary text-xs h-9 rounded-lg focus:border-amber-500/50 focus-ring/20';
+const selectTriggerClass = 'bg-surface-tertiary border border-theme text-primary text-xs h-9 rounded-lg focus:border-[rgb(var(--color-warning))]/50 focus-ring/20';
 const nativeSelectClass = selectTriggerClass;
 
 interface BulkGoalFormData extends Omit<GoalFormData, 'employeeId'> {
@@ -281,7 +281,7 @@ export function BulkGoalFormModal({
             onClick={() => setActiveTab('manual')}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               activeTab === 'manual'
-                ? 'bg-warning-muted text-warning border border-amber-500/30'
+                ? 'bg-warning-muted text-warning border border-[rgba(var(--color-warning),0.3)]'
                 : 'text-secondary hover:bg-surface-tertiary hover:text-[rgb(var(--color-text-inverse))]'
             }`}
           >
@@ -291,7 +291,7 @@ export function BulkGoalFormModal({
             onClick={() => setActiveTab('templates')}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               activeTab === 'templates'
-                ? 'bg-warning-muted text-warning border border-amber-500/30'
+                ? 'bg-warning-muted text-warning border border-[rgba(var(--color-warning),0.3)]'
                 : 'text-secondary hover:bg-surface-tertiary hover:text-[rgb(var(--color-text-inverse))]'
             }`}
           >
@@ -396,7 +396,7 @@ export function BulkGoalFormModal({
                           value={goal.title}
                           onChange={(e) => updateGoal(goal.id, 'title', e.target.value)}
                           placeholder="Enter goal title"
-                          className="bg-surface-tertiary border-theme text-primary text-xs h-7 rounded-lg focus:border-amber-500/50 focus-ring/20"
+                          className="bg-surface-tertiary border-theme text-primary text-xs h-7 rounded-lg focus:border-[rgb(var(--color-warning))]/50 focus-ring/20"
                         />
                         {errors[goal.id]?.title && (
                           <div className="text-error text-2xs mt-1 font-semibold animate-pulse">{errors[goal.id].title}</div>
@@ -495,7 +495,7 @@ export function BulkGoalFormModal({
                           type="date"
                           value={goal.dueDate}
                           onChange={(e) => updateGoal(goal.id, 'dueDate', e.target.value)}
-                          className="bg-surface-tertiary border-theme text-primary text-xs h-7 rounded-lg focus:border-amber-500/50 focus-ring/20"
+                          className="bg-surface-tertiary border-theme text-primary text-xs h-7 rounded-lg focus:border-[rgb(var(--color-warning))]/50 focus-ring/20"
                         />
                       </div>
                       <div className="sm:col-span-2">
@@ -504,7 +504,7 @@ export function BulkGoalFormModal({
                           value={goal.description}
                           onChange={(e) => updateGoal(goal.id, 'description', e.target.value)}
                           placeholder="Describe the goal..."
-                          className="bg-surface-tertiary border-theme text-primary text-xs min-h-[28px] rounded-lg focus:border-amber-500/50 focus-ring/20 resize-none"
+                          className="bg-surface-tertiary border-theme text-primary text-xs min-h-[28px] rounded-lg focus:border-[rgb(var(--color-warning))]/50 focus-ring/20 resize-none"
                         />
                       </div>
                     </div>
@@ -518,7 +518,7 @@ export function BulkGoalFormModal({
               <button
                 type="button"
                 onClick={addNewGoal}
-                className="flex items-center gap-1.5 px-4 py-2 bg-warning-muted text-warning border border-amber-500/30 rounded-lg hover:bg-[rgb(var(--color-warning))]/30 transition-colors text-xs font-medium"
+                className="flex items-center gap-1.5 px-4 py-2 bg-warning-muted text-warning border border-[rgba(var(--color-warning),0.3)] rounded-lg hover:bg-[rgb(var(--color-warning))]/30 transition-colors text-xs font-medium"
               >
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -548,7 +548,7 @@ export function BulkGoalFormModal({
                 type="submit"
                 form="bulk-goal-form"
                 disabled={isSubmitting || loading || goals.length === 0}
-                className="px-4 py-1.5 bg-warning-muted text-warning border border-amber-500/30 rounded-lg hover:bg-[rgb(var(--color-warning))]/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 text-xs font-medium"
+                className="px-4 py-1.5 bg-warning-muted text-warning border border-[rgba(var(--color-warning),0.3)] rounded-lg hover:bg-[rgb(var(--color-warning))]/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 text-xs font-medium"
               >
                 {isSubmitting ? (
                   <>
