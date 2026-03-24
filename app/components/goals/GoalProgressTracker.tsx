@@ -93,11 +93,11 @@ export default function GoalProgressTracker({
 
   const getProgressColor = () => {
     if (progress === 0) return 'bg-gray-500';
-    if (progress < 25) return 'bg-red-500';
+    if (progress < 25) return 'bg-[rgb(var(--color-error))]';
     if (progress < 50) return 'bg-orange-500';
-    if (progress < 75) return 'bg-amber-500';
-    if (progress < 100) return 'bg-blue-500';
-    return 'bg-green-500';
+    if (progress < 75) return 'bg-[rgb(var(--color-warning))]';
+    if (progress < 100) return 'bg-[rgb(var(--color-info))]';
+    return 'bg-[rgb(var(--color-cat-training))]';
   };
 
   const getStatusColor = (statusValue: string) => {
@@ -135,8 +135,8 @@ export default function GoalProgressTracker({
                 <div
                   className={`w-3 h-3 rounded-full ${
                     progress >= milestone.value
-                      ? 'bg-green-500'
-                      : 'bg-gray-600'
+                      ? 'bg-[rgb(var(--color-cat-training))]'
+                      : 'bg-surface-tertiary'
                   }`}
                 />
                 <span className="text-xs text-secondary mt-1">
@@ -225,7 +225,7 @@ export default function GoalProgressTracker({
         <div className="space-y-3">
           <button
             onClick={() => setShowNotes(!showNotes)}
-            className="text-sm text-indigo-400 hover:text-indigo-300"
+            className="text-sm text-accent hover:text-accent"
           >
             {showNotes ? '− Hide Notes' : '+ Add Progress Notes'}
           </button>

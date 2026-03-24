@@ -287,26 +287,26 @@ export default function AdminDashboard() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'success':
-        return <BsCheckCircle className="w-4 h-4 text-emerald-400" />;
+        return <BsCheckCircle className="w-4 h-4 text-success" />;
       case 'warning':
         return <BsExclamationTriangle className="w-4 h-4 text-warning" />;
       case 'error':
-        return <BsXCircle className="w-4 h-4 text-red-400" />;
+        return <BsXCircle className="w-4 h-4 text-error" />;
       default:
-        return <BsActivity className="w-4 h-4 text-blue-400" />;
+        return <BsActivity className="w-4 h-4 text-cat-professional" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'operational':
-        return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+        return 'text-success bg-success-muted border-emerald-500/20';
       case 'degraded':
         return 'text-warning bg-warning-muted border-amber-500/20';
       case 'down':
-        return 'text-red-400 bg-red-500/10 border-red-500/20';
+        return 'text-error bg-error-muted border-[rgba(var(--color-error),0.2)]';
       default:
-        return 'text-secondary bg-gray-500/10 border-gray-500/20';
+        return 'text-secondary bg-surface-secondary border-gray-500/20';
     }
   };
 

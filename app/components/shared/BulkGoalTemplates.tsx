@@ -110,19 +110,19 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
     switch (priority) {
       case 'HIGH': return 'text-red-600 bg-red-100 dark:bg-red-900/30';
       case 'MEDIUM': return 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30';
-      case 'LOW': return 'text-green-600 bg-green-100 dark:bg-green-900/30';
-      default: return 'text-secondary bg-surface-secondary dark:bg-gray-900/30';
+      case 'LOW': return 'text-green-600 bg-success-muted dark:bg-cat-training/30';
+      default: return 'text-secondary bg-surface-secondary dark:bg-surface-primary/30';
     }
   };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'PROFESSIONAL': return 'text-blue-600 bg-blue-100 dark:bg-blue-900/30';
-      case 'TECHNICAL': return 'text-purple-600 bg-purple-100 dark:bg-purple-900/30';
-      case 'LEADERSHIP': return 'text-indigo-600 bg-indigo-100 dark:bg-indigo-900/30';
-      case 'TRAINING': return 'text-green-600 bg-green-100 dark:bg-green-900/30';
+      case 'PROFESSIONAL': return 'text-blue-600 bg-info-muted dark:bg-cat-professional/30';
+      case 'TECHNICAL': return 'text-purple-600 bg-cat-technical dark:bg-cat-technical/30';
+      case 'LEADERSHIP': return 'text-indigo-600 bg-indigo-100 dark:bg-accent-muted/30';
+      case 'TRAINING': return 'text-green-600 bg-success-muted dark:bg-cat-training/30';
       case 'KPI': return 'text-orange-600 bg-orange-100 dark:bg-orange-900/30';
-      default: return 'text-secondary bg-surface-secondary dark:bg-gray-900/30';
+      default: return 'text-secondary bg-surface-secondary dark:bg-surface-primary/30';
     }
   };
 
@@ -136,7 +136,7 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
           </h3>
           <button
             onClick={handleSelectAll}
-            className="text-sm text-blue-600 hover:text-info dark:hover:text-blue-300 font-medium"
+            className="text-sm text-blue-600 hover:text-info dark:hover:text-cat-professional font-medium"
           >
             {selectedEmployees.length === assignedEmployees.length ? 'Deselect All' : 'Select All'}
           </button>
@@ -146,7 +146,7 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
           {assignedEmployees.map(employee => (
             <label
               key={employee.id}
-              className="flex items-center gap-2 p-2 rounded-lg hover:bg-surface-secondary dark:hover:bg-gray-600 cursor-pointer transition-colors"
+              className="flex items-center gap-2 p-2 rounded-lg hover:bg-surface-secondary dark:hover:bg-surface-tertiary cursor-pointer transition-colors"
             >
               <input
                 type="checkbox"
@@ -241,7 +241,7 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
               }, selectedEmployees);
             }}
             disabled={selectedEmployees.length === 0}
-            className="flex items-center gap-2 p-3 bg-surface-elevated rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 p-3 bg-surface-elevated rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-surface-tertiary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <span className="text-lg">📅</span>
             <span className="text-sm font-medium text-gray-700 dark:text-secondary">Weekly Check-in</span>
@@ -264,7 +264,7 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
               }, selectedEmployees);
             }}
             disabled={selectedEmployees.length === 0}
-            className="flex items-center gap-2 p-3 bg-surface-elevated rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 p-3 bg-surface-elevated rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-surface-tertiary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <span className="text-lg">📋</span>
             <span className="text-sm font-medium text-gray-700 dark:text-secondary">Monthly Review</span>
@@ -287,7 +287,7 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
               }, selectedEmployees);
             }}
             disabled={selectedEmployees.length === 0}
-            className="flex items-center gap-2 p-3 bg-surface-elevated rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 p-3 bg-surface-elevated rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-surface-tertiary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <span className="text-lg">🔍</span>
             <span className="text-sm font-medium text-gray-700 dark:text-secondary">Skill Assessment</span>
@@ -310,7 +310,7 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
               }, selectedEmployees);
             }}
             disabled={selectedEmployees.length === 0}
-            className="flex items-center gap-2 p-3 bg-surface-elevated rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 p-3 bg-surface-elevated rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-surface-tertiary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <span className="text-lg">🎯</span>
             <span className="text-sm font-medium text-gray-700 dark:text-secondary">Goal Setting</span>

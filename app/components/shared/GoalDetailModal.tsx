@@ -483,7 +483,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-gradient-to-br from-blue-900/20 via-indigo-900/20 to-purple-900/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-blue-500/20"
+              className="bg-gradient-to-br from-blue-900/20 via-indigo-900/20 to-purple-900/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-[rgba(var(--color-info),0.2)]"
             >
               <h4 className="text-xs sm:text-sm font-semibold text-primary mb-3 flex items-center gap-2">
                 <BsPlayCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-info" />
@@ -551,10 +551,10 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-gradient-to-br from-orange-900/20 via-red-900/20 to-rose-900/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 border border-orange-500/20"
+            className="bg-gradient-to-br from-orange-900/20 via-red-900/20 to-rose-900/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 border border-[rgba(var(--color-rating-2),0.2)]"
           >
             <h4 className="text-xs sm:text-sm font-semibold text-primary mb-2 flex items-center gap-2">
-              <BsShield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-400" />
+              <BsShield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rating-2" />
               AI Risk Analysis
             </h4>
             <AIGoalRiskAnalysis goalId={goal.id} />

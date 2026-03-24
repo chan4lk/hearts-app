@@ -25,15 +25,15 @@ export default async function Home() {
             <div className="absolute inset-0 bg-grid opacity-30 dark:opacity-100" style={{ maskImage: 'radial-gradient(ellipse 70% 50% at 50% 40%, black, transparent)', WebkitMaskImage: 'radial-gradient(ellipse 70% 50% at 50% 40%, black, transparent)' }} />
             {/* Accent glow */}
             <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-to-r from-indigo-500/[0.07] via-purple-500/[0.05] to-pink-500/[0.03] rounded-full blur-3xl" />
-            <div className="absolute bottom-1/4 left-1/3 w-[400px] h-[200px] bg-indigo-500/[0.04] rounded-full blur-3xl" />
+            <div className="absolute bottom-1/4 left-1/3 w-[400px] h-[200px] bg-accent/[0.04] rounded-full blur-3xl" />
           </div>
 
           <div className="max-w-4xl mx-auto text-center relative z-10">
             {/* Eyebrow */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[rgba(var(--color-accent),0.06)] border border-[rgba(var(--color-accent),0.1)] mb-7">
               <div className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-500 opacity-60" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-60" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
               </div>
               <span className="text-accent text-xs sm:text-xs font-semibold tracking-wide">
                 Performance Management Platform

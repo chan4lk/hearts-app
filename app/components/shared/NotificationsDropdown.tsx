@@ -167,10 +167,10 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
     // Simple colored circle indicators instead of emojis
     const colorClass = getNotificationColor(type);
     // Convert text color to background color
-    const bgColor = colorClass.replace('text-indigo-400', 'bg-[rgb(var(--color-accent))]')
-      .replace('text-green-400', 'bg-green-400')
-      .replace('text-red-400', 'bg-red-400')
-      .replace('text-blue-400', 'bg-blue-400');
+    const bgColor = colorClass.replace('text-accent', 'bg-[rgb(var(--color-accent))]')
+      .replace('text-cat-training', 'bg-green-400')
+      .replace('text-error', 'bg-red-400')
+      .replace('text-cat-professional', 'bg-blue-400');
     
     return (
       <div className={`w-3 h-3 rounded-full ${bgColor} opacity-80`}></div>
@@ -179,18 +179,18 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
 
   const getNotificationColor = (type: string) => {
     if (type.includes('REVIEW_CYCLE')) {
-      return 'text-indigo-400';
+      return 'text-accent';
     }
     if (type.includes('GOAL_APPROVED') || type.includes('GOAL_COMPLETED') || type.includes('RATING_RECEIVED')) {
-      return 'text-green-400';
+      return 'text-cat-training';
     }
     if (type.includes('GOAL_REJECTED') || type.includes('GOAL_DELETED') || type.includes('REVIEW_CYCLE_DELETED')) {
-      return 'text-red-400';
+      return 'text-error';
     }
     if (type.includes('GOAL_UPDATED') || type.includes('GOAL_MODIFIED')) {
-      return 'text-blue-400';
+      return 'text-cat-professional';
     }
-    return 'text-blue-400';
+    return 'text-cat-professional';
   };
 
   return (
@@ -204,7 +204,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
           animate={hasNewNotificationsRef.current ? { scale: [1, 1.2, 1] } : {}}
           transition={{ duration: 0.3 }}
         >
-          <BsBell className={`w-5 h-5 transition-transform duration-200 ${unreadCount > 0 ? 'text-indigo-400' : ''} group-hover:scale-110`} />
+          <BsBell className={`w-5 h-5 transition-transform duration-200 ${unreadCount > 0 ? 'text-accent' : ''} group-hover:scale-110`} />
         </motion.div>
         {unreadCount > 0 && (
           <motion.span
@@ -233,7 +233,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
             {/* Header */}
             <div className="px-4 py-3 border-b border-theme flex items-center justify-between bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10">
               <div className="flex items-center gap-2">
-                <BsBell className="w-4 h-4 text-indigo-400" />
+                <BsBell className="w-4 h-4 text-accent" />
                 <h3 className="text-sm font-semibold text-primary">Notifications</h3>
                 {unreadCount > 0 && (
                   <span className="text-xs font-medium bg-accent-muted text-accent px-2 py-0.5 rounded-full">
@@ -252,7 +252,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                     animate={isRefreshing ? { rotate: 360 } : {}}
                     transition={{ duration: 0.5, repeat: isRefreshing ? Infinity : 0, ease: "linear" }}
                   >
-                    <BsArrowClockwise className="w-4 h-4 text-secondary hover:text-indigo-400" />
+                    <BsArrowClockwise className="w-4 h-4 text-secondary hover:text-accent" />
                   </motion.div>
                 </button>
                 <button
@@ -312,7 +312,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                           </p>
                           {notification.goal && (
                             <div className="mt-2 px-2 py-1 bg-surface-secondary rounded-md inline-block">
-                              <p className="text-xs text-indigo-400 font-medium truncate max-w-[200px]">
+                              <p className="text-xs text-accent font-medium truncate max-w-[200px]">
                                 {notification.goal.title}
                               </p>
                             </div>
@@ -346,7 +346,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                             className="p-2 rounded-lg hover:bg-error-muted transition-colors"
                             title="Delete"
                           >
-                            <BsTrash className="w-4 h-4 text-secondary hover:text-red-400" />
+                            <BsTrash className="w-4 h-4 text-secondary hover:text-error" />
                           </button>
                         </div>
                       </div>
@@ -375,7 +375,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                   </button>
                   <button
                     onClick={clearAllNotifications}
-                    className="text-xs font-medium text-error hover:opacity-80 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-red-500/10"
+                    className="text-xs font-medium text-error hover:opacity-80 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-error-muted"
                   >
                     <BsTrash className="w-3.5 h-3.5" />
                     Clear All

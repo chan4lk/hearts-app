@@ -28,19 +28,19 @@ interface EventsTableProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  SCHEDULED: 'bg-blue-500/20 text-blue-400',
-  ONGOING: 'bg-green-500/20 text-green-400',
-  COMPLETED: 'bg-slate-500/20 text-slate-400',
-  CANCELLED: 'bg-red-500/20 text-red-400',
+  SCHEDULED: 'bg-cat-professional text-cat-professional',
+  ONGOING: 'bg-cat-training text-cat-training',
+  COMPLETED: 'bg-surface-secondary text-tertiary',
+  CANCELLED: 'bg-error-muted text-error',
 };
 
 const TYPE_COLORS: Record<string, string> = {
-  TOASTMASTERS: 'bg-cyan-500/20 text-cyan-400',
-  CODECRUNCH: 'bg-orange-500/20 text-orange-400',
-  HEART_TALKS: 'bg-pink-500/20 text-pink-400',
-  BISTEC_CLUB: 'bg-cyan-500/20 text-cyan-400',
-  WORKSHOP: 'bg-teal-500/20 text-teal-400',
-  TRAINING: 'bg-green-500/20 text-green-400',
+  TOASTMASTERS: 'bg-info-muted text-info',
+  CODECRUNCH: 'bg-rating-2 text-rating-2',
+  HEART_TALKS: 'bg-[rgb(var(--color-cat-kpi))]/20 text-cat-kpi',
+  BISTEC_CLUB: 'bg-info-muted text-info',
+  WORKSHOP: 'bg-cat-personal text-cat-personal',
+  TRAINING: 'bg-cat-training text-cat-training',
 };
 
 export const EventsTable = ({ events, onEdit, onDelete, onView, onBulkDelete, isLoading = false }: EventsTableProps) => {
@@ -83,13 +83,13 @@ export const EventsTable = ({ events, onEdit, onDelete, onView, onBulkDelete, is
                     )}
                   </td>
                   <td className={TABLE_STYLES.td}>
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-2xs font-medium ${TYPE_COLORS[event.eventType] || 'bg-slate-500/20 text-secondary'}`}>
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-2xs font-medium ${TYPE_COLORS[event.eventType] || 'bg-surface-secondary text-secondary'}`}>
                       {event.eventType.replace(/_/g, ' ')}
                     </span>
                   </td>
                   <td className={TABLE_STYLES.tdSecondary}>
                     <div className="flex items-center gap-1">
-                      <BsCalendar className="text-indigo-400 w-3 h-3 shrink-0" />
+                      <BsCalendar className="text-accent w-3 h-3 shrink-0" />
                       <span className="truncate">
                         {new Date(event.startDate).toLocaleDateString()} — {formatDistanceToNow(new Date(event.startDate), { addSuffix: true })}
                       </span>
@@ -99,20 +99,20 @@ export const EventsTable = ({ events, onEdit, onDelete, onView, onBulkDelete, is
                     {event.participations?.length || 0}{event.capacity ? `/${event.capacity}` : ''}
                   </td>
                   <td className={TABLE_STYLES.td}>
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-2xs font-medium ${STATUS_COLORS[event.status] || 'bg-slate-500/20 text-secondary'}`}>
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-2xs font-medium ${STATUS_COLORS[event.status] || 'bg-surface-secondary text-secondary'}`}>
                       {event.status}
                     </span>
                   </td>
                   <td className={TABLE_STYLES.td}>
                     <div className="flex items-center gap-1">
-                      <button onClick={(e) => { e.stopPropagation(); onView(event); }} className="rounded-lg p-1.5 hover:bg-blue-500/10 transition-colors cursor-pointer" title="View">
-                        <BsEye className="w-3.5 h-3.5 text-blue-400" />
+                      <button onClick={(e) => { e.stopPropagation(); onView(event); }} className="rounded-lg p-1.5 hover:bg-cat-professional transition-colors cursor-pointer" title="View">
+                        <BsEye className="w-3.5 h-3.5 text-cat-professional" />
                       </button>
-                      <button onClick={(e) => { e.stopPropagation(); onEdit(event); }} className="rounded-lg p-1.5 hover:bg-indigo-500/10 transition-colors cursor-pointer" title="Edit">
-                        <BsPencilSquare className="w-3.5 h-3.5 text-indigo-400" />
+                      <button onClick={(e) => { e.stopPropagation(); onEdit(event); }} className="rounded-lg p-1.5 hover:bg-accent-muted transition-colors cursor-pointer" title="Edit">
+                        <BsPencilSquare className="w-3.5 h-3.5 text-accent" />
                       </button>
-                      <button onClick={(e) => { e.stopPropagation(); onDelete(event.id); }} className="rounded-lg p-1.5 hover:bg-red-500/10 transition-colors cursor-pointer" title="Delete">
-                        <BsTrash className="w-3.5 h-3.5 text-red-400" />
+                      <button onClick={(e) => { e.stopPropagation(); onDelete(event.id); }} className="rounded-lg p-1.5 hover:bg-error-muted transition-colors cursor-pointer" title="Delete">
+                        <BsTrash className="w-3.5 h-3.5 text-error" />
                       </button>
                     </div>
                   </td>

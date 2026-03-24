@@ -126,12 +126,12 @@ export default function BrowseEventsPage() {
 
   const getEventTypeColor = (type: string) => {
     const colors: Record<string, string> = {
-      TOASTMASTERS: 'bg-cyan-500/20 text-cyan-300',
-      CODECRUNCH: 'bg-orange-500/20 text-orange-300',
-      HEART_TALKS: 'bg-pink-500/20 text-pink-300',
-      BISTEC_CLUB: 'bg-cyan-500/20 text-cyan-300',
-      WORKSHOP: 'bg-teal-500/20 text-teal-300',
-      TRAINING: 'bg-green-500/20 text-green-300',
+      TOASTMASTERS: 'bg-info-muted text-cyan-300',
+      CODECRUNCH: 'bg-rating-2 text-rating-2',
+      HEART_TALKS: 'bg-[rgb(var(--color-cat-kpi))]/20 text-pink-300',
+      BISTEC_CLUB: 'bg-info-muted text-cyan-300',
+      WORKSHOP: 'bg-cat-personal text-cat-personal',
+      TRAINING: 'bg-cat-training text-cat-training',
       default: 'bg-white/10 text-[rgb(var(--color-text-inverse))]',
     };
     return colors[type] || colors.default;
@@ -153,7 +153,7 @@ export default function BrowseEventsPage() {
               {[
                 { label: 'Available', value: events.length, icon: <BsSearch className="w-4 h-4" />, color: 'text-info' },
                 { label: 'Open Seats', value: events.filter(e => !isCapacityFull(e)).length, icon: <BsCalendar className="w-4 h-4" />, color: 'text-success' },
-                { label: 'Full', value: events.filter(e => isCapacityFull(e)).length, icon: <BsCheckLg className="w-4 h-4" />, color: 'text-purple-600 dark:text-purple-400' },
+                { label: 'Full', value: events.filter(e => isCapacityFull(e)).length, icon: <BsCheckLg className="w-4 h-4" />, color: 'text-purple-600 dark:text-cat-technical' },
                 { label: 'Pages', value: pagination.pages, icon: <BsFilter className="w-4 h-4" />, color: 'text-warning' },
               ].map((stat, i) => (
                 <div key={i} className="flex items-center gap-3.5 px-4 py-3.5 rounded-xl bg-surface-elevated border border-theme">
@@ -223,14 +223,14 @@ export default function BrowseEventsPage() {
                     {event.eventType.replace(/_/g, ' ')}
                   </span>
                   {event.userParticipation && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-green-500/20 px-2 py-0.5 text-xs font-medium text-green-300 border border-green-500/30">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-cat-training px-2 py-0.5 text-xs font-medium text-cat-training border border-green-500/30">
                       <BsCheckLg /> Registered
                     </span>
                   )}
                 </div>
 
                 {/* Title */}
-                <h3 className="text-lg font-semibold text-[rgb(var(--color-text-inverse))] mb-2 group-hover:text-teal-300 transition">
+                <h3 className="text-lg font-semibold text-[rgb(var(--color-text-inverse))] mb-2 group-hover:text-cat-personal transition">
                   {event.title}
                 </h3>
 
@@ -266,7 +266,7 @@ export default function BrowseEventsPage() {
                       transition={{ duration: 0.6, ease: 'easeOut' }}
                       className={`h-2 rounded-full transition-all ${
                         isCapacityFull(event)
-                          ? 'bg-red-500'
+                          ? 'bg-[rgb(var(--color-error))]'
                           : 'bg-gradient-to-r from-teal-500 to-cyan-500'
                       }`}
                     />
@@ -282,7 +282,7 @@ export default function BrowseEventsPage() {
                     disabled={registering === event.id || isCapacityFull(event)}
                     className={`w-full rounded-lg px-4 py-2 font-semibold transition-all ${
                       isCapacityFull(event)
-                        ? 'bg-gray-500/20 text-secondary cursor-not-allowed'
+                        ? 'bg-surface-secondary text-secondary cursor-not-allowed'
                         : 'bg-accent hover:opacity-90 text-[rgb(var(--color-text-inverse))] hover:from-teal-600 hover:to-cyan-700 disabled:opacity-50 shadow-cyan-500/20'
                     }`}
                   >
@@ -302,7 +302,7 @@ export default function BrowseEventsPage() {
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleCancelRegistration(event.id)}
                     disabled={registering === event.id}
-                    className="w-full rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 font-semibold text-red-300 hover:bg-red-500/20 disabled:opacity-50 transition-all hover:border-red-500/50"
+                    className="w-full rounded-lg border border-red-500/30 bg-error-muted px-4 py-2 font-semibold text-error hover:bg-error-muted disabled:opacity-50 transition-all hover:border-red-500/50"
                   >
                     {registering === event.id ? (
                       'Cancelling...'
@@ -323,8 +323,8 @@ export default function BrowseEventsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     className="rounded-xl border border-theme bg-surface-elevated p-12 text-center backdrop-blur-xl col-span-full"
                   >
-                    <div className="inline-flex p-4 bg-teal-500/10 rounded-full mb-4">
-                      <BsArrowRight className="text-5xl text-teal-400/50" />
+                    <div className="inline-flex p-4 bg-cat-personal rounded-full mb-4">
+                      <BsArrowRight className="text-5xl text-cat-personal/50" />
                     </div>
                     <h3 className="text-xl font-semibold text-[rgb(var(--color-text-inverse))] mb-2">No events found</h3>
                     <p className="text-[rgb(var(--color-text-inverse))]/60">

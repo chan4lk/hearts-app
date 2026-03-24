@@ -153,7 +153,7 @@ export default function RatingGoalCard({
             <button
               type="button"
               onClick={() => setShowDetails(!showDetails)}
-              className="text-secondary p-1 rounded-lg hover:bg-surface-secondary dark:hover:bg-gray-700"
+              className="text-secondary p-1 rounded-lg hover:bg-surface-secondary dark:hover:bg-surface-tertiary"
             >
               <motion.div animate={{ rotate: showDetails ? 180 : 0 }} transition={{ duration: 0.2 }}>
                 <BsChevronDown className="w-4 h-4" />

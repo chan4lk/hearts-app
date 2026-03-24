@@ -52,8 +52,8 @@ export function AIGoalSuggestions({
     <div className="relative space-y-4">
       {/* Decorative Background Elements */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-cat-professional rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-cat-technical rounded-full blur-3xl" />
       </div>
 
       <motion.div
@@ -69,7 +69,7 @@ export function AIGoalSuggestions({
             className="group relative py-1.5 px-4 font-medium flex items-center justify-center gap-2 
               bg-gradient-to-r from-blue-500/10 to-purple-500/10 hover:from-blue-500/20 hover:to-purple-500/20
               border border-blue-500/30 hover:border-blue-500/50
-              text-blue-400 hover:text-blue-300 text-xs sm:text-sm rounded-full overflow-hidden transition-all duration-300
+              text-cat-professional hover:text-cat-professional text-xs sm:text-sm rounded-full overflow-hidden transition-all duration-300
               backdrop-blur-sm shadow-sm hover:shadow-md"
           >
             {/* Button Background Animation */}
@@ -101,7 +101,7 @@ export function AIGoalSuggestions({
                   />
                 </div>
                 <span className="text-xs sm:text-sm">AI Suggestions</span>
-                <BsRobot className="h-3 w-3 text-blue-300 group-hover:animate-bounce" />
+                <BsRobot className="h-3 w-3 text-cat-professional group-hover:animate-bounce" />
               </>
             )}
           </Button>

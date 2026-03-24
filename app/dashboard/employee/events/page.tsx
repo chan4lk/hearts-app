@@ -212,8 +212,8 @@ function EmployeeEventsContent() {
               {upcomingEvents.length > 0 && (
                 <div>
                   <h2 className="text-2xl font-bold text-[rgb(var(--color-text-inverse))] mb-4 flex items-center gap-2">
-                    <div className="p-2 bg-teal-500/20 rounded-lg">
-                      <BsCalendarPlus className="text-teal-400" />
+                    <div className="p-2 bg-cat-personal rounded-lg">
+                      <BsCalendarPlus className="text-cat-personal" />
                     </div>
                     Upcoming Events
                   </h2>
@@ -236,8 +236,8 @@ function EmployeeEventsContent() {
               {pastEvents.length > 0 && (
                 <div>
                   <h2 className="text-2xl font-bold text-[rgb(var(--color-text-inverse))] mb-4 flex items-center gap-2">
-                    <div className="p-2 bg-emerald-500/20 rounded-lg">
-                      <BsCheckLg className="text-emerald-400" />
+                    <div className="p-2 bg-success-muted rounded-lg">
+                      <BsCheckLg className="text-success" />
                     </div>
                     Past Events
                   </h2>
@@ -263,8 +263,8 @@ function EmployeeEventsContent() {
                   animate={{ opacity: 1, y: 0 }}
                   className="rounded-xl border border-theme bg-surface-elevated p-12 text-center backdrop-blur-xl"
                 >
-                  <div className="inline-flex p-4 bg-teal-500/10 rounded-full mb-4">
-                    <BsCalendarPlus className="text-5xl text-teal-400/50" />
+                  <div className="inline-flex p-4 bg-cat-personal rounded-full mb-4">
+                    <BsCalendarPlus className="text-5xl text-cat-personal/50" />
                   </div>
                   <h3 className="text-xl font-semibold text-[rgb(var(--color-text-inverse))] mb-2">No events yet</h3>
                   <p className="text-[rgb(var(--color-text-inverse))]/60 mb-6">

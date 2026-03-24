@@ -212,14 +212,14 @@ export default function ManagerSelector({
                   onClick={() => handleSelect(null)}
                   disabled={isLoading}
                   className={`w-full px-4 py-2.5 text-left hover:bg-surface-secondary transition-colors ${
-                    !currentManager ? 'bg-indigo-500/10' : ''
+                    !currentManager ? 'bg-accent-muted' : ''
                   } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <div className="flex items-center gap-2.5">
                     <BsPerson className="w-4 h-4 text-secondary flex-shrink-0" />
                     <span className="text-sm text-primary">Unassigned</span>
                     {!currentManager && (
-                      <BsCheck className="w-3.5 h-3.5 text-indigo-400 ml-auto flex-shrink-0" />
+                      <BsCheck className="w-3.5 h-3.5 text-accent ml-auto flex-shrink-0" />
                     )}
                   </div>
                 </button>
@@ -240,25 +240,25 @@ export default function ManagerSelector({
                         onClick={() => handleSelect(manager.id)}
                         disabled={isLoading}
                         className={`w-full px-4 py-2.5 text-left hover:bg-surface-secondary transition-colors ${
-                          isSelected ? 'bg-indigo-500/10' : ''
+                          isSelected ? 'bg-accent-muted' : ''
                         } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
                         <div className="flex items-center gap-2.5">
                           <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
-                            isAdmin ? 'bg-purple-500/20' : 'bg-blue-500/20'
+                            isAdmin ? 'bg-cat-technical' : 'bg-cat-professional'
                           }`}>
-                            <BsPerson className={`w-3.5 h-3.5 ${isAdmin ? 'text-purple-400' : 'text-blue-400'}`} />
+                            <BsPerson className={`w-3.5 h-3.5 ${isAdmin ? 'text-cat-technical' : 'text-cat-professional'}`} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <span className="text-sm text-primary truncate">{manager.name}</span>
                               <span className={`text-2xs px-1.5 py-0.5 rounded flex-shrink-0 ${
-                                isAdmin ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'
+                                isAdmin ? 'bg-cat-technical text-cat-technical' : 'bg-cat-professional text-cat-professional'
                               }`}>
                                 {isAdmin ? 'ADMIN' : 'MGR'}
                               </span>
                               {isSelected && (
-                                <BsCheck className="w-3.5 h-3.5 text-indigo-400 ml-auto flex-shrink-0" />
+                                <BsCheck className="w-3.5 h-3.5 text-accent ml-auto flex-shrink-0" />
                               )}
                             </div>
                             <p className="text-xs text-secondary truncate mt-0.5">{manager.email}</p>

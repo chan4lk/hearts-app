@@ -97,7 +97,7 @@ export default function AIWritingAssistant({
         >
           <div className="bg-gradient-to-r from-purple-600/20 to-indigo-600/20 p-3 border-b border-purple-500/30">
             <h4 className="text-primary font-medium flex items-center gap-2">
-              <BsStars className="w-4 h-4 text-purple-400" />
+              <BsStars className="w-4 h-4 text-cat-technical" />
               AI Suggestion
             </h4>
           </div>
@@ -113,8 +113,8 @@ export default function AIWritingAssistant({
 
             {/* Improved */}
             <div>
-              <p className="text-purple-400 text-xs font-medium mb-2">IMPROVED</p>
-              <div className="bg-purple-900/20 rounded-lg p-3 border border-purple-500/30">
+              <p className="text-cat-technical text-xs font-medium mb-2">IMPROVED</p>
+              <div className="bg-cat-technical/20 rounded-lg p-3 border border-purple-500/30">
                 <p className="text-primary text-sm">{improved}</p>
               </div>
             </div>

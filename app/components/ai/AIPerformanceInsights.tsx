@@ -25,16 +25,16 @@ const INSIGHT_ICON: Record<string, JSX.Element> = {
 };
 
 const INSIGHT_BG: Record<string, string> = {
-  success: 'bg-emerald-50 dark:bg-emerald-500/5',
-  warning: 'bg-amber-50 dark:bg-amber-500/5',
-  risk: 'bg-red-50 dark:bg-red-500/5',
-  opportunity: 'bg-blue-50 dark:bg-blue-500/5',
+  success: 'bg-emerald-50 dark:bg-[rgb(var(--color-success))]/5',
+  warning: 'bg-amber-50 dark:bg-[rgb(var(--color-warning))]/5',
+  risk: 'bg-red-50 dark:bg-[rgb(var(--color-error))]/5',
+  opportunity: 'bg-blue-50 dark:bg-[rgb(var(--color-info))]/5',
 };
 
 const PRIORITY_STYLE: Record<string, string> = {
-  high: 'bg-red-500/10 text-error',
+  high: 'bg-error-muted text-error',
   medium: 'bg-warning-muted text-warning',
-  low: 'bg-blue-500/10 text-info',
+  low: 'bg-cat-professional text-info',
 };
 
 export default function AIPerformanceInsights({ userId, autoLoad = false, className = '' }: AIPerformanceInsightsProps) {
@@ -96,7 +96,7 @@ export default function AIPerformanceInsights({ userId, autoLoad = false, classN
 
       {/* Error */}
       {error && (
-        <div className="bg-red-50 dark:bg-red-500/5 rounded-lg px-4 py-3 mb-5">
+        <div className="bg-red-50 dark:bg-[rgb(var(--color-error))]/5 rounded-lg px-4 py-3 mb-5">
           <p className="text-xs text-error">{error}</p>
         </div>
       )}

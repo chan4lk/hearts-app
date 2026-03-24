@@ -76,7 +76,7 @@ export default function ReviewCycleTable({ reviewCycles, onEdit, onDelete, onRef
                 sortedCycles.map((cycle) => {
                   const hasAdj = cycle.adjustedReviewMonth && cycle.reviewMonth && cycle.adjustedReviewMonth !== cycle.reviewMonth;
                   return (
-                    <tr key={cycle.id} className={`${TABLE_STYLES.row} whitespace-nowrap ${selectedIds.has(cycle.id) ? 'bg-indigo-500/5' : hasAdj ? 'bg-blue-500/5 border-l-4 border-l-blue-500' : ''}`}>
+                    <tr key={cycle.id} className={`${TABLE_STYLES.row} whitespace-nowrap ${selectedIds.has(cycle.id) ? 'bg-accent/5' : hasAdj ? 'bg-[rgb(var(--color-info))]/5 border-l-4 border-l-blue-500' : ''}`}>
                       <CheckboxCell checked={selectedIds.has(cycle.id)} onToggle={() => toggleSelect(cycle.id)} />
                       <td className={TABLE_STYLES.tdPrimary}>{cycle.user.name}</td>
                       <td className={TABLE_STYLES.tdPrimary}>{cycle.reportingPerson?.name || <span className="text-secondary">-</span>}</td>
@@ -87,13 +87,13 @@ export default function ReviewCycleTable({ reviewCycles, onEdit, onDelete, onRef
                       <td className={`${TABLE_STYLES.td} text-xs whitespace-nowrap ${hasAdj ? 'text-secondary line-through' : 'text-primary'}`}>{cycle.reviewMonth || <span className="text-secondary">-</span>}</td>
                       <td className={`${TABLE_STYLES.td} text-xs whitespace-nowrap ${hasAdj ? 'text-info font-semibold' : 'text-primary'}`}>
                         {hasAdj ? (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-2xs bg-blue-500/10 text-blue-600 dark:text-blue-300">{cycle.adjustedReviewMonth}</span>
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-2xs bg-cat-professional text-blue-600 dark:text-cat-professional">{cycle.adjustedReviewMonth}</span>
                         ) : (cycle.adjustedReviewMonth || <span className="text-secondary">-</span>)}
                       </td>
                       <td className={TABLE_STYLES.td}>
                         <div className="flex items-center gap-1.5">
-                          <button onClick={() => onEdit(cycle)} className="p-1 text-indigo-500 hover:text-indigo-400 hover:bg-indigo-500/10 rounded transition-colors cursor-pointer" title="Edit"><BsPencil className="w-3 h-3" /></button>
-                          <button onClick={() => onDelete(cycle)} className="p-1 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors cursor-pointer" title="Delete"><BsTrash className="w-3 h-3" /></button>
+                          <button onClick={() => onEdit(cycle)} className="p-1 text-indigo-500 hover:text-accent hover:bg-accent-muted rounded transition-colors cursor-pointer" title="Edit"><BsPencil className="w-3 h-3" /></button>
+                          <button onClick={() => onDelete(cycle)} className="p-1 text-red-500 hover:text-error hover:bg-error-muted rounded transition-colors cursor-pointer" title="Delete"><BsTrash className="w-3 h-3" /></button>
                         </div>
                       </td>
                     </tr>

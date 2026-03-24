@@ -115,7 +115,7 @@ function OrbitalRings() {
       {/* Outer ring */}
       <div className="absolute w-[480px] h-[480px] sm:w-[560px] sm:h-[560px] login-orbit-ring">
         <div className="absolute inset-0 rounded-full border border-indigo-500/[0.06]" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-indigo-400/40" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-accent/40" />
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-1 h-1 rounded-full bg-purple-400/30" />
       </div>
       {/* Inner ring */}
@@ -238,8 +238,8 @@ function LoginForm() {
                 {/* Status badge */}
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-accent-muted border border-[rgba(var(--color-accent),0.12)]">
                   <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[rgb(var(--color-success))] opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[rgb(var(--color-success))]" />
                   </span>
                   <span className="text-accent text-2xs font-semibold tracking-[0.15em] uppercase">
                     AspireHub Portal
@@ -327,7 +327,7 @@ function LoginForm() {
                   </div>
                   <div className="w-px h-3 bg-slate-700/30" />
                   <div className="flex items-center gap-1.5">
-                    <svg className="w-3 h-3 text-indigo-400/50" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <svg className="w-3 h-3 text-accent/50" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                     </svg>
                     <span className="text-2xs text-tertiary font-medium tracking-wide">

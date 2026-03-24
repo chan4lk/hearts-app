@@ -543,7 +543,7 @@ function ManagerGoalSettingPageContent() {
             onClick={() => setShowTemplates(!showTemplates)}
             className="w-full bg-surface-elevated rounded-xl p-4 
               shadow-md border border-theme 
-              hover:bg-white/90 dark:hover:bg-gray-700/80 transition-all duration-300
+              hover:bg-white/90 dark:hover:bg-surface-tertiary/80 transition-all duration-300
               text-primary font-medium flex items-center justify-center gap-2"
           >
             {showTemplates ? 'Hide Templates' : 'Create Goals Using Templates'}

@@ -197,7 +197,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b-2 border-teal-500/30 bg-teal-500/5">
               <div className="flex items-center gap-2">
-                <BsFileEarmarkExcel className="w-5 h-5 text-teal-400 flex-shrink-0" />
+                <BsFileEarmarkExcel className="w-5 h-5 text-cat-personal flex-shrink-0" />
                 <h2 className="text-base font-bold text-primary">Import Review Cycles</h2>
               </div>
               <button
@@ -222,13 +222,13 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                     onDrop={handleDrop}
                     className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
                       file
-                        ? 'border-teal-500 bg-teal-500/10'
+                        ? 'border-teal-500 bg-cat-personal'
                         : 'border-theme hover:border-theme'
                     }`}
                   >
                     {file ? (
                       <div className="space-y-1">
-                        <BsFileEarmarkExcel className="w-8 h-8 text-teal-400 mx-auto" />
+                        <BsFileEarmarkExcel className="w-8 h-8 text-cat-personal mx-auto" />
                         <p className="text-primary font-medium text-xs">{file.name}</p>
                         <p className="text-secondary text-xs">
                           {(file.size / 1024).toFixed(2)} KB
@@ -240,7 +240,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                               fileInputRef.current.value = '';
                             }
                           }}
-                          className="text-xs text-red-400 hover:text-red-300 mt-1"
+                          className="text-xs text-error hover:text-error mt-1"
                         >
                           Remove
                         </button>
@@ -249,7 +249,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                       <div className="space-y-1">
                         <BsUpload className="w-8 h-8 text-secondary mx-auto" />
                         <p className="text-primary text-xs font-medium">Drop file or browse</p>
-                        <label className="inline-flex items-center gap-1 px-2 py-1 bg-teal-600 hover:bg-teal-700 text-[rgb(var(--color-text-inverse))] rounded text-xs cursor-pointer transition-colors">
+                        <label className="inline-flex items-center gap-1 px-2 py-1 bg-[rgb(var(--color-event-social))] hover:bg-[rgb(var(--color-event-social))] text-[rgb(var(--color-text-inverse))] rounded text-xs cursor-pointer transition-colors">
                           <BsUpload className="w-3 h-3" />
                           <span>Browse</span>
                           <input
@@ -270,25 +270,25 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                   <div
                     className={`p-3 rounded-lg border ${
                       importResult.success
-                        ? 'bg-green-500/15 border-green-500/40'
+                        ? 'bg-[rgb(var(--color-cat-training))]/15 border-green-500/40'
                         : importResult.imported > 0 
-                          ? 'bg-blue-500/15 border-blue-500/40' 
-                          : 'bg-red-500/15 border-red-500/40'
+                          ? 'bg-[rgb(var(--color-info))]/15 border-blue-500/40' 
+                          : 'bg-[rgb(var(--color-error))]/15 border-red-500/40'
                     }`}
                   >
                     <div className="flex items-start gap-2">
                       {importResult.success ? (
-                        <BsCheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+                        <BsCheckCircle className="w-4 h-4 text-cat-training flex-shrink-0 mt-0.5" />
                       ) : importResult.imported > 0 ? (
-                        <BsExclamationTriangle className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                        <BsExclamationTriangle className="w-4 h-4 text-cat-professional flex-shrink-0 mt-0.5" />
                       ) : (
-                        <BsExclamationTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                        <BsExclamationTriangle className="w-4 h-4 text-error flex-shrink-0 mt-0.5" />
                       )}
                       <div className="flex-1 min-w-0">
                         <p className={`font-bold text-xs ${
                           importResult.success 
-                            ? 'text-green-400' 
-                            : importResult.imported > 0 ? 'text-blue-400' : 'text-red-400'
+                            ? 'text-cat-training' 
+                            : importResult.imported > 0 ? 'text-cat-professional' : 'text-error'
                         }`}>
                           {importResult.success
                             ? 'Success!'
@@ -308,13 +308,13 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
 
                   {/* Skipped Users List - All visible */}
                   {importResult.skippedUsers && importResult.skippedUsers.length > 0 && (
-                    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+                    <div className="bg-rating-3 border border-yellow-500/30 rounded-lg p-3">
                       <h3 className="font-bold text-warning text-xs mb-2">
                         Skipped Users ({importResult.skippedUsers.length})
                       </h3>
                       <div className="space-y-1 max-h-56 overflow-y-auto">
                         {importResult.skippedUsers.map((skip, idx) => (
-                          <div key={idx} className="bg-surface-secondary border border-yellow-500/20 rounded px-2 py-1.5 text-xs">
+                          <div key={idx} className="bg-surface-secondary border border-[rgba(var(--color-rating-3),0.2)] rounded px-2 py-1.5 text-xs">
                             <div className="flex gap-2 items-start">
                               <span className="text-yellow-300 font-bold flex-shrink-0 min-w-fit">Row {skip.rowNumber}:</span>
                               <div className="flex-1 min-w-0">
@@ -334,7 +334,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
 
                   {/* Errors */}
                   {importResult.errors && importResult.errors.length > 0 && (
-                    <div className="p-3 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-300">
+                    <div className="p-3 bg-error-muted border border-red-500/30 rounded text-xs text-error">
                       <p className="font-medium mb-1">Errors:</p>
                       <ul className="space-y-0.5">
                         {importResult.errors.map((error, idx) => (
@@ -360,7 +360,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                   <button
                     onClick={handleUpload}
                     disabled={!file || isUploading}
-                    className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-[rgb(var(--color-text-inverse))] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 text-xs font-medium"
+                    className="px-3 py-1.5 bg-[rgb(var(--color-event-social))] hover:bg-[rgb(var(--color-event-social))] text-[rgb(var(--color-text-inverse))] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 text-xs font-medium"
                   >
                     {isUploading ? (
                       <>
@@ -388,7 +388,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                   )}
                   <button
                     onClick={handleClose}
-                    className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-[rgb(var(--color-text-inverse))] rounded-lg transition-colors text-xs font-medium"
+                    className="px-3 py-1.5 bg-[rgb(var(--color-event-social))] hover:bg-[rgb(var(--color-event-social))] text-[rgb(var(--color-text-inverse))] rounded-lg transition-colors text-xs font-medium"
                   >
                     Close
                   </button>

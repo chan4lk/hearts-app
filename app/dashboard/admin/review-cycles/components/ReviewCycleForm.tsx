@@ -416,7 +416,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                       key={user.id}
                       onClick={() => handleEmployeeSelect(user.id)}
                       className={`px-4 py-2 cursor-pointer hover:bg-surface-secondary transition-colors ${
-                        formData.userId === user.id ? 'bg-indigo-900/50' : ''
+                        formData.userId === user.id ? 'bg-accent-muted/50' : ''
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -425,7 +425,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                           <div className="text-secondary text-sm">{user.email}</div>
                         </div>
                         {user.role && (
-                          <span className="px-2 py-0.5 text-xs rounded bg-indigo-500/20 text-indigo-300">
+                          <span className="px-2 py-0.5 text-xs rounded bg-accent-muted text-accent">
                             {user.role}
                           </span>
                         )}
@@ -439,7 +439,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
             )}
           </div>
           {errors.userId && (
-            <p className="mt-1 text-sm text-red-400">{errors.userId}</p>
+            <p className="mt-1 text-sm text-error">{errors.userId}</p>
           )}
         </div>
 
@@ -494,7 +494,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                       key={emp.id}
                       onClick={() => handleReportingPersonSelect(emp.id)}
                       className={`px-4 py-2 cursor-pointer hover:bg-surface-secondary transition-colors ${
-                        formData.reportingPersonId === emp.id ? 'bg-indigo-900/50' : ''
+                        formData.reportingPersonId === emp.id ? 'bg-accent-muted/50' : ''
                       }`}
                     >
                       <div className="text-primary font-medium">{emp.name}</div>
@@ -566,7 +566,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                         handleJobCategorySelect(category);
                       }}
                       className={`px-4 py-2 cursor-pointer hover:bg-surface-secondary transition-colors ${
-                        formData.jobCategory === category ? 'bg-indigo-900/50' : ''
+                        formData.jobCategory === category ? 'bg-accent-muted/50' : ''
                       }`}
                     >
                       <div className="text-primary font-medium">{category}</div>
@@ -637,7 +637,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                         handleDesignationSelect(designation);
                       }}
                       className={`px-4 py-2 cursor-pointer hover:bg-surface-secondary transition-colors ${
-                        formData.designation === designation ? 'bg-indigo-900/50' : ''
+                        formData.designation === designation ? 'bg-accent-muted/50' : ''
                       }`}
                     >
                       <div className="text-primary font-medium">{designation}</div>
@@ -698,7 +698,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
           <label className="block text-sm font-semibold text-secondary mb-2" style={{ color: '#e5e7eb' }}>
             Review Month
             {calculatedReviewMonth && formData.reviewMonth === calculatedReviewMonth && (
-              <span className="ml-2 text-xs text-indigo-400 font-normal"></span>
+              <span className="ml-2 text-xs text-accent font-normal"></span>
             )}
           </label>
           <select
@@ -749,8 +749,8 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                   {formData.reviewMonth}
                 </span>
                 <span className="text-tertiary">→</span>
-                <span className="text-green-400 font-medium">Adjusted:</span>
-                <span className="px-2 py-1 bg-green-500/20 rounded text-green-300 font-semibold border border-green-500/30">
+                <span className="text-cat-training font-medium">Adjusted:</span>
+                <span className="px-2 py-1 bg-cat-training rounded text-cat-training font-semibold border border-green-500/30">
                   {formData.adjustedReviewMonth}
                 </span>
               </div>
@@ -786,7 +786,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
           type="submit"
           form="review-cycle-form"
           disabled={loading}
-          className="px-6 py-2 text-sm font-medium bg-teal-600 hover:bg-teal-700 text-[rgb(var(--color-text-inverse))] rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+          className="px-6 py-2 text-sm font-medium bg-[rgb(var(--color-event-social))] hover:bg-[rgb(var(--color-event-social))] text-[rgb(var(--color-text-inverse))] rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
           style={{ color: '#ffffff' }}
         >
           {loading ? 'Saving...' : (reviewCycle ? 'Update' : 'Add')}

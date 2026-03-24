@@ -50,11 +50,11 @@ export default function AIGoalRiskAnalysis({ goalId, className = '' }: AIGoalRis
   const getRiskColor = (level: string) => {
     switch (level) {
       case 'low':
-        return 'from-emerald-500/20 to-green-500/20 border-emerald-500/30 text-emerald-400';
+        return 'from-emerald-500/20 to-green-500/20 border-emerald-500/30 text-success';
       case 'medium':
         return 'from-[rgba(var(--color-warning),0.2)] to-[rgba(var(--color-warning),0.1)] border-amber-500/30 text-warning';
       case 'high':
-        return 'from-red-500/20 to-rose-500/20 border-red-500/30 text-red-400';
+        return 'from-red-500/20 to-rose-500/20 border-red-500/30 text-error';
       default:
         return 'from-gray-500/20 to-gray-500/20 border-gray-500/30 text-secondary';
     }
@@ -74,9 +74,9 @@ export default function AIGoalRiskAnalysis({ goalId, className = '' }: AIGoalRis
   };
 
   const getProbabilityColor = (probability: number) => {
-    if (probability >= 70) return 'text-emerald-400';
+    if (probability >= 70) return 'text-success';
     if (probability >= 40) return 'text-warning';
-    return 'text-red-400';
+    return 'text-error';
   };
 
   return (
@@ -98,9 +98,9 @@ export default function AIGoalRiskAnalysis({ goalId, className = '' }: AIGoalRis
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg"
+          className="mt-4 p-4 bg-error-muted border border-[rgba(var(--color-error),0.2)] rounded-lg"
         >
-          <p className="text-red-400 text-sm">{error}</p>
+          <p className="text-error text-sm">{error}</p>
         </motion.div>
       )}
 
@@ -152,13 +152,13 @@ export default function AIGoalRiskAnalysis({ goalId, className = '' }: AIGoalRis
           {analysis.recommendations.length > 0 && (
             <div className="bg-gradient-to-r from-purple-500/10 to-indigo-500/10 rounded-lg p-5 border border-purple-500/30">
               <h4 className="text-primary font-semibold mb-3 flex items-center gap-2">
-                <BsCheckCircle className="w-4 h-4 text-purple-400" />
+                <BsCheckCircle className="w-4 h-4 text-cat-technical" />
                 Recommendations
               </h4>
               <ul className="space-y-2">
                 {analysis.recommendations.map((rec, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <span className="text-purple-400 mt-1">✓</span>
+                    <span className="text-cat-technical mt-1">✓</span>
                     <span className="text-secondary text-sm">{rec}</span>
                   </li>
                 ))}

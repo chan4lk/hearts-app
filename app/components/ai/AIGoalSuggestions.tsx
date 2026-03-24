@@ -90,12 +90,12 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-3"
+          className="mt-4 p-4 bg-error-muted border border-[rgba(var(--color-error),0.2)] rounded-lg flex items-start gap-3"
         >
           <BsXCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
           <div>
             <p className="text-red-500 font-medium">Error</p>
-            <p className="text-red-400 text-sm">{error}</p>
+            <p className="text-error text-sm">{error}</p>
           </div>
         </motion.div>
       )}
@@ -153,15 +153,15 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
               <div className="p-6 overflow-y-auto max-h-[calc(80vh-180px)] bg-surface-secondary">
                 {loading ? (
                   <div className="flex flex-col items-center justify-center py-12">
-                    <BsStars className="w-12 h-12 text-purple-400 animate-spin mb-4" />
+                    <BsStars className="w-12 h-12 text-cat-technical animate-spin mb-4" />
                     <p className="text-purple-200 text-lg font-medium">Generating AI suggestions...</p>
-                    <p className="text-purple-300 text-sm mt-2">This may take a few moments</p>
+                    <p className="text-cat-technical text-sm mt-2">This may take a few moments</p>
                   </div>
                 ) : error ? (
                   <div className="flex flex-col items-center justify-center py-12">
-                    <BsXCircle className="w-12 h-12 text-red-400 mb-4" />
+                    <BsXCircle className="w-12 h-12 text-error mb-4" />
                     <p className="text-red-200 text-lg font-medium">Error generating suggestions</p>
-                    <p className="text-red-300 text-sm mt-2">{error}</p>
+                    <p className="text-error text-sm mt-2">{error}</p>
                   </div>
                 ) : suggestions.length > 0 ? (
                   <div className="space-y-4">
@@ -180,23 +180,23 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
                         </h3>
                         <div className="flex flex-wrap gap-2">
                           {suggestion.category && (
-                            <span className="px-3 py-1.5 bg-purple-500/20 text-purple-300 text-sm rounded-lg border border-purple-500/30 font-medium">
+                            <span className="px-3 py-1.5 bg-cat-technical text-cat-technical text-sm rounded-lg border border-purple-500/30 font-medium">
                               📁 {suggestion.category}
                             </span>
                           )}
                           {suggestion.priority && (
                             <span className={`px-3 py-1.5 text-sm rounded-lg border font-medium ${
                               suggestion.priority === 'High'
-                                ? 'bg-red-500/20 text-red-300 border-red-500/30'
+                                ? 'bg-error-muted text-error border-red-500/30'
                                 : suggestion.priority === 'Medium'
-                                ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
-                                : 'bg-green-500/20 text-green-300 border-green-500/30'
+                                ? 'bg-warning-muted text-amber-300 border-amber-500/30'
+                                : 'bg-cat-training text-cat-training border-green-500/30'
                             }`}>
                               🎯 {suggestion.priority} Priority
                             </span>
                           )}
                           {suggestion.estimatedDuration && (
-                            <span className="px-3 py-1.5 bg-blue-500/20 text-blue-300 text-sm rounded-lg border border-blue-500/30 font-medium">
+                            <span className="px-3 py-1.5 bg-cat-professional text-cat-professional text-sm rounded-lg border border-blue-500/30 font-medium">
                               ⏱️ {suggestion.estimatedDuration}
                             </span>
                           )}
@@ -227,7 +227,7 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-12">
-                    <BsStars className="w-12 h-12 text-purple-400 mb-4" />
+                    <BsStars className="w-12 h-12 text-cat-technical mb-4" />
                     <p className="text-purple-200 text-lg font-medium">No suggestions available</p>
                   </div>
                 )}
@@ -236,7 +236,7 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
               {/* Footer */}
               <div className="bg-gradient-to-r from-purple-900/30 to-indigo-900/30 p-5 border-t border-purple-500/30">
                 <div className="flex items-center justify-center gap-3">
-                  <BsLightbulb className="w-5 h-5 text-purple-400" />
+                  <BsLightbulb className="w-5 h-5 text-cat-technical" />
                   <p className="text-purple-200 text-sm font-medium">
                     Click "Use This Goal" to automatically open the goal creation form with pre-filled details!
                   </p>

@@ -68,8 +68,8 @@ export const EventDetailsModal = ({
               </div>
 
               {/* Date & Time */}
-              <div className="flex items-start gap-3 rounded-lg bg-teal-500/10 border border-teal-500/20 p-3">
-                <BsCalendar className="text-teal-400 mt-1 flex-shrink-0" />
+              <div className="flex items-start gap-3 rounded-lg bg-cat-personal border border-teal-500/20 p-3">
+                <BsCalendar className="text-cat-personal mt-1 flex-shrink-0" />
                 <div>
                   <p className="text-xs text-secondary mb-1">Date & Time</p>
                   <p className="text-primary font-medium">
@@ -84,8 +84,8 @@ export const EventDetailsModal = ({
 
               {/* Location */}
               {event.location && (
-                <div className="flex items-start gap-3 rounded-lg bg-blue-500/10 border border-blue-500/20 p-3">
-                  <BsGeo className="text-blue-400 mt-1 flex-shrink-0" />
+                <div className="flex items-start gap-3 rounded-lg bg-cat-professional border border-[rgba(var(--color-info),0.2)] p-3">
+                  <BsGeo className="text-cat-professional mt-1 flex-shrink-0" />
                   <div>
                     <p className="text-xs text-secondary mb-1">Location</p>
                     <p className="text-primary font-medium">{event.location}</p>
@@ -99,7 +99,7 @@ export const EventDetailsModal = ({
                   <p className="text-xs text-secondary mb-1 flex items-center gap-1">
                     <BsPeople /> Participants
                   </p>
-                  <p className="text-2xl font-bold text-teal-400">
+                  <p className="text-2xl font-bold text-cat-personal">
                     {event.participations?.length || 0}
                   </p>
                 </div>
@@ -148,7 +148,7 @@ export const EventDetailsModal = ({
                             {p.user?.email}
                           </p>
                         </div>
-                        <span className="inline-flex items-center rounded-full bg-green-500/20 px-2 py-1 text-xs font-medium text-green-300">
+                        <span className="inline-flex items-center rounded-full bg-cat-training px-2 py-1 text-xs font-medium text-cat-training">
                           {p.participationStatus}
                         </span>
                       </div>

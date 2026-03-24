@@ -352,7 +352,7 @@ function GoalsPageContent() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 p-4 rounded-xl shadow-theme-lg flex items-center gap-3 max-w-[90%] md:max-w-md backdrop-blur-xl border border-white/20 ${
-                notificationType === 'success' ? 'bg-green-500/90' : 'bg-red-500/90'
+                notificationType === 'success' ? 'bg-[rgb(var(--color-cat-training))]/90' : 'bg-[rgb(var(--color-error))]/90'
               } text-[rgb(var(--color-text-inverse))]`}
             >
               <span className="text-sm md:text-base font-medium">{notificationMessage}</span>
@@ -374,8 +374,8 @@ function GoalsPageContent() {
               className="bg-surface-elevated border border-theme hover:border-purple-500/30 hover:shadow-theme-sm rounded-xl p-6 transition-all text-left group"
             >
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-colors">
-                  <BsStars className="w-6 h-6 text-purple-400" />
+                <div className="p-3 bg-cat-technical rounded-lg group-hover:bg-cat-technical transition-colors">
+                  <BsStars className="w-6 h-6 text-cat-technical" />
                 </div>
                 <div className="flex-1">
                   <h3 className="text-lg font-bold text-primary mb-1">
@@ -383,7 +383,7 @@ function GoalsPageContent() {
                   </h3>
                   <p className="text-sm text-secondary">Browse goal templates to get started quickly</p>
                 </div>
-                <BsArrowUpRight className={`w-5 h-5 text-purple-400 transform transition-transform duration-300 ${showTemplates ? 'rotate-180' : ''}`} />
+                <BsArrowUpRight className={`w-5 h-5 text-cat-technical transform transition-transform duration-300 ${showTemplates ? 'rotate-180' : ''}`} />
               </div>
             </motion.button>
 
@@ -395,8 +395,8 @@ function GoalsPageContent() {
               className="bg-surface-elevated border border-theme hover:border-emerald-500/30 hover:shadow-theme-sm rounded-xl p-6 transition-all text-left group"
             >
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-green-500/20 rounded-lg group-hover:bg-green-500/30 transition-colors">
-                  <BsPlus className="w-6 h-6 text-green-400" />
+                <div className="p-3 bg-cat-training rounded-lg group-hover:bg-cat-training transition-colors">
+                  <BsPlus className="w-6 h-6 text-cat-training" />
                 </div>
                 <div className="flex-1">
                   <h3 className="text-lg font-bold text-primary mb-1">Create New Goal</h3>

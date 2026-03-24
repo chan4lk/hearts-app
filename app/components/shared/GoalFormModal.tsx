@@ -107,7 +107,7 @@ export function GoalFormModal({
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.category && <p className="text-red-400 text-2xs mt-0.5">{errors.category}</p>}
+                {errors.category && <p className="text-error text-2xs mt-0.5">{errors.category}</p>}
               </div>
               <div>
                 <label className="block text-xs font-medium text-secondary mb-1">Department</label>
@@ -129,7 +129,7 @@ export function GoalFormModal({
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.department && <p className="text-red-400 text-2xs mt-0.5">{errors.department}</p>}
+                {errors.department && <p className="text-error text-2xs mt-0.5">{errors.department}</p>}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -153,7 +153,7 @@ export function GoalFormModal({
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.priority && <p className="text-red-400 text-2xs mt-0.5">{errors.priority}</p>}
+                {errors.priority && <p className="text-error text-2xs mt-0.5">{errors.priority}</p>}
               </div>
               <div>
                 <label className="block text-xs font-medium text-secondary mb-1">Employee</label>
@@ -175,7 +175,7 @@ export function GoalFormModal({
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.employeeId && <p className="text-red-400 text-2xs mt-0.5">{errors.employeeId}</p>}
+                {errors.employeeId && <p className="text-error text-2xs mt-0.5">{errors.employeeId}</p>}
               </div>
             </div>
             <div>
@@ -202,7 +202,7 @@ export function GoalFormModal({
                 placeholder="Enter goal title"
                 className="bg-surface-secondary border border-theme text-primary text-xs h-9 rounded-lg"
               />
-              {errors.title && <p className="text-red-400 text-2xs mt-0.5">{errors.title}</p>}
+              {errors.title && <p className="text-error text-2xs mt-0.5">{errors.title}</p>}
             </div>
             <div>
               <label className="block text-xs font-medium text-secondary mb-1">Description</label>

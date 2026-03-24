@@ -255,12 +255,12 @@ export const getRoleBasedTitle = (role: Role): string => {
 export const getRoleColor = (role: Role): string => {
   switch (role) {
     case 'ADMIN':
-      return 'text-purple-500 bg-purple-100 dark:text-purple-300 dark:bg-purple-900/20';
+      return 'text-purple-500 bg-cat-technical dark:text-cat-technical dark:bg-cat-technical/20';
     case 'MANAGER':
-      return 'text-blue-500 bg-blue-100 dark:text-blue-300 dark:bg-blue-900/20';
+      return 'text-blue-500 bg-info-muted dark:text-cat-professional dark:bg-cat-professional/20';
     case 'EMPLOYEE':
-      return 'text-green-500 bg-green-100 dark:text-green-300 dark:bg-green-900/20';
+      return 'text-green-500 bg-success-muted dark:text-cat-training dark:bg-cat-training/20';
     default:
-      return 'text-gray-500 bg-gray-100 dark:text-gray-300 dark:bg-gray-900/20';
+      return 'text-gray-500 bg-gray-100 dark:text-gray-300 dark:bg-surface-primary/20';
   }
 }; 

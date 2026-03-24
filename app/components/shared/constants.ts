@@ -5,7 +5,7 @@ export const CATEGORIES = [
     value: 'PROFESSIONAL',
     label: 'Professional Development',
     icon: BsBriefcase,
-    iconColor: 'text-blue-400',
+    iconColor: 'text-cat-professional',
     color: 'from-blue-500 to-indigo-500',
     bgGradient: 'from-blue-500/10 to-transparent',
     bgColor: 'bg-[#1a1f35]'
@@ -23,7 +23,7 @@ export const CATEGORIES = [
     value: 'LEADERSHIP',
     label: 'Leadership',
     icon: BsAward,
-    iconColor: 'text-purple-400',
+    iconColor: 'text-cat-technical',
     color: 'from-emerald-500 to-teal-500',
     bgGradient: 'from-purple-500/10 to-transparent',
     bgColor: 'bg-[#251a35]'
@@ -32,7 +32,7 @@ export const CATEGORIES = [
     value: 'PERSONAL',
     label: 'Personal Growth',
     icon: BsHeart,
-    iconColor: 'text-emerald-400',
+    iconColor: 'text-success',
     color: 'from-rose-500 to-red-500',
     bgGradient: 'from-emerald-500/10 to-transparent',
     bgColor: 'bg-[#1a2a25]'
@@ -41,7 +41,7 @@ export const CATEGORIES = [
     value: 'TRAINING',
     label: 'Training',
     icon: BsBook,
-    iconColor: 'text-rose-400',
+    iconColor: 'text-error',
     color: 'from-amber-500 to-orange-500',
     bgGradient: 'from-rose-500/10 to-transparent',
     bgColor: 'bg-[#2a1a20]'
@@ -50,7 +50,7 @@ export const CATEGORIES = [
     value: 'KPI',
     label: 'Key Performance Indicators',
     icon: BsBarChart,
-    iconColor: 'text-cyan-400',
+    iconColor: 'text-info',
     color: 'from-cyan-500 to-blue-500',
     bgGradient: 'from-cyan-500/10 to-transparent',
     bgColor: 'bg-[#1a2a35]'
@@ -63,7 +63,7 @@ export const GOAL_TEMPLATES = [
     title: 'Project Milestone',
     category: 'PROFESSIONAL',
     icon: 'BsRocket',
-    iconColor: 'text-blue-400',
+    iconColor: 'text-cat-professional',
     description: 'Complete [Project Name] milestone by [Date] achieving [Specific Metrics]',
     subtitle: 'Project Excellence',
     bgGradient: 'from-blue-500/10 to-transparent',
@@ -85,7 +85,7 @@ export const GOAL_TEMPLATES = [
     title: 'Leadership Initiative',
     category: 'LEADERSHIP',
     icon: 'BsAward',
-    iconColor: 'text-purple-400',
+    iconColor: 'text-cat-technical',
     description: 'Lead [Team/Project] to achieve [Specific Outcome] by [Date]',
     subtitle: 'Leadership Development',
     bgGradient: 'from-purple-500/10 to-transparent',
@@ -96,7 +96,7 @@ export const GOAL_TEMPLATES = [
     title: 'Career Development',
     category: 'PERSONAL',
     icon: 'BsGraphUp',
-    iconColor: 'text-emerald-400',
+    iconColor: 'text-success',
     description: 'Achieve [Career Milestone] through [Actions] by [Date]',
     subtitle: 'Professional Growth',
     bgGradient: 'from-emerald-500/10 to-transparent',
@@ -107,7 +107,7 @@ export const GOAL_TEMPLATES = [
     title: 'Innovation Project',
     category: 'PROFESSIONAL',
     icon: 'BsStars',
-    iconColor: 'text-indigo-400',
+    iconColor: 'text-accent',
     description: 'Develop innovative solution for [Problem] achieving [Metrics]',
     subtitle: 'Innovation & Creativity',
     bgGradient: 'from-indigo-500/10 to-transparent',
@@ -118,7 +118,7 @@ export const GOAL_TEMPLATES = [
     title: 'Certification Goal',
     category: 'TRAINING',
     icon: 'BsBriefcase',
-    iconColor: 'text-rose-400',
+    iconColor: 'text-error',
     description: 'Obtain [Certification Name] certification by [Date]',
     subtitle: 'Professional Certification',
     bgGradient: 'from-rose-500/10 to-transparent',
@@ -129,7 +129,7 @@ export const GOAL_TEMPLATES = [
     title: 'Team Collaboration',
     category: 'LEADERSHIP',
     icon: 'BsAward',
-    iconColor: 'text-green-400',
+    iconColor: 'text-cat-training',
     description: 'Improve team collaboration by implementing [Strategy] and achieving [Metrics] by [Date]',
     subtitle: 'Team Building',
     bgGradient: 'from-green-500/10 to-transparent',
@@ -140,7 +140,7 @@ export const GOAL_TEMPLATES = [
     title: 'Revenue Growth',
     category: 'KPI',
     icon: 'BsGraphUp',
-    iconColor: 'text-cyan-400',
+    iconColor: 'text-info',
     description: 'Achieve quarterly revenue target of [Amount] with [Growth %] YoY growth by [Date]',
     subtitle: 'Financial Performance',
     bgGradient: 'from-cyan-500/10 to-transparent',
@@ -162,7 +162,7 @@ export const GOAL_TEMPLATES = [
     title: 'Operational Efficiency',
     category: 'KPI',
     icon: 'BsLightbulb',
-    iconColor: 'text-teal-400',
+    iconColor: 'text-cat-personal',
     description: 'Reduce operational costs by [Target %] while maintaining quality standards above [Target %]',
     subtitle: 'Process Optimization',
     bgGradient: 'from-teal-500/10 to-transparent',
@@ -173,7 +173,7 @@ export const GOAL_TEMPLATES = [
     title: 'Employee Performance',
     category: 'KPI',
     icon: 'BsBarChart',
-    iconColor: 'text-indigo-400',
+    iconColor: 'text-accent',
     description: 'Achieve team productivity rate of [Target %] and maintain employee satisfaction above [Score]',
     subtitle: 'HR Metrics',
     bgGradient: 'from-indigo-500/10 to-transparent',
@@ -184,7 +184,7 @@ export const GOAL_TEMPLATES = [
     title: 'Market Share Growth',
     category: 'KPI',
     icon: 'BsGraphUp',
-    iconColor: 'text-purple-400',
+    iconColor: 'text-cat-technical',
     description: 'Increase market share by [Target %] in [Market Segment] through [Strategic Actions]',
     subtitle: 'Market Performance',
     bgGradient: 'from-purple-500/10 to-transparent',
@@ -195,7 +195,7 @@ export const GOAL_TEMPLATES = [
     title: 'Quality Assurance',
     category: 'KPI',
     icon: 'BsAward',
-    iconColor: 'text-emerald-400',
+    iconColor: 'text-success',
     description: 'Maintain product/service quality rating of [Target %] with defect rate below [Target %]',
     subtitle: 'Quality Metrics',
     bgGradient: 'from-emerald-500/10 to-transparent',
@@ -206,7 +206,7 @@ export const GOAL_TEMPLATES = [
     title: 'Development Time Allocation',
     category: 'KPI',
     icon: 'BsCode',
-    iconColor: 'text-blue-400',
+    iconColor: 'text-cat-professional',
     description: 'Maintain [Target %] of development hours dedicated to core development activities',
     subtitle: 'Development Efficiency',
     bgGradient: 'from-blue-500/10 to-transparent',
@@ -217,7 +217,7 @@ export const GOAL_TEMPLATES = [
     title: 'Code Quality Metrics',
     category: 'KPI',
     icon: 'BsBug',
-    iconColor: 'text-red-400',
+    iconColor: 'text-error',
     description: 'Achieve maximum of [Number] bugs per story with [Number] peer test cycles',
     subtitle: 'Quality Assurance',
     bgGradient: 'from-red-500/10 to-transparent',
@@ -228,7 +228,7 @@ export const GOAL_TEMPLATES = [
     title: 'Sprint Delivery Rate',
     category: 'KPI',
     icon: 'BsRocket',
-    iconColor: 'text-green-400',
+    iconColor: 'text-cat-training',
     description: 'Maintain sprint delivery rate of [Target %] or higher',
     subtitle: 'Sprint Performance',
     bgGradient: 'from-green-500/10 to-transparent',
@@ -239,7 +239,7 @@ export const GOAL_TEMPLATES = [
     title: 'Team Engagement',
     category: 'KPI',
     icon: 'BsPeople',
-    iconColor: 'text-purple-400',
+    iconColor: 'text-cat-technical',
     description: 'Achieve [Target %] participation in company events (Code Crunch, Toastmasters)',
     subtitle: 'Team Participation',
     bgGradient: 'from-purple-500/10 to-transparent',
@@ -271,11 +271,11 @@ export const getStatusBadge = (status: string) => {
   return statusVariants[status as keyof typeof statusVariants] || 'secondary';
 }; 
 export const RATING_COLORS = {
-  1: 'bg-red-500/10 text-red-400',
-  2: 'bg-orange-500/10 text-orange-400',
-  3: 'bg-yellow-500/10 text-warning',
-  4: 'bg-blue-500/10 text-blue-400',
-  5: 'bg-green-500/10 text-green-400'
+  1: 'bg-error-muted text-error',
+  2: 'bg-rating-2 text-rating-2',
+  3: 'bg-rating-3 text-warning',
+  4: 'bg-cat-professional text-cat-professional',
+  5: 'bg-cat-training text-cat-training'
 } as const;
 
 export const RATING_LABELS = {
@@ -295,33 +295,33 @@ export const RATING_DESCRIPTIONS = {
 } as const;
 
 export const RATING_HOVER_COLORS = {
-  1: 'hover:bg-red-500/20 hover:text-red-300',
-  2: 'hover:bg-orange-500/20 hover:text-orange-300',
-  3: 'hover:bg-yellow-500/20 hover:text-yellow-300',
-  4: 'hover:bg-blue-500/20 hover:text-blue-300',
-  5: 'hover:bg-green-500/20 hover:text-green-300'
+  1: 'hover:bg-error-muted hover:text-error',
+  2: 'hover:bg-rating-2 hover:text-rating-2',
+  3: 'hover:bg-rating-3 hover:text-yellow-300',
+  4: 'hover:bg-cat-professional hover:text-cat-professional',
+  5: 'hover:bg-cat-training hover:text-cat-training'
 } as const;
 
 export const STATUS_COLORS = {
-  DRAFT: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
-  PENDING: 'bg-gray-500/10 text-secondary dark:text-gray-400',
-  COMPLETED: 'bg-green-500/10 text-green-600 dark:text-green-400',
-  APPROVED: 'bg-blue-500/10 text-info',
-  REJECTED: 'bg-red-500/10 text-error',
-  MODIFIED: 'bg-yellow-500/10 text-yellow-600 dark:text-warning'
+  DRAFT: 'bg-cat-technical text-purple-600 dark:text-cat-technical',
+  PENDING: 'bg-surface-secondary text-secondary dark:text-tertiary',
+  COMPLETED: 'bg-cat-training text-green-600 dark:text-cat-training',
+  APPROVED: 'bg-cat-professional text-info',
+  REJECTED: 'bg-error-muted text-error',
+  MODIFIED: 'bg-rating-3 text-yellow-600 dark:text-warning'
 } as const;
 
 /** Shared status badge styles for GoalsTable and AdminGoalsTable. Use for consistent goal status UI. */
 export const GOAL_STATUS_BADGE_CONFIG: Record<string, { bg: string; text: string }> = {
-  APPROVED: { bg: 'bg-emerald-500/20', text: 'text-emerald-400' },
-  REJECTED: { bg: 'bg-rose-500/20', text: 'text-rose-400' },
-  PENDING: { bg: 'bg-amber-500/20', text: 'text-amber-400' },
-  MODIFIED: { bg: 'bg-blue-500/20', text: 'text-blue-400' },
-  COMPLETED: { bg: 'bg-green-500/20', text: 'text-green-400' },
-  DRAFT: { bg: 'bg-gray-500/20', text: 'text-gray-400' },
-  IN_PROGRESS: { bg: 'bg-blue-500/20', text: 'text-blue-400' },
-  ON_HOLD: { bg: 'bg-amber-500/20', text: 'text-amber-400' },
-  BLOCKED: { bg: 'bg-red-500/20', text: 'text-red-400' },
+  APPROVED: { bg: 'bg-success-muted', text: 'text-success' },
+  REJECTED: { bg: 'bg-error-muted', text: 'text-error' },
+  PENDING: { bg: 'bg-warning-muted', text: 'text-amber-400' },
+  MODIFIED: { bg: 'bg-cat-professional', text: 'text-cat-professional' },
+  COMPLETED: { bg: 'bg-cat-training', text: 'text-cat-training' },
+  DRAFT: { bg: 'bg-surface-secondary', text: 'text-tertiary' },
+  IN_PROGRESS: { bg: 'bg-cat-professional', text: 'text-cat-professional' },
+  ON_HOLD: { bg: 'bg-warning-muted', text: 'text-amber-400' },
+  BLOCKED: { bg: 'bg-error-muted', text: 'text-error' },
 };
 
 export const DEPARTMENTS = [
@@ -329,21 +329,21 @@ export const DEPARTMENTS = [
     value: 'ENGINEERING',
     label: 'Engineering',
     icon: 'BsCode',
-    iconColor: 'text-blue-400',
+    iconColor: 'text-cat-professional',
     color: 'from-blue-500 to-indigo-500'
   },
   {
     value: 'SALES',
     label: 'Sales',
     icon: 'BsGraphUp',
-    iconColor: 'text-green-400',
+    iconColor: 'text-cat-training',
     color: 'from-green-500 to-emerald-500'
   },
   {
     value: 'MARKETING',
     label: 'Marketing',
     icon: 'BsMegaphone',
-    iconColor: 'text-purple-400',
+    iconColor: 'text-cat-technical',
     color: 'from-purple-500 to-pink-500'
   },
   {
@@ -357,28 +357,28 @@ export const DEPARTMENTS = [
     value: 'FINANCE',
     label: 'Finance',
     icon: 'BsCalculator',
-    iconColor: 'text-emerald-400',
+    iconColor: 'text-success',
     color: 'from-emerald-500 to-teal-500'
   },
   {
     value: 'OPERATIONS',
     label: 'Operations',
     icon: 'BsGear',
-    iconColor: 'text-gray-400',
+    iconColor: 'text-tertiary',
     color: 'from-gray-500 to-slate-500'
   },
   {
     value: 'CUSTOMER_SUCCESS',
     label: 'Customer Success',
     icon: 'BsHeart',
-    iconColor: 'text-rose-400',
+    iconColor: 'text-error',
     color: 'from-rose-500 to-red-500'
   },
   {
     value: 'PRODUCT',
     label: 'Product',
     icon: 'BsLightbulb',
-    iconColor: 'text-cyan-400',
+    iconColor: 'text-info',
     color: 'from-cyan-500 to-blue-500'
   }
 ] as const;
@@ -388,9 +388,9 @@ export const PRIORITIES = [
     value: 'LOW',
     label: 'Low',
     icon: BsArrowDown,
-    iconColor: 'text-gray-400',
+    iconColor: 'text-tertiary',
     color: 'from-gray-400 to-gray-500',
-    bgColor: 'bg-gray-500/10'
+    bgColor: 'bg-surface-secondary'
   },
   {
     value: 'MEDIUM',
@@ -398,23 +398,23 @@ export const PRIORITIES = [
     icon: BsDash,
     iconColor: 'text-warning',
     color: 'from-yellow-400 to-orange-500',
-    bgColor: 'bg-yellow-500/10'
+    bgColor: 'bg-rating-3'
   },
   {
     value: 'HIGH',
     label: 'High',
     icon: BsArrowUp,
-    iconColor: 'text-orange-400',
+    iconColor: 'text-rating-2',
     color: 'from-orange-400 to-red-500',
-    bgColor: 'bg-orange-500/10'
+    bgColor: 'bg-rating-2'
   },
   {
     value: 'URGENT',
     label: 'Urgent',
     icon: BsExclamationTriangle,
-    iconColor: 'text-red-400',
+    iconColor: 'text-error',
     color: 'from-red-400 to-red-600',
-    bgColor: 'bg-red-500/10'
+    bgColor: 'bg-error-muted'
   }
 ] as const;
 
@@ -423,26 +423,26 @@ export const THEME_COLORS = {
   primary: {
     gradient: 'from-indigo-600/90 via-purple-600/90 to-pink-600/90',
     text: 'text-accent',
-    bg: 'bg-indigo-500/10',
+    bg: 'bg-accent-muted',
     border: 'border-indigo-500/50',
-    hover: 'hover:bg-indigo-500/20',
+    hover: 'hover:bg-accent-muted',
   },
   secondary: {
     gradient: 'from-blue-500/10 to-blue-600/10',
     text: 'text-info',
-    bg: 'bg-blue-500/10',
+    bg: 'bg-cat-professional',
     border: 'border-blue-200/20 dark:border-blue-600/20',
   },
   success: {
     gradient: 'from-emerald-500/10 to-emerald-600/10',
     text: 'text-success',
-    bg: 'bg-emerald-500/10',
+    bg: 'bg-success-muted',
     border: 'border-emerald-200/20 dark:border-emerald-600/20',
   },
   warning: {
     gradient: 'from-amber-500/10 to-amber-600/10',
     text: 'text-warning',
-    bg: 'bg-amber-500/10',
+    bg: 'bg-[rgb(var(--color-warning))]/10',
     border: 'border-amber-200/20 dark:border-amber-600/20',
   },
   background: {
@@ -455,7 +455,7 @@ export const THEME_COLORS = {
   },
   text: {
     primary: 'text-[rgb(var(--color-text-inverse))]',
-    secondary: 'text-slate-400',
+    secondary: 'text-tertiary',
   },
 } as const;
 

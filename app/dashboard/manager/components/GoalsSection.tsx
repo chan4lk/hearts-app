@@ -51,7 +51,7 @@ export default function GoalsSection({
       onClick={() => setActiveView(view)}
       className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
         activeView === view
-          ? 'bg-indigo-600 text-[rgb(var(--color-text-inverse))]'
+          ? 'bg-accent text-[rgb(var(--color-text-inverse))]'
           : 'text-secondary hover:text-primary hover:bg-surface-tertiary'
       }`}
     >

@@ -826,13 +826,13 @@ export default function EmployeeDashboard() {
                           {ratedGoals.map((goal, index) => {
                             const rating = goal.rating?.managerScore || 0;
                             const ratingColors = {
-                              1: { bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/20', icon: 'from-red-500 to-red-600' },
-                              2: { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/20', icon: 'from-orange-500 to-orange-600' },
-                              3: { bg: 'bg-yellow-500/10', text: 'text-warning', border: 'border-yellow-500/20', icon: 'from-yellow-500 to-yellow-600' },
-                              4: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20', icon: 'from-blue-500 to-blue-600' },
-                              5: { bg: 'bg-green-500/10', text: 'text-green-400', border: 'border-green-500/20', icon: 'from-green-500 to-green-600' }
+                              1: { bg: 'bg-error-muted', text: 'text-error', border: 'border-[rgba(var(--color-error),0.2)]', icon: 'from-[rgb(var(--color-rating-1))] to-[rgb(var(--color-error))]' },
+                              2: { bg: 'bg-rating-2', text: 'text-rating-2', border: 'border-[rgba(var(--color-rating-2),0.2)]', icon: 'from-[rgb(var(--color-rating-2))] to-[rgb(var(--color-rating-2))]' },
+                              3: { bg: 'bg-rating-3', text: 'text-warning', border: 'border-[rgba(var(--color-rating-3),0.2)]', icon: 'from-[rgb(var(--color-rating-3))] to-[rgb(var(--color-rating-3))]' },
+                              4: { bg: 'bg-cat-professional', text: 'text-cat-professional', border: 'border-[rgba(var(--color-info),0.2)]', icon: 'from-[rgb(var(--color-rating-4))] to-[rgb(var(--color-info))]' },
+                              5: { bg: 'bg-cat-training', text: 'text-cat-training', border: 'border-[rgba(var(--color-success),0.2)]', icon: 'from-[rgb(var(--color-rating-5))] to-[rgb(var(--color-success))]' }
                             };
-                            const ratingStyle = ratingColors[rating as keyof typeof ratingColors] || { bg: 'bg-gray-500/10', text: 'text-secondary', border: 'border-gray-500/20', icon: 'from-gray-500 to-gray-600' };
+                            const ratingStyle = ratingColors[rating as keyof typeof ratingColors] || { bg: 'bg-surface-secondary', text: 'text-secondary', border: 'border-gray-500/20', icon: 'from-gray-500 to-gray-600' };
                             const ratingLabels = {
                               1: "Needs Improvement",
                               2: "Below Expectations",
@@ -897,7 +897,7 @@ export default function EmployeeDashboard() {
                                   {goal.rating?.managerComments && (
                                     <div className="mt-3 p-3 bg-black/30 rounded-lg border border-amber-500/20">
                                       <div className="flex items-start gap-2">
-                                        <div className="p-1 bg-amber-500/20 rounded flex-shrink-0 mt-0.5">
+                                        <div className="p-1 bg-warning-muted rounded flex-shrink-0 mt-0.5">
                                           <BsPersonCheck className="w-3 h-3 text-warning" />
                                         </div>
                                         <p className="text-sm text-secondary italic flex-1">

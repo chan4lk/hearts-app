@@ -53,11 +53,11 @@ export default function PerformanceTable({ data, userRole }: PerformanceTablePro
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 + index * 0.05 }}
-                    className={`border-b border-theme hover:bg-surface-tertiary transition-all duration-200 ${isHighPerformer ? 'bg-green-500/5' : ''}`}
+                    className={`border-b border-theme hover:bg-surface-tertiary transition-all duration-200 ${isHighPerformer ? 'bg-[rgb(var(--color-cat-training))]/5' : ''}`}
                   >
                     <td className="py-3 px-3">
                       <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${isHighPerformer ? 'bg-green-500' : 'bg-gray-600'}`} />
+                        <div className={`w-2 h-2 rounded-full ${isHighPerformer ? 'bg-[rgb(var(--color-cat-training))]' : 'bg-surface-tertiary'}`} />
                         <span className="text-[rgb(var(--color-text-inverse))] font-medium">{emp.employeeName}</span>
                       </div>
                     </td>
@@ -65,10 +65,10 @@ export default function PerformanceTable({ data, userRole }: PerformanceTablePro
                       <span className="text-primary font-medium">{emp.totalGoals}</span>
                     </td>
                     <td className="py-3 px-3 text-center">
-                      <span className="text-green-400 font-medium">{emp.completedGoals}</span>
+                      <span className="text-cat-training font-medium">{emp.completedGoals}</span>
                     </td>
                     <td className="py-3 px-3 text-center">
-                      <span className={`font-semibold ${emp.completionRate >= 80 ? 'text-green-400' : emp.completionRate >= 50 ? 'text-warning' : 'text-red-400'}`}>
+                      <span className={`font-semibold ${emp.completionRate >= 80 ? 'text-cat-training' : emp.completionRate >= 50 ? 'text-warning' : 'text-error'}`}>
                         {emp.completionRate.toFixed(1)}%
                       </span>
                     </td>

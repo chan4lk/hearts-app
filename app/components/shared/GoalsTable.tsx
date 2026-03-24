@@ -54,15 +54,15 @@ const STATUS_OPTIONS = [
 
 const getStatusBadge = (status: string, goal?: Goal | GoalWithRatingExtended, session?: any, onStatusChange?: (goalId: string, newStatus: string) => void, updatingStatus?: string | null, disableStatusUpdate?: boolean, allowedStatuses?: (goal: Goal | GoalWithRatingExtended) => string[]) => {
   const configs: Record<string, { bg: string; text: string; icon: any }> = {
-    APPROVED: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', icon: BsCheckCircle },
-    REJECTED: { bg: 'bg-rose-500/20', text: 'text-rose-400', icon: BsXCircle },
-    PENDING: { bg: 'bg-amber-500/20', text: 'text-warning', icon: BsClock },
-    MODIFIED: { bg: 'bg-blue-500/20', text: 'text-blue-400', icon: BsGear },
-    COMPLETED: { bg: 'bg-green-500/20', text: 'text-green-400', icon: BsCheckCircle },
-    DRAFT: { bg: 'bg-slate-500/20', text: 'text-slate-400', icon: BsGear },
-    IN_PROGRESS: { bg: 'bg-blue-500/20', text: 'text-blue-400', icon: BsPlayCircle },
-    ON_HOLD: { bg: 'bg-amber-500/20', text: 'text-warning', icon: BsPauseCircle },
-    BLOCKED: { bg: 'bg-red-500/20', text: 'text-red-400', icon: BsFlag }
+    APPROVED: { bg: 'bg-success-muted', text: 'text-success', icon: BsCheckCircle },
+    REJECTED: { bg: 'bg-error-muted', text: 'text-error', icon: BsXCircle },
+    PENDING: { bg: 'bg-warning-muted', text: 'text-warning', icon: BsClock },
+    MODIFIED: { bg: 'bg-cat-professional', text: 'text-cat-professional', icon: BsGear },
+    COMPLETED: { bg: 'bg-cat-training', text: 'text-cat-training', icon: BsCheckCircle },
+    DRAFT: { bg: 'bg-surface-secondary', text: 'text-tertiary', icon: BsGear },
+    IN_PROGRESS: { bg: 'bg-cat-professional', text: 'text-cat-professional', icon: BsPlayCircle },
+    ON_HOLD: { bg: 'bg-warning-muted', text: 'text-warning', icon: BsPauseCircle },
+    BLOCKED: { bg: 'bg-error-muted', text: 'text-error', icon: BsFlag }
   };
   const config = configs[status] || configs.PENDING;
   const Icon = config.icon;
@@ -264,10 +264,10 @@ const PRIORITY_OPTIONS = [
 
 const getPriorityBadge = (priority: string, goal?: Goal | GoalWithRatingExtended, session?: any, onPriorityChange?: (goalId: string, newPriority: string) => void, updatingPriority?: string | null, canEditPriority?: (goal: Goal | GoalWithRatingExtended) => boolean) => {
   const configs: Record<string, { bg: string; text: string }> = {
-    URGENT: { bg: 'bg-red-500/20', text: 'text-red-400' },
-    HIGH: { bg: 'bg-rose-500/20', text: 'text-rose-400' },
-    MEDIUM: { bg: 'bg-amber-500/20', text: 'text-warning' },
-    LOW: { bg: 'bg-emerald-500/20', text: 'text-emerald-400' }
+    URGENT: { bg: 'bg-error-muted', text: 'text-error' },
+    HIGH: { bg: 'bg-error-muted', text: 'text-error' },
+    MEDIUM: { bg: 'bg-warning-muted', text: 'text-warning' },
+    LOW: { bg: 'bg-success-muted', text: 'text-success' }
   };
   const config = configs[priority] || configs.MEDIUM;
   
@@ -1151,7 +1151,7 @@ export default function GoalsTable({
                         {onGoalClick && (
                           <button
                             onClick={() => onGoalClick(goal)}
-                            className="p-1.5 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 rounded transition-colors"
+                            className="p-1.5 text-accent hover:text-accent hover:bg-accent-muted rounded transition-colors"
                             title="View"
                           >
                             <BsEye className="w-4 h-4" />
@@ -1160,7 +1160,7 @@ export default function GoalsTable({
                         {onEdit && (
                           <button
                             onClick={() => onEdit(goal)}
-                            className="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded transition-colors"
+                            className="p-1.5 text-cat-professional hover:text-cat-professional hover:bg-cat-professional rounded transition-colors"
                             title="Edit"
                           >
                             <BsPencil className="w-4 h-4" />
@@ -1169,7 +1169,7 @@ export default function GoalsTable({
                         {onDelete && (
                           <button
                             onClick={() => onDelete(goal)}
-                            className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded transition-colors"
+                            className="p-1.5 text-error hover:text-error hover:bg-error-muted rounded transition-colors"
                             title="Delete"
                           >
                             <BsTrash className="w-4 h-4" />

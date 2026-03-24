@@ -231,7 +231,7 @@ export default function AdminGoalsTable({
                     <tr
                       key={goal.id}
                       className={`border-b border-theme hover:bg-surface-secondary/50 transition-colors whitespace-nowrap ${
-                        isSelected ? 'bg-indigo-500/5 border-l-4 border-l-indigo-500' : ''
+                        isSelected ? 'bg-accent/5 border-l-4 border-l-indigo-500' : ''
                       }`}
                     >
                       <CheckboxCell checked={isSelected} onToggle={() => toggleSelect(goal.id)} />
@@ -293,7 +293,7 @@ export default function AdminGoalsTable({
                         {onDelete && (
                           <button
                             onClick={() => onDelete(goal)}
-                            className="p-1 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                            className="p-1 text-red-500 hover:text-error hover:bg-error-muted rounded transition-colors"
                             title="Delete Goal"
                           >
                             <BsTrash className="w-3 h-3" />

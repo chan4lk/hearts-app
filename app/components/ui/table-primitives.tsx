@@ -12,7 +12,7 @@ export const TABLE_STYLES = {
   tdPrimary: 'py-2.5 px-3 text-xs text-primary truncate',
   tdSecondary: 'py-2.5 px-3 text-xs text-secondary truncate',
   row: 'border-b border-theme hover:bg-surface-secondary/50 transition-colors cursor-pointer',
-  rowSelected: 'border-b border-theme hover:bg-surface-secondary/50 transition-colors cursor-pointer bg-indigo-500/5',
+  rowSelected: 'border-b border-theme hover:bg-surface-secondary/50 transition-colors cursor-pointer bg-accent/5',
 } as const;
 
 // ─── useTableSelection Hook ─────────────────────────────────────
@@ -90,7 +90,7 @@ export function CheckboxHeader({ isAllSelected, isPartialSelected, onToggle }: {
         {isAllSelected ? (
           <BsCheckSquare className="w-4 h-4 text-indigo-600" />
         ) : isPartialSelected ? (
-          <BsDashSquare className="w-4 h-4 text-indigo-400" />
+          <BsDashSquare className="w-4 h-4 text-accent" />
         ) : (
           <BsSquare className="w-4 h-4" />
         )}

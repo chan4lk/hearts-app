@@ -39,15 +39,15 @@ export default function GoalActivityTimeline({ activities }: GoalActivityTimelin
   const getActivityIcon = (type: string) => {
     switch (type) {
       case 'created':
-        return <BsCircle className="w-4 h-4 text-blue-400" />;
+        return <BsCircle className="w-4 h-4 text-cat-professional" />;
       case 'progress_update':
-        return <BsPlayCircle className="w-4 h-4 text-green-400" />;
+        return <BsPlayCircle className="w-4 h-4 text-cat-training" />;
       case 'status_change':
         return <BsFlag className="w-4 h-4 text-warning" />;
       case 'comment':
-        return <BsChat className="w-4 h-4 text-purple-400" />;
+        return <BsChat className="w-4 h-4 text-cat-technical" />;
       case 'completed':
-        return <BsCheckCircle className="w-4 h-4 text-emerald-400" />;
+        return <BsCheckCircle className="w-4 h-4 text-success" />;
       default:
         return <BsClock className="w-4 h-4 text-secondary" />;
     }
@@ -152,7 +152,7 @@ export default function GoalActivityTimeline({ activities }: GoalActivityTimelin
                 )}
 
                 {activity.data.comment && (
-                  <div className="mt-3 p-3 bg-purple-900/20 rounded border border-purple-500/20">
+                  <div className="mt-3 p-3 bg-cat-technical/20 rounded border border-purple-500/20">
                     <p className="text-sm text-secondary">{activity.data.comment}</p>
                   </div>
                 )}
@@ -162,7 +162,7 @@ export default function GoalActivityTimeline({ activities }: GoalActivityTimelin
                   <div className="mt-3">
                     <div className="h-2 bg-[rgb(var(--color-border-primary))] rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-green-500 transition-all duration-500"
+                        className="h-full bg-[rgb(var(--color-cat-training))] transition-all duration-500"
                         style={{ width: `${activity.data.progress}%` }}
                       />
                     </div>

@@ -74,6 +74,32 @@
   --ring: 243 75% 59%;
   --radius: 0.5rem;
 
+  /* ── Goal Categories ── */
+  --color-cat-professional: 59 130 246;    /* blue-500 */
+  --color-cat-technical: 139 92 246;       /* purple-500 */
+  --color-cat-leadership: 245 158 11;      /* amber-500 */
+  --color-cat-personal: 20 184 166;        /* teal-500 */
+  --color-cat-training: 34 197 94;         /* green-500 */
+  --color-cat-kpi: 236 72 153;            /* pink-500 */
+
+  /* ── Goal Priorities ── */
+  --color-priority-low: 34 197 94;         /* green-500 */
+  --color-priority-medium: 245 158 11;     /* amber-500 */
+  --color-priority-high: 244 63 94;        /* rose-500 */
+  --color-priority-urgent: 239 68 68;      /* red-500 */
+
+  /* ── Event Types ── */
+  --color-event-default: 59 130 246;       /* blue-500 */
+  --color-event-training: 139 92 246;      /* purple-500 */
+  --color-event-social: 20 184 166;        /* teal-500 */
+
+  /* ── Rating Levels ── */
+  --color-rating-1: 239 68 68;            /* red-500 */
+  --color-rating-2: 249 115 22;           /* orange-500 */
+  --color-rating-3: 234 179 8;            /* yellow-500 */
+  --color-rating-4: 59 130 246;           /* blue-500 */
+  --color-rating-5: 34 197 94;            /* green-500 */
+
   /* ── Grid ── */
   --grid-color: rgba(99, 102, 241, 0.03);
   --grid-opacity: 0.3;
@@ -139,6 +165,32 @@
   --input: 220 20% 18%;
   --ring: 243 75% 76%;
 
+  /* ── Goal Categories (slightly brighter in dark) ── */
+  --color-cat-professional: 96 165 250;
+  --color-cat-technical: 167 139 250;
+  --color-cat-leadership: 251 191 36;
+  --color-cat-personal: 45 212 191;
+  --color-cat-training: 74 222 128;
+  --color-cat-kpi: 244 114 182;
+
+  /* ── Goal Priorities ── */
+  --color-priority-low: 74 222 128;
+  --color-priority-medium: 251 191 36;
+  --color-priority-high: 251 113 133;
+  --color-priority-urgent: 248 113 113;
+
+  /* ── Event Types ── */
+  --color-event-default: 96 165 250;
+  --color-event-training: 167 139 250;
+  --color-event-social: 45 212 191;
+
+  /* ── Rating Levels ── */
+  --color-rating-1: 248 113 113;
+  --color-rating-2: 251 146 60;
+  --color-rating-3: 250 204 21;
+  --color-rating-4: 96 165 250;
+  --color-rating-5: 74 222 128;
+
   --grid-color: rgba(129, 140, 248, 0.04);
   --grid-opacity: 0.06;
 }
@@ -202,6 +254,50 @@ body {
     outline: 2px solid rgb(var(--color-accent));
     outline-offset: 2px;
   }
+
+  /* ── Category colors ── */
+  .text-cat-professional { color: rgb(var(--color-cat-professional)); }
+  .text-cat-technical { color: rgb(var(--color-cat-technical)); }
+  .text-cat-leadership { color: rgb(var(--color-cat-leadership)); }
+  .text-cat-personal { color: rgb(var(--color-cat-personal)); }
+  .text-cat-training { color: rgb(var(--color-cat-training)); }
+  .text-cat-kpi { color: rgb(var(--color-cat-kpi)); }
+  .bg-cat-professional { background-color: rgba(var(--color-cat-professional), 0.1); }
+  .bg-cat-technical { background-color: rgba(var(--color-cat-technical), 0.1); }
+  .bg-cat-leadership { background-color: rgba(var(--color-cat-leadership), 0.1); }
+  .bg-cat-personal { background-color: rgba(var(--color-cat-personal), 0.1); }
+  .bg-cat-training { background-color: rgba(var(--color-cat-training), 0.1); }
+  .bg-cat-kpi { background-color: rgba(var(--color-cat-kpi), 0.1); }
+
+  /* ── Priority colors ── */
+  .text-priority-low { color: rgb(var(--color-priority-low)); }
+  .text-priority-medium { color: rgb(var(--color-priority-medium)); }
+  .text-priority-high { color: rgb(var(--color-priority-high)); }
+  .text-priority-urgent { color: rgb(var(--color-priority-urgent)); }
+  .bg-priority-low { background-color: rgba(var(--color-priority-low), 0.1); }
+  .bg-priority-medium { background-color: rgba(var(--color-priority-medium), 0.1); }
+  .bg-priority-high { background-color: rgba(var(--color-priority-high), 0.1); }
+  .bg-priority-urgent { background-color: rgba(var(--color-priority-urgent), 0.1); }
+
+  /* ── Rating colors ── */
+  .text-rating-1 { color: rgb(var(--color-rating-1)); }
+  .text-rating-2 { color: rgb(var(--color-rating-2)); }
+  .text-rating-3 { color: rgb(var(--color-rating-3)); }
+  .text-rating-4 { color: rgb(var(--color-rating-4)); }
+  .text-rating-5 { color: rgb(var(--color-rating-5)); }
+  .bg-rating-1 { background-color: rgba(var(--color-rating-1), 0.1); }
+  .bg-rating-2 { background-color: rgba(var(--color-rating-2), 0.1); }
+  .bg-rating-3 { background-color: rgba(var(--color-rating-3), 0.1); }
+  .bg-rating-4 { background-color: rgba(var(--color-rating-4), 0.1); }
+  .bg-rating-5 { background-color: rgba(var(--color-rating-5), 0.1); }
+
+  /* ── Event type colors ── */
+  .text-event-default { color: rgb(var(--color-event-default)); }
+  .text-event-training { color: rgb(var(--color-event-training)); }
+  .text-event-social { color: rgb(var(--color-event-social)); }
+  .bg-event-default { background-color: rgba(var(--color-event-default), 0.1); }
+  .bg-event-training { background-color: rgba(var(--color-event-training), 0.1); }
+  .bg-event-social { background-color: rgba(var(--color-event-social), 0.1); }
 
   /* Grid background */
   .bg-grid {

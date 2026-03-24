@@ -41,8 +41,8 @@ export function AzureIntegration() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/8 dark:bg-blue-500/10 border border-blue-500/12 dark:border-blue-500/15 mb-5">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[rgb(var(--color-info))]/8 dark:bg-cat-professional border border-blue-500/12 dark:border-blue-500/15 mb-5">
+                <div className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--color-info))]" />
                 <span className="text-info text-xs font-semibold tracking-wide uppercase">Integration</span>
               </div>
               <h2 className="text-3xl sm:text-4xl md:text-[42px] font-bold text-primary tracking-tight leading-[1.15] mb-4">
@@ -108,7 +108,7 @@ export function AzureIntegration() {
                   SSO Enabled
                 </div>
                 <div className="absolute bottom-8 left-2 px-3 py-1.5 rounded-lg bg-surface-elevated border border-theme shadow-theme-md text-2xs font-medium text-success flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--color-success))]" />
                   Connected
                 </div>
                 <div className="absolute top-1/2 -right-2 px-3 py-1.5 rounded-lg bg-surface-elevated border border-theme shadow-theme-md text-2xs font-medium text-primary">

@@ -10,56 +10,56 @@ const createIcon = (Icon: React.ComponentType<{ className?: string }>, className
 
 export const STATUS_STYLES: Record<Exclude<GoalStatus, 'DELETED'>, StatusStyle> = {
   APPROVED: {
-    bg: 'bg-emerald-500/10',
-    text: 'text-emerald-400',
+    bg: 'bg-success-muted',
+    text: 'text-success',
     icon: createIcon(BsShield, 'w-4 h-4'),
     gradient: 'from-emerald-500/10'
   },
   PENDING: {
-    bg: 'bg-amber-500/10',
+    bg: 'bg-[rgb(var(--color-warning))]/10',
     text: 'text-amber-400',
     icon: createIcon(BsClock, 'w-4 h-4'),
     gradient: 'from-amber-500/10'
   },
   REJECTED: {
-    bg: 'bg-rose-500/10',
-    text: 'text-rose-400',
+    bg: 'bg-error-muted',
+    text: 'text-error',
     icon: createIcon(BsXCircle, 'w-4 h-4'),
     gradient: 'from-rose-500/10'
   },
   MODIFIED: {
-    bg: 'bg-blue-500/10',
-    text: 'text-blue-400',
+    bg: 'bg-cat-professional',
+    text: 'text-cat-professional',
     icon: createIcon(BsArrowRight, 'w-4 h-4'),
     gradient: 'from-blue-500/10'
   },
   COMPLETED: {
-    bg: 'bg-purple-500/10',
-    text: 'text-purple-400',
+    bg: 'bg-cat-technical',
+    text: 'text-cat-technical',
     icon: createIcon(BsCheckCircle, 'w-4 h-4'),
     gradient: 'from-purple-500/10'
   },
   DRAFT: {
-    bg: 'bg-gray-500/10',
-    text: 'text-gray-400',
+    bg: 'bg-surface-secondary',
+    text: 'text-tertiary',
     icon: createIcon(BsChat, 'w-4 h-4'),
     gradient: 'from-gray-500/10'
   },
   IN_PROGRESS: {
-    bg: 'bg-blue-500/10',
-    text: 'text-blue-400',
+    bg: 'bg-cat-professional',
+    text: 'text-cat-professional',
     icon: createIcon(BsPlayCircle, 'w-4 h-4'),
     gradient: 'from-blue-500/10'
   },
   ON_HOLD: {
-    bg: 'bg-amber-500/10',
+    bg: 'bg-[rgb(var(--color-warning))]/10',
     text: 'text-amber-400',
     icon: createIcon(BsPauseCircle, 'w-4 h-4'),
     gradient: 'from-amber-500/10'
   },
   BLOCKED: {
-    bg: 'bg-red-500/10',
-    text: 'text-red-400',
+    bg: 'bg-error-muted',
+    text: 'text-error',
     icon: createIcon(BsExclamationCircle, 'w-4 h-4'),
     gradient: 'from-red-500/10'
   }
@@ -68,8 +68,8 @@ export const STATUS_STYLES: Record<Exclude<GoalStatus, 'DELETED'>, StatusStyle> 
 export const getStatusStyle = (status: GoalStatus): StatusStyle => {
   if (status === 'DELETED') {
     return {
-      bg: 'bg-gray-500/10',
-      text: 'text-gray-400',
+      bg: 'bg-surface-secondary',
+      text: 'text-tertiary',
       icon: createIcon(BsXCircle, 'w-4 h-4'),
       gradient: 'from-gray-500/10'
     };

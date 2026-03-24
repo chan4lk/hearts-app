@@ -281,7 +281,7 @@ export function BulkGoalFormModal({
             onClick={() => setActiveTab('manual')}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               activeTab === 'manual'
-                ? 'bg-amber-500/20 text-warning border border-amber-500/30'
+                ? 'bg-warning-muted text-warning border border-amber-500/30'
                 : 'text-secondary hover:bg-surface-tertiary hover:text-[rgb(var(--color-text-inverse))]'
             }`}
           >
@@ -291,7 +291,7 @@ export function BulkGoalFormModal({
             onClick={() => setActiveTab('templates')}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               activeTab === 'templates'
-                ? 'bg-amber-500/20 text-warning border border-amber-500/30'
+                ? 'bg-warning-muted text-warning border border-amber-500/30'
                 : 'text-secondary hover:bg-surface-tertiary hover:text-[rgb(var(--color-text-inverse))]'
             }`}
           >
@@ -375,7 +375,7 @@ export function BulkGoalFormModal({
                         <button
                           type="button"
                           onClick={() => removeGoal(goal.id)}
-                          className="p-1 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                          className="p-1 text-error/70 hover:text-error hover:bg-error-muted rounded transition-colors"
                           title="Remove Goal"
                         >
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -399,7 +399,7 @@ export function BulkGoalFormModal({
                           className="bg-surface-tertiary border-theme text-primary text-xs h-7 rounded-lg focus:border-amber-500/50 focus-ring/20"
                         />
                         {errors[goal.id]?.title && (
-                          <div className="text-red-400 text-2xs mt-1 font-semibold animate-pulse">{errors[goal.id].title}</div>
+                          <div className="text-error text-2xs mt-1 font-semibold animate-pulse">{errors[goal.id].title}</div>
                         )}
                       </div>
                       <div>
@@ -421,7 +421,7 @@ export function BulkGoalFormModal({
                           </SelectContent>
                         </Select>
                         {errors[goal.id]?.employeeId && (
-                          <div className="text-red-400 text-2xs mt-1 font-semibold animate-pulse">{errors[goal.id].employeeId}</div>
+                          <div className="text-error text-2xs mt-1 font-semibold animate-pulse">{errors[goal.id].employeeId}</div>
                         )}
                       </div>
                     </div>
@@ -518,7 +518,7 @@ export function BulkGoalFormModal({
               <button
                 type="button"
                 onClick={addNewGoal}
-                className="flex items-center gap-1.5 px-4 py-2 bg-amber-500/20 text-warning border border-amber-500/30 rounded-lg hover:bg-amber-500/30 transition-colors text-xs font-medium"
+                className="flex items-center gap-1.5 px-4 py-2 bg-warning-muted text-warning border border-amber-500/30 rounded-lg hover:bg-[rgb(var(--color-warning))]/30 transition-colors text-xs font-medium"
               >
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -548,7 +548,7 @@ export function BulkGoalFormModal({
                 type="submit"
                 form="bulk-goal-form"
                 disabled={isSubmitting || loading || goals.length === 0}
-                className="px-4 py-1.5 bg-amber-500/20 text-warning border border-amber-500/30 rounded-lg hover:bg-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 text-xs font-medium"
+                className="px-4 py-1.5 bg-warning-muted text-warning border border-amber-500/30 rounded-lg hover:bg-[rgb(var(--color-warning))]/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 text-xs font-medium"
               >
                 {isSubmitting ? (
                   <>

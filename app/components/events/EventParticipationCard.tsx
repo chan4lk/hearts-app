@@ -45,13 +45,13 @@ export const EventParticipationCard = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'REGISTERED':
-        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+        return 'bg-cat-professional text-cat-professional border-blue-500/30';
       case 'ATTENDED':
-        return 'bg-green-500/20 text-green-300 border-green-500/30';
+        return 'bg-cat-training text-cat-training border-green-500/30';
       case 'NO_SHOW':
-        return 'bg-red-500/20 text-red-300 border-red-500/30';
+        return 'bg-error-muted text-error border-red-500/30';
       case 'CANCELLED':
-        return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+        return 'bg-surface-secondary text-gray-300 border-gray-500/30';
       default:
         return 'bg-white/10 text-[rgb(var(--color-text-inverse))]';
     }
@@ -60,11 +60,11 @@ export const EventParticipationCard = ({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'ATTENDED':
-        return <BsCheckCircle className="text-green-400" />;
+        return <BsCheckCircle className="text-cat-training" />;
       case 'NO_SHOW':
-        return <BsXCircle className="text-red-400" />;
+        return <BsXCircle className="text-error" />;
       case 'REGISTERED':
-        return <BsClockHistory className="text-blue-400" />;
+        return <BsClockHistory className="text-cat-professional" />;
       default:
         return null;
     }
@@ -109,7 +109,7 @@ export const EventParticipationCard = ({
 
       {/* Date and Time */}
       <div className="mb-4 flex items-center gap-2 text-sm text-secondary">
-        <BsCalendar className="text-teal-400" />
+        <BsCalendar className="text-cat-personal" />
         <span>
           {new Date(event.startDate).toLocaleDateString()} at{' '}
           {new Date(event.startDate).toLocaleTimeString([], {
@@ -182,14 +182,14 @@ export const EventParticipationCard = ({
       {isPastEvent && (
         <div className="mb-4 space-y-3">
           {hoursContributed && (
-            <div className="rounded-lg bg-teal-500/10 border border-teal-500/20 p-3">
+            <div className="rounded-lg bg-cat-personal border border-teal-500/20 p-3">
               <p className="text-xs text-secondary mb-1">Hours Contributed</p>
-              <p className="text-lg font-bold text-teal-300">{hoursContributed}h</p>
+              <p className="text-lg font-bold text-cat-personal">{hoursContributed}h</p>
             </div>
           )}
 
           {feedback && (
-            <div className="rounded-lg bg-blue-500/10 border border-blue-500/20 p-3">
+            <div className="rounded-lg bg-cat-professional border border-[rgba(var(--color-info),0.2)] p-3">
               <p className="text-xs text-secondary mb-1">Your Feedback</p>
               <p className="text-sm text-secondary">{feedback}</p>
             </div>
@@ -204,14 +204,14 @@ export const EventParticipationCard = ({
             <button
               onClick={() => onUpdateStatus(event.id, 'ATTENDED')}
               disabled={isLoading}
-              className="flex-1 rounded-lg bg-green-500/20 px-3 py-2 text-sm font-semibold text-green-300 hover:bg-green-500/30 disabled:opacity-50 transition"
+              className="flex-1 rounded-lg bg-cat-training px-3 py-2 text-sm font-semibold text-cat-training hover:bg-cat-training disabled:opacity-50 transition"
             >
               Mark Attended
             </button>
             <button
               onClick={() => onUpdateStatus(event.id, 'NO_SHOW')}
               disabled={isLoading}
-              className="flex-1 rounded-lg bg-red-500/20 px-3 py-2 text-sm font-semibold text-red-300 hover:bg-red-500/30 disabled:opacity-50 transition"
+              className="flex-1 rounded-lg bg-error-muted px-3 py-2 text-sm font-semibold text-error hover:bg-[rgb(var(--color-error))]/30 disabled:opacity-50 transition"
             >
               Mark No Show
             </button>
@@ -219,7 +219,7 @@ export const EventParticipationCard = ({
         ) : isPastEvent && participationStatus === 'ATTENDED' ? (
           <button
             onClick={() => onAddFeedback(event.id)}
-            className="flex-1 rounded-lg bg-blue-500/20 px-3 py-2 text-sm font-semibold text-blue-300 hover:bg-blue-500/30 transition"
+            className="flex-1 rounded-lg bg-cat-professional px-3 py-2 text-sm font-semibold text-cat-professional hover:bg-cat-professional transition"
           >
             {feedback ? 'Edit Feedback' : 'Add Feedback'}
           </button>
