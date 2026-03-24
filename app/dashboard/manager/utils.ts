@@ -25,7 +25,7 @@ export const STATUS_STYLES: Record<Exclude<GoalStatus, 'DELETED'>, StatusStyle> 
     bg: 'bg-error-muted',
     text: 'text-error',
     icon: createIcon(BsXCircle, 'w-4 h-4'),
-    gradient: 'from-rose-500/10'
+    gradient: 'from-[rgb(var(--color-error))]/10'
   },
   MODIFIED: {
     bg: 'bg-cat-professional',
@@ -61,7 +61,7 @@ export const STATUS_STYLES: Record<Exclude<GoalStatus, 'DELETED'>, StatusStyle> 
     bg: 'bg-error-muted',
     text: 'text-error',
     icon: createIcon(BsExclamationCircle, 'w-4 h-4'),
-    gradient: 'from-red-500/10'
+    gradient: 'from-[rgb(var(--color-error))]/10'
   }
 };
 

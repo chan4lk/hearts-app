@@ -211,7 +211,7 @@ export default function BrowseEventsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.1 }}
                     whileHover={{ scale: 1.02, y: -5 }}
-                    className="group rounded-xl border border-theme bg-surface-elevated p-5 backdrop-blur-xl hover:border-[rgb(var(--color-event-social))]/50 hover:shadow-lg hover:shadow-teal-500/10 transition-all cursor-default"
+                    className="group rounded-xl border border-theme bg-surface-elevated p-5 backdrop-blur-xl hover:border-[rgb(var(--color-event-social))]/50 hover:shadow-lg hover:shadow-theme-sm transition-all cursor-default"
                   >
                 {/* Event Type Badge */}
                 <div className="flex items-start justify-between mb-3">
@@ -267,7 +267,7 @@ export default function BrowseEventsPage() {
                       className={`h-2 rounded-full transition-all ${
                         isCapacityFull(event)
                           ? 'bg-[rgb(var(--color-error))]'
-                          : 'bg-gradient-to-r from-[rgb(var(--color-event-social))] to-cyan-500'
+                          : 'bg-gradient-to-r from-[rgb(var(--color-event-social))] to-[rgb(var(--color-info))]'
                       }`}
                     />
                   </div>
@@ -283,7 +283,7 @@ export default function BrowseEventsPage() {
                     className={`w-full rounded-lg px-4 py-2 font-semibold transition-all ${
                       isCapacityFull(event)
                         ? 'bg-surface-secondary text-secondary cursor-not-allowed'
-                        : 'bg-accent hover:opacity-90 text-[rgb(var(--color-text-inverse))] hover:from-teal-600 hover:to-cyan-700 disabled:opacity-50 shadow-[rgb(var(--color-info))]/20'
+                        : 'bg-accent hover:opacity-90 text-[rgb(var(--color-text-inverse))] hover:from-[rgb(var(--color-event-social))] hover:to-[rgb(var(--color-info))] disabled:opacity-50 shadow-[rgb(var(--color-info))]/20'
                     }`}
                   >
                     {registering === event.id ? (

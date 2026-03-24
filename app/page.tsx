@@ -24,7 +24,7 @@ export default async function Home() {
             {/* Grid */}
             <div className="absolute inset-0 bg-grid opacity-30 dark:opacity-100" style={{ maskImage: 'radial-gradient(ellipse 70% 50% at 50% 40%, black, transparent)', WebkitMaskImage: 'radial-gradient(ellipse 70% 50% at 50% 40%, black, transparent)' }} />
             {/* Accent glow */}
-            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-to-r from-[rgb(var(--color-accent))]/[0.07] via-[rgb(var(--color-cat-technical))]/[0.05] to-pink-500/[0.03] rounded-full blur-3xl" />
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-to-r from-[rgb(var(--color-accent))]/[0.07] via-[rgb(var(--color-cat-technical))]/[0.05] to-[rgb(var(--color-cat-kpi))]/[0.03] rounded-full blur-3xl" />
             <div className="absolute bottom-1/4 left-1/3 w-[400px] h-[200px] bg-accent/[0.04] rounded-full blur-3xl" />
           </div>
 
@@ -43,7 +43,7 @@ export default async function Home() {
             {/* Headline */}
             <h1 className="text-[clamp(2rem,5vw,3.75rem)] font-bold text-primary tracking-tight leading-[1.1] mb-5">
               Align goals.{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgb(var(--color-accent))] via-[rgb(var(--color-cat-technical))] to-indigo-400">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[rgb(var(--color-accent))] via-[rgb(var(--color-cat-technical))] to-[rgb(var(--color-accent))]">
                 Track progress.
               </span>
               <br />
@@ -60,7 +60,7 @@ export default async function Home() {
             <div className="flex flex-col sm:flex-row justify-center items-center gap-3">
               <Link
                 href="/login"
-                className="w-full sm:w-auto group inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-[rgb(var(--color-text-inverse))] bg-gradient-to-r from-indigo-600 to-[rgb(var(--color-accent))] hover:from-[rgb(var(--color-accent))] hover:to-indigo-400 rounded-lg shadow-md shadow-[rgb(var(--color-accent))]/20 hover:shadow-lg hover:shadow-[rgb(var(--color-accent))]/25 transition-all duration-200 hover:-translate-y-px"
+                className="w-full sm:w-auto group inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-[rgb(var(--color-text-inverse))] bg-gradient-to-r from-[rgb(var(--color-accent))] to-[rgb(var(--color-accent))] hover:from-[rgb(var(--color-accent))] hover:to-[rgb(var(--color-accent))] rounded-lg shadow-md shadow-[rgb(var(--color-accent))]/20 hover:shadow-lg hover:shadow-[rgb(var(--color-accent))]/25 transition-all duration-200 hover:-translate-y-px"
               >
                 Start for free
                 <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -110,7 +110,7 @@ export default async function Home() {
             <div className="flex flex-col sm:flex-row justify-center gap-3">
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-sm font-semibold text-[rgb(var(--color-text-inverse))] bg-gradient-to-r from-indigo-600 to-[rgb(var(--color-accent))] rounded-lg shadow-md shadow-[rgb(var(--color-accent))]/20 hover:shadow-lg hover:shadow-[rgb(var(--color-accent))]/25 transition-all duration-200 hover:-translate-y-px"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-sm font-semibold text-[rgb(var(--color-text-inverse))] bg-gradient-to-r from-[rgb(var(--color-accent))] to-[rgb(var(--color-accent))] rounded-lg shadow-md shadow-[rgb(var(--color-accent))]/20 hover:shadow-lg hover:shadow-[rgb(var(--color-accent))]/25 transition-all duration-200 hover:-translate-y-px"
               >
                 Get started free
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">

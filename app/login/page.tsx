@@ -205,7 +205,7 @@ function LoginForm() {
             <div className="absolute inset-0 login-shimmer rounded-[24px] pointer-events-none" />
 
             {/* Inner top highlight */}
-            <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-indigo-400/25 to-transparent" />
+            <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-[rgb(var(--color-accent))]/25 to-transparent" />
 
             <motion.div
               variants={containerVariants}
@@ -224,7 +224,7 @@ function LoginForm() {
                     <motion.div
                       whileHover={{ scale: 1.05, rotate: 2 }}
                       transition={{ type: 'spring', stiffness: 400 }}
-                      className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-[rgb(var(--color-accent))] via-indigo-600 to-purple-700 flex items-center justify-center shadow-xl shadow-[rgb(var(--color-accent))]/30"
+                      className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-[rgb(var(--color-accent))] via-[rgb(var(--color-accent))] to-[rgb(var(--color-cat-technical))] flex items-center justify-center shadow-xl shadow-[rgb(var(--color-accent))]/30"
                     >
                       {/* Inner shine */}
                       <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/15 to-transparent" />
@@ -268,7 +268,7 @@ function LoginForm() {
                   disabled={isLoading}
                   whileHover={{ scale: 1.02, y: -1 }}
                   whileTap={{ scale: 0.98 }}
-                  className="login-btn-primary group w-full relative flex items-center justify-center gap-3 h-[52px] px-6 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-[rgb(var(--color-accent))] hover:via-indigo-400 hover:to-[rgb(var(--color-cat-technical))] text-[rgb(var(--color-text-inverse))] font-semibold shadow-lg shadow-[rgb(var(--color-accent))]/25 hover:shadow-[rgb(var(--color-accent))]/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="login-btn-primary group w-full relative flex items-center justify-center gap-3 h-[52px] px-6 rounded-xl bg-gradient-to-r from-[rgb(var(--color-accent))] via-[rgb(var(--color-accent))] to-[rgb(var(--color-cat-technical))] hover:from-[rgb(var(--color-accent))] hover:via-[rgb(var(--color-accent))] hover:to-[rgb(var(--color-cat-technical))] text-[rgb(var(--color-text-inverse))] font-semibold shadow-lg shadow-[rgb(var(--color-accent))]/25 hover:shadow-[rgb(var(--color-accent))]/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <AnimatePresence mode="wait">
                     {isLoading ? (

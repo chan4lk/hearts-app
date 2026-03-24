@@ -785,9 +785,9 @@ export default function EmployeeDashboard() {
                   className="modal-content rounded-xl shadow-theme-lg w-full max-w-4xl max-h-[85vh] overflow-hidden border-2 border-[rgb(var(--color-warning))]/40 flex flex-col"
                 >
                   {/* Compact Header - Sticky */}
-                  <div className="sticky top-0 z-10 bg-gradient-to-r from-amber-900/40 via-amber-800/40 to-orange-900/40 backdrop-blur-md border-b-2 border-[rgb(var(--color-warning))]/50 px-4 py-3 flex items-center justify-between flex-shrink-0">
+                  <div className="sticky top-0 z-10 bg-gradient-to-r from-[rgba(var(--color-warning),0.4)] via-[rgba(var(--color-warning),0.4)] to-[rgba(var(--color-rating-2),0.4)] backdrop-blur-md border-b-2 border-[rgb(var(--color-warning))]/50 px-4 py-3 flex items-center justify-between flex-shrink-0">
                     <div className="flex items-center gap-2.5">
-                      <div className="p-1.5 bg-gradient-to-r from-[rgb(var(--color-warning))] to-orange-500 rounded-lg">
+                      <div className="p-1.5 bg-gradient-to-r from-[rgb(var(--color-warning))] to-[rgb(var(--color-rating-2))] rounded-lg">
                         <BsPersonCheck className="w-4 h-4 text-[rgb(var(--color-text-inverse))]" />
                       </div>
                       <div>

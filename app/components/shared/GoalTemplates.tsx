@@ -51,7 +51,7 @@ export default function GoalTemplates({ onSelect }: GoalTemplatesProps) {
           onClick={() => setSelectedCategory('all')}
           className={`relative px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300
             ${selectedCategory === 'all' 
-              ? 'text-[rgb(var(--color-text-inverse))] bg-gradient-to-r from-[rgb(var(--color-info))]/90 to-[rgb(var(--color-cat-technical))]/90 shadow-purple-500/20' 
+              ? 'text-[rgb(var(--color-text-inverse))] bg-gradient-to-r from-[rgb(var(--color-info))]/90 to-[rgb(var(--color-cat-technical))]/90 shadow-[rgba(var(--color-cat-technical),0.2)]' 
               : 'text-secondary hover:text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary'}`}
         >
           <span className="relative z-10">All Templates</span>
@@ -68,7 +68,7 @@ export default function GoalTemplates({ onSelect }: GoalTemplatesProps) {
             onClick={() => setSelectedCategory(category)}
             className={`relative px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300
               ${selectedCategory === category 
-                ? 'text-[rgb(var(--color-text-inverse))] bg-gradient-to-r from-[rgb(var(--color-info))]/90 to-[rgb(var(--color-cat-technical))]/90 shadow-purple-500/20' 
+                ? 'text-[rgb(var(--color-text-inverse))] bg-gradient-to-r from-[rgb(var(--color-info))]/90 to-[rgb(var(--color-cat-technical))]/90 shadow-[rgba(var(--color-cat-technical),0.2)]' 
                 : 'text-secondary hover:text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary'}`}
           >
             <span className="relative z-10">{category}</span>
@@ -98,7 +98,7 @@ export default function GoalTemplates({ onSelect }: GoalTemplatesProps) {
               className="group relative overflow-hidden"
             >
               <div className={`relative p-6 rounded-2xl backdrop-blur-xl border border-white/10 transition-all duration-300
-                ${template.bgColor} ${template.bgGradient} hover:shadow-theme-lg hover:shadow-purple-500/10`}
+                ${template.bgColor} ${template.bgGradient} hover:shadow-theme-lg hover:shadow-[rgba(var(--color-cat-technical),0.1)]`}
               >
                 {/* Decorative Elements */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-surface-secondary rounded-full blur-3xl transform translate-x-16 -translate-y-16" />
@@ -113,7 +113,7 @@ export default function GoalTemplates({ onSelect }: GoalTemplatesProps) {
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-[rgb(var(--color-text-inverse))] group-hover:text-transparent 
-                        group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400
+                        group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[rgb(var(--color-info))] group-hover:to-[rgb(var(--color-cat-technical))]
                         transition-all duration-300">{template.title}</h3>
                       <p className="text-sm text-secondary/90">{template.subtitle}</p>
                     </div>
@@ -123,7 +123,7 @@ export default function GoalTemplates({ onSelect }: GoalTemplatesProps) {
 
                 {/* Hover Effects */}
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500
-                  bg-gradient-to-t from-purple-950/30 via-transparent to-transparent" />
+                  bg-gradient-to-t from-[rgba(var(--color-cat-technical),0.3)] via-transparent to-transparent" />
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500
                   bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.2),transparent_70%)]" />
               </div>

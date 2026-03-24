@@ -68,18 +68,18 @@ function ErrorContent() {
           className="w-full max-w-md"
         >
           {/* Ambient glow */}
-          <div className="absolute -inset-2 rounded-[28px] bg-gradient-to-b from-red-500/10 via-transparent to-transparent blur-xl opacity-50" />
+          <div className="absolute -inset-2 rounded-[28px] bg-gradient-to-b from-[rgb(var(--color-error))]/10 via-transparent to-transparent blur-xl opacity-50" />
 
           <div className="relative rounded-2xl border border-theme bg-surface-elevated backdrop-blur-xl p-8 shadow-theme-lg">
             {/* Top highlight */}
-            <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-red-500/20 to-transparent" />
+            <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-[rgba(var(--color-error),0.2)] to-transparent" />
 
             <div className="text-center space-y-6">
               {/* Error icon */}
               <div className="flex justify-center">
                 <div className="relative">
                   <div className="absolute -inset-3 rounded-full bg-error-muted blur-lg animate-pulse-slow" />
-                  <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500/20 to-red-600/10 border border-[rgba(var(--color-error),0.2)] flex items-center justify-center">
+                  <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-[rgba(var(--color-error),0.2)] to-[rgb(var(--color-error))]/10 border border-[rgba(var(--color-error),0.2)] flex items-center justify-center">
                     <svg className="w-7 h-7 text-error" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                     </svg>
@@ -95,7 +95,7 @@ function ErrorContent() {
               <div className="flex justify-center gap-3 pt-2">
                 <Link
                   href="/login"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-[rgb(var(--color-accent))] hover:to-[rgb(var(--color-cat-technical))] text-[rgb(var(--color-text-inverse))] text-sm font-medium shadow-lg shadow-[rgb(var(--color-accent))]/20 transition-all duration-300"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[rgb(var(--color-accent))] to-[rgb(var(--color-cat-technical))] hover:from-[rgb(var(--color-accent))] hover:to-[rgb(var(--color-cat-technical))] text-[rgb(var(--color-text-inverse))] text-sm font-medium shadow-lg shadow-[rgb(var(--color-accent))]/20 transition-all duration-300"
                 >
                   Return to Login
                 </Link>

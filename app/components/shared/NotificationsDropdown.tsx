@@ -210,7 +210,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
           <motion.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-[rgb(var(--color-text-inverse))] text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-semibold px-1.5 shadow-red-500/50"
+            className="absolute -top-1 -right-1 bg-gradient-to-r from-[rgb(var(--color-error))] to-[rgb(var(--color-cat-kpi))] text-[rgb(var(--color-text-inverse))] text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-semibold px-1.5 shadow-[rgba(var(--color-error),0.5)]"
           >
             {unreadCount > 9 ? '9+' : unreadCount}
           </motion.span>
@@ -231,7 +231,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
             className="absolute right-0 mt-2 w-96 bg-surface-elevated backdrop-blur-xl rounded-xl shadow-theme-lg border border-theme overflow-hidden z-50 max-h-[500px] flex flex-col"
           >
             {/* Header */}
-            <div className="px-4 py-3 border-b border-theme flex items-center justify-between bg-gradient-to-r from-[rgb(var(--color-accent))]/10 via-[rgb(var(--color-cat-technical))]/10 to-pink-500/10">
+            <div className="px-4 py-3 border-b border-theme flex items-center justify-between bg-gradient-to-r from-[rgb(var(--color-accent))]/10 via-[rgb(var(--color-cat-technical))]/10 to-[rgb(var(--color-cat-kpi))]/10">
               <div className="flex items-center gap-2">
                 <BsBell className="w-4 h-4 text-accent" />
                 <h3 className="text-sm font-semibold text-primary">Notifications</h3>

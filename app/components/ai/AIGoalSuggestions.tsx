@@ -78,7 +78,7 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
           whileTap={{ scale: 0.98 }}
           onClick={generateSuggestions}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-[rgb(var(--color-text-inverse))] rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[rgb(var(--color-cat-technical))] to-[rgb(var(--color-accent))] text-[rgb(var(--color-text-inverse))] rounded-lg hover:from-[rgb(var(--color-cat-technical))] hover:to-[rgb(var(--color-accent))] transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <BsStars className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
           <span>{loading ? 'Generating...' : 'AI Goal Suggestions'}</span>
@@ -125,7 +125,7 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
               className="bg-surface-elevated rounded-xl shadow-theme-lg max-w-4xl w-full max-h-[80vh] overflow-hidden border border-[rgb(var(--color-cat-technical))]/20"
             >
               {/* Header */}
-              <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6">
+              <div className="bg-gradient-to-r from-[rgb(var(--color-cat-technical))] to-[rgb(var(--color-accent))] p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <BsLightbulb className="w-6 h-6 text-[rgb(var(--color-text-inverse))]" />
@@ -216,7 +216,7 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => handleSelectGoal(suggestion)}
-                          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-[rgb(var(--color-cat-technical))] hover:to-[rgb(var(--color-accent))] text-[rgb(var(--color-text-inverse))] rounded-lg transition-all shadow-lg shadow-purple-500/30 font-semibold"
+                          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[rgb(var(--color-cat-technical))] to-[rgb(var(--color-accent))] hover:from-[rgb(var(--color-cat-technical))] hover:to-[rgb(var(--color-accent))] text-[rgb(var(--color-text-inverse))] rounded-lg transition-all shadow-lg shadow-[rgba(var(--color-cat-technical),0.3)] font-semibold"
                         >
                           <BsCheckCircle className="w-5 h-5" />
                           <span>Use This Goal</span>
@@ -234,7 +234,7 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
               </div>
 
               {/* Footer */}
-              <div className="bg-gradient-to-r from-purple-900/30 to-indigo-900/30 p-5 border-t border-[rgb(var(--color-cat-technical))]/30">
+              <div className="bg-gradient-to-r from-[rgba(var(--color-cat-technical),0.3)] to-[rgba(var(--color-accent),0.3)] p-5 border-t border-[rgb(var(--color-cat-technical))]/30">
                 <div className="flex items-center justify-center gap-3">
                   <BsLightbulb className="w-5 h-5 text-cat-technical" />
                   <p className="text-secondary text-sm font-medium">

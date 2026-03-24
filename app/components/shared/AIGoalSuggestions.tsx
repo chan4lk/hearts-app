@@ -143,7 +143,7 @@ export function AIGoalSuggestions({
                   </div>
                   <div>
                     <h4 className="font-semibold text-primary group-hover:text-transparent 
-                      group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400
+                      group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[rgb(var(--color-info))] group-hover:to-[rgb(var(--color-cat-technical))]
                       transition-all duration-300">{suggestion.title}</h4>
                     <p className="text-sm text-primary dark:text-secondary mt-1 leading-relaxed">
                       {suggestion.description}

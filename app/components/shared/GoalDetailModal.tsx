@@ -468,7 +468,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="flex items-center bg-gradient-to-r from-[rgb(var(--color-warning))]/20 to-amber-600/20 text-warning
+                className="flex items-center bg-gradient-to-r from-[rgb(var(--color-warning))]/20 to-[rgba(var(--color-warning),0.2)] text-warning
                           text-xs sm:text-sm p-2.5 sm:p-3 rounded-lg sm:rounded-xl md:rounded-2xl min-h-[40px] sm:min-h-[44px]"
               >
                 <BsClock className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5 sm:mr-2 animate-pulse flex-shrink-0" />
@@ -483,7 +483,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-gradient-to-br from-blue-900/20 via-indigo-900/20 to-purple-900/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-[rgba(var(--color-info),0.2)]"
+              className="bg-gradient-to-br from-[rgba(var(--color-info),0.2)] via-[rgba(var(--color-accent),0.2)]/20 to-[rgba(var(--color-cat-technical),0.2)] backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 border border-[rgba(var(--color-info),0.2)]"
             >
               <h4 className="text-xs sm:text-sm font-semibold text-primary mb-3 flex items-center gap-2">
                 <BsPlayCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-info" />
@@ -551,7 +551,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-gradient-to-br from-orange-900/20 via-red-900/20 to-rose-900/20 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 border border-[rgba(var(--color-rating-2),0.2)]"
+            className="bg-gradient-to-br from-[rgba(var(--color-rating-2),0.2)] via-[rgba(var(--color-error),0.2)] to-[rgba(var(--color-error),0.2)] backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-3 border border-[rgba(var(--color-rating-2),0.2)]"
           >
             <h4 className="text-xs sm:text-sm font-semibold text-primary mb-2 flex items-center gap-2">
               <BsShield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rating-2" />

@@ -82,7 +82,7 @@ export function AzureIntegration() {
           >
             <div className="relative">
               {/* Glow */}
-              <div className="absolute -inset-8 bg-gradient-to-r from-[rgb(var(--color-info))]/5 via-indigo-500/8 to-[rgb(var(--color-cat-technical))]/5 rounded-full blur-3xl" />
+              <div className="absolute -inset-8 bg-gradient-to-r from-[rgb(var(--color-info))]/5 via-[rgb(var(--color-accent))]/8 to-[rgb(var(--color-cat-technical))]/5 rounded-full blur-3xl" />
 
               {/* Card stack visual */}
               <div className="relative w-72 h-72 sm:w-80 sm:h-80">
@@ -93,7 +93,7 @@ export function AzureIntegration() {
 
                 {/* Center logo */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[rgb(var(--color-info))] to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[rgb(var(--color-info))] to-[rgb(var(--color-accent))] flex items-center justify-center shadow-lg shadow-[rgba(var(--color-info),0.2)]">
                     <svg className="w-10 h-10 text-[rgb(var(--color-text-inverse))]" viewBox="0 0 21 21" fill="none">
                       <rect x="1" y="1" width="8.5" height="8.5" fill="#F25022" rx="1" />
                       <rect x="11.5" y="1" width="8.5" height="8.5" fill="#7FBA00" rx="1" />

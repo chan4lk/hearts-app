@@ -308,7 +308,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
 
                   {/* Skipped Users List - All visible */}
                   {importResult.skippedUsers && importResult.skippedUsers.length > 0 && (
-                    <div className="bg-rating-3 border border-yellow-500/30 rounded-lg p-3">
+                    <div className="bg-rating-3 border border-[rgba(var(--color-rating-3),0.3)] rounded-lg p-3">
                       <h3 className="font-bold text-warning text-xs mb-2">
                         Skipped Users ({importResult.skippedUsers.length})
                       </h3>

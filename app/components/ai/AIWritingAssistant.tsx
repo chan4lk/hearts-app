@@ -71,7 +71,7 @@ export default function AIWritingAssistant({
           whileTap={{ scale: 0.98 }}
           onClick={improveFeedback}
           disabled={loading || !text.trim()}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-[rgb(var(--color-text-inverse))] rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[rgb(var(--color-cat-technical))] to-[rgb(var(--color-accent))] text-[rgb(var(--color-text-inverse))] rounded-lg hover:from-[rgb(var(--color-cat-technical))] hover:to-[rgb(var(--color-accent))] transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
         >
           <BsStars className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           <span>{loading ? 'Improving...' : 'AI Improve'}</span>
@@ -95,7 +95,7 @@ export default function AIWritingAssistant({
           animate={{ opacity: 1, y: 0 }}
           className="mt-4 bg-surface-secondary rounded-lg border border-[rgb(var(--color-cat-technical))]/30 overflow-hidden"
         >
-          <div className="bg-gradient-to-r from-purple-600/20 to-indigo-600/20 p-3 border-b border-[rgb(var(--color-cat-technical))]/30">
+          <div className="bg-gradient-to-r from-[rgb(var(--color-cat-technical))]/20 to-[rgb(var(--color-accent))]/20 p-3 border-b border-[rgb(var(--color-cat-technical))]/30">
             <h4 className="text-primary font-medium flex items-center gap-2">
               <BsStars className="w-4 h-4 text-cat-technical" />
               AI Suggestion

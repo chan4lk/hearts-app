@@ -70,7 +70,7 @@ const Header = ({ userName }: { userName?: string }) => {
             <ThemeToggle />
             <Link
               href="/login"
-              className="hidden sm:inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-[rgb(var(--color-text-inverse))] bg-gradient-to-r from-indigo-600 to-[rgb(var(--color-accent))] hover:from-[rgb(var(--color-accent))] hover:to-indigo-400 rounded-lg shadow-sm shadow-[rgb(var(--color-accent))]/20 hover:shadow-md hover:shadow-[rgb(var(--color-accent))]/25 transition-all duration-200"
+              className="hidden sm:inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-[rgb(var(--color-text-inverse))] bg-gradient-to-r from-[rgb(var(--color-accent))] to-[rgb(var(--color-accent))] hover:from-[rgb(var(--color-accent))] hover:to-[rgb(var(--color-accent))] rounded-lg shadow-sm shadow-[rgb(var(--color-accent))]/20 hover:shadow-md hover:shadow-[rgb(var(--color-accent))]/25 transition-all duration-200"
             >
               Sign in
             </Link>
@@ -110,7 +110,7 @@ const Header = ({ userName }: { userName?: string }) => {
               <Link
                 href="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block w-full text-center px-4 py-2.5 text-sm font-semibold text-[rgb(var(--color-text-inverse))] bg-gradient-to-r from-indigo-600 to-[rgb(var(--color-accent))] rounded-lg shadow-sm"
+                className="block w-full text-center px-4 py-2.5 text-sm font-semibold text-[rgb(var(--color-text-inverse))] bg-gradient-to-r from-[rgb(var(--color-accent))] to-[rgb(var(--color-accent))] rounded-lg shadow-sm"
               >
                 Sign in
               </Link>

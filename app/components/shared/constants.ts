@@ -15,7 +15,7 @@ export const CATEGORIES = [
     label: 'Technical Skills',
     icon: BsLightningCharge,
     iconColor: 'text-warning',
-    color: 'from-[rgb(var(--color-cat-technical))] to-pink-500',
+    color: 'from-[rgb(var(--color-cat-technical))] to-[rgb(var(--color-cat-kpi))]',
     bgGradient: 'from-[rgb(var(--color-warning))]/10 to-transparent',
     bgColor: 'bg-[#2a2520]'
   },
@@ -344,7 +344,7 @@ export const DEPARTMENTS = [
     label: 'Marketing',
     icon: 'BsMegaphone',
     iconColor: 'text-cat-technical',
-    color: 'from-[rgb(var(--color-cat-technical))] to-pink-500'
+    color: 'from-[rgb(var(--color-cat-technical))] to-[rgb(var(--color-cat-kpi))]'
   },
   {
     value: 'HR',

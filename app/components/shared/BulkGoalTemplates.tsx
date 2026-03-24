@@ -218,7 +218,7 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4">
+      <div className="bg-gradient-to-r from-[rgba(var(--color-info),0.05)] to-[rgba(var(--color-cat-technical),0.05)] dark:from-[rgba(var(--color-info),0.2)] dark:to-[rgba(var(--color-cat-technical),0.2)] rounded-lg p-4">
         <h3 className="text-lg font-semibold text-primary mb-3">
           Quick Actions
         </h3>
