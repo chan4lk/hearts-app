@@ -244,7 +244,7 @@ function AdminEventsContent() {
                   icon: <BsCheckCircle className="w-4 h-4" />,
                 }
               ];
-              return <StatsSection stats={statItems} variant="auto" />;
+              return <StatsSection stats={statItems} />;
             })()}
           </div>
 
@@ -273,7 +273,7 @@ function AdminEventsContent() {
             {pagination.pages > 1 && (
               <div className="flex-shrink-0 pt-4 pb-3 border-t border-theme">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-white/60">
+                  <p className="text-sm text-[rgb(var(--color-text-inverse))]/60">
                     Showing {events.length} of {pagination.total} events
                   </p>
                   <div className="flex gap-2">
@@ -282,7 +282,7 @@ function AdminEventsContent() {
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setPage(Math.max(1, page - 1))}
                       disabled={page === 1}
-                      className="rounded-lg border border-white/20 px-4 py-2 text-white hover:bg-white/10 disabled:opacity-50 transition-all"
+                      className="rounded-lg border border-white/20 px-4 py-2 text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary disabled:opacity-50 transition-all"
                     >
                       Previous
                     </motion.button>
@@ -296,8 +296,8 @@ function AdminEventsContent() {
                             onClick={() => setPage(p)}
                             className={`rounded-lg px-3 py-1 text-sm font-medium transition-all ${
                               page === p
-                                ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-cyan-500/30'
-                                : 'border border-white/20 text-white hover:bg-white/10'
+                                ? 'bg-accent hover:opacity-90 text-[rgb(var(--color-text-inverse))] shadow-cyan-500/30'
+                                : 'border border-white/20 text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary'
                             }`}
                           >
                             {p}
@@ -310,7 +310,7 @@ function AdminEventsContent() {
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setPage(Math.min(pagination.pages, page + 1))}
                       disabled={page === pagination.pages}
-                      className="rounded-lg border border-white/20 px-4 py-2 text-white hover:bg-white/10 disabled:opacity-50 transition-all"
+                      className="rounded-lg border border-white/20 px-4 py-2 text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary disabled:opacity-50 transition-all"
                     >
                       Next
                     </motion.button>
@@ -343,7 +343,7 @@ export default function AdminEventsPage() {
     <Suspense fallback={
       <DashboardLayout type="admin">
         <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-white/60">Loading events...</div>
+          <div className="text-[rgb(var(--color-text-inverse))]/60">Loading events...</div>
         </div>
       </DashboardLayout>
     }>

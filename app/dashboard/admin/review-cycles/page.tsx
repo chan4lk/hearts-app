@@ -271,7 +271,7 @@ export default function ReviewCyclesPage() {
                   icon: <BsPerson className="w-4 h-4" />,
                 }
               ];
-              return <StatsSection stats={statItems} variant="auto" />;
+              return <StatsSection stats={statItems} />;
             })()}
           </div>
 
@@ -337,7 +337,7 @@ export default function ReviewCyclesPage() {
                   animate={{ scale: 1, opacity: 1, y: 0 }}
                   exit={{ scale: 0.95, opacity: 0, y: 20 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="modal-content rounded-xl shadow-2xl w-full max-w-2xl flex flex-col overflow-hidden"
+                  className="modal-content rounded-xl shadow-theme-lg w-full max-w-2xl flex flex-col overflow-hidden"
                   style={{ 
                     maxHeight: 'calc(100vh - 7rem)',
                     height: 'auto'

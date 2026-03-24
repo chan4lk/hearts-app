@@ -70,7 +70,7 @@ function ErrorContent() {
           {/* Ambient glow */}
           <div className="absolute -inset-2 rounded-[28px] bg-gradient-to-b from-red-500/10 via-transparent to-transparent blur-xl opacity-50" />
 
-          <div className="relative rounded-2xl border border-theme bg-surface-elevated backdrop-blur-xl p-8 shadow-2xl">
+          <div className="relative rounded-2xl border border-theme bg-surface-elevated backdrop-blur-xl p-8 shadow-theme-lg">
             {/* Top highlight */}
             <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-red-500/20 to-transparent" />
 
@@ -95,7 +95,7 @@ function ErrorContent() {
               <div className="flex justify-center gap-3 pt-2">
                 <Link
                   href="/login"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-sm font-medium shadow-lg shadow-indigo-500/20 transition-all duration-300"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-[rgb(var(--color-text-inverse))] text-sm font-medium shadow-lg shadow-indigo-500/20 transition-all duration-300"
                 >
                   Return to Login
                 </Link>

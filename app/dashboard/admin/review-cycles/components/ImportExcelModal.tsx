@@ -191,7 +191,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-surface-elevated border border-theme rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden"
+            className="bg-surface-elevated border border-theme rounded-2xl shadow-theme-lg w-full max-w-lg flex flex-col overflow-hidden"
             style={{ maxHeight: 'calc(100vh - 6rem)' }}
           >
             {/* Header */}
@@ -249,7 +249,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                       <div className="space-y-1">
                         <BsUpload className="w-8 h-8 text-secondary mx-auto" />
                         <p className="text-primary text-xs font-medium">Drop file or browse</p>
-                        <label className="inline-flex items-center gap-1 px-2 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded text-xs cursor-pointer transition-colors">
+                        <label className="inline-flex items-center gap-1 px-2 py-1 bg-teal-600 hover:bg-teal-700 text-[rgb(var(--color-text-inverse))] rounded text-xs cursor-pointer transition-colors">
                           <BsUpload className="w-3 h-3" />
                           <span>Browse</span>
                           <input
@@ -360,7 +360,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                   <button
                     onClick={handleUpload}
                     disabled={!file || isUploading}
-                    className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 text-xs font-medium"
+                    className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-[rgb(var(--color-text-inverse))] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 text-xs font-medium"
                   >
                     {isUploading ? (
                       <>
@@ -380,7 +380,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                   {importResult.reportData && (
                     <button
                       onClick={downloadImportReport}
-                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-1.5 text-xs font-medium"
+                      className="px-3 py-1.5 bg-accent hover:opacity-90 text-[rgb(var(--color-text-inverse))] rounded-lg transition-colors flex items-center gap-1.5 text-xs font-medium"
                     >
                       <BsDownload className="w-3 h-3" />
                       Download
@@ -388,7 +388,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                   )}
                   <button
                     onClick={handleClose}
-                    className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors text-xs font-medium"
+                    className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-[rgb(var(--color-text-inverse))] rounded-lg transition-colors text-xs font-medium"
                   >
                     Close
                   </button>

@@ -53,7 +53,7 @@ export const EventParticipationCard = ({
       case 'CANCELLED':
         return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
       default:
-        return 'bg-white/10 text-white';
+        return 'bg-white/10 text-[rgb(var(--color-text-inverse))]';
     }
   };
 

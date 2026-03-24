@@ -132,7 +132,7 @@ export default function BrowseEventsPage() {
       BISTEC_CLUB: 'bg-cyan-500/20 text-cyan-300',
       WORKSHOP: 'bg-teal-500/20 text-teal-300',
       TRAINING: 'bg-green-500/20 text-green-300',
-      default: 'bg-white/10 text-white',
+      default: 'bg-white/10 text-[rgb(var(--color-text-inverse))]',
     };
     return colors[type] || colors.default;
   };
@@ -230,17 +230,17 @@ export default function BrowseEventsPage() {
                 </div>
 
                 {/* Title */}
-                <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-teal-300 transition">
+                <h3 className="text-lg font-semibold text-[rgb(var(--color-text-inverse))] mb-2 group-hover:text-teal-300 transition">
                   {event.title}
                 </h3>
 
                 {/* Description */}
-                <p className="text-sm text-white/70 mb-4 line-clamp-2">
+                <p className="text-sm text-[rgb(var(--color-text-inverse))]/70 mb-4 line-clamp-2">
                   {event.description}
                 </p>
 
                 {/* Details */}
-                <div className="mb-4 space-y-2 text-sm text-white/60">
+                <div className="mb-4 space-y-2 text-sm text-[rgb(var(--color-text-inverse))]/60">
                   <p>
                     📅{' '}
                     {new Date(event.startDate).toLocaleDateString() && new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -283,7 +283,7 @@ export default function BrowseEventsPage() {
                     className={`w-full rounded-lg px-4 py-2 font-semibold transition-all ${
                       isCapacityFull(event)
                         ? 'bg-gray-500/20 text-secondary cursor-not-allowed'
-                        : 'bg-indigo-600 hover:bg-indigo-700 text-white hover:from-teal-600 hover:to-cyan-700 disabled:opacity-50 shadow-cyan-500/20'
+                        : 'bg-accent hover:opacity-90 text-[rgb(var(--color-text-inverse))] hover:from-teal-600 hover:to-cyan-700 disabled:opacity-50 shadow-cyan-500/20'
                     }`}
                   >
                     {registering === event.id ? (
@@ -326,8 +326,8 @@ export default function BrowseEventsPage() {
                     <div className="inline-flex p-4 bg-teal-500/10 rounded-full mb-4">
                       <BsArrowRight className="text-5xl text-teal-400/50" />
                     </div>
-                    <h3 className="text-xl font-semibold text-white mb-2">No events found</h3>
-                    <p className="text-white/60">
+                    <h3 className="text-xl font-semibold text-[rgb(var(--color-text-inverse))] mb-2">No events found</h3>
+                    <p className="text-[rgb(var(--color-text-inverse))]/60">
                       Try adjusting your filters or check back later
                     </p>
                   </motion.div>
@@ -339,7 +339,7 @@ export default function BrowseEventsPage() {
             {pagination.pages > 1 && (
               <div className="flex-shrink-0 pt-4 pb-3 border-t border-theme mt-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-white/60">
+                  <p className="text-sm text-[rgb(var(--color-text-inverse))]/60">
                     Showing {events.length} of {pagination.total} events
                   </p>
                   <div className="flex gap-2">
@@ -348,7 +348,7 @@ export default function BrowseEventsPage() {
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setPage(Math.max(1, page - 1))}
                       disabled={page === 1}
-                      className="rounded-lg border border-white/20 px-4 py-2 text-white hover:bg-white/10 disabled:opacity-50 transition-all"
+                      className="rounded-lg border border-white/20 px-4 py-2 text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary disabled:opacity-50 transition-all"
                     >
                       Previous
                     </motion.button>
@@ -361,8 +361,8 @@ export default function BrowseEventsPage() {
                           onClick={() => setPage(p)}
                           className={`rounded-lg px-3 py-1 text-sm font-medium transition-all ${
                             page === p
-                              ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-cyan-500/30'
-                              : 'border border-white/20 text-white hover:bg-white/10'
+                              ? 'bg-accent hover:opacity-90 text-[rgb(var(--color-text-inverse))] shadow-cyan-500/30'
+                              : 'border border-white/20 text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary'
                           }`}
                         >
                           {p}
@@ -374,7 +374,7 @@ export default function BrowseEventsPage() {
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setPage(Math.min(pagination.pages, page + 1))}
                       disabled={page === pagination.pages}
-                      className="rounded-lg border border-white/20 px-4 py-2 text-white hover:bg-white/10 disabled:opacity-50 transition-all"
+                      className="rounded-lg border border-white/20 px-4 py-2 text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary disabled:opacity-50 transition-all"
                     >
                       Next
                     </motion.button>

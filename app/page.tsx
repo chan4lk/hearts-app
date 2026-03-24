@@ -60,7 +60,7 @@ export default async function Home() {
             <div className="flex flex-col sm:flex-row justify-center items-center gap-3">
               <Link
                 href="/login"
-                className="w-full sm:w-auto group inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 rounded-lg shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-200 hover:-translate-y-px"
+                className="w-full sm:w-auto group inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-semibold text-[rgb(var(--color-text-inverse))] bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 rounded-lg shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-200 hover:-translate-y-px"
               >
                 Start for free
                 <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -110,7 +110,7 @@ export default async function Home() {
             <div className="flex flex-col sm:flex-row justify-center gap-3">
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-lg shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-200 hover:-translate-y-px"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 text-sm font-semibold text-[rgb(var(--color-text-inverse))] bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-lg shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-200 hover:-translate-y-px"
               >
                 Get started free
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">

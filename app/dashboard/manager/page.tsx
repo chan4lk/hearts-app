@@ -251,7 +251,7 @@ export default function ManagerDashboard() {
                 icon: <BsPeople className="w-4 h-4" />,
               }
             ];
-            return <StatsSection stats={statItems} variant="auto" />;
+            return <StatsSection stats={statItems} />;
           })()}
 
           {/* Toolbar + Filters */}

@@ -445,7 +445,7 @@ export default function RateEmployeesPage() {
                   icon: <BsStarIcon className="w-4 h-4" />,
                 }
               ];
-              return <StatsSection stats={statItems} variant="auto" />;
+              return <StatsSection stats={statItems} />;
             })()}
           </div>
 

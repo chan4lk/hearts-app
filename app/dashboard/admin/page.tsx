@@ -289,7 +289,7 @@ export default function AdminDashboard() {
       case 'success':
         return <BsCheckCircle className="w-4 h-4 text-emerald-400" />;
       case 'warning':
-        return <BsExclamationTriangle className="w-4 h-4 text-amber-400" />;
+        return <BsExclamationTriangle className="w-4 h-4 text-warning" />;
       case 'error':
         return <BsXCircle className="w-4 h-4 text-red-400" />;
       default:
@@ -302,7 +302,7 @@ export default function AdminDashboard() {
       case 'operational':
         return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
       case 'degraded':
-        return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
+        return 'text-warning bg-warning-muted border-amber-500/20';
       case 'down':
         return 'text-red-400 bg-red-500/10 border-red-500/20';
       default:
@@ -357,7 +357,7 @@ export default function AdminDashboard() {
                   tooltip: 'View all goals'
                 }
               ];
-              return <StatsSection stats={statItems} variant="auto" />;
+              return <StatsSection stats={statItems} />;
             })()}
           </motion.div>
 
@@ -368,14 +368,14 @@ export default function AdminDashboard() {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-                             className="lg:col-span-2 card-glass rounded-xl shadow-2xl overflow-hidden"
+                             className="lg:col-span-2 card-glass rounded-xl shadow-theme-lg overflow-hidden"
             >
                              <div className="p-4 border-b border-theme">
                  <div className="flex items-center justify-between">
                    <h2 className="text-lg font-semibold text-primary">Role Distribution</h2>
                   <Link
                     href="/dashboard/admin/users"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-accent hover:opacity-80 transition-colors"
                   >
                     View all
                     <BsChevronRight className="w-4 h-4" />
@@ -386,13 +386,11 @@ export default function AdminDashboard() {
                  <div className="space-y-4">
                   {stats.roleDistribution.map((role, index) => {
                     const percentage = (role._count.role / stats.totalUsers) * 100;
-                    const gradients = ['from-blue-500 to-cyan-500', 'from-emerald-500 to-teal-500', 'from-purple-500 to-pink-500'];
-                    
                     return (
                       <div key={role.role} className="group">
                                                  <div className="flex items-center justify-between mb-2">
                            <div className="flex items-center gap-3">
-                             <div className="w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                             <div className="w-8 h-8 bg-surface-secondary rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                                <BsPeople className="w-4 h-4 text-secondary" />
                              </div>
                              <div>
@@ -409,9 +407,9 @@ export default function AdminDashboard() {
                              <p className="text-xs text-secondary">{percentage.toFixed(1)}%</p>
                            </div>
                          </div>
-                         <div className="w-full bg-gray-700/30 rounded-full h-2">
-                           <div 
-                             className={`h-2 rounded-full bg-gradient-to-r ${gradients[index]} transition-all duration-1000 group-hover:shadow-lg group-hover:shadow-blue-500/25`}
+                         <div className="w-full bg-surface-secondary rounded-full h-2">
+                           <div
+                             className="h-2 rounded-full bg-accent transition-all duration-1000"
                              style={{ width: `${percentage}%` }}
                            ></div>
                          </div>
@@ -427,14 +425,14 @@ export default function AdminDashboard() {
                initial={{ opacity: 0, x: 20 }}
                animate={{ opacity: 1, x: 0 }}
                transition={{ duration: 0.6, delay: 0.4 }}
-               className="card-glass rounded-xl shadow-2xl"
+               className="card-glass rounded-xl shadow-theme-lg"
             >
               <div className="p-6 border-b border-theme">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold text-primary">Recent Users</h2>
                   <Link
                     href="/dashboard/admin/users"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-accent hover:opacity-80 transition-colors"
                   >
                     View all
                     <BsChevronRight className="w-4 h-4" />
@@ -444,9 +442,9 @@ export default function AdminDashboard() {
               <div className="p-6">
                 <div className="space-y-4">
                   {stats.recentUsers.slice(0, 5).map((user, index) => (
-                    <div key={user.email} className="flex items-center gap-4 p-3 rounded-xl bg-gray-700/20 hover:bg-gray-700/30 transition-all duration-300">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <BsPeople className="w-5 h-5 text-white" />
+                    <div key={user.email} className="flex items-center gap-4 p-3 rounded-xl bg-surface-secondary hover:bg-surface-tertiary transition-all duration-300">
+                      <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center flex-shrink-0">
+                        <BsPeople className="w-5 h-5 text-[rgb(var(--color-text-inverse))]" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-primary truncate">{user.name}</p>
@@ -474,13 +472,13 @@ export default function AdminDashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="card-glass rounded-2xl shadow-2xl overflow-hidden"
+            className="card-glass rounded-2xl shadow-theme-lg overflow-hidden"
           >
             <div className="p-6 border-b border-theme">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <BsBullseye className="w-5 h-5 text-white" />
+                  <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center">
+                    <BsBullseye className="w-5 h-5 text-[rgb(var(--color-text-inverse))]" />
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-primary">All Users Goals</h2>
@@ -491,7 +489,7 @@ export default function AdminDashboard() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setShowGoals(!showGoals)}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600/80 hover:bg-indigo-600 text-white rounded-lg shadow-sm hover:shadow transition-all duration-200 border border-indigo-500/30 hover:border-indigo-400/50"
+                  className="flex items-center gap-2 px-4 py-2 bg-accent text-[rgb(var(--color-text-inverse))] rounded-lg shadow-theme-sm hover:opacity-90 transition-all duration-150 focus-ring"
                 >
                   {showGoals ? (
                     <>

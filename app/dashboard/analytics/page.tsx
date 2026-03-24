@@ -126,7 +126,7 @@ export default function AnalyticsPage() {
                 <h2 className="text-xl font-bold text-primary mb-1">Key Metrics</h2>
                 <p className="text-sm text-secondary">Overview of performance indicators</p>
               </div>
-              <StatsSection stats={keyMetrics(analyticsData.summary)} variant="auto" />
+              <StatsSection stats={keyMetrics(analyticsData.summary)} />
             </motion.div>
 
             {/* Status Breakdown */}
@@ -135,7 +135,7 @@ export default function AnalyticsPage() {
                 <h2 className="text-xl font-bold text-primary mb-1">Status Breakdown</h2>
                 <p className="text-sm text-secondary">Detailed breakdown of goals by status</p>
               </div>
-              <StatsSection stats={statusBreakdownStats(analyticsData.breakdowns.byStatus)} variant="auto" />
+              <StatsSection stats={statusBreakdownStats(analyticsData.breakdowns.byStatus)} />
             </motion.div>
 
             {/* Charts */}

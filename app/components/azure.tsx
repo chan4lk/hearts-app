@@ -94,7 +94,7 @@ export function AzureIntegration() {
                 {/* Center logo */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                    <svg className="w-10 h-10 text-white" viewBox="0 0 21 21" fill="none">
+                    <svg className="w-10 h-10 text-[rgb(var(--color-text-inverse))]" viewBox="0 0 21 21" fill="none">
                       <rect x="1" y="1" width="8.5" height="8.5" fill="#F25022" rx="1" />
                       <rect x="11.5" y="1" width="8.5" height="8.5" fill="#7FBA00" rx="1" />
                       <rect x="1" y="11.5" width="8.5" height="8.5" fill="#00A4EF" rx="1" />

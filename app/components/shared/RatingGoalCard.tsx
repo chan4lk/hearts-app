@@ -88,7 +88,7 @@ export default function RatingGoalCard({
         <>
           <div className={`absolute inset-0 bg-gradient-to-br opacity-20 ${categoryConfig.color}`} />
           <div className="absolute inset-0 bg-grid-pattern opacity-5" />
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl transform translate-x-16 -translate-y-16" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-surface-secondary rounded-full blur-3xl transform translate-x-16 -translate-y-16" />
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full blur-3xl transform -translate-x-16 translate-y-16" />
         </>
       )}
@@ -108,7 +108,7 @@ export default function RatingGoalCard({
                 <h3
                   className={`text-base font-medium truncate ${
                     isGridView
-                      ? 'text-white group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-white/70'
+                      ? 'text-[rgb(var(--color-text-inverse))] group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-white/70'
                       : 'text-primary'
                   }`}
                 >
@@ -117,7 +117,7 @@ export default function RatingGoalCard({
                 {variant === 'manager' && (
                   <span
                     className={`px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap ${
-                      isGridView ? 'bg-white/20 text-white' : `${categoryConfig.iconColor} bg-opacity-20`
+                      isGridView ? 'bg-surface-tertiary text-[rgb(var(--color-text-inverse))]' : `${categoryConfig.iconColor} bg-opacity-20`
                     }`}
                   >
                     {categoryConfig.label}
@@ -139,11 +139,11 @@ export default function RatingGoalCard({
                   {goal.status}
                 </span>
                 {variant === 'manager' && 'employee' in goal && goal.employee?.email && (
-                  <span className={`text-xs ${isGridView ? 'text-white/70' : 'text-tertiary dark:text-secondary'}`}>
+                  <span className={`text-xs ${isGridView ? 'text-[rgb(var(--color-text-inverse))]/70' : 'text-tertiary dark:text-secondary'}`}>
                     {goal.employee.email}
                   </span>
                 )}
-                <span className={`text-xs ${isGridView ? 'text-white/70' : 'text-tertiary dark:text-secondary'}`}>
+                <span className={`text-xs ${isGridView ? 'text-[rgb(var(--color-text-inverse))]/70' : 'text-tertiary dark:text-secondary'}`}>
                   Due {new Date(goal.dueDate).toLocaleDateString()}
                 </span>
               </div>
@@ -164,7 +164,7 @@ export default function RatingGoalCard({
 
         <p
           className={`text-sm line-clamp-2 ${
-            isGridView ? 'mb-4 flex-1 text-white/80' : 'mt-3 text-secondary dark:text-secondary'
+            isGridView ? 'mb-4 flex-1 text-[rgb(var(--color-text-inverse))]/80' : 'mt-3 text-secondary dark:text-secondary'
           }`}
         >
           {goal.description}
@@ -178,7 +178,7 @@ export default function RatingGoalCard({
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <Label
-                className={`text-sm ${isGridView ? 'text-white/90' : 'text-gray-700 dark:text-secondary'}`}
+                className={`text-sm ${isGridView ? 'text-[rgb(var(--color-text-inverse))]/90' : 'text-gray-700 dark:text-secondary'}`}
               >
                 {ratingLabel}
               </Label>
@@ -192,8 +192,8 @@ export default function RatingGoalCard({
                     className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors ${
                       isGridView
                         ? currentScore === rating
-                          ? 'bg-white/20 text-warning'
-                          : 'bg-white/5 text-white/40 hover:bg-white/10'
+                          ? 'bg-surface-tertiary text-warning'
+                          : 'bg-surface-secondary text-[rgb(var(--color-text-inverse))]/40 hover:bg-surface-tertiary'
                         : currentScore === rating
                           ? 'bg-warning-muted text-warning'
                           : 'bg-surface-secondary text-secondary hover:bg-surface-tertiary'
@@ -207,7 +207,7 @@ export default function RatingGoalCard({
             {currentScore != null && (
               <div
                 className={`text-sm ${
-                  isGridView ? 'text-white/70' : 'text-secondary dark:text-secondary'
+                  isGridView ? 'text-[rgb(var(--color-text-inverse))]/70' : 'text-secondary dark:text-secondary'
                 }`}
               >
                 {RATING_DESCRIPTIONS[currentScore as keyof typeof RATING_DESCRIPTIONS]}
@@ -217,7 +217,7 @@ export default function RatingGoalCard({
         </div>
 
         {isGridView && (
-          <div className="mt-3 flex items-center gap-4 text-xs text-white/60">
+          <div className="mt-3 flex items-center gap-4 text-xs text-[rgb(var(--color-text-inverse))]/60">
             <div className="flex items-center gap-1.5">
               <BsCalendar className="w-3 h-3" />
               <span>Created {new Date(goal.createdAt).toLocaleDateString()}</span>
@@ -239,7 +239,7 @@ export default function RatingGoalCard({
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden"
             >
-              <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700">
+              <div className="p-4 bg-gray-50 dark:bg-surface-secondary border-t border-gray-100 dark:border-gray-700">
                 <div className="space-y-4">
                   <div>
                     <h4 className="text-sm font-medium text-primary mb-1">Details</h4>

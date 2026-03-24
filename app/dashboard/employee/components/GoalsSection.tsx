@@ -51,14 +51,14 @@ export default function GoalsSection({
       onClick={() => setActiveView(view)}
       className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
         activeView === view
-          ? 'bg-indigo-600 text-white'
+          ? 'bg-indigo-600 text-[rgb(var(--color-text-inverse))]'
           : 'text-secondary hover:text-primary hover:bg-surface-tertiary'
       }`}
     >
       <Icon className="w-3.5 h-3.5" />
       <span className="hidden sm:inline">{label}</span>
       <span className="sm:hidden">{shortLabel}</span>
-      <span className={`px-1.5 py-0.5 rounded text-2xs font-semibold ${activeView === view ? 'bg-white/20' : 'bg-surface-secondary'}`}>{count}</span>
+      <span className={`px-1.5 py-0.5 rounded text-2xs font-semibold ${activeView === view ? 'bg-surface-tertiary' : 'bg-surface-secondary'}`}>{count}</span>
     </button>
   );
 

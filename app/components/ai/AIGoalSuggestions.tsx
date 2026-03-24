@@ -78,7 +78,7 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
           whileTap={{ scale: 0.98 }}
           onClick={generateSuggestions}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-[rgb(var(--color-text-inverse))] rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <BsStars className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
           <span>{loading ? 'Generating...' : 'AI Goal Suggestions'}</span>
@@ -122,14 +122,14 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-surface-elevated rounded-xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden border border-purple-500/20"
+              className="bg-surface-elevated rounded-xl shadow-theme-lg max-w-4xl w-full max-h-[80vh] overflow-hidden border border-purple-500/20"
             >
               {/* Header */}
               <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <BsLightbulb className="w-6 h-6 text-white" />
-                    <h2 className="text-2xl font-bold text-white">AI-Powered Goal Suggestions</h2>
+                    <BsLightbulb className="w-6 h-6 text-[rgb(var(--color-text-inverse))]" />
+                    <h2 className="text-2xl font-bold text-[rgb(var(--color-text-inverse))]">AI-Powered Goal Suggestions</h2>
                   </div>
                   <button
                     onClick={() => {
@@ -139,7 +139,7 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
                         onSelectGoal({} as GoalSuggestion);
                       }
                     }}
-                    className="text-white/80 hover:text-white transition-colors"
+                    className="text-[rgb(var(--color-text-inverse))]/80 hover:text-[rgb(var(--color-text-inverse))] transition-colors"
                   >
                     <BsXCircle className="w-6 h-6" />
                   </button>
@@ -216,7 +216,7 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => handleSelectGoal(suggestion)}
-                          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg transition-all shadow-lg shadow-purple-500/30 font-semibold"
+                          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-[rgb(var(--color-text-inverse))] rounded-lg transition-all shadow-lg shadow-purple-500/30 font-semibold"
                         >
                           <BsCheckCircle className="w-5 h-5" />
                           <span>Use This Goal</span>

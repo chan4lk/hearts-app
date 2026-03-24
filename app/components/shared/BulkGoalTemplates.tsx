@@ -152,7 +152,7 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
                 type="checkbox"
                 checked={selectedEmployees.includes(employee.id)}
                 onChange={() => handleEmployeeToggle(employee.id)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="rounded border-gray-300 text-blue-600 focus-ring"
               />
               <span className="text-sm text-gray-700 dark:text-secondary truncate">
                 {employee.name}
@@ -205,7 +205,7 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
                         handleApplyTemplate(template);
                       }}
                       disabled={selectedEmployees.length === 0}
-                      className="px-3 py-1 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-3 py-1 bg-blue-600 text-[rgb(var(--color-text-inverse))] text-xs rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Apply to {selectedEmployees.length} employee(s)
                     </button>

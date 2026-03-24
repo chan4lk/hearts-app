@@ -487,7 +487,7 @@ export default function EmployeeDashboard() {
                   }
                 }
               ];
-              return <StatsSection stats={statItems} variant="auto" />;
+              return <StatsSection stats={statItems} />;
             })()}
           </motion.div>
 
@@ -506,11 +506,11 @@ export default function EmployeeDashboard() {
                 resetForm();
                 setShowCreateGoalModal(true);
               }}
-              className="bg-surface-elevated border border-theme hover:border-emerald-500/30 hover:shadow-theme-sm rounded-xl p-6 transition-all text-left group"
+              className="bg-surface-elevated border border-theme hover:border-[rgba(var(--color-success),0.3)] hover:shadow-theme-sm rounded-xl p-6 transition-all text-left group focus-ring"
             >
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-green-500/20 rounded-lg group-hover:bg-green-500/30 transition-colors">
-                  <BsPlus className="w-6 h-6 text-green-400" />
+                <div className="p-3 bg-success-muted rounded-lg group-hover:opacity-80 transition-colors">
+                  <BsPlus className="w-6 h-6 text-success" />
                 </div>
                 <div className="flex-1">
                   <h3 className="text-lg font-bold text-primary mb-1">Create New Goal</h3>
@@ -524,11 +524,11 @@ export default function EmployeeDashboard() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowAIGoalSuggestions(true)}
-              className="bg-surface-elevated border border-theme hover:border-purple-500/30 hover:shadow-theme-sm rounded-xl p-6 transition-all text-left group"
+              className="bg-surface-elevated border border-theme hover:border-[rgba(var(--color-accent),0.3)] hover:shadow-theme-sm rounded-xl p-6 transition-all text-left group focus-ring"
             >
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-purple-500/20 rounded-lg group-hover:bg-purple-500/30 transition-colors">
-                  <BsStars className="w-6 h-6 text-purple-400" />
+                <div className="p-3 bg-accent-muted rounded-lg group-hover:opacity-80 transition-colors">
+                  <BsStars className="w-6 h-6 text-accent" />
                 </div>
                 <div className="flex-1">
                   <h3 className="text-lg font-bold text-primary mb-1">AI Goal Suggestions</h3>
@@ -542,11 +542,11 @@ export default function EmployeeDashboard() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowAIInsights(true)}
-              className="bg-surface-elevated border border-theme hover:border-blue-500/30 hover:shadow-theme-sm rounded-xl p-6 transition-all text-left group"
+              className="bg-surface-elevated border border-theme hover:border-[rgba(var(--color-info),0.3)] hover:shadow-theme-sm rounded-xl p-6 transition-all text-left group focus-ring"
             >
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition-colors">
-                  <BsLightbulb className="w-6 h-6 text-blue-400" />
+                <div className="p-3 bg-info-muted rounded-lg group-hover:opacity-80 transition-colors">
+                  <BsLightbulb className="w-6 h-6 text-info" />
                 </div>
                 <div className="flex-1">
                   <h3 className="text-lg font-bold text-primary mb-1">Performance Insights</h3>
@@ -679,7 +679,7 @@ export default function EmployeeDashboard() {
                   initial={{ scale: 0.95, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.95, opacity: 0 }}
-                  className="bg-surface-elevated backdrop-blur-sm rounded-xl shadow-2xl w-full max-w-2xl border border-theme"
+                  className="bg-surface-elevated backdrop-blur-sm rounded-xl shadow-theme-lg w-full max-w-2xl border border-theme"
                 >
                   <GoalDetailModal
                     goal={selectedGoal}
@@ -782,25 +782,25 @@ export default function EmployeeDashboard() {
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.95, opacity: 0 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="modal-content rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden border-2 border-amber-500/40 flex flex-col"
+                  className="modal-content rounded-xl shadow-theme-lg w-full max-w-4xl max-h-[85vh] overflow-hidden border-2 border-amber-500/40 flex flex-col"
                 >
                   {/* Compact Header - Sticky */}
                   <div className="sticky top-0 z-10 bg-gradient-to-r from-amber-900/40 via-amber-800/40 to-orange-900/40 backdrop-blur-md border-b-2 border-amber-500/50 px-4 py-3 flex items-center justify-between flex-shrink-0">
                     <div className="flex items-center gap-2.5">
                       <div className="p-1.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg">
-                        <BsPersonCheck className="w-4 h-4 text-white" />
+                        <BsPersonCheck className="w-4 h-4 text-[rgb(var(--color-text-inverse))]" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-white">Manager Ratings</h3>
-                        <p className="text-2xs text-amber-200/80">Feedback on your performance</p>
+                        <h3 className="text-lg font-bold text-[rgb(var(--color-text-inverse))]">Manager Ratings</h3>
+                        <p className="text-2xs text-warning">Feedback on your performance</p>
                       </div>
                     </div>
                     <button
                       onClick={() => setShowManagerRatingsModal(false)}
-                      className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+                      className="p-1.5 hover:bg-surface-tertiary rounded-lg transition-colors"
                       aria-label="Close"
                     >
-                      <BsX className="w-5 h-5 text-secondary hover:text-white" />
+                      <BsX className="w-5 h-5 text-secondary hover:text-[rgb(var(--color-text-inverse))]" />
                     </button>
                   </div>
 
@@ -812,8 +812,8 @@ export default function EmployeeDashboard() {
                       if (ratedGoals.length === 0) {
                         return (
                           <div className="text-center py-16">
-                            <div className="mb-4 inline-flex p-4 bg-amber-500/10 rounded-full">
-                              <BsPersonCheck className="w-12 h-12 text-amber-400/50" />
+                            <div className="mb-4 inline-flex p-4 bg-warning-muted rounded-full">
+                              <BsPersonCheck className="w-12 h-12 text-warning/50" />
                             </div>
                             <h3 className="text-lg font-semibold text-secondary mb-2">No Manager Ratings Yet</h3>
                             <p className="text-sm text-secondary">Your manager hasn't rated any goals yet.</p>
@@ -860,7 +860,7 @@ export default function EmployeeDashboard() {
                                 <div className="absolute top-3 right-3">
                                   <div className={`flex items-center gap-1 px-2.5 py-1 rounded-lg ${ratingStyle.bg} border ${ratingStyle.border} backdrop-blur-sm`}>
                                     <div className={`p-1 rounded bg-gradient-to-r ${ratingStyle.icon}`}>
-                                      <BsStarFill className="w-3 h-3 text-white" />
+                                      <BsStarFill className="w-3 h-3 text-[rgb(var(--color-text-inverse))]" />
                                     </div>
                                     <span className={`text-sm font-bold ${ratingStyle.text}`}>{rating}/5</span>
                                   </div>
@@ -868,7 +868,7 @@ export default function EmployeeDashboard() {
 
                                 <div className="pr-20">
                                   {/* Goal Title */}
-                                  <h4 className="text-base font-bold text-white mb-2 group-hover:text-amber-300 transition-colors line-clamp-1">
+                                  <h4 className="text-base font-bold text-[rgb(var(--color-text-inverse))] mb-2 group-hover:text-amber-300 transition-colors line-clamp-1">
                                     {goal.title}
                                   </h4>
                                   
@@ -898,7 +898,7 @@ export default function EmployeeDashboard() {
                                     <div className="mt-3 p-3 bg-black/30 rounded-lg border border-amber-500/20">
                                       <div className="flex items-start gap-2">
                                         <div className="p-1 bg-amber-500/20 rounded flex-shrink-0 mt-0.5">
-                                          <BsPersonCheck className="w-3 h-3 text-amber-400" />
+                                          <BsPersonCheck className="w-3 h-3 text-warning" />
                                         </div>
                                         <p className="text-sm text-secondary italic flex-1">
                                           "{goal.rating.managerComments}"
@@ -908,7 +908,7 @@ export default function EmployeeDashboard() {
                                   )}
 
                                   {/* Click Indicator */}
-                                  <div className="mt-3 flex items-center gap-2 text-xs text-amber-400/70 group-hover:text-amber-400 transition-colors">
+                                  <div className="mt-3 flex items-center gap-2 text-xs text-warning group-hover:text-warning transition-colors">
                                     <span>View details</span>
                                     <BsArrowRight className="w-3 h-3 transform group-hover:translate-x-1 transition-transform" />
                                   </div>

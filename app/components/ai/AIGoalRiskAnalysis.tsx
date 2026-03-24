@@ -52,7 +52,7 @@ export default function AIGoalRiskAnalysis({ goalId, className = '' }: AIGoalRis
       case 'low':
         return 'from-emerald-500/20 to-green-500/20 border-emerald-500/30 text-emerald-400';
       case 'medium':
-        return 'from-amber-500/20 to-orange-500/20 border-amber-500/30 text-amber-400';
+        return 'from-[rgba(var(--color-warning),0.2)] to-[rgba(var(--color-warning),0.1)] border-amber-500/30 text-warning';
       case 'high':
         return 'from-red-500/20 to-rose-500/20 border-red-500/30 text-red-400';
       default:
@@ -75,7 +75,7 @@ export default function AIGoalRiskAnalysis({ goalId, className = '' }: AIGoalRis
 
   const getProbabilityColor = (probability: number) => {
     if (probability >= 70) return 'text-emerald-400';
-    if (probability >= 40) return 'text-amber-400';
+    if (probability >= 40) return 'text-warning';
     return 'text-red-400';
   };
 
@@ -87,7 +87,7 @@ export default function AIGoalRiskAnalysis({ goalId, className = '' }: AIGoalRis
         whileTap={{ scale: 0.98 }}
         onClick={analyzeRisk}
         disabled={loading}
-        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-lg hover:from-orange-700 hover:to-red-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-600 to-red-600 text-[rgb(var(--color-text-inverse))] rounded-lg hover:from-orange-700 hover:to-red-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
       >
         <BsShieldExclamation className={`w-4 h-4 ${loading ? 'animate-pulse' : ''}`} />
         <span>{loading ? 'Analyzing...' : 'Analyze Risk'}</span>
@@ -134,13 +134,13 @@ export default function AIGoalRiskAnalysis({ goalId, className = '' }: AIGoalRis
           {analysis.risks.length > 0 && (
             <div className="bg-surface-secondary rounded-lg p-5 border border-theme">
               <h4 className="text-primary font-semibold mb-3 flex items-center gap-2">
-                <BsExclamationTriangle className="w-4 h-4 text-amber-400" />
+                <BsExclamationTriangle className="w-4 h-4 text-warning" />
                 Identified Risks
               </h4>
               <ul className="space-y-2">
                 {analysis.risks.map((risk, index) => (
                   <li key={index} className="flex items-start gap-3">
-                    <span className="text-amber-400 mt-1">•</span>
+                    <span className="text-warning mt-1">•</span>
                     <span className="text-secondary text-sm">{risk}</span>
                   </li>
                 ))}

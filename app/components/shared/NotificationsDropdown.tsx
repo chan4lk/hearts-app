@@ -210,7 +210,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
           <motion.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-semibold px-1.5 shadow-red-500/50"
+            className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-[rgb(var(--color-text-inverse))] text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-semibold px-1.5 shadow-red-500/50"
           >
             {unreadCount > 9 ? '9+' : unreadCount}
           </motion.span>
@@ -228,7 +228,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="absolute right-0 mt-2 w-96 bg-surface-elevated backdrop-blur-xl rounded-xl shadow-2xl border border-theme overflow-hidden z-50 max-h-[500px] flex flex-col"
+            className="absolute right-0 mt-2 w-96 bg-surface-elevated backdrop-blur-xl rounded-xl shadow-theme-lg border border-theme overflow-hidden z-50 max-h-[500px] flex flex-col"
           >
             {/* Header */}
             <div className="px-4 py-3 border-b border-theme flex items-center justify-between bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10">

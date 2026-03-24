@@ -338,17 +338,17 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Fixed Header - Brand Teal Color */}
-      <div className="flex-shrink-0 px-6 py-4 bg-indigo-600 border-b border-teal-500/30 z-10 rounded-t-xl">
+      <div className="flex-shrink-0 px-6 py-4 bg-accent border-b border-teal-500/30 z-10 rounded-t-xl">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white" style={{ color: '#ffffff' }}>
+          <h2 className="text-xl font-bold text-[rgb(var(--color-text-inverse))]" style={{ color: '#ffffff' }}>
             Review Cycle
           </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+            className="p-2 hover:bg-surface-tertiary rounded-lg transition-colors"
             aria-label="Close modal"
           >
-            <BsX className="w-5 h-5 text-white" style={{ color: '#ffffff' }} />
+            <BsX className="w-5 h-5 text-[rgb(var(--color-text-inverse))]" style={{ color: '#ffffff' }} />
           </button>
         </div>
       </div>
@@ -393,7 +393,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                 disabled={loadingUsers && users.length === 0}
                 className={`w-full pl-10 pr-10 py-2 bg-surface-secondary text-primary rounded-lg border ${
                   errors.userId ? 'border-red-500' : 'border-theme'
-                } focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-wait`}
+                } focus:outline-none focus:ring-2 focus-ring disabled:opacity-50 disabled:cursor-wait`}
               />
               <button
                 type="button"
@@ -471,7 +471,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                 }}
                 placeholder={loadingEmployees ? "Loading reporting persons..." : "Search person by name or email..."}
                 disabled={loadingEmployees && employees.length === 0}
-                className="w-full pl-10 pr-10 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-wait"
+                className="w-full pl-10 pr-10 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus-ring disabled:opacity-50 disabled:cursor-wait"
               />
               <button
                 type="button"
@@ -536,7 +536,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                   }
                 }}
                 placeholder="Search job category..."
-                className="w-full pl-10 pr-10 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full pl-10 pr-10 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus-ring"
               />
               <button
                 type="button"
@@ -607,7 +607,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                   }
                 }}
                 placeholder="Search designation..."
-                className="w-full pl-10 pr-10 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full pl-10 pr-10 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus-ring"
               />
               <button
                 type="button"
@@ -661,7 +661,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
             type="date"
             value={formData.dateOfAppointment}
             onChange={(e) => handleChange('dateOfAppointment', e.target.value)}
-            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus-ring"
           />
           {formData.dateOfAppointment && (
             <p className="mt-1 text-xs text-secondary">
@@ -682,7 +682,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
           <select
             value={formData.after6Months}
             onChange={(e) => handleChange('after6Months', e.target.value)}
-            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus-ring"
           >
             <option value="">Select Month</option>
             {MONTHS.map((month) => (
@@ -704,7 +704,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
           <select
             value={formData.reviewMonth}
             onChange={(e) => handleChange('reviewMonth', e.target.value)}
-            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus-ring"
           >
             <option value="">Select Month</option>
             {MONTHS.map((month) => (
@@ -715,7 +715,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
             ))}
           </select>
           {calculatedReviewMonth && formData.reviewMonth !== calculatedReviewMonth && (
-            <p className="mt-1 text-xs text-amber-400">
+            <p className="mt-1 text-xs text-warning">
               ⚠️ Changed from calculated: <span className="line-through text-secondary">{calculatedReviewMonth}</span>
             </p>
           )}
@@ -729,7 +729,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
           <select
             value={formData.adjustedReviewMonth}
             onChange={(e) => handleChange('adjustedReviewMonth', e.target.value)}
-            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus-ring"
           >
             <option value="">Select Month</option>
             {MONTHS.map((month) => (
@@ -742,9 +742,9 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
           {formData.adjustedReviewMonth && 
            formData.reviewMonth && 
            formData.adjustedReviewMonth !== formData.reviewMonth && (
-            <div className="mt-2 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+            <div className="mt-2 p-3 bg-warning-muted border border-amber-500/30 rounded-lg">
               <div className="flex flex-wrap items-center gap-2 text-sm">
-                <span className="text-amber-400 font-medium">Original:</span>
+                <span className="text-warning font-medium">Original:</span>
                 <span className="px-2 py-1 bg-surface-secondary rounded text-secondary line-through decoration-amber-400 decoration-2">
                   {formData.reviewMonth}
                 </span>
@@ -786,7 +786,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
           type="submit"
           form="review-cycle-form"
           disabled={loading}
-          className="px-6 py-2 text-sm font-medium bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+          className="px-6 py-2 text-sm font-medium bg-teal-600 hover:bg-teal-700 text-[rgb(var(--color-text-inverse))] rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
           style={{ color: '#ffffff' }}
         >
           {loading ? 'Saving...' : (reviewCycle ? 'Update' : 'Add')}

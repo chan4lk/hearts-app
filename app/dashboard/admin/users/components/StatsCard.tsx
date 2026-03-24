@@ -18,7 +18,7 @@ export default function StatsCard({ icon: Icon, title, value, total, color, dela
       <div className="bg-surface-elevated rounded-lg p-2.5 shadow-sm border border-theme relative overflow-hidden">
         <div className="flex items-center gap-2 mb-1.5">
           <div className={`p-1.5 bg-gradient-to-br ${color} rounded-md`}>
-            <Icon className="text-sm text-white" />
+            <Icon className="text-sm text-[rgb(var(--color-text-inverse))]" />
           </div>
           <p className="text-xs font-medium text-secondary dark:text-secondary">{title}</p>
         </div>

@@ -6,24 +6,23 @@ export interface StatItem {
   title: string;
   value: number | string;
   icon: ReactNode;
+  iconColor?: string;
+  onClick?: () => void;
+  tooltip?: string;
+  // Legacy — optional, ignored in render
   gradient?: string;
   bgColor?: string;
   borderColor?: string;
-  iconColor?: string;
-  onClick?: () => void;
   clickable?: boolean;
-  tooltip?: string;
   status?: string;
 }
 
 interface StatsSectionProps {
   stats: StatItem[];
-  variant?: 'default' | 'compact' | 'auto';
-  columns?: { mobile?: number; tablet?: number; desktop?: number };
   children?: ReactNode;
 }
 
-export default function StatsSection({ stats = [], variant = 'auto', children }: StatsSectionProps) {
+export default function StatsSection({ stats = [], children }: StatsSectionProps) {
   const safeStats = Array.isArray(stats) ? stats : [];
 
   const getGridClass = (count: number) => {
@@ -36,7 +35,7 @@ export default function StatsSection({ stats = [], variant = 'auto', children }:
   return (
     <div className={`grid ${getGridClass(safeStats.length)} gap-3`}>
       {safeStats.map((stat) => {
-        const isInteractive = stat.clickable !== false && stat.onClick;
+        const isInteractive = !!stat.onClick;
         return (
           <button
             key={stat.title}
@@ -46,8 +45,7 @@ export default function StatsSection({ stats = [], variant = 'auto', children }:
             className={`
               group flex items-center gap-3 px-4 py-3.5 rounded-xl
               bg-surface-elevated border border-theme
-              transition-all duration-150 text-left
-              focus-ring
+              transition-all duration-150 text-left focus-ring
               ${isInteractive
                 ? 'cursor-pointer hover:bg-surface-secondary hover:shadow-theme-sm active:scale-[0.98]'
                 : 'cursor-default'
@@ -56,17 +54,13 @@ export default function StatsSection({ stats = [], variant = 'auto', children }:
             aria-label={stat.tooltip || `${stat.title}: ${stat.value}`}
             title={stat.tooltip}
           >
-            {/* Icon */}
             <div className={`
               flex-shrink-0 w-10 h-10 rounded-lg bg-surface-secondary
-              flex items-center justify-center
-              transition-colors duration-150
+              flex items-center justify-center transition-colors duration-150
               ${stat.iconColor || 'text-accent'}
             `}>
               {stat.icon}
             </div>
-
-            {/* Value + Label */}
             <div className="min-w-0 flex-1">
               <div className="text-lg font-semibold text-primary leading-tight tabular-nums">
                 {stat.value}

@@ -341,7 +341,7 @@ function GoalsPageContent() {
                   onClick: () => setSelectedStatus('REJECTED')
                 }
               ];
-              return <StatsSection stats={statItems} variant="auto" />;
+              return <StatsSection stats={statItems} />;
             })()}
           </motion.div>
 
@@ -351,9 +351,9 @@ function GoalsPageContent() {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 p-4 rounded-xl shadow-2xl flex items-center gap-3 max-w-[90%] md:max-w-md backdrop-blur-xl border border-white/20 ${
+              className={`fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 p-4 rounded-xl shadow-theme-lg flex items-center gap-3 max-w-[90%] md:max-w-md backdrop-blur-xl border border-white/20 ${
                 notificationType === 'success' ? 'bg-green-500/90' : 'bg-red-500/90'
-              } text-white`}
+              } text-[rgb(var(--color-text-inverse))]`}
             >
               <span className="text-sm md:text-base font-medium">{notificationMessage}</span>
             </motion.div>

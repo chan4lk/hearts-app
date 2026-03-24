@@ -211,7 +211,7 @@ function EmployeeEventsContent() {
               {/* Upcoming Events Section */}
               {upcomingEvents.length > 0 && (
                 <div>
-                  <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                  <h2 className="text-2xl font-bold text-[rgb(var(--color-text-inverse))] mb-4 flex items-center gap-2">
                     <div className="p-2 bg-teal-500/20 rounded-lg">
                       <BsCalendarPlus className="text-teal-400" />
                     </div>
@@ -235,7 +235,7 @@ function EmployeeEventsContent() {
               {/* Past Events Section */}
               {pastEvents.length > 0 && (
                 <div>
-                  <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+                  <h2 className="text-2xl font-bold text-[rgb(var(--color-text-inverse))] mb-4 flex items-center gap-2">
                     <div className="p-2 bg-emerald-500/20 rounded-lg">
                       <BsCheckLg className="text-emerald-400" />
                     </div>
@@ -266,13 +266,13 @@ function EmployeeEventsContent() {
                   <div className="inline-flex p-4 bg-teal-500/10 rounded-full mb-4">
                     <BsCalendarPlus className="text-5xl text-teal-400/50" />
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-2">No events yet</h3>
-                  <p className="text-white/60 mb-6">
+                  <h3 className="text-xl font-semibold text-[rgb(var(--color-text-inverse))] mb-2">No events yet</h3>
+                  <p className="text-[rgb(var(--color-text-inverse))]/60 mb-6">
                     Browse available events and register to participate
                   </p>
                   <Link
                     href="/dashboard/employee/events/browse"
-                    className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-6 py-3 font-semibold text-white transition-all"
+                    className="inline-flex items-center gap-2 rounded-lg bg-accent hover:opacity-90 px-6 py-3 font-semibold text-[rgb(var(--color-text-inverse))] transition-all"
                   >
                     Browse Events
                     <BsArrowRight className="text-lg" />
@@ -285,7 +285,7 @@ function EmployeeEventsContent() {
             {pagination.pages > 1 && (
               <div className="flex-shrink-0 pt-4 pb-3 border-t border-theme mt-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-white/60">
+                  <p className="text-sm text-[rgb(var(--color-text-inverse))]/60">
                     Showing {participations.length} of {pagination.total} events
                   </p>
                   <div className="flex gap-2">
@@ -294,7 +294,7 @@ function EmployeeEventsContent() {
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setPage(Math.max(1, page - 1))}
                       disabled={page === 1}
-                      className="rounded-lg border border-white/20 px-4 py-2 text-white hover:bg-white/10 disabled:opacity-50 transition-all"
+                      className="rounded-lg border border-white/20 px-4 py-2 text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary disabled:opacity-50 transition-all"
                     >
                       Previous
                     </motion.button>
@@ -307,8 +307,8 @@ function EmployeeEventsContent() {
                           onClick={() => setPage(p)}
                           className={`rounded-lg px-3 py-1 text-sm font-medium transition-all ${
                             page === p
-                              ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-cyan-500/30'
-                              : 'border border-white/20 text-white hover:bg-white/10'
+                              ? 'bg-accent hover:opacity-90 text-[rgb(var(--color-text-inverse))] shadow-cyan-500/30'
+                              : 'border border-white/20 text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary'
                           }`}
                         >
                           {p}
@@ -320,7 +320,7 @@ function EmployeeEventsContent() {
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setPage(Math.min(pagination.pages, page + 1))}
                       disabled={page === pagination.pages}
-                      className="rounded-lg border border-white/20 px-4 py-2 text-white hover:bg-white/10 disabled:opacity-50 transition-all"
+                      className="rounded-lg border border-white/20 px-4 py-2 text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary disabled:opacity-50 transition-all"
                     >
                       Next
                     </motion.button>
@@ -350,7 +350,7 @@ export default function EmployeeEventsPage() {
     <Suspense fallback={
       <DashboardLayout type="employee">
         <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-white/60">Loading events...</div>
+          <div className="text-[rgb(var(--color-text-inverse))]/60">Loading events...</div>
         </div>
       </DashboardLayout>
     }>

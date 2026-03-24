@@ -40,7 +40,7 @@ const features = [
     title: 'Rating System',
     description: 'Comprehensive 5-point rating with self and manager assessments, comments, and historical performance tracking.',
     accent: 'from-amber-500 to-orange-500',
-    accentBg: 'bg-amber-500/8 dark:bg-amber-500/10',
+    accentBg: 'bg-amber-500/8 dark:bg-warning-muted',
   },
   {
     icon: CalendarCheck,

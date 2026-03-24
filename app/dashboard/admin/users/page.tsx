@@ -373,7 +373,7 @@ function UsersPageContent() {
                   onClick: () => handleStatFilter('role', 'ADMIN')
                 }
               ];
-              return <StatsSection stats={statItems} variant="auto" />;
+              return <StatsSection stats={statItems} />;
             })()}
           </div>
 
@@ -480,7 +480,7 @@ export default function UsersPage() {
     <Suspense fallback={
       <DashboardLayout type="admin">
         <div className="flex items-center justify-center min-h-screen">
-          <div className="text-white">Loading...</div>
+          <div className="text-[rgb(var(--color-text-inverse))]">Loading...</div>
         </div>
       </DashboardLayout>
     }>

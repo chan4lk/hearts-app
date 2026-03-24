@@ -33,7 +33,7 @@ const INSIGHT_BG: Record<string, string> = {
 
 const PRIORITY_STYLE: Record<string, string> = {
   high: 'bg-red-500/10 text-error',
-  medium: 'bg-amber-500/10 text-warning',
+  medium: 'bg-warning-muted text-warning',
   low: 'bg-blue-500/10 text-info',
 };
 

@@ -151,7 +151,7 @@ import RatingGoalCard from '@/app/components/shared/RatingGoalCard';
      <DashboardLayout type="employee">
        <div className="max-w-7xl mx-auto space-y-5">
            <div className="space-y-3">
-             <StatsSection stats={statsItems} variant="auto" />
+             <StatsSection stats={statsItems} />
            </div>
            <PageToolbar
              searchValue={search}

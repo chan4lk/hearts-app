@@ -228,7 +228,7 @@ function LoginForm() {
                     >
                       {/* Inner shine */}
                       <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/15 to-transparent" />
-                      <svg className="w-8 h-8 text-white relative" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+                      <svg className="w-8 h-8 text-[rgb(var(--color-text-inverse))] relative" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
                       </svg>
                     </motion.div>
@@ -268,7 +268,7 @@ function LoginForm() {
                   disabled={isLoading}
                   whileHover={{ scale: 1.02, y: -1 }}
                   whileTap={{ scale: 0.98 }}
-                  className="login-btn-primary group w-full relative flex items-center justify-center gap-3 h-[52px] px-6 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:via-indigo-400 hover:to-purple-500 text-white font-semibold shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="login-btn-primary group w-full relative flex items-center justify-center gap-3 h-[52px] px-6 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:via-indigo-400 hover:to-purple-500 text-[rgb(var(--color-text-inverse))] font-semibold shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <AnimatePresence mode="wait">
                     {isLoading ? (

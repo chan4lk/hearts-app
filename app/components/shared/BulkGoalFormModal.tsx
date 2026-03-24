@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CATEGORIES, DEPARTMENTS, PRIORITIES, GOAL_TEMPLATES } from './constants';
 
 const selectContentClass = 'bg-surface-elevated border border-theme text-primary z-[100] max-h-[min(14rem,45vh)]';
-const selectTriggerClass = 'bg-black/20 border border-theme text-primary text-xs h-9 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20';
+const selectTriggerClass = 'bg-surface-tertiary border border-theme text-primary text-xs h-9 rounded-lg focus:border-amber-500/50 focus-ring/20';
 const nativeSelectClass = selectTriggerClass;
 
 interface BulkGoalFormData extends Omit<GoalFormData, 'employeeId'> {
@@ -253,13 +253,13 @@ export function BulkGoalFormModal({
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="modal-content rounded-lg sm:rounded-xl w-full max-w-4xl shadow-2xl border border-theme max-h-[90vh] overflow-hidden"
+        className="modal-content rounded-lg sm:rounded-xl w-full max-w-4xl shadow-theme-lg border border-theme max-h-[90vh] overflow-hidden"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-3 py-2 border-b border-theme bg-black/20">
+        <div className="flex items-center justify-between px-3 py-2 border-b border-theme bg-surface-tertiary">
           <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 p-1.5 rounded-lg">
-              <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-gradient-to-r from-[rgba(var(--color-warning),0.2)] to-[rgba(var(--color-warning),0.1)] p-1.5 rounded-lg">
+              <svg className="w-4 h-4 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
             </div>
@@ -267,7 +267,7 @@ export function BulkGoalFormModal({
           </div>
           <button
             onClick={handleClose}
-            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-secondary hover:text-primary"
+            className="p-1.5 hover:bg-surface-tertiary rounded-lg transition-colors text-secondary hover:text-primary"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -281,8 +281,8 @@ export function BulkGoalFormModal({
             onClick={() => setActiveTab('manual')}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               activeTab === 'manual'
-                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                : 'text-secondary hover:bg-white/10 hover:text-white'
+                ? 'bg-amber-500/20 text-warning border border-amber-500/30'
+                : 'text-secondary hover:bg-surface-tertiary hover:text-[rgb(var(--color-text-inverse))]'
             }`}
           >
             Manual Entry ({goals.length})
@@ -291,8 +291,8 @@ export function BulkGoalFormModal({
             onClick={() => setActiveTab('templates')}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               activeTab === 'templates'
-                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                : 'text-secondary hover:bg-white/10 hover:text-white'
+                ? 'bg-amber-500/20 text-warning border border-amber-500/30'
+                : 'text-secondary hover:bg-surface-tertiary hover:text-[rgb(var(--color-text-inverse))]'
             }`}
           >
             Templates
@@ -318,7 +318,7 @@ export function BulkGoalFormModal({
                           type="checkbox"
                           checked={selectedEmployees.includes(employee.id)}
                           onChange={() => handleEmployeeToggle(employee.id)}
-                          className="rounded border-theme text-amber-500 focus:ring-amber-500/20"
+                          className="rounded border-theme text-amber-500 focus-ring/20"
                         />
                         {employee.name}
                       </label>
@@ -335,7 +335,7 @@ export function BulkGoalFormModal({
                     type="button"
                     onClick={() => handleTemplateApply(template)}
                     disabled={selectedEmployees.length === 0}
-                    className="p-3 bg-black/20 border border-theme rounded-lg text-left hover:bg-black/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-3 bg-surface-tertiary border border-theme rounded-lg text-left hover:bg-black/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <div className="text-sm font-medium text-primary">{template.title}</div>
                     <div className="text-xs text-tertiary">{template.category} • {template.subtitle}</div>
@@ -353,7 +353,7 @@ export function BulkGoalFormModal({
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="bg-black/20 rounded-lg p-3 border border-theme"
+                  className="bg-surface-tertiary rounded-lg p-3 border border-theme"
                 >
                   {/* Goal Header */}
                   <div className="flex items-center justify-between mb-3">
@@ -364,7 +364,7 @@ export function BulkGoalFormModal({
                       <button
                         type="button"
                         onClick={() => duplicateGoal(goal.id)}
-                        className="p-1 text-amber-400/70 hover:text-amber-400 hover:bg-amber-500/10 rounded transition-colors"
+                        className="p-1 text-warning hover:text-warning hover:bg-warning-muted rounded transition-colors"
                         title="Duplicate Goal"
                       >
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -396,7 +396,7 @@ export function BulkGoalFormModal({
                           value={goal.title}
                           onChange={(e) => updateGoal(goal.id, 'title', e.target.value)}
                           placeholder="Enter goal title"
-                          className="bg-black/20 border-theme text-primary text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20"
+                          className="bg-surface-tertiary border-theme text-primary text-xs h-7 rounded-lg focus:border-amber-500/50 focus-ring/20"
                         />
                         {errors[goal.id]?.title && (
                           <div className="text-red-400 text-2xs mt-1 font-semibold animate-pulse">{errors[goal.id].title}</div>
@@ -495,7 +495,7 @@ export function BulkGoalFormModal({
                           type="date"
                           value={goal.dueDate}
                           onChange={(e) => updateGoal(goal.id, 'dueDate', e.target.value)}
-                          className="bg-black/20 border-theme text-primary text-xs h-7 rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20"
+                          className="bg-surface-tertiary border-theme text-primary text-xs h-7 rounded-lg focus:border-amber-500/50 focus-ring/20"
                         />
                       </div>
                       <div className="sm:col-span-2">
@@ -504,7 +504,7 @@ export function BulkGoalFormModal({
                           value={goal.description}
                           onChange={(e) => updateGoal(goal.id, 'description', e.target.value)}
                           placeholder="Describe the goal..."
-                          className="bg-black/20 border-theme text-primary text-xs min-h-[28px] rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20 resize-none"
+                          className="bg-surface-tertiary border-theme text-primary text-xs min-h-[28px] rounded-lg focus:border-amber-500/50 focus-ring/20 resize-none"
                         />
                       </div>
                     </div>
@@ -518,7 +518,7 @@ export function BulkGoalFormModal({
               <button
                 type="button"
                 onClick={addNewGoal}
-                className="flex items-center gap-1.5 px-4 py-2 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-lg hover:bg-amber-500/30 transition-colors text-xs font-medium"
+                className="flex items-center gap-1.5 px-4 py-2 bg-amber-500/20 text-warning border border-amber-500/30 rounded-lg hover:bg-amber-500/30 transition-colors text-xs font-medium"
               >
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -540,7 +540,7 @@ export function BulkGoalFormModal({
               <button
                 type="button"
                 onClick={handleClose}
-                className="px-3 py-1.5 text-secondary hover:text-primary hover:bg-white/10 rounded-lg transition-colors text-xs"
+                className="px-3 py-1.5 text-secondary hover:text-primary hover:bg-surface-tertiary rounded-lg transition-colors text-xs"
               >
                 Cancel
               </button>
@@ -548,7 +548,7 @@ export function BulkGoalFormModal({
                 type="submit"
                 form="bulk-goal-form"
                 disabled={isSubmitting || loading || goals.length === 0}
-                className="px-4 py-1.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-lg hover:bg-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 text-xs font-medium"
+                className="px-4 py-1.5 bg-amber-500/20 text-warning border border-amber-500/30 rounded-lg hover:bg-amber-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 text-xs font-medium"
               >
                 {isSubmitting ? (
                   <>
@@ -574,7 +574,7 @@ export function BulkGoalFormModal({
             <button
               type="button"
               onClick={handleClose}
-              className="px-3 py-1.5 text-secondary hover:text-primary hover:bg-white/10 rounded-lg transition-colors text-xs"
+              className="px-3 py-1.5 text-secondary hover:text-primary hover:bg-surface-tertiary rounded-lg transition-colors text-xs"
             >
               Close
             </button>

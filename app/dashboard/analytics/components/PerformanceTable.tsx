@@ -44,7 +44,7 @@ export default function PerformanceTable({ data, userRole }: PerformanceTablePro
                 <th className="text-center py-3 px-3 text-sm font-semibold text-secondary uppercase tracking-wider">Rating</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/50">
+            <tbody className="divide-y divide-[rgb(var(--color-border-primary))]">
               {data.map((emp, index) => {
                 const isHighPerformer = emp.completionRate >= 80 && emp.averageRating >= 4.0;
                 return (
@@ -53,16 +53,16 @@ export default function PerformanceTable({ data, userRole }: PerformanceTablePro
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 + index * 0.05 }}
-                    className={`border-b border-gray-800/30 hover:bg-gray-800/40 transition-all duration-200 ${isHighPerformer ? 'bg-green-500/5' : ''}`}
+                    className={`border-b border-theme hover:bg-surface-tertiary transition-all duration-200 ${isHighPerformer ? 'bg-green-500/5' : ''}`}
                   >
                     <td className="py-3 px-3">
                       <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${isHighPerformer ? 'bg-green-500' : 'bg-gray-600'}`} />
-                        <span className="text-white font-medium">{emp.employeeName}</span>
+                        <span className="text-[rgb(var(--color-text-inverse))] font-medium">{emp.employeeName}</span>
                       </div>
                     </td>
                     <td className="py-3 px-3 text-center">
-                      <span className="text-gray-200 font-medium">{emp.totalGoals}</span>
+                      <span className="text-primary font-medium">{emp.totalGoals}</span>
                     </td>
                     <td className="py-3 px-3 text-center">
                       <span className="text-green-400 font-medium">{emp.completedGoals}</span>

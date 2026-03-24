@@ -310,7 +310,7 @@ function AllGoalsPageContent() {
                   }
                 }
               ];
-              return <StatsSection stats={statItems} variant="auto" />;
+              return <StatsSection stats={statItems} />;
             })()}
           </motion.div>
 
@@ -474,7 +474,7 @@ export default function AllGoalsPage() {
     <Suspense fallback={
       <DashboardLayout type="admin">
         <div className="flex items-center justify-center min-h-screen">
-          <div className="text-white">Loading...</div>
+          <div className="text-[rgb(var(--color-text-inverse))]">Loading...</div>
         </div>
       </DashboardLayout>
     }>

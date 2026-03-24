@@ -161,7 +161,7 @@ export default function GoalProgressTracker({
                 variant={progress === milestone.value ? 'default' : 'outline'}
                 className={`text-xs ${
                   progress === milestone.value
-                    ? 'bg-indigo-600 hover:bg-indigo-700'
+                    ? 'bg-accent hover:opacity-90'
                     : 'bg-surface-secondary hover:bg-surface-tertiary'
                 }`}
               >
@@ -240,7 +240,7 @@ export default function GoalProgressTracker({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="What progress have you made? Any blockers?"
-                className="w-full p-3 bg-surface-secondary border border-theme rounded-lg text-primary placeholder-tertiary focus:outline-none focus:border-indigo-500"
+                className="w-full p-3 bg-surface-secondary border border-theme rounded-lg text-primary placeholder-tertiary focus:outline-none "
                 rows={3}
               />
             </motion.div>
@@ -253,7 +253,7 @@ export default function GoalProgressTracker({
         <Button
           onClick={() => handleSaveProgress()}
           disabled={isUpdating}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+          className="w-full bg-accent hover:opacity-90 text-[rgb(var(--color-text-inverse))]"
         >
           {isUpdating ? (
             <>

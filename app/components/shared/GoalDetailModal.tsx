@@ -312,7 +312,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
               variant="ghost"
               size="icon"
               onClick={handleClose}
-              className="h-7 w-7 sm:h-8 sm:w-8 text-secondary hover:text-primary hover:bg-white/10 touch-manipulation"
+              className="h-7 w-7 sm:h-8 sm:w-8 text-secondary hover:text-primary hover:bg-surface-tertiary touch-manipulation"
             >
               <BsX className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </Button>
@@ -357,7 +357,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                   onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
                   className="flex items-center justify-center w-full gap-1.5 mt-1.5 sm:mt-2 py-1.5 sm:py-2 text-xs font-medium
                            text-secondary hover:text-primary transition-colors rounded-lg
-                           hover:bg-white/5 active:bg-white/10 touch-manipulation min-h-[32px] sm:min-h-[36px]"
+                           hover:bg-surface-secondary active:bg-white/10 touch-manipulation min-h-[32px] sm:min-h-[36px]"
                 >
                   <span>{isDescriptionExpanded ? 'Show Less' : 'Show More'}</span>
                   <BsChevronDown 
@@ -454,7 +454,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                     day: 'numeric'
                   }) : ''}
                 </div>
-                <div className="bg-black/20 rounded-lg sm:rounded-xl p-2 sm:p-3 mt-1.5 sm:mt-2">
+                <div className="bg-surface-tertiary rounded-lg sm:rounded-xl p-2 sm:p-3 mt-1.5 sm:mt-2">
                   <p className="text-xs sm:text-sm text-primary whitespace-pre-wrap">{goal.managerComments}</p>
                 </div>
               </motion.div>
@@ -468,7 +468,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="flex items-center bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-amber-400
+                className="flex items-center bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-warning
                           text-xs sm:text-sm p-2.5 sm:p-3 rounded-lg sm:rounded-xl md:rounded-2xl min-h-[40px] sm:min-h-[44px]"
               >
                 <BsClock className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1.5 sm:mr-2 animate-pulse flex-shrink-0" />

@@ -14,7 +14,7 @@ export default function ChartCard({ title, description, children }: ChartCardPro
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative bg-surface-elevated backdrop-blur-xl rounded-xl p-6 border border-theme shadow-xl hover:shadow-2xl transition-all duration-300"
+      className="relative bg-surface-elevated backdrop-blur-xl rounded-xl p-6 border border-theme shadow-xl hover:shadow-theme-lg transition-all duration-300"
     >
       <div className="mb-5">
         <h3 className="text-xl font-bold text-primary mb-1 flex items-center gap-2">

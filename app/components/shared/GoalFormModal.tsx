@@ -64,19 +64,19 @@ export function GoalFormModal({
 
   return (
     <div className="fixed inset-0 modal-overlay z-[60] flex items-center justify-center p-3 overflow-hidden">
-      <div className="modal-content rounded-xl w-full max-w-md shadow-2xl border border-theme flex flex-col max-h-[90vh] min-h-0">
+      <div className="modal-content rounded-xl w-full max-w-md shadow-theme-lg border border-theme flex flex-col max-h-[90vh] min-h-0">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-theme bg-black/20 shrink-0">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-theme bg-surface-tertiary shrink-0">
           <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 p-1.5 rounded-lg">
-              <BsListTask className="w-4 h-4 text-amber-400" />
+            <div className="bg-gradient-to-r from-[rgba(var(--color-warning),0.2)] to-[rgba(var(--color-warning),0.1)] p-1.5 rounded-lg">
+              <BsListTask className="w-4 h-4 text-warning" />
             </div>
             <h2 className="text-sm font-semibold text-primary">{isEditMode ? 'Update Goal' : 'Create Goal'}</h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-tertiary hover:text-primary hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-lg text-tertiary hover:text-primary hover:bg-surface-tertiary transition-colors"
             aria-label="Close"
           >
             <BsX className="h-5 w-5" />
@@ -168,7 +168,7 @@ export function GoalFormModal({
                     {assignedEmployees.map((e) => (
                       <SelectItem key={e.id} value={e.id} className="text-primary text-xs">
                         <span className="flex items-center gap-2">
-                          <BsPeople className="h-3 w-3 text-amber-400/70" />
+                          <BsPeople className="h-3 w-3 text-warning" />
                           {e.name}
                         </span>
                       </SelectItem>
@@ -181,7 +181,7 @@ export function GoalFormModal({
             <div>
               <label className="block text-xs font-medium text-secondary mb-1">Due Date</label>
               <div className="relative">
-                <BsCalendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-amber-400/70 pointer-events-none" />
+                <BsCalendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-warning pointer-events-none" />
                 <Input
                   type="date"
                   value={formData.dueDate}

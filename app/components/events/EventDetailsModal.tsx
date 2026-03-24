@@ -28,7 +28,7 @@ export const EventDetailsModal = ({
           onClick={onClose}
         >
           <motion.div
-            className="relative w-full max-w-2xl rounded-xl border border-theme bg-surface-elevated p-6 shadow-2xl backdrop-blur-xl max-h-96 overflow-y-auto"
+            className="relative w-full max-w-2xl rounded-xl border border-theme bg-surface-elevated p-6 shadow-theme-lg backdrop-blur-xl max-h-96 overflow-y-auto"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
@@ -112,7 +112,7 @@ export const EventDetailsModal = ({
               </div>
 
               {/* Registration Deadline */}
-              <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3">
+              <div className="rounded-lg bg-warning-muted border border-amber-500/20 p-3">
                 <p className="text-xs text-secondary mb-1">Registration Deadline</p>
                 <p className="text-primary font-medium">
                   {new Date(event.registrationDeadline).toLocaleString()}

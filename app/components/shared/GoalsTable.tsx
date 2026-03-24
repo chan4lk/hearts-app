@@ -56,12 +56,12 @@ const getStatusBadge = (status: string, goal?: Goal | GoalWithRatingExtended, se
   const configs: Record<string, { bg: string; text: string; icon: any }> = {
     APPROVED: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', icon: BsCheckCircle },
     REJECTED: { bg: 'bg-rose-500/20', text: 'text-rose-400', icon: BsXCircle },
-    PENDING: { bg: 'bg-amber-500/20', text: 'text-amber-400', icon: BsClock },
+    PENDING: { bg: 'bg-amber-500/20', text: 'text-warning', icon: BsClock },
     MODIFIED: { bg: 'bg-blue-500/20', text: 'text-blue-400', icon: BsGear },
     COMPLETED: { bg: 'bg-green-500/20', text: 'text-green-400', icon: BsCheckCircle },
     DRAFT: { bg: 'bg-slate-500/20', text: 'text-slate-400', icon: BsGear },
     IN_PROGRESS: { bg: 'bg-blue-500/20', text: 'text-blue-400', icon: BsPlayCircle },
-    ON_HOLD: { bg: 'bg-amber-500/20', text: 'text-amber-400', icon: BsPauseCircle },
+    ON_HOLD: { bg: 'bg-amber-500/20', text: 'text-warning', icon: BsPauseCircle },
     BLOCKED: { bg: 'bg-red-500/20', text: 'text-red-400', icon: BsFlag }
   };
   const config = configs[status] || configs.PENDING;
@@ -266,7 +266,7 @@ const getPriorityBadge = (priority: string, goal?: Goal | GoalWithRatingExtended
   const configs: Record<string, { bg: string; text: string }> = {
     URGENT: { bg: 'bg-red-500/20', text: 'text-red-400' },
     HIGH: { bg: 'bg-rose-500/20', text: 'text-rose-400' },
-    MEDIUM: { bg: 'bg-amber-500/20', text: 'text-amber-400' },
+    MEDIUM: { bg: 'bg-amber-500/20', text: 'text-warning' },
     LOW: { bg: 'bg-emerald-500/20', text: 'text-emerald-400' }
   };
   const config = configs[priority] || configs.MEDIUM;
@@ -1032,7 +1032,7 @@ export default function GoalsTable({
                             }
                           }}
                           disabled={updatingDueDate === goal.id}
-                          className="bg-surface-secondary border border-white/10 text-primary text-2xs px-2 py-1 pr-6 rounded-md hover:bg-surface-secondary/50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="bg-surface-secondary border border-white/10 text-primary text-2xs px-2 py-1 pr-6 rounded-md hover:bg-surface-secondary/50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus-ring/50 focus:border-amber-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
                         />
                         <BsCalendar className="absolute right-1.5 top-1/2 transform -translate-y-1/2 text-secondary pointer-events-none w-2.5 h-2.5" />
                       </div>

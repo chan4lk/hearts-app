@@ -43,7 +43,7 @@ export default function GoalActivityTimeline({ activities }: GoalActivityTimelin
       case 'progress_update':
         return <BsPlayCircle className="w-4 h-4 text-green-400" />;
       case 'status_change':
-        return <BsFlag className="w-4 h-4 text-amber-400" />;
+        return <BsFlag className="w-4 h-4 text-warning" />;
       case 'comment':
         return <BsChat className="w-4 h-4 text-purple-400" />;
       case 'completed':
