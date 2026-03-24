@@ -883,10 +883,10 @@ export default function GoalsTable({
       return <span className="text-secondary text-xs">⇅</span>;
     }
     if (sortDirection === 'asc') {
-      return <span className="text-indigo-500 font-bold text-sm">↑</span>;
+      return <span className="text-accent font-bold text-sm">↑</span>;
     }
     if (sortDirection === 'desc') {
-      return <span className="text-indigo-500 font-bold text-sm">↓</span>;
+      return <span className="text-accent font-bold text-sm">↓</span>;
     }
     return <span className="text-secondary text-xs">⇅</span>;
   };

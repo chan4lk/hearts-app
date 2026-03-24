@@ -49,7 +49,7 @@ export const FeedbackModal = ({ isOpen, onClose, onSubmit, initialData, isLoadin
               onChange={(e) => setFormData({ ...formData, hoursContributed: parseFloat(e.target.value) })}
               className="flex-1"
             />
-            <span className="text-lg font-bold text-indigo-500 min-w-16">{formData.hoursContributed}h</span>
+            <span className="text-lg font-bold text-accent min-w-16">{formData.hoursContributed}h</span>
           </div>
         </FormField>
 

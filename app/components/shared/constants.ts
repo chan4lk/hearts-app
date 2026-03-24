@@ -303,12 +303,12 @@ export const RATING_HOVER_COLORS = {
 } as const;
 
 export const STATUS_COLORS = {
-  DRAFT: 'bg-cat-technical text-purple-600 dark:text-cat-technical',
+  DRAFT: 'bg-cat-technical text-cat-technical dark:text-cat-technical',
   PENDING: 'bg-surface-secondary text-secondary dark:text-tertiary',
-  COMPLETED: 'bg-cat-training text-green-600 dark:text-cat-training',
+  COMPLETED: 'bg-cat-training text-cat-training dark:text-cat-training',
   APPROVED: 'bg-cat-professional text-info',
   REJECTED: 'bg-error-muted text-error',
-  MODIFIED: 'bg-rating-3 text-yellow-600 dark:text-warning'
+  MODIFIED: 'bg-rating-3 text-warning dark:text-warning'
 } as const;
 
 /** Shared status badge styles for GoalsTable and AdminGoalsTable. Use for consistent goal status UI. */
@@ -446,8 +446,8 @@ export const THEME_COLORS = {
     border: 'border-amber-200/20 dark:border-amber-600/20',
   },
   background: {
-    primary: 'bg-slate-900/80',
-    secondary: 'bg-slate-800/50',
+    primary: 'bg-surface-primary',
+    secondary: 'bg-surface-secondary',
     gradient: 'from-[#0B1120] via-[#0B1120] to-[#0B1120]',
   },
   border: {

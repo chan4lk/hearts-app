@@ -32,7 +32,7 @@ import { GoalFormData, GoalStats, User, Goal } from '@/app/components/shared/typ
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center p-8 text-center">
-      <BsExclamationTriangle className="w-12 h-12 text-red-500 mb-4" />
+      <BsExclamationTriangle className="w-12 h-12 text-error mb-4" />
       <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
       <p className="text-secondary mb-4">{error.message}</p>
       <Button onClick={resetErrorBoundary} variant="outline">

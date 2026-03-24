@@ -92,9 +92,9 @@ export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseG
           animate={{ opacity: 1, y: 0 }}
           className="mt-4 p-4 bg-error-muted border border-[rgba(var(--color-error),0.2)] rounded-lg flex items-start gap-3"
         >
-          <BsXCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+          <BsXCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-red-500 font-medium">Error</p>
+            <p className="text-error font-medium">Error</p>
             <p className="text-error text-sm">{error}</p>
           </div>
         </motion.div>

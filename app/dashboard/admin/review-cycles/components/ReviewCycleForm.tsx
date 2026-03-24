@@ -338,7 +338,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Fixed Header - Brand Teal Color */}
-      <div className="flex-shrink-0 px-6 py-4 bg-accent border-b border-teal-500/30 z-10 rounded-t-xl">
+      <div className="flex-shrink-0 px-6 py-4 bg-accent border-b border-[rgba(var(--color-event-social),0.3)] z-10 rounded-t-xl">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-[rgb(var(--color-text-inverse))]" style={{ color: '#ffffff' }}>
             Review Cycle

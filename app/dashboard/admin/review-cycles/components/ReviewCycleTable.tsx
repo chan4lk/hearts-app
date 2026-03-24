@@ -87,13 +87,13 @@ export default function ReviewCycleTable({ reviewCycles, onEdit, onDelete, onRef
                       <td className={`${TABLE_STYLES.td} text-xs whitespace-nowrap ${hasAdj ? 'text-secondary line-through' : 'text-primary'}`}>{cycle.reviewMonth || <span className="text-secondary">-</span>}</td>
                       <td className={`${TABLE_STYLES.td} text-xs whitespace-nowrap ${hasAdj ? 'text-info font-semibold' : 'text-primary'}`}>
                         {hasAdj ? (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-2xs bg-cat-professional text-blue-600 dark:text-cat-professional">{cycle.adjustedReviewMonth}</span>
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-2xs bg-cat-professional text-info dark:text-cat-professional">{cycle.adjustedReviewMonth}</span>
                         ) : (cycle.adjustedReviewMonth || <span className="text-secondary">-</span>)}
                       </td>
                       <td className={TABLE_STYLES.td}>
                         <div className="flex items-center gap-1.5">
-                          <button onClick={() => onEdit(cycle)} className="p-1 text-indigo-500 hover:text-accent hover:bg-accent-muted rounded transition-colors cursor-pointer" title="Edit"><BsPencil className="w-3 h-3" /></button>
-                          <button onClick={() => onDelete(cycle)} className="p-1 text-red-500 hover:text-error hover:bg-error-muted rounded transition-colors cursor-pointer" title="Delete"><BsTrash className="w-3 h-3" /></button>
+                          <button onClick={() => onEdit(cycle)} className="p-1 text-accent hover:text-accent hover:bg-accent-muted rounded transition-colors cursor-pointer" title="Edit"><BsPencil className="w-3 h-3" /></button>
+                          <button onClick={() => onDelete(cycle)} className="p-1 text-error hover:text-error hover:bg-error-muted rounded transition-colors cursor-pointer" title="Delete"><BsTrash className="w-3 h-3" /></button>
                         </div>
                       </td>
                     </tr>

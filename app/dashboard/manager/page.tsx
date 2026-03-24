@@ -324,7 +324,7 @@ export default function ManagerDashboard() {
             <div className="bg-surface-elevated rounded-xl p-5 border border-theme shadow-theme-sm">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-9 h-9 rounded-lg bg-accent-muted flex items-center justify-center">
-                  <BsLightbulb className="w-4 h-4 text-indigo-500" />
+                  <BsLightbulb className="w-4 h-4 text-accent" />
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold text-primary">AI Performance Insights</h3>
@@ -344,7 +344,7 @@ export default function ManagerDashboard() {
           {showAIInsights && selectedEmployee === 'all' && (
             <div className="bg-surface-elevated rounded-xl p-8 border border-theme shadow-theme-sm text-center">
               <div className="w-12 h-12 rounded-xl bg-accent-muted flex items-center justify-center mx-auto mb-3">
-                <BsLightbulb className="w-5 h-5 text-indigo-500" />
+                <BsLightbulb className="w-5 h-5 text-accent" />
               </div>
               <h3 className="text-sm font-semibold text-primary mb-1">Select an Employee</h3>
               <p className="text-xs text-secondary">Choose a specific employee from the filter above to view AI insights</p>

@@ -172,13 +172,13 @@ export default function RatingGoalCard({
 
         <div
           className={`${isGridView ? 'pt-4' : 'mt-4 pt-4'} border-t ${
-            isGridView ? 'border-white/10' : 'border-gray-100 dark:border-gray-700'
+            isGridView ? 'border-white/10' : 'border-theme'
           }`}
         >
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <Label
-                className={`text-sm ${isGridView ? 'text-[rgb(var(--color-text-inverse))]/90' : 'text-gray-700 dark:text-secondary'}`}
+                className={`text-sm ${isGridView ? 'text-[rgb(var(--color-text-inverse))]/90' : 'text-primary dark:text-secondary'}`}
               >
                 {ratingLabel}
               </Label>
@@ -239,7 +239,7 @@ export default function RatingGoalCard({
               exit={{ height: 0, opacity: 0 }}
               className="overflow-hidden"
             >
-              <div className="p-4 bg-gray-50 dark:bg-surface-secondary border-t border-gray-100 dark:border-gray-700">
+              <div className="p-4 bg-surface-secondary border-t border-theme">
                 <div className="space-y-4">
                   <div>
                     <h4 className="text-sm font-medium text-primary mb-1">Details</h4>

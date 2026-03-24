@@ -293,7 +293,7 @@ export default function AdminGoalsTable({
                         {onDelete && (
                           <button
                             onClick={() => onDelete(goal)}
-                            className="p-1 text-red-500 hover:text-error hover:bg-error-muted rounded transition-colors"
+                            className="p-1 text-error hover:text-error hover:bg-error-muted rounded transition-colors"
                             title="Delete Goal"
                           >
                             <BsTrash className="w-3 h-3" />

@@ -168,9 +168,9 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
     const colorClass = getNotificationColor(type);
     // Convert text color to background color
     const bgColor = colorClass.replace('text-accent', 'bg-[rgb(var(--color-accent))]')
-      .replace('text-cat-training', 'bg-green-400')
-      .replace('text-error', 'bg-red-400')
-      .replace('text-cat-professional', 'bg-blue-400');
+      .replace('text-cat-training', 'bg-[rgb(var(--color-success))]')
+      .replace('text-error', 'bg-[rgb(var(--color-error))]')
+      .replace('text-cat-professional', 'bg-[rgb(var(--color-info))]');
     
     return (
       <div className={`w-3 h-3 rounded-full ${bgColor} opacity-80`}></div>

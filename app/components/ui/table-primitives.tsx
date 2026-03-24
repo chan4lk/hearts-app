@@ -75,7 +75,7 @@ export function useSorting<T>(items: T[], defaultColumn?: string) {
 // ─── SortIcon Component ─────────────────────────────────────────
 export function SortIcon({ column, sortKey, sortDir }: { column: string; sortKey: string | null; sortDir: 'asc' | 'desc' | null }) {
   if (sortKey !== column) return <span className="text-secondary text-xs opacity-50">⇅</span>;
-  return <span className="text-indigo-500 font-bold text-sm">{sortDir === 'asc' ? '↑' : '↓'}</span>;
+  return <span className="text-accent font-bold text-sm">{sortDir === 'asc' ? '↑' : '↓'}</span>;
 }
 
 // ─── CheckboxHeader ─────────────────────────────────────────────
@@ -88,7 +88,7 @@ export function CheckboxHeader({ isAllSelected, isPartialSelected, onToggle }: {
     <th style={{ width: '3%' }} className="py-2.5 px-3">
       <button onClick={onToggle} className="text-secondary hover:text-primary transition-colors cursor-pointer">
         {isAllSelected ? (
-          <BsCheckSquare className="w-4 h-4 text-indigo-600" />
+          <BsCheckSquare className="w-4 h-4 text-accent" />
         ) : isPartialSelected ? (
           <BsDashSquare className="w-4 h-4 text-accent" />
         ) : (
@@ -104,7 +104,7 @@ export function CheckboxCell({ checked, onToggle }: { checked: boolean; onToggle
   return (
     <td className="py-2.5 px-3" onClick={e => e.stopPropagation()}>
       <button onClick={onToggle} className="text-secondary hover:text-primary transition-colors cursor-pointer">
-        {checked ? <BsCheckSquare className="w-4 h-4 text-indigo-600" /> : <BsSquare className="w-4 h-4" />}
+        {checked ? <BsCheckSquare className="w-4 h-4 text-accent" /> : <BsSquare className="w-4 h-4" />}
       </button>
     </td>
   );

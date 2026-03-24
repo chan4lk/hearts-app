@@ -854,7 +854,7 @@ export default function EmployeeDashboard() {
                                   // Keep manager ratings modal open - don't close it
                                   // setShowManagerRatingsModal(false);
                                 }}
-                                className="group relative bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border-2 border-theme hover:border-amber-500/60 transition-all cursor-pointer hover:shadow-lg hover:shadow-amber-500/10"
+                                className="group relative bg-surface-elevated backdrop-blur-sm rounded-xl p-4 border-2 border-theme hover:border-[rgba(var(--color-warning),0.6)] transition-all cursor-pointer hover:shadow-lg hover:shadow-theme-sm"
                               >
                                 {/* Rating Badge */}
                                 <div className="absolute top-3 right-3">

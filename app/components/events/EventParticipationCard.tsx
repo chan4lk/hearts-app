@@ -51,7 +51,7 @@ export const EventParticipationCard = ({
       case 'NO_SHOW':
         return 'bg-error-muted text-error border-red-500/30';
       case 'CANCELLED':
-        return 'bg-surface-secondary text-gray-300 border-gray-500/30';
+        return 'bg-surface-secondary text-secondary border-gray-500/30';
       default:
         return 'bg-white/10 text-[rgb(var(--color-text-inverse))]';
     }

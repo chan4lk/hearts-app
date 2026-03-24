@@ -318,7 +318,7 @@ export function BulkGoalFormModal({
                           type="checkbox"
                           checked={selectedEmployees.includes(employee.id)}
                           onChange={() => handleEmployeeToggle(employee.id)}
-                          className="rounded border-theme text-amber-500 focus-ring/20"
+                          className="rounded border-theme text-warning focus-ring/20"
                         />
                         {employee.name}
                       </label>

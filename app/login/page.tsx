@@ -116,7 +116,7 @@ function OrbitalRings() {
       <div className="absolute w-[480px] h-[480px] sm:w-[560px] sm:h-[560px] login-orbit-ring">
         <div className="absolute inset-0 rounded-full border border-indigo-500/[0.06]" />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-accent/40" />
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-1 h-1 rounded-full bg-purple-400/30" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-1 h-1 rounded-full bg-[rgba(var(--color-cat-technical),0.3)]" />
       </div>
       {/* Inner ring */}
       <div className="absolute w-[380px] h-[380px] sm:w-[440px] sm:h-[440px] login-orbit-ring-reverse">
@@ -318,14 +318,14 @@ function LoginForm() {
                 </p>
                 <div className="flex items-center justify-center gap-4">
                   <div className="flex items-center gap-1.5">
-                    <svg className="w-3 h-3 text-emerald-500/60" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <svg className="w-3 h-3 text-success/60" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
                     </svg>
                     <span className="text-2xs text-tertiary font-medium tracking-wide">
                       SSO Protected
                     </span>
                   </div>
-                  <div className="w-px h-3 bg-slate-700/30" />
+                  <div className="w-px h-3 bg-[rgb(var(--color-border-primary))]" />
                   <div className="flex items-center gap-1.5">
                     <svg className="w-3 h-3 text-accent/50" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />

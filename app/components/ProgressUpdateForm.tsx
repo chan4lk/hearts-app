@@ -51,7 +51,7 @@ export function ProgressUpdateForm({ goalId, currentProgress }: ProgressUpdateFo
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="progress" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="progress" className="block text-sm font-medium text-primary">
           Progress (%)
         </label>
         <Input
@@ -66,7 +66,7 @@ export function ProgressUpdateForm({ goalId, currentProgress }: ProgressUpdateFo
       </div>
 
       <div>
-        <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="notes" className="block text-sm font-medium text-primary">
           Progress Notes
         </label>
         <Textarea

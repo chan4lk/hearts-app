@@ -92,9 +92,9 @@ export default function GoalProgressTracker({
   };
 
   const getProgressColor = () => {
-    if (progress === 0) return 'bg-gray-500';
+    if (progress === 0) return 'bg-surface-tertiary';
     if (progress < 25) return 'bg-[rgb(var(--color-error))]';
-    if (progress < 50) return 'bg-orange-500';
+    if (progress < 50) return 'bg-[rgb(var(--color-rating-2))]';
     if (progress < 75) return 'bg-[rgb(var(--color-warning))]';
     if (progress < 100) return 'bg-[rgb(var(--color-info))]';
     return 'bg-[rgb(var(--color-cat-training))]';

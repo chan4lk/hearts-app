@@ -97,7 +97,7 @@ export function AIGoalSuggestions({
                       repeat: Infinity,
                       ease: "easeInOut",
                     }}
-                    className="absolute inset-0 bg-yellow-400/30 blur-lg rounded-full"
+                    className="absolute inset-0 bg-[rgba(var(--color-rating-3),0.3)] blur-lg rounded-full"
                   />
                 </div>
                 <span className="text-xs sm:text-sm">AI Suggestions</span>
@@ -145,7 +145,7 @@ export function AIGoalSuggestions({
                     <h4 className="font-semibold text-primary group-hover:text-transparent 
                       group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400
                       transition-all duration-300">{suggestion.title}</h4>
-                    <p className="text-sm text-gray-700 dark:text-secondary mt-1 leading-relaxed">
+                    <p className="text-sm text-primary dark:text-secondary mt-1 leading-relaxed">
                       {suggestion.description}
                     </p>
                   </div>

@@ -195,7 +195,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
             style={{ maxHeight: 'calc(100vh - 6rem)' }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b-2 border-teal-500/30 bg-teal-500/5">
+            <div className="flex items-center justify-between px-6 py-5 border-b-2 border-[rgba(var(--color-event-social),0.3)] bg-event-social">
               <div className="flex items-center gap-2">
                 <BsFileEarmarkExcel className="w-5 h-5 text-cat-personal flex-shrink-0" />
                 <h2 className="text-base font-bold text-primary">Import Review Cycles</h2>

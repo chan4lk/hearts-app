@@ -108,20 +108,20 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'HIGH': return 'text-red-600 bg-red-100 dark:bg-red-900/30';
-      case 'MEDIUM': return 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30';
-      case 'LOW': return 'text-green-600 bg-success-muted dark:bg-cat-training/30';
+      case 'HIGH': return 'text-error bg-error-muted dark:bg-error-muted';
+      case 'MEDIUM': return 'text-warning bg-warning-muted dark:bg-warning-muted';
+      case 'LOW': return 'text-cat-training bg-success-muted dark:bg-cat-training/30';
       default: return 'text-secondary bg-surface-secondary dark:bg-surface-primary/30';
     }
   };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'PROFESSIONAL': return 'text-blue-600 bg-info-muted dark:bg-cat-professional/30';
-      case 'TECHNICAL': return 'text-purple-600 bg-cat-technical dark:bg-cat-technical/30';
-      case 'LEADERSHIP': return 'text-indigo-600 bg-indigo-100 dark:bg-accent-muted/30';
-      case 'TRAINING': return 'text-green-600 bg-success-muted dark:bg-cat-training/30';
-      case 'KPI': return 'text-orange-600 bg-orange-100 dark:bg-orange-900/30';
+      case 'PROFESSIONAL': return 'text-info bg-info-muted dark:bg-cat-professional/30';
+      case 'TECHNICAL': return 'text-cat-technical bg-cat-technical dark:bg-cat-technical/30';
+      case 'LEADERSHIP': return 'text-accent bg-accent-muted dark:bg-accent-muted/30';
+      case 'TRAINING': return 'text-cat-training bg-success-muted dark:bg-cat-training/30';
+      case 'KPI': return 'text-rating-2 bg-rating-2 dark:bg-rating-2';
       default: return 'text-secondary bg-surface-secondary dark:bg-surface-primary/30';
     }
   };
@@ -129,14 +129,14 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
   return (
     <div className="space-y-6">
       {/* Employee Selection */}
-      <div className="bg-gray-50 dark:bg-surface-tertiary rounded-lg p-4">
+      <div className="bg-surface-secondary rounded-lg p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-lg font-semibold text-primary">
             Select Employees ({selectedEmployees.length}/{assignedEmployees.length})
           </h3>
           <button
             onClick={handleSelectAll}
-            className="text-sm text-blue-600 hover:text-info dark:hover:text-cat-professional font-medium"
+            className="text-sm text-info hover:text-info dark:hover:text-cat-professional font-medium"
           >
             {selectedEmployees.length === assignedEmployees.length ? 'Deselect All' : 'Select All'}
           </button>
@@ -152,9 +152,9 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
                 type="checkbox"
                 checked={selectedEmployees.includes(employee.id)}
                 onChange={() => handleEmployeeToggle(employee.id)}
-                className="rounded border-gray-300 text-blue-600 focus-ring"
+                className="rounded border-gray-300 text-info focus-ring"
               />
-              <span className="text-sm text-gray-700 dark:text-secondary truncate">
+              <span className="text-sm text-primary dark:text-secondary truncate">
                 {employee.name}
               </span>
             </label>
@@ -173,7 +173,7 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
             <motion.div
               key={template.id}
               whileHover={{ scale: 1.02 }}
-              className="bg-surface-elevated rounded-lg p-4 border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all cursor-pointer"
+              className="bg-surface-elevated rounded-lg p-4 border border-theme shadow-sm hover:shadow-md transition-all cursor-pointer"
               onClick={() => setSelectedTemplate(template)}
             >
               <div className="flex items-start gap-3">
@@ -205,7 +205,7 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
                         handleApplyTemplate(template);
                       }}
                       disabled={selectedEmployees.length === 0}
-                      className="px-3 py-1 bg-blue-600 text-[rgb(var(--color-text-inverse))] text-xs rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-3 py-1 bg-accent text-[rgb(var(--color-text-inverse))] text-xs rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Apply to {selectedEmployees.length} employee(s)
                     </button>
@@ -241,10 +241,10 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
               }, selectedEmployees);
             }}
             disabled={selectedEmployees.length === 0}
-            className="flex items-center gap-2 p-3 bg-surface-elevated rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-surface-tertiary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 p-3 bg-surface-elevated rounded-lg border border-theme hover:bg-surface-tertiary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <span className="text-lg">📅</span>
-            <span className="text-sm font-medium text-gray-700 dark:text-secondary">Weekly Check-in</span>
+            <span className="text-sm font-medium text-primary dark:text-secondary">Weekly Check-in</span>
           </button>
           
           <button
@@ -264,10 +264,10 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
               }, selectedEmployees);
             }}
             disabled={selectedEmployees.length === 0}
-            className="flex items-center gap-2 p-3 bg-surface-elevated rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-surface-tertiary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 p-3 bg-surface-elevated rounded-lg border border-theme hover:bg-surface-tertiary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <span className="text-lg">📋</span>
-            <span className="text-sm font-medium text-gray-700 dark:text-secondary">Monthly Review</span>
+            <span className="text-sm font-medium text-primary dark:text-secondary">Monthly Review</span>
           </button>
           
           <button
@@ -287,10 +287,10 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
               }, selectedEmployees);
             }}
             disabled={selectedEmployees.length === 0}
-            className="flex items-center gap-2 p-3 bg-surface-elevated rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-surface-tertiary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 p-3 bg-surface-elevated rounded-lg border border-theme hover:bg-surface-tertiary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <span className="text-lg">🔍</span>
-            <span className="text-sm font-medium text-gray-700 dark:text-secondary">Skill Assessment</span>
+            <span className="text-sm font-medium text-primary dark:text-secondary">Skill Assessment</span>
           </button>
           
           <button
@@ -310,10 +310,10 @@ export function BulkGoalTemplates({ assignedEmployees, onApplyTemplate }: BulkGo
               }, selectedEmployees);
             }}
             disabled={selectedEmployees.length === 0}
-            className="flex items-center gap-2 p-3 bg-surface-elevated rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-surface-tertiary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-2 p-3 bg-surface-elevated rounded-lg border border-theme hover:bg-surface-tertiary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <span className="text-lg">🎯</span>
-            <span className="text-sm font-medium text-gray-700 dark:text-secondary">Goal Setting</span>
+            <span className="text-sm font-medium text-primary dark:text-secondary">Goal Setting</span>
           </button>
         </div>
       </div>

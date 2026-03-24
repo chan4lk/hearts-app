@@ -153,7 +153,7 @@ export default function BrowseEventsPage() {
               {[
                 { label: 'Available', value: events.length, icon: <BsSearch className="w-4 h-4" />, color: 'text-info' },
                 { label: 'Open Seats', value: events.filter(e => !isCapacityFull(e)).length, icon: <BsCalendar className="w-4 h-4" />, color: 'text-success' },
-                { label: 'Full', value: events.filter(e => isCapacityFull(e)).length, icon: <BsCheckLg className="w-4 h-4" />, color: 'text-purple-600 dark:text-cat-technical' },
+                { label: 'Full', value: events.filter(e => isCapacityFull(e)).length, icon: <BsCheckLg className="w-4 h-4" />, color: 'text-cat-technical dark:text-cat-technical' },
                 { label: 'Pages', value: pagination.pages, icon: <BsFilter className="w-4 h-4" />, color: 'text-warning' },
               ].map((stat, i) => (
                 <div key={i} className="flex items-center gap-3.5 px-4 py-3.5 rounded-xl bg-surface-elevated border border-theme">

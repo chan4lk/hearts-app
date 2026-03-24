@@ -18,17 +18,17 @@ interface AIPerformanceInsightsProps {
 }
 
 const INSIGHT_ICON: Record<string, JSX.Element> = {
-  success: <BsCheckCircle className="w-4 h-4 text-emerald-500" />,
-  warning: <BsExclamationTriangle className="w-4 h-4 text-amber-500" />,
-  risk: <BsXCircle className="w-4 h-4 text-red-500" />,
-  opportunity: <BsLightbulb className="w-4 h-4 text-blue-500" />,
+  success: <BsCheckCircle className="w-4 h-4 text-success" />,
+  warning: <BsExclamationTriangle className="w-4 h-4 text-warning" />,
+  risk: <BsXCircle className="w-4 h-4 text-error" />,
+  opportunity: <BsLightbulb className="w-4 h-4 text-info" />,
 };
 
 const INSIGHT_BG: Record<string, string> = {
-  success: 'bg-emerald-50 dark:bg-[rgb(var(--color-success))]/5',
-  warning: 'bg-amber-50 dark:bg-[rgb(var(--color-warning))]/5',
-  risk: 'bg-red-50 dark:bg-[rgb(var(--color-error))]/5',
-  opportunity: 'bg-blue-50 dark:bg-[rgb(var(--color-info))]/5',
+  success: 'bg-success-muted dark:bg-[rgb(var(--color-success))]/5',
+  warning: 'bg-warning-muted dark:bg-[rgb(var(--color-warning))]/5',
+  risk: 'bg-error-muted dark:bg-[rgb(var(--color-error))]/5',
+  opportunity: 'bg-info-muted dark:bg-[rgb(var(--color-info))]/5',
 };
 
 const PRIORITY_STYLE: Record<string, string> = {
@@ -85,8 +85,8 @@ export default function AIPerformanceInsights({ userId, autoLoad = false, classN
           <div className="bg-surface-secondary rounded-lg px-4 py-3">
             <p className="text-2xs text-secondary uppercase tracking-wider mb-1">Trend</p>
             <div className="flex items-center gap-1.5">
-              {metrics.recentTrend === 'improving' ? <BsArrowUp className="w-4 h-4 text-emerald-500" /> :
-               metrics.recentTrend === 'declining' ? <BsArrowDown className="w-4 h-4 text-red-500" /> :
+              {metrics.recentTrend === 'improving' ? <BsArrowUp className="w-4 h-4 text-success" /> :
+               metrics.recentTrend === 'declining' ? <BsArrowDown className="w-4 h-4 text-error" /> :
                <BsDash className="w-4 h-4 text-secondary" />}
               <p className="text-lg font-bold text-primary capitalize">{metrics.recentTrend}</p>
             </div>
@@ -96,7 +96,7 @@ export default function AIPerformanceInsights({ userId, autoLoad = false, classN
 
       {/* Error */}
       {error && (
-        <div className="bg-red-50 dark:bg-[rgb(var(--color-error))]/5 rounded-lg px-4 py-3 mb-5">
+        <div className="bg-error-muted dark:bg-[rgb(var(--color-error))]/5 rounded-lg px-4 py-3 mb-5">
           <p className="text-xs text-error">{error}</p>
         </div>
       )}
@@ -104,7 +104,7 @@ export default function AIPerformanceInsights({ userId, autoLoad = false, classN
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <BsStars className="w-6 h-6 text-indigo-500 animate-spin" />
+          <BsStars className="w-6 h-6 text-accent animate-spin" />
         </div>
       )}
 

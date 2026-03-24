@@ -47,7 +47,7 @@ const features = [
     title: 'Event Tracking',
     description: 'Organize and track participation in Toastmaster sessions, training events, code crunches, and team activities.',
     accent: 'from-rose-500 to-pink-500',
-    accentBg: 'bg-rose-500/8 dark:bg-error-muted',
+    accentBg: 'bg-error-muted dark:bg-error-muted',
   },
 ];
 
