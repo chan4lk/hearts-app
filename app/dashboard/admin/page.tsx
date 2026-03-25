@@ -137,7 +137,7 @@ export default function AdminDashboard() {
       setStats(statsData);
       setActivities(activitiesData);
       setUsers(usersData.users || []);
-    } catch (error) { // handled silently
+    } catch (error) {
     } finally {
       setIsLoading(false);
     }
@@ -191,7 +191,7 @@ export default function AdminDashboard() {
       if (data.pagination) {
         setGoalsPagination(data.pagination);
       }
-    } catch (error) { // handled silently
+    } catch (error) {
     } finally {
       setGoalsLoading(false);
     }
@@ -233,7 +233,7 @@ export default function AdminDashboard() {
       // Refresh goals and stats from server to ensure sync
       fetchAllGoals();
       fetchDashboardData();
-    } catch (error) { // handled silently
+    } catch (error) {
       // Revert optimistic update on error
       fetchAllGoals();
       fetchDashboardData();
@@ -282,7 +282,7 @@ export default function AdminDashboard() {
       // Refresh goals and stats from server to ensure sync
       fetchAllGoals();
       fetchDashboardData();
-    } catch (error) { // handled silently
+    } catch (error) {
       // Error toast removed
     }
   };

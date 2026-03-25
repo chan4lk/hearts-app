@@ -49,7 +49,7 @@ export default function BrowseEventsPage() {
       const data = await response.json();
       setEvents(data.events);
       setPagination(data.pagination);
-    } catch (error) { // handled silently
+    } catch (error) {
       toast.error('Failed to fetch events');
     } finally {
       setIsLoading(false);
@@ -79,7 +79,7 @@ export default function BrowseEventsPage() {
 
       toast.success('Successfully registered for the event');
       fetchEvents();
-    } catch (error) { // handled silently
+    } catch (error) {
       toast.error(
         error instanceof Error ? error.message : 'Failed to register'
       );
@@ -104,7 +104,7 @@ export default function BrowseEventsPage() {
 
       toast.success('Registration cancelled');
       fetchEvents();
-    } catch (error) { // handled silently
+    } catch (error) {
       toast.error('Failed to cancel registration');
     } finally {
       setRegistering(null);

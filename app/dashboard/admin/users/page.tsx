@@ -137,7 +137,7 @@ function UsersPageContent() {
         employees: data.employeeCount || 0,
         admins: data.adminCount || 0
       });
-    } catch (error) { // handled silently
+    } catch (error) {
     }
   }, []);
 
@@ -195,7 +195,7 @@ function UsersPageContent() {
       }
       
       setLastRefresh(new Date());
-    } catch (error) { // handled silently
+    } catch (error) {
       // Toast removed
     } finally {
       setIsLoading(false);
@@ -297,7 +297,7 @@ function UsersPageContent() {
       setIsDeleteConfirmOpen(false);
       setUserToDelete(null);
       // Toast removed
-    } catch (error) { // handled silently
+    } catch (error) {
       // Toast removed
     }
   };

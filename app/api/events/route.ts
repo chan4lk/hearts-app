@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { EventStatus } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
@@ -23,9 +24,9 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit;
 
-    // Validate status values against the EventStatus enum to prevent Prisma cast errors
-    const validStatuses = ['SCHEDULED', 'ONGOING', 'COMPLETED', 'CANCELLED'];
-    const statusValues = statusParam.split(',').filter(s => validStatuses.includes(s.trim()));
+    // Validate status values against the Prisma EventStatus enum to prevent cast errors
+    const validStatuses = Object.values(EventStatus);
+    const statusValues = statusParam.split(',').filter(s => validStatuses.includes(s.trim() as EventStatus));
 
     // Build where clause — use single value if only one status, otherwise use `in`
     const where: any = {};
@@ -76,7 +77,7 @@ export async function GET(request: NextRequest) {
         pages: Math.ceil(total / limit),
       },
     });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Internal server error' },

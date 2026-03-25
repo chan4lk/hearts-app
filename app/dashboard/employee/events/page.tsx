@@ -47,7 +47,7 @@ function EmployeeEventsContent() {
       const data = await response.json();
       setParticipations(data.participations);
       setPagination(data.pagination);
-    } catch (error) { // handled silently
+    } catch (error) {
       toast.error('Failed to fetch your events');
     } finally {
       setIsLoading(false);
@@ -73,7 +73,7 @@ function EmployeeEventsContent() {
 
       toast.success(`Attendance updated to ${newStatus}`);
       fetchParticipations();
-    } catch (error) { // handled silently
+    } catch (error) {
       toast.error('Failed to update participation status');
     }
   };
@@ -93,7 +93,7 @@ function EmployeeEventsContent() {
 
       toast.success('Role updated');
       fetchParticipations();
-    } catch (error) { // handled silently
+    } catch (error) {
       toast.error('Failed to update role');
     }
   };
@@ -126,7 +126,7 @@ function EmployeeEventsContent() {
       fetchParticipations();
       setIsFeedbackOpen(false);
       setSelectedEventId(null);
-    } catch (error) { // handled silently
+    } catch (error) {
       throw error;
     }
   };

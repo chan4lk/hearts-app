@@ -58,7 +58,8 @@ export async function GET(req: Request) {
     } else if (effectiveContext === 'manager' || userRole === 'MANAGER') {
       const managedEmployees = await prisma.user.findMany({
         where: { managerId: userId },
-        select: { id: true }
+        select: { id: true },
+        distinct: ['id']
       });
       managedEmployeeIds = managedEmployees.map(e => e.id);
 
@@ -316,7 +317,7 @@ export async function GET(req: Request) {
         }
       }
     });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
 
     const errorMessage = error instanceof Error ? error.message : String(error);

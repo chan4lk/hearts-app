@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
       notifications,
       pagination: getPaginationMeta(page, limit, total)
     });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }
@@ -74,7 +74,7 @@ export async function PATCH(req: Request) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) { // handled silently
+  } catch (error) {
     return NextResponse.json(
       { error: 'Failed to update notification' },
       { status: 500 }
@@ -106,7 +106,7 @@ export async function DELETE(req: Request) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }

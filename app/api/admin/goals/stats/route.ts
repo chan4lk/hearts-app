@@ -89,7 +89,7 @@ export async function GET() {
         employee: goal.employee
       }))
     });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }

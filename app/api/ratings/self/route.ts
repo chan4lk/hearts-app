@@ -81,7 +81,7 @@ export async function POST(req: Request) {
     );
 
     return NextResponse.json(results);
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }

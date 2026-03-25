@@ -588,7 +588,7 @@ export default function GoalsTable({
       onPriorityUpdate?.(goalId, newPriority, transformedGoal);
 
       // Toast removed
-    } catch (error) { // handled silently
+    } catch (error) {
       // REVERT optimistic update on error
       setLocalGoals(prevGoals =>
         prevGoals.map(goal =>
@@ -682,7 +682,7 @@ export default function GoalsTable({
       onStatusUpdate?.(goalId, newStatus, transformedGoal);
 
       // Toast removed
-    } catch (error) { // handled silently
+    } catch (error) {
       // REVERT optimistic update on error
       setLocalGoals(prevGoals =>
         prevGoals.map(goal =>
@@ -776,7 +776,7 @@ export default function GoalsTable({
       onDueDateUpdate?.(goalId, newDueDate, transformedGoal);
 
       // Toast removed
-    } catch (error) { // handled silently
+    } catch (error) {
       // REVERT optimistic update on error
       setLocalGoals(prevGoals =>
         prevGoals.map(goal =>

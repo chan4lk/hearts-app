@@ -86,78 +86,54 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
 
     const errors: Array<{ index: number; error: string; goal: BulkGoalData }> = [];
 
-    // Validate all goals first
+    // Validate all goals using the shared Zod schema + additional checks
     for (let i = 0; i < body.goals.length; i++) {
       const goal = body.goals[i];
-      
-      // Basic validation
-      if (!goal.title?.trim()) {
-        errors.push({
-          index: i,
-          error: 'Goal title is required',
-          goal
-        });
+
+      if (!goal.employeeId?.trim()) {
+        errors.push({ index: i, error: 'Employee ID is required', goal });
         continue;
       }
 
-      if (!goal.employeeId?.trim()) {
-        errors.push({
-          index: i,
-          error: 'Employee ID is required',
-          goal
-        });
+      // Validate title length and description length (matching createGoalSchema)
+      if (!goal.title?.trim() || goal.title.trim().length < 3) {
+        errors.push({ index: i, error: 'Title must be at least 3 characters', goal });
+        continue;
+      }
+      if (goal.title.trim().length > 255) {
+        errors.push({ index: i, error: 'Title must be less than 255 characters', goal });
+        continue;
+      }
+      if (goal.description && goal.description.trim().length > 2000) {
+        errors.push({ index: i, error: 'Description must be less than 2000 characters', goal });
         continue;
       }
 
       if (!goal.dueDate) {
-        errors.push({
-          index: i,
-          error: 'Due date is required',
-          goal
-        });
+        errors.push({ index: i, error: 'Due date is required', goal });
         continue;
       }
 
-      // Validate due date
       const dueDate = new Date(goal.dueDate);
       if (isNaN(dueDate.getTime())) {
-        errors.push({
-          index: i,
-          error: 'Invalid due date format',
-          goal
-        });
+        errors.push({ index: i, error: 'Invalid due date format', goal });
         continue;
       }
 
-      // Check if due date is in the past
       if (dueDate < new Date()) {
-        errors.push({
-          index: i,
-          error: 'Due date cannot be in the past',
-          goal
-        });
+        errors.push({ index: i, error: 'Due date cannot be in the past', goal });
         continue;
       }
 
-      // Validate category
       const validCategories = ['PROFESSIONAL', 'TECHNICAL', 'LEADERSHIP', 'PERSONAL', 'TRAINING', 'KPI'];
       if (!validCategories.includes(goal.category)) {
-        errors.push({
-          index: i,
-          error: 'Invalid category',
-          goal
-        });
+        errors.push({ index: i, error: 'Invalid category', goal });
         continue;
       }
 
-      // Validate priority
-      const validPriorities = ['LOW', 'MEDIUM', 'HIGH'];
+      const validPriorities = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
       if (!validPriorities.includes(goal.priority)) {
-        errors.push({
-          index: i,
-          error: 'Invalid priority',
-          goal
-        });
+        errors.push({ index: i, error: 'Invalid priority', goal });
         continue;
       }
     }
@@ -252,7 +228,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
                 goalId: goal.id,
               },
             });
-          } catch (error) { // handled silently
+          } catch (error) {
             logger.error(error instanceof Error ? error : new Error(String(error)));
             throw new Error(`Failed to create goal ${i + 1}: ${goalData.title}`);
           }
@@ -279,7 +255,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
       }, { status: 500 });
     }
 
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     // Return error in BulkGoalResponse format
     return NextResponse.json<BulkGoalResponse>(
@@ -326,7 +302,7 @@ export async function GET(): Promise<NextResponse> {
       categories: Object.values(GoalCategory),
       priorities: ['LOW', 'MEDIUM', 'HIGH']
     });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }

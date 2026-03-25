@@ -207,7 +207,7 @@ export default function EmployeeDashboard() {
       // Refresh goals
       const refreshedGoals = await fetchGoals();
       setGoals(refreshedGoals);
-    } catch (error) { // handled silently
+    } catch (error) {
       // Error toast removed
     } finally {
       setFormLoading(false);
@@ -293,7 +293,7 @@ export default function EmployeeDashboard() {
       setShowEditGoalModal(false);
       setEditingGoal(null);
       resetForm();
-    } catch (error) { // handled silently
+    } catch (error) {
       // Error toast removed
     } finally {
       setFormLoading(false);
@@ -326,7 +326,7 @@ export default function EmployeeDashboard() {
       // Refresh goals
       const refreshedGoals = await fetchGoals();
       setGoals(refreshedGoals);
-    } catch (error) { // handled silently
+    } catch (error) {
       // Error toast removed
     }
   };
@@ -338,7 +338,7 @@ export default function EmployeeDashboard() {
         setLoading(true);
         const goals = await fetchGoals();
         setGoals(goals);
-      } catch (error) { // handled silently
+      } catch (error) {
         // Error toast removed
       } finally {
         setLoading(false);
@@ -406,7 +406,7 @@ export default function EmployeeDashboard() {
       setGoals(refreshedGoals);
       setShowDetailModal(false);
       // Toast removed
-    } catch (error) { // handled silently
+    } catch (error) {
       // Error toast removed
     }
   };

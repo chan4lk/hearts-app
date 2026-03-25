@@ -107,7 +107,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
       if (result.success && result.imported > 0) {
         onImportComplete();
       }
-    } catch (error) { // handled silently
+    } catch (error) {
       setImportResult({
         success: false,
         imported: 0,

@@ -10,6 +10,12 @@ import { rateLimiters } from '@/lib/rateLimit';
 import { getPaginationFromSearchParams, getPaginationMeta, PAGINATION_LIMITS } from '@/lib/pagination';
 import { createGoalSchema } from '@/lib/validation';
 
+// UUID validation helper
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function isValidUUID(id: string): boolean {
+  return UUID_REGEX.test(id);
+}
+
 // Define GoalStatus enum locally
 enum GoalStatus {
   DRAFT = 'DRAFT',
@@ -178,14 +184,24 @@ export async function GET(req: Request) {
       'my-goals'
     );
 
-    // Add date range filter if specified
+    // Add date range filter if specified (validate dates first)
     if (startDate || endDate) {
       whereClause.dueDate = {};
       if (startDate) {
-        whereClause.dueDate.gte = new Date(startDate);
+        const parsedStart = new Date(startDate);
+        if (!isNaN(parsedStart.getTime())) {
+          whereClause.dueDate.gte = parsedStart;
+        }
       }
       if (endDate) {
-        whereClause.dueDate.lte = new Date(endDate);
+        const parsedEnd = new Date(endDate);
+        if (!isNaN(parsedEnd.getTime())) {
+          whereClause.dueDate.lte = parsedEnd;
+        }
+      }
+      // Remove empty dueDate filter if no valid dates
+      if (Object.keys(whereClause.dueDate).length === 0) {
+        delete whereClause.dueDate;
       }
     }
 
@@ -407,7 +423,7 @@ export async function GET(req: Request) {
         total
       }
     });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Failed to fetch goals' }, { status: 500 });
   }
@@ -539,7 +555,7 @@ export async function POST(req: NextRequest) {
       success: true,
       goal
     }, { status: 201 });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ error: 'Failed to create goal' }, { status: 500 });
   }
@@ -562,9 +578,9 @@ export async function DELETE(request: NextRequest) {
     const url = new URL(request.url);
     const goalId = url.pathname.split('/').pop();
 
-    if (!goalId) {
+    if (!goalId || !isValidUUID(goalId)) {
       return NextResponse.json(
-        { error: 'Goal ID is required' },
+        { error: 'Valid goal ID is required' },
         { status: 400 }
       );
     }
@@ -633,7 +649,7 @@ export async function DELETE(request: NextRequest) {
     });
 
     return NextResponse.json(deletedGoal);
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Failed to delete goal' },
@@ -659,9 +675,9 @@ export async function PATCH(request: NextRequest) {
     const url = new URL(request.url);
     const goalId = url.pathname.split('/').pop();
 
-    if (!goalId) {
+    if (!goalId || !isValidUUID(goalId)) {
       return NextResponse.json(
-        { error: 'Goal ID is required' },
+        { error: 'Valid goal ID is required' },
         { status: 400 }
       );
     }
@@ -774,7 +790,7 @@ export async function PATCH(request: NextRequest) {
     });
 
     return NextResponse.json(updatedGoal);
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Failed to update goal' },

@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
         pages: Math.ceil(total / limit),
       },
     });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Internal server error' },
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
     logger.log(`Event participation updated for ${session.user.name} in event ${eventId}`);
 
     return NextResponse.json(participation, { status: 201 });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'Failed to update participation' },

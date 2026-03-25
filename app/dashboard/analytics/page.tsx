@@ -53,7 +53,7 @@ export default function AnalyticsPage() {
       const pdfDoc = generatePDFReport(reportData, 'Performance Analytics Report');
       const prefix = userRole === 'ADMIN' ? 'admin' : userRole === 'MANAGER' ? 'manager' : 'employee';
       pdfDoc.save(`${prefix}-analytics-report-${new Date().toISOString().split('T')[0]}.pdf`);
-    } catch (err) { // handled silently
+    } catch (err) {
       alert('Failed to export PDF report. Please try again.');
     }
   };

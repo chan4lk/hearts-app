@@ -184,7 +184,7 @@ export function BulkGoalFormModal({
       setGoals([]);
       setErrors({});
       onClose();
-    } catch (error) { // handled silently
+    } catch (error) {
       // Error toast removed
     } finally {
       setIsSubmitting(false);

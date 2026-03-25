@@ -240,7 +240,7 @@ export async function PATCH(
       success: true,
       goal: updatedGoal
     });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     const errorMessage = error instanceof Error ? error.message : 'Failed to update goal status';
     return NextResponse.json(

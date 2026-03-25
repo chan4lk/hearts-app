@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma'; // Prisma client with ReviewCycle model
@@ -6,6 +6,7 @@ import { NotificationType } from '@prisma/client';
 import { getPaginationFromSearchParams, getPaginationMeta, PAGINATION_LIMITS } from '@/lib/pagination';
 import { logger } from '@/lib/logger';
 import { handleApiError } from '@/app/api/utils/error-handler';
+import { rateLimiters } from '@/lib/rateLimit';
 
 // GET all review cycles with pagination support
 export async function GET(req: Request) {
@@ -95,17 +96,21 @@ export async function GET(req: Request) {
       reviewCycles,
       pagination: getPaginationMeta(page, limit, total)
     });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }
 }
 
 // POST/PUT - Create or update review cycle
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    // Rate limit review cycle modifications
+    const rateLimitResponse = await rateLimiters.moderate(req);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -124,6 +129,17 @@ export async function POST(req: Request) {
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Validate reporting person exists if provided
+    if (reportingPersonId) {
+      const reportingPerson = await prisma.user.findUnique({
+        where: { id: reportingPersonId },
+        select: { id: true }
+      });
+      if (!reportingPerson) {
+        return NextResponse.json({ error: 'Reporting person not found' }, { status: 404 });
+      }
     }
 
     // Parse date if provided
@@ -305,7 +321,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true, reviewCycle });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }
@@ -363,7 +379,7 @@ export async function DELETE(req: Request) {
     });
 
     return NextResponse.json({ success: true, message: 'Review cycle deleted successfully' });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }

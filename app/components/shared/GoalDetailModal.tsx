@@ -18,8 +18,6 @@ interface GoalDetailModalProps {
   onSubmitGoal?: (goalId: string) => Promise<void>;
   onEdit?: (goal: Goal | GoalWithRatingExtended) => void;
   onDelete?: (goal: Goal | GoalWithRatingExtended) => void;
-  onApprove?: (goalId: string, updatedGoal: Goal | GoalWithRatingExtended) => void;
-  onReject?: (goalId: string, updatedGoal: Goal | GoalWithRatingExtended) => void;
 }
 
 type StatusConfig = {
@@ -40,7 +38,7 @@ const getDepartmentConfig = (department: string) => {
   return getSharedDepartmentConfig(department);
 };
 
-export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, onDelete, onApprove, onReject }: GoalDetailModalProps) {
+export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, onDelete }: GoalDetailModalProps) {
   const { data: session } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
@@ -51,6 +49,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
   const [expandedHeight, setExpandedHeight] = useState<number>(0);
   const [activities, setActivities] = useState<any[]>([]);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentGoal, setCurrentGoal] = useState<Goal>(goal);
 
   // Check if user is manager or admin
@@ -111,7 +110,8 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
         if (data.success) {
           setActivities(data.activities);
         }
-      } catch (error) { // handled silently
+      } catch {
+        // Activity fetch is non-critical — fail silently without blocking UI
       }
     };
 
@@ -172,8 +172,9 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
       if (newStatus === 'APPROVED' || newStatus === 'REJECTED') {
         setTimeout(() => onClose(), 300);
       }
-    } catch (error) { // handled silently
-      // Error toast removed
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to update status');
+      setTimeout(() => setErrorMessage(null), 5000);
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -193,8 +194,9 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
       setIsSubmitting(true);
       await onSubmitGoal(goal.id);
       onClose();
-    } catch (error) { // handled silently
-      // Error toast removed
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to submit goal');
+      setTimeout(() => setErrorMessage(null), 5000);
     } finally {
       setIsSubmitting(false);
     }
@@ -312,12 +314,28 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
               variant="ghost"
               size="icon"
               onClick={handleClose}
+              disabled={isSubmitting || isUpdatingStatus}
+              aria-label="Close"
               className="h-7 w-7 sm:h-8 sm:w-8 text-secondary hover:text-primary hover:bg-surface-tertiary touch-manipulation"
             >
               <BsX className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </Button>
           </div>
         </div>
+
+        {/* Error Banner */}
+        <AnimatePresence>
+          {errorMessage && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mx-3 sm:mx-4 mb-2 rounded-lg bg-error-muted border border-[rgb(var(--color-error))]/20 px-3 py-2 text-sm text-error"
+            >
+              {errorMessage}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Content */}
         <div className="px-3 sm:px-4 pb-3 sm:pb-4 space-y-2.5 sm:space-y-3 flex-1 overflow-y-auto overscroll-contain">

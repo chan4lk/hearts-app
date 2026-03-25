@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { GoalStatus, NotificationType } from '@prisma/client';
 import { sanitizeInput } from '@/lib/securityUtils';
@@ -7,20 +7,25 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { logger } from '@/lib/logger';
 import { handleApiError } from '@/app/api/utils/error-handler';
+import { rateLimiters } from '@/lib/rateLimit';
 
 export async function PUT(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { goalId: string } }
 ) {
   try {
+    // Rate limit approval operations
+    const rateLimitResponse = await rateLimiters.moderate(request);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     if (session.user?.role !== 'MANAGER' && session.user?.role !== 'ADMIN') {
-      return new NextResponse('Forbidden', { status: 403 });
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -37,7 +42,7 @@ export async function PUT(
     });
 
     if (!existingGoal) {
-      return new NextResponse('Goal not found', { status: 404 });
+      return NextResponse.json({ error: 'Goal not found' }, { status: 404 });
     }
 
     // Managers can only approve goals of their direct reports (admins can approve any)
@@ -50,7 +55,7 @@ export async function PUT(
     }
 
     if (existingGoal.status !== 'PENDING' && existingGoal.status !== 'DRAFT') {
-      return new NextResponse('Goal must be in PENDING or DRAFT status to approve', { status: 400 });
+      return NextResponse.json({ error: 'Goal must be in PENDING or DRAFT status to approve' }, { status: 400 });
     }
 
     const goal = await prisma.goal.update({
@@ -94,7 +99,7 @@ export async function PUT(
       submittedDate: goal.createdAt.toISOString(),
       feedback: goal.managerComments
     });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }

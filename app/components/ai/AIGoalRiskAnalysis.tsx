@@ -40,7 +40,7 @@ export default function AIGoalRiskAnalysis({ goalId, className = '' }: AIGoalRis
       const data = await response.json();
       setAnalysis(data.analysis);
       setShowAnalysis(true);
-    } catch (err) { // handled silently
+    } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to analyze risk');
     } finally {
       setLoading(false);

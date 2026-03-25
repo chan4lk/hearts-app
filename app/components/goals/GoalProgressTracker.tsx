@@ -84,7 +84,7 @@ export default function GoalProgressTracker({
       // Toast removed
       setShowNotes(false);
       setNotes('');
-    } catch (error) { // handled silently
+    } catch (error) {
       // Error toast removed
     } finally {
       setIsUpdating(false);

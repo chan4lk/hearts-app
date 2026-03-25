@@ -93,7 +93,7 @@ function AllGoalsPageContent() {
           completed: apiStats.completed || 0
         });
       }
-    } catch (error) { // handled silently
+    } catch (error) {
     }
   }, []);
 
@@ -150,7 +150,7 @@ function AllGoalsPageContent() {
       if (goalsData.pagination) {
         setPagination(goalsData.pagination);
       }
-    } catch (error) { // handled silently
+    } catch (error) {
     } finally {
       setLoading(false);
     }
@@ -186,7 +186,7 @@ function AllGoalsPageContent() {
       // Goal deleted toast removed
       fetchData(); // Refresh goals
       fetchTotalStats(); // Refresh total stats
-    } catch (error) { // handled silently
+    } catch (error) {
       // Revert optimistic update on error
       fetchData();
       // Error toast removed
@@ -230,7 +230,7 @@ function AllGoalsPageContent() {
       // Refresh goals from server to ensure sync
       fetchData();
       fetchTotalStats(); // Refresh total stats
-    } catch (error) { // handled silently
+    } catch (error) {
       // Revert optimistic update on error
       fetchData();
       // Error toast removed

@@ -189,6 +189,7 @@ export async function POST(
     });
 
     if (!rating) {
+      logger.error(new Error(`Rating creation/retrieval failed for goalId=${goalId}, managerId=${session.user.id}`));
       return NextResponse.json(
         { error: 'Failed to create or retrieve rating' },
         { status: 500 }
@@ -219,7 +220,7 @@ export async function POST(
       managerRatedAt: rating.managerRatedAt,
       updatedAt: rating.updatedAt,
     });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }

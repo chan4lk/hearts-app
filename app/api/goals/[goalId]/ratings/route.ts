@@ -58,7 +58,7 @@ export async function GET(
     }
 
     return NextResponse.json({ rating: formatRatingResponse(rating) });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }
@@ -142,7 +142,7 @@ export async function POST(
     });
 
     return NextResponse.json(formatRatingResponse(rating));
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }

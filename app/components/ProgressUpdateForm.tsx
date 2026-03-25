@@ -41,7 +41,7 @@ export function ProgressUpdateForm({ goalId, currentProgress }: ProgressUpdateFo
       toast.success('Progress updated successfully!');
       router.refresh();
       setNotes('');
-    } catch (error) { // handled silently
+    } catch (error) {
       toast.error('Failed to update progress. Please try again.');
     } finally {
       setLoading(false);

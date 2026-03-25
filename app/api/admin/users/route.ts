@@ -162,7 +162,7 @@ export async function GET(request: Request) {
         pagination: getPaginationMeta(page, limit, total)
       })
     });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }
@@ -252,7 +252,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 12);
     const user = await prisma.user.create({
       data: {
         name,

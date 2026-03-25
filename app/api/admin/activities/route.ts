@@ -65,7 +65,7 @@ export async function GET() {
      .slice(0, 15); // Get only the 15 most recent activities
 
     return NextResponse.json(activities);
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }

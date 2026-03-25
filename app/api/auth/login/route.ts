@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
       message: 'Login successful',
       user: userWithoutPassword
     });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json({ message: 'Error during login' }, { status: 500 });
   }

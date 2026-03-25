@@ -73,7 +73,7 @@ export async function GET(req: Request, { params }: { params: { goalId: string }
     }
 
     return NextResponse.json({ goal });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }
@@ -140,7 +140,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { goalId
     });
 
     return NextResponse.json(updatedGoal);
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }
@@ -258,7 +258,7 @@ export async function PUT(req: NextRequest, { params }: { params: { goalId: stri
       message: 'Goal updated successfully',
       goal
     });
-  } catch (error) { // handled silently
+  } catch (error) {
     return NextResponse.json({ error: 'Failed to update goal' }, { status: 500 });
   }
 }
@@ -354,7 +354,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { goalId: s
       message: 'Goal deleted successfully',
       goal
     });
-  } catch (error) { // handled silently
+  } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
   }

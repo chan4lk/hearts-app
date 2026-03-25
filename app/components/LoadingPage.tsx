@@ -8,7 +8,7 @@ const LoadingComponent = () => {
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full pointer-events-none"
         style={{
-          background: 'radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgb(var(--color-accent) / 0.06) 0%, transparent 70%)',
           filter: 'blur(40px)',
         }}
       />
@@ -19,12 +19,12 @@ const LoadingComponent = () => {
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-0 rounded-full border-2 border-transparent border-t-indigo-500 border-r-purple-500/50"
+            className="absolute inset-0 rounded-full border-2 border-transparent border-t-accent border-r-accent/50"
           />
           <motion.div
             animate={{ rotate: -360 }}
             transition={{ duration: 1.8, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-1 rounded-full border border-transparent border-b-indigo-400/30"
+            className="absolute inset-1 rounded-full border border-transparent border-b-accent/30"
           />
           {/* Center dot */}
           <div className="absolute inset-0 flex items-center justify-center">
