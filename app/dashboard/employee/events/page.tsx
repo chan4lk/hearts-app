@@ -147,6 +147,25 @@ function EmployeeEventsContent() {
         <div className="absolute inset-0 pointer-events-none bg-grid" />
         
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
+          {/* Page Header */}
+          <div className="flex-shrink-0 pb-4">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[rgb(var(--color-cat-personal))]/10 via-[rgb(var(--color-accent))]/5 to-[rgb(var(--color-info))]/10 border border-[rgba(var(--color-cat-personal),0.15)] p-5 md:p-6">
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-cat-personal))] via-[rgb(var(--color-accent))] to-[rgb(var(--color-info))]" />
+              <div className="absolute -top-8 -right-8 w-32 h-32 bg-[rgb(var(--color-cat-personal))]/[0.05] rounded-full blur-2xl" />
+              <div className="relative flex items-center gap-4">
+                <div className="p-3 bg-cat-personal rounded-xl">
+                  <BsCalendarPlus className="w-5 h-5 text-cat-personal" />
+                </div>
+                <div>
+                  <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-[rgb(var(--color-cat-personal))] to-[rgb(var(--color-info))] bg-clip-text text-transparent">
+                    My Events
+                  </h1>
+                  <p className="text-sm text-secondary mt-0.5">Track your event participation and contribution hours.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Stats Section */}
           <div className="flex-shrink-0 pb-3">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -156,8 +175,10 @@ function EmployeeEventsContent() {
                 { label: 'Attended', value: pastEvents.filter((p) => p.participationStatus === 'ATTENDED').length, icon: <BsCalendarPlus className="w-4 h-4" />, color: 'text-success' },
                 { label: 'Total Hours', value: `${participations.reduce((sum, p) => sum + (p.hoursContributed || 0), 0)}h`, icon: <BsCalendarPlus className="w-4 h-4" />, color: 'text-warning' },
               ].map((stat, i) => (
-                <div key={i} className="flex items-center gap-3.5 px-4 py-3.5 rounded-xl bg-surface-elevated border border-theme">
-                  <div className={`flex-shrink-0 w-10 h-10 rounded-lg bg-surface-secondary flex items-center justify-center ${stat.color}`}>{stat.icon}</div>
+                <div key={i} className="relative overflow-hidden group flex items-center gap-3.5 px-4 py-3.5 rounded-2xl bg-surface-elevated border border-theme hover:border-[rgba(var(--color-accent),0.2)] hover:shadow-theme-sm transition-all duration-300">
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-accent))]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute -bottom-4 -right-4 text-5xl font-black text-primary/[0.02] select-none">{typeof stat.value === 'number' ? stat.value : ''}</div>
+                  <div className={`flex-shrink-0 w-10 h-10 rounded-xl bg-surface-secondary flex items-center justify-center ${stat.color} group-hover:scale-110 transition-all duration-300`}>{stat.icon}</div>
                   <div>
                     <div className="text-lg font-bold text-primary">{stat.value}</div>
                     <div className="text-xs font-medium text-secondary">{stat.label}</div>
@@ -211,13 +232,14 @@ function EmployeeEventsContent() {
               {/* Upcoming Events Section */}
               {upcomingEvents.length > 0 && (
                 <div>
-                  <h2 className="text-2xl font-bold text-[rgb(var(--color-text-inverse))] mb-4 flex items-center gap-2">
-                    <div className="p-2 bg-cat-personal rounded-lg">
+                  <h2 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+                    <div className="p-2 bg-cat-personal rounded-xl">
                       <BsCalendarPlus className="text-cat-personal" />
                     </div>
                     Upcoming Events
+                    <span className="ml-2 text-xs font-medium text-secondary bg-surface-secondary px-2 py-0.5 rounded-full">{upcomingEvents.length}</span>
                   </h2>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                     {upcomingEvents.map((participation) => (
                       <EventParticipationCard
                         key={participation.id}
@@ -235,13 +257,14 @@ function EmployeeEventsContent() {
               {/* Past Events Section */}
               {pastEvents.length > 0 && (
                 <div>
-                  <h2 className="text-2xl font-bold text-[rgb(var(--color-text-inverse))] mb-4 flex items-center gap-2">
-                    <div className="p-2 bg-success-muted rounded-lg">
+                  <h2 className="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+                    <div className="p-2 bg-success-muted rounded-xl">
                       <BsCheckLg className="text-success" />
                     </div>
                     Past Events
+                    <span className="ml-2 text-xs font-medium text-secondary bg-surface-secondary px-2 py-0.5 rounded-full">{pastEvents.length}</span>
                   </h2>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
                     {pastEvents.map((participation) => (
                       <EventParticipationCard
                         key={participation.id}
@@ -261,18 +284,18 @@ function EmployeeEventsContent() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="rounded-xl border border-theme bg-surface-elevated p-12 text-center backdrop-blur-xl"
+                  className="rounded-2xl border border-theme bg-surface-elevated p-12 text-center backdrop-blur-xl"
                 >
-                  <div className="inline-flex p-4 bg-cat-personal rounded-full mb-4">
+                  <div className="inline-flex p-4 bg-cat-personal rounded-2xl mb-4">
                     <BsCalendarPlus className="text-5xl text-cat-personal/50" />
                   </div>
-                  <h3 className="text-xl font-semibold text-[rgb(var(--color-text-inverse))] mb-2">No events yet</h3>
-                  <p className="text-[rgb(var(--color-text-inverse))]/60 mb-6">
+                  <h3 className="text-xl font-semibold text-primary mb-2">No events yet</h3>
+                  <p className="text-secondary mb-6">
                     Browse available events and register to participate
                   </p>
                   <Link
                     href="/dashboard/employee/events/browse"
-                    className="inline-flex items-center gap-2 rounded-lg bg-accent hover:opacity-90 px-6 py-3 font-semibold text-[rgb(var(--color-text-inverse))] transition-all"
+                    className="inline-flex items-center gap-2 rounded-xl bg-accent hover:opacity-90 px-6 py-3 font-semibold text-[rgb(var(--color-text-inverse))] transition-all duration-300 focus-ring"
                   >
                     Browse Events
                     <BsArrowRight className="text-lg" />
@@ -285,7 +308,7 @@ function EmployeeEventsContent() {
             {pagination.pages > 1 && (
               <div className="flex-shrink-0 pt-4 pb-3 border-t border-theme mt-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-[rgb(var(--color-text-inverse))]/60">
+                  <p className="text-sm text-secondary">
                     Showing {participations.length} of {pagination.total} events
                   </p>
                   <div className="flex gap-2">
@@ -294,7 +317,7 @@ function EmployeeEventsContent() {
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setPage(Math.max(1, page - 1))}
                       disabled={page === 1}
-                      className="rounded-lg border border-white/20 px-4 py-2 text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary disabled:opacity-50 transition-all"
+                      className="rounded-xl border border-theme px-4 py-2 text-secondary hover:bg-surface-secondary hover:text-primary disabled:opacity-50 transition-all duration-300 focus-ring"
                     >
                       Previous
                     </motion.button>
@@ -305,10 +328,10 @@ function EmployeeEventsContent() {
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => setPage(p)}
-                          className={`rounded-lg px-3 py-1 text-sm font-medium transition-all ${
+                          className={`rounded-xl px-3 py-1 text-sm font-medium transition-all duration-300 focus-ring ${
                             page === p
-                              ? 'bg-accent hover:opacity-90 text-[rgb(var(--color-text-inverse))] shadow-[rgb(var(--color-info))]/30'
-                              : 'border border-white/20 text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary'
+                              ? 'bg-accent text-[rgb(var(--color-text-inverse))] shadow-theme-sm'
+                              : 'border border-theme text-secondary hover:bg-surface-secondary hover:text-primary'
                           }`}
                         >
                           {p}
@@ -320,7 +343,7 @@ function EmployeeEventsContent() {
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setPage(Math.min(pagination.pages, page + 1))}
                       disabled={page === pagination.pages}
-                      className="rounded-lg border border-white/20 px-4 py-2 text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary disabled:opacity-50 transition-all"
+                      className="rounded-xl border border-theme px-4 py-2 text-secondary hover:bg-surface-secondary hover:text-primary disabled:opacity-50 transition-all duration-300 focus-ring"
                     >
                       Next
                     </motion.button>

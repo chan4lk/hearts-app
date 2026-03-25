@@ -10,7 +10,7 @@ import UserTable from './components/UserTable';
 import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 
-import { BsPeople, BsGraphUp, BsShieldExclamation } from 'react-icons/bs';
+import { BsPeople, BsGraphUp, BsShieldExclamation, BsPersonBadge } from 'react-icons/bs';
 import { Pagination } from '@/app/components/shared/Pagination';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import { User, UserFilters } from '@/app/components/shared/types';
@@ -343,8 +343,28 @@ function UsersPageContent() {
       <div className="fixed inset-0 top-16 left-0 md:left-60 right-0 bottom-0 bg-surface-primary flex flex-col overflow-hidden z-0">
         {/* Subtle Background Pattern */}
         <div className="absolute inset-0 pointer-events-none bg-grid" />
-        
+
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
+          {/* People Directory Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="flex-shrink-0 mb-4 relative overflow-hidden rounded-2xl bg-gradient-to-r from-[rgb(var(--color-accent))]/8 via-[rgb(var(--color-success))]/5 to-[rgb(var(--color-accent))]/8 border border-theme shadow-theme-sm"
+          >
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[rgb(var(--color-accent))] via-[rgb(var(--color-success))] to-[rgb(var(--color-accent))]" />
+            <div className="absolute top-0 right-0 w-48 h-48 bg-[rgb(var(--color-success))]/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
+            <div className="relative px-6 py-4 flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-accent/10 border border-[rgb(var(--color-accent))]/20 flex items-center justify-center">
+                <BsPersonBadge className="w-5 h-5 text-accent" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-primary">People Directory</h1>
+                <p className="text-xs text-secondary">Manage users, roles, and team assignments</p>
+              </div>
+            </div>
+          </motion.div>
+
           {/* Stats Section - Fixed */}
           <div className="flex-shrink-0 pb-3">
             {(() => {
@@ -419,7 +439,8 @@ function UsersPageContent() {
               transition={{ delay: 0.2 }}
               className="flex-1 flex flex-col overflow-hidden min-h-0"
             >
-              <div className="relative bg-surface-elevated rounded-lg border border-theme overflow-hidden shadow-sm flex flex-col h-full">
+              <div className="relative bg-surface-elevated rounded-2xl border border-theme overflow-hidden shadow-theme-sm hover:shadow-theme-lg transition-all duration-300 flex flex-col h-full">
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-accent))]/50 to-[rgb(var(--color-success))]/50" />
                 <div className="p-4 flex flex-col flex-1 overflow-hidden min-h-0">
                   <UserTable
                     users={filteredUsers}

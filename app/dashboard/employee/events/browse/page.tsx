@@ -147,6 +147,25 @@ export default function BrowseEventsPage() {
         <div className="absolute inset-0 pointer-events-none bg-grid" />
         
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
+          {/* Discovery-style Page Header */}
+          <div className="flex-shrink-0 pb-4">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[rgb(var(--color-info))]/10 via-[rgb(var(--color-accent))]/5 to-[rgb(var(--color-cat-training))]/10 border border-[rgba(var(--color-info),0.15)] p-5 md:p-6">
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-info))] via-[rgb(var(--color-accent))] to-[rgb(var(--color-cat-training))]" />
+              <div className="absolute -top-8 -right-8 w-32 h-32 bg-[rgb(var(--color-info))]/[0.05] rounded-full blur-2xl" />
+              <div className="relative flex items-center gap-4">
+                <div className="p-3 bg-info-muted rounded-xl">
+                  <BsSearch className="w-5 h-5 text-info" />
+                </div>
+                <div>
+                  <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-[rgb(var(--color-info))] to-[rgb(var(--color-cat-training))] bg-clip-text text-transparent">
+                    Discover Events
+                  </h1>
+                  <p className="text-sm text-secondary mt-0.5">Find and register for upcoming events, workshops, and activities.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Stats Section */}
           <div className="flex-shrink-0 pb-3">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -156,8 +175,9 @@ export default function BrowseEventsPage() {
                 { label: 'Full', value: events.filter(e => isCapacityFull(e)).length, icon: <BsCheckLg className="w-4 h-4" />, color: 'text-cat-technical dark:text-cat-technical' },
                 { label: 'Pages', value: pagination.pages, icon: <BsFilter className="w-4 h-4" />, color: 'text-warning' },
               ].map((stat, i) => (
-                <div key={i} className="flex items-center gap-3.5 px-4 py-3.5 rounded-xl bg-surface-elevated border border-theme">
-                  <div className={`flex-shrink-0 w-10 h-10 rounded-lg bg-surface-secondary flex items-center justify-center ${stat.color}`}>{stat.icon}</div>
+                <div key={i} className="relative overflow-hidden group flex items-center gap-3.5 px-4 py-3.5 rounded-2xl bg-surface-elevated border border-theme hover:border-[rgba(var(--color-accent),0.2)] hover:shadow-theme-sm transition-all duration-300">
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-accent))]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className={`flex-shrink-0 w-10 h-10 rounded-xl bg-surface-secondary flex items-center justify-center ${stat.color} group-hover:scale-110 transition-all duration-300`}>{stat.icon}</div>
                   <div>
                     <div className="text-lg font-bold text-primary">{stat.value}</div>
                     <div className="text-xs font-medium text-secondary">{stat.label}</div>
@@ -203,16 +223,18 @@ export default function BrowseEventsPage() {
               transition={{ delay: 0.2 }}
               className="flex-1 flex flex-col overflow-y-auto min-h-0"
             >
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 pb-4">
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3 pb-4">
                 {events.map((event, idx) => (
                   <motion.div
                     key={event.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                    whileHover={{ scale: 1.02, y: -5 }}
-                    className="group rounded-xl border border-theme bg-surface-elevated p-5 backdrop-blur-xl hover:border-[rgb(var(--color-event-social))]/50 hover:shadow-lg hover:shadow-theme-sm transition-all cursor-default"
+                    transition={{ delay: idx * 0.05 }}
+                    whileHover={{ y: -4 }}
+                    className="group relative overflow-hidden rounded-2xl border border-theme bg-surface-elevated p-5 backdrop-blur-xl hover:border-[rgba(var(--color-accent),0.2)] hover:shadow-theme-lg transition-all duration-300 cursor-default"
                   >
+                {/* Top Accent Line */}
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-accent))] to-[rgb(var(--color-cat-training))] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 {/* Event Type Badge */}
                 <div className="flex items-start justify-between mb-3">
                   <span
@@ -230,17 +252,17 @@ export default function BrowseEventsPage() {
                 </div>
 
                 {/* Title */}
-                <h3 className="text-lg font-semibold text-[rgb(var(--color-text-inverse))] mb-2 group-hover:text-cat-personal transition">
+                <h3 className="text-lg font-semibold text-primary mb-2 group-hover:text-accent transition-colors duration-300">
                   {event.title}
                 </h3>
 
                 {/* Description */}
-                <p className="text-sm text-[rgb(var(--color-text-inverse))]/70 mb-4 line-clamp-2">
+                <p className="text-sm text-secondary mb-4 line-clamp-2">
                   {event.description}
                 </p>
 
                 {/* Details */}
-                <div className="mb-4 space-y-2 text-sm text-[rgb(var(--color-text-inverse))]/60">
+                <div className="mb-4 space-y-2 text-sm text-tertiary">
                   <p>
                     📅{' '}
                     {new Date(event.startDate).toLocaleDateString() && new Date(event.startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -280,10 +302,10 @@ export default function BrowseEventsPage() {
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleRegister(event.id)}
                     disabled={registering === event.id || isCapacityFull(event)}
-                    className={`w-full rounded-lg px-4 py-2 font-semibold transition-all ${
+                    className={`w-full rounded-xl px-4 py-2.5 font-semibold transition-all duration-300 focus-ring ${
                       isCapacityFull(event)
                         ? 'bg-surface-secondary text-secondary cursor-not-allowed'
-                        : 'bg-accent hover:opacity-90 text-[rgb(var(--color-text-inverse))] hover:from-[rgb(var(--color-event-social))] hover:to-[rgb(var(--color-info))] disabled:opacity-50 shadow-[rgb(var(--color-info))]/20'
+                        : 'bg-accent hover:opacity-90 text-[rgb(var(--color-text-inverse))] disabled:opacity-50 shadow-theme-sm hover:shadow-theme-md'
                     }`}
                   >
                     {registering === event.id ? (
@@ -302,7 +324,7 @@ export default function BrowseEventsPage() {
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleCancelRegistration(event.id)}
                     disabled={registering === event.id}
-                    className="w-full rounded-lg border border-[rgb(var(--color-error))]/30 bg-error-muted px-4 py-2 font-semibold text-error hover:bg-error-muted disabled:opacity-50 transition-all hover:border-[rgb(var(--color-error))]/50"
+                    className="w-full rounded-xl border border-[rgb(var(--color-error))]/30 bg-error-muted px-4 py-2.5 font-semibold text-error hover:bg-error-muted disabled:opacity-50 transition-all duration-300 hover:border-[rgb(var(--color-error))]/50 focus-ring"
                   >
                     {registering === event.id ? (
                       'Cancelling...'
@@ -321,13 +343,13 @@ export default function BrowseEventsPage() {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="rounded-xl border border-theme bg-surface-elevated p-12 text-center backdrop-blur-xl col-span-full"
+                    className="rounded-2xl border border-theme bg-surface-elevated p-12 text-center backdrop-blur-xl col-span-full"
                   >
-                    <div className="inline-flex p-4 bg-cat-personal rounded-full mb-4">
+                    <div className="inline-flex p-4 bg-cat-personal rounded-2xl mb-4">
                       <BsArrowRight className="text-5xl text-cat-personal/50" />
                     </div>
-                    <h3 className="text-xl font-semibold text-[rgb(var(--color-text-inverse))] mb-2">No events found</h3>
-                    <p className="text-[rgb(var(--color-text-inverse))]/60">
+                    <h3 className="text-xl font-semibold text-primary mb-2">No events found</h3>
+                    <p className="text-secondary">
                       Try adjusting your filters or check back later
                     </p>
                   </motion.div>
@@ -339,7 +361,7 @@ export default function BrowseEventsPage() {
             {pagination.pages > 1 && (
               <div className="flex-shrink-0 pt-4 pb-3 border-t border-theme mt-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-[rgb(var(--color-text-inverse))]/60">
+                  <p className="text-sm text-secondary">
                     Showing {events.length} of {pagination.total} events
                   </p>
                   <div className="flex gap-2">
@@ -348,7 +370,7 @@ export default function BrowseEventsPage() {
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setPage(Math.max(1, page - 1))}
                       disabled={page === 1}
-                      className="rounded-lg border border-white/20 px-4 py-2 text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary disabled:opacity-50 transition-all"
+                      className="rounded-xl border border-theme px-4 py-2 text-secondary hover:bg-surface-secondary hover:text-primary disabled:opacity-50 transition-all duration-300 focus-ring"
                     >
                       Previous
                     </motion.button>
@@ -359,10 +381,10 @@ export default function BrowseEventsPage() {
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => setPage(p)}
-                          className={`rounded-lg px-3 py-1 text-sm font-medium transition-all ${
+                          className={`rounded-xl px-3 py-1 text-sm font-medium transition-all duration-300 focus-ring ${
                             page === p
-                              ? 'bg-accent hover:opacity-90 text-[rgb(var(--color-text-inverse))] shadow-[rgb(var(--color-info))]/30'
-                              : 'border border-white/20 text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary'
+                              ? 'bg-accent text-[rgb(var(--color-text-inverse))] shadow-theme-sm'
+                              : 'border border-theme text-secondary hover:bg-surface-secondary hover:text-primary'
                           }`}
                         >
                           {p}
@@ -374,7 +396,7 @@ export default function BrowseEventsPage() {
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setPage(Math.min(pagination.pages, page + 1))}
                       disabled={page === pagination.pages}
-                      className="rounded-lg border border-white/20 px-4 py-2 text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary disabled:opacity-50 transition-all"
+                      className="rounded-xl border border-theme px-4 py-2 text-secondary hover:bg-surface-secondary hover:text-primary disabled:opacity-50 transition-all duration-300 focus-ring"
                     >
                       Next
                     </motion.button>

@@ -7,7 +7,7 @@ import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 import AnalyticsCharts from './components/AnalyticsCharts';
 import PerformanceTable from './components/PerformanceTable';
 import { useAnalyticsData } from '@/app/hooks/useAnalyticsData';
-import { BsBarChart, BsClipboardData, BsCheckCircle, BsPercent, BsStarFill, BsClock, BsFileEarmarkText, BsCheck2Circle, BsXCircle, BsListCheck } from 'react-icons/bs';
+import { BsBarChart, BsClipboardData, BsCheckCircle, BsPercent, BsStarFill, BsClock, BsFileEarmarkText, BsCheck2Circle, BsXCircle, BsListCheck, BsGraphUpArrow } from 'react-icons/bs';
 
 export default function AnalyticsPage() {
   const {
@@ -62,7 +62,35 @@ export default function AnalyticsPage() {
 
   return (
     <DashboardLayout type={dashboardType}>
-      <div className="max-w-7xl mx-auto space-y-5">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Page Header — editorial hero */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="relative overflow-hidden rounded-2xl bg-surface-elevated border border-theme shadow-theme-md p-8 md:p-10"
+        >
+          {/* Top accent gradient line */}
+          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[rgb(var(--color-accent))] via-[rgb(var(--color-info))] to-[rgb(var(--color-success))]" />
+          {/* Subtle background glow */}
+          <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-accent/5 blur-3xl pointer-events-none" />
+          <div className="relative flex items-center gap-5">
+            <div className="flex-shrink-0 p-4 rounded-2xl bg-accent-muted">
+              <BsGraphUpArrow className="w-8 h-8 text-accent" />
+            </div>
+            <div>
+              <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-primary">
+                <span className="bg-gradient-to-r from-[rgb(var(--color-accent))] to-[rgb(var(--color-info))] bg-clip-text text-transparent">
+                  Performance Analytics
+                </span>
+              </h1>
+              <p className="mt-1 text-sm md:text-base text-secondary max-w-xl">
+                Comprehensive insights into goals, completion rates, and team performance trends.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
         {/* Toolbar */}
         <PageToolbar
           actions={[{ label: 'Export PDF', onClick: handleExport, variant: 'export' }]}
@@ -92,7 +120,7 @@ export default function AnalyticsPage() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-error-muted border border-[rgb(var(--color-error))]/30 rounded-xl p-4 text-error text-sm"
+            className="bg-error-muted border border-[rgb(var(--color-error))]/30 rounded-2xl p-4 text-error text-sm"
           >
             {error}
           </motion.div>
@@ -103,15 +131,16 @@ export default function AnalyticsPage() {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-surface-elevated rounded-xl p-12 border border-theme shadow-theme-md text-center"
+            className="relative overflow-hidden bg-surface-elevated rounded-2xl p-16 border border-theme shadow-theme-md text-center transition-all duration-300"
           >
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[rgb(var(--color-accent))] via-[rgb(var(--color-info))] to-[rgb(var(--color-success))]" />
             <div className="flex flex-col items-center justify-center">
-              <div className="p-4 bg-surface-secondary rounded-full mb-4">
-                <BsBarChart className="w-16 h-16 text-tertiary" />
+              <div className="p-5 bg-accent-muted rounded-2xl mb-5">
+                <BsBarChart className="w-16 h-16 text-accent opacity-60" />
               </div>
-              <h3 className="text-xl font-semibold text-primary mb-2">No Analytics Data Available</h3>
-              <p className="text-secondary text-sm max-w-md">
-                There's no data to display for the selected filters. Try adjusting your date range or filters.
+              <h3 className="text-xl font-bold text-primary mb-2">No Analytics Data Available</h3>
+              <p className="text-secondary text-sm max-w-md leading-relaxed">
+                There is no data to display for the selected filters. Try adjusting your date range or filters.
               </p>
             </div>
           </motion.div>
@@ -121,27 +150,27 @@ export default function AnalyticsPage() {
         {analyticsData && (
           <>
             {/* Key Metrics */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-2">
-              <div className="mb-4">
-                <h2 className="text-xl font-bold text-primary mb-1">Key Metrics</h2>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.4 }}>
+              <div className="mb-5">
+                <h2 className="text-2xl font-bold text-primary mb-1 tracking-tight">Key Metrics</h2>
                 <p className="text-sm text-secondary">Overview of performance indicators</p>
               </div>
               <StatsSection stats={keyMetrics(analyticsData.summary)} />
             </motion.div>
 
             {/* Status Breakdown */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mb-6">
-              <div className="mb-4">
-                <h2 className="text-xl font-bold text-primary mb-1">Status Breakdown</h2>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.4 }}>
+              <div className="mb-5">
+                <h2 className="text-2xl font-bold text-primary mb-1 tracking-tight">Status Breakdown</h2>
                 <p className="text-sm text-secondary">Detailed breakdown of goals by status</p>
               </div>
               <StatsSection stats={statusBreakdownStats(analyticsData.breakdowns.byStatus)} />
             </motion.div>
 
-            {/* Charts */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mb-2">
-              <div className="mb-4">
-                <h2 className="text-xl font-bold text-primary mb-1">Visual Analytics</h2>
+            {/* Charts — hero section */}
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.4 }}>
+              <div className="mb-5">
+                <h2 className="text-2xl font-bold text-primary mb-1 tracking-tight">Visual Analytics</h2>
                 <p className="text-sm text-secondary">Charts and visualizations of your data</p>
               </div>
               <AnalyticsCharts data={analyticsData} showDepartment={showRoleFilters} />

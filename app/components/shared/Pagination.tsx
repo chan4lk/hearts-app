@@ -50,9 +50,9 @@ export function Pagination({
   };
 
   return (
-    <div className={`flex flex-col sm:flex-row items-center justify-between gap-3 ${className}`}>
+    <div className={`flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 ${className}`}>
       <div className="text-xs text-secondary tabular-nums">
-        <span className="font-medium text-primary">{start}-{end}</span> of <span className="font-medium text-primary">{total}</span>
+        Showing <span className="font-semibold text-primary">{start}-{end}</span> of <span className="font-semibold text-primary">{total}</span> results
       </div>
 
       <div className="flex items-center gap-1.5">
@@ -60,7 +60,13 @@ export function Pagination({
           <select
             value={limit}
             onChange={(e) => onLimitChange(parseInt(e.target.value))}
-            className="h-8 px-2 text-xs bg-surface-secondary border border-theme rounded-lg text-primary cursor-pointer focus-ring mr-2"
+            className="h-9 px-2.5 text-xs bg-surface-secondary border border-theme rounded-xl text-primary cursor-pointer focus-ring mr-2 appearance-none"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%239CA3AF' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 8px center',
+              paddingRight: '24px',
+            }}
             aria-label="Items per page"
           >
             {limitOptions.map((opt) => (
@@ -72,7 +78,7 @@ export function Pagination({
         <button
           onClick={() => hasPrev && onPageChange(page - 1)}
           disabled={!hasPrev}
-          className="h-8 w-8 flex items-center justify-center rounded-lg border border-theme text-secondary hover:text-primary hover:bg-surface-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer focus-ring"
+          className="h-9 w-9 flex items-center justify-center rounded-xl border border-theme text-secondary hover:text-primary hover:bg-surface-secondary hover:border-[rgba(var(--color-accent),0.2)] disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer focus-ring"
           aria-label="Previous page"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -80,17 +86,17 @@ export function Pagination({
 
         {getPageNumbers().map((pageNum, index) => {
           if (pageNum === '...') {
-            return <span key={`e-${index}`} className="px-1.5 text-tertiary text-xs">...</span>;
+            return <span key={`e-${index}`} className="px-1 text-tertiary text-xs select-none">...</span>;
           }
           const n = pageNum as number;
           return (
             <button
               key={n}
               onClick={() => onPageChange(n)}
-              className={`h-8 min-w-[2rem] px-2 text-xs font-medium rounded-lg transition-all duration-150 cursor-pointer focus-ring ${
+              className={`h-9 min-w-[2.25rem] px-2.5 text-xs font-semibold rounded-xl transition-all duration-200 cursor-pointer focus-ring ${
                 n === page
-                  ? 'bg-accent text-[rgb(var(--color-text-inverse))] shadow-theme-sm'
-                  : 'border border-theme text-secondary hover:text-primary hover:bg-surface-secondary'
+                  ? 'bg-accent text-[rgb(var(--color-text-inverse))] shadow-md shadow-[rgb(var(--color-accent))]/20'
+                  : 'border border-theme text-secondary hover:text-primary hover:bg-surface-secondary hover:border-[rgba(var(--color-accent),0.2)]'
               }`}
               aria-label={`Page ${n}`}
               aria-current={n === page ? 'page' : undefined}
@@ -103,7 +109,7 @@ export function Pagination({
         <button
           onClick={() => hasNext && onPageChange(page + 1)}
           disabled={!hasNext}
-          className="h-8 w-8 flex items-center justify-center rounded-lg border border-theme text-secondary hover:text-primary hover:bg-surface-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer focus-ring"
+          className="h-9 w-9 flex items-center justify-center rounded-xl border border-theme text-secondary hover:text-primary hover:bg-surface-secondary hover:border-[rgba(var(--color-accent),0.2)] disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer focus-ring"
           aria-label="Next page"
         >
           <ChevronRight className="h-4 w-4" />

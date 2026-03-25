@@ -11,7 +11,7 @@ import AIPerformanceInsights from '@/app/components/ai/AIPerformanceInsights';
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 
 
-import { BsStars, BsLightbulb, BsCheckCircle, BsXCircle, BsPeople, BsPencil } from 'react-icons/bs';
+import { BsStars, BsLightbulb, BsCheckCircle, BsXCircle, BsPeople, BsPencil, BsGrid3X3Gap, BsShieldCheck } from 'react-icons/bs';
 
 import { Goal, EmployeeStats, DashboardStats } from '@/app/components/shared/types';
 
@@ -196,7 +196,34 @@ export default function ManagerDashboard() {
   };
   return (
     <DashboardLayout type="manager">
-      <div className="max-w-7xl mx-auto space-y-5">
+      <div className="max-w-7xl mx-auto space-y-6">
+          {/* Command Center Header */}
+          <div className="relative bg-gradient-to-r from-[rgba(var(--color-accent),0.12)] via-[rgba(var(--color-accent),0.06)] to-transparent rounded-2xl border border-theme overflow-hidden">
+            {/* Decorative grid pattern */}
+            <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, rgb(var(--color-accent)) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+            <div className="relative px-6 py-5 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-accent/10 border border-[rgba(var(--color-accent),0.2)] flex items-center justify-center shadow-theme-sm">
+                  <BsGrid3X3Gap className="w-5 h-5 text-accent" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-primary tracking-tight">Team Command Center</h1>
+                  <p className="text-sm text-secondary mt-0.5">Monitor and manage your team&apos;s goals and performance</p>
+                </div>
+              </div>
+              <div className="hidden md:flex items-center gap-3">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-success-muted text-success text-xs font-semibold">
+                  <BsShieldCheck className="w-3.5 h-3.5" />
+                  <span>{stats.activeEmployees} Active</span>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-accent-muted text-accent text-xs font-semibold">
+                  <BsPeople className="w-3.5 h-3.5" />
+                  <span>{stats.employeeCount} Team Members</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Stats Section */}
           {(() => {
             const statItems: StatItem[] = [
@@ -321,10 +348,12 @@ export default function ManagerDashboard() {
 
           {/* AI Performance Insights for Selected Employee */}
           {showAIInsights && selectedEmployee !== 'all' && (
-            <div className="bg-surface-elevated rounded-xl p-5 border border-theme shadow-theme-sm">
+            <div className="relative bg-surface-elevated rounded-2xl p-5 border border-theme shadow-theme-sm overflow-hidden transition-all duration-300 hover:shadow-theme-lg">
+              {/* Top accent line */}
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent" />
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-9 h-9 rounded-lg bg-accent-muted flex items-center justify-center">
-                  <BsLightbulb className="w-4 h-4 text-accent" />
+                <div className="w-10 h-10 rounded-xl bg-accent-muted flex items-center justify-center">
+                  <BsLightbulb className="w-4.5 h-4.5 text-accent" />
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold text-primary">AI Performance Insights</h3>
@@ -342,12 +371,14 @@ export default function ManagerDashboard() {
 
           {/* AI Insights Prompt (when no employee selected) */}
           {showAIInsights && selectedEmployee === 'all' && (
-            <div className="bg-surface-elevated rounded-xl p-8 border border-theme shadow-theme-sm text-center">
-              <div className="w-12 h-12 rounded-xl bg-accent-muted flex items-center justify-center mx-auto mb-3">
-                <BsLightbulb className="w-5 h-5 text-accent" />
+            <div className="relative bg-surface-elevated rounded-2xl p-8 border border-theme shadow-theme-sm text-center overflow-hidden transition-all duration-300 hover:shadow-theme-lg">
+              {/* Top accent line */}
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent" />
+              <div className="w-14 h-14 rounded-2xl bg-accent-muted flex items-center justify-center mx-auto mb-4">
+                <BsLightbulb className="w-6 h-6 text-accent" />
               </div>
-              <h3 className="text-sm font-semibold text-primary mb-1">Select an Employee</h3>
-              <p className="text-xs text-secondary">Choose a specific employee from the filter above to view AI insights</p>
+              <h3 className="text-base font-semibold text-primary mb-1">Select an Employee</h3>
+              <p className="text-sm text-secondary max-w-md mx-auto">Choose a specific employee from the filter above to view AI-powered performance insights</p>
             </div>
           )}
 

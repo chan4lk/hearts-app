@@ -1,8 +1,8 @@
 'use client';
 
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import { 
-  BsClock, 
+import {
+  BsClock,
   BsCheckCircle,
   BsExclamationTriangle,
   BsXCircle,
@@ -11,7 +11,10 @@ import {
   BsPeople,
   BsBullseye,
   BsEye,
-  BsEyeSlash
+  BsEyeSlash,
+  BsGear,
+  BsShieldCheck,
+  BsCpu
 } from 'react-icons/bs';
 
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
@@ -314,6 +317,40 @@ export default function AdminDashboard() {
   return (
     <DashboardLayout type="admin">
       <div className="max-w-7xl mx-auto space-y-5">
+          {/* System Control Panel Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[rgb(var(--color-accent))]/10 via-[rgb(var(--color-info))]/5 to-[rgb(var(--color-accent))]/10 border border-theme shadow-theme-sm"
+          >
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[rgb(var(--color-accent))] via-[rgb(var(--color-info))] to-[rgb(var(--color-accent))]" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[rgb(var(--color-accent))]/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
+            <div className="relative p-6 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-accent/10 border border-[rgb(var(--color-accent))]/20 flex items-center justify-center">
+                  <BsCpu className="w-6 h-6 text-accent" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-primary">System Control Panel</h1>
+                  <p className="text-sm text-secondary">Monitor and manage your organization</p>
+                </div>
+              </div>
+              <div className="hidden md:flex items-center gap-4">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-success-muted border border-[rgb(var(--color-success))]/20">
+                  <div className="w-2 h-2 rounded-full bg-[rgb(var(--color-success))] animate-pulse" />
+                  <span className="text-xs font-medium text-success">System Online</span>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-secondary border border-theme">
+                  <BsClock className="w-3 h-3 text-secondary" />
+                  <span className="text-xs font-medium text-secondary">
+                    {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
           {/* Stats Section */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -364,15 +401,19 @@ export default function AdminDashboard() {
                      {/* Main Content Grid */}
            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Role Distribution */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-                             className="lg:col-span-2 card-glass rounded-xl shadow-theme-lg overflow-hidden"
+              className="lg:col-span-2 card-glass rounded-2xl shadow-theme-sm hover:shadow-theme-lg overflow-hidden transition-all duration-300 group/card relative"
             >
-                             <div className="p-4 border-b border-theme">
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-accent))] to-[rgb(var(--color-info))]" />
+              <div className="p-4 border-b border-theme">
                  <div className="flex items-center justify-between">
-                   <h2 className="text-lg font-semibold text-primary">Role Distribution</h2>
+                   <div className="flex items-center gap-2">
+                     <BsShieldCheck className="w-5 h-5 text-accent" />
+                     <h2 className="text-lg font-semibold text-primary">Role Distribution</h2>
+                   </div>
                   <Link
                     href="/dashboard/admin/users"
                     className="inline-flex items-center gap-2 text-sm font-medium text-accent hover:opacity-80 transition-colors"
@@ -421,15 +462,19 @@ export default function AdminDashboard() {
             </motion.div>
 
                          {/* Recent Users */}
-             <motion.div 
+             <motion.div
                initial={{ opacity: 0, x: 20 }}
                animate={{ opacity: 1, x: 0 }}
                transition={{ duration: 0.6, delay: 0.4 }}
-               className="card-glass rounded-xl shadow-theme-lg"
+               className="card-glass rounded-2xl shadow-theme-sm hover:shadow-theme-lg transition-all duration-300 relative overflow-hidden"
             >
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-info))] to-[rgb(var(--color-accent))]" />
               <div className="p-6 border-b border-theme">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-primary">Recent Users</h2>
+                  <div className="flex items-center gap-2">
+                    <BsActivity className="w-5 h-5 text-accent" />
+                    <h2 className="text-xl font-semibold text-primary">Recent Users</h2>
+                  </div>
                   <Link
                     href="/dashboard/admin/users"
                     className="inline-flex items-center gap-2 text-sm font-medium text-accent hover:opacity-80 transition-colors"
@@ -468,17 +513,18 @@ export default function AdminDashboard() {
           
 
           {/* All Users Goals Section */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
-            className="card-glass rounded-2xl shadow-theme-lg overflow-hidden"
+            className="card-glass rounded-2xl shadow-theme-sm hover:shadow-theme-lg overflow-hidden transition-all duration-300 relative"
           >
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-accent))] via-[rgb(var(--color-info))] to-[rgb(var(--color-accent))]" />
             <div className="p-6 border-b border-theme">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center">
-                    <BsBullseye className="w-5 h-5 text-[rgb(var(--color-text-inverse))]" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-[rgb(var(--color-accent))]/20 to-[rgb(var(--color-info))]/20 border border-[rgb(var(--color-accent))]/20 rounded-xl flex items-center justify-center">
+                    <BsBullseye className="w-5 h-5 text-accent" />
                   </div>
                   <div>
                     <h2 className="text-xl font-semibold text-primary">All Users Goals</h2>
@@ -489,7 +535,7 @@ export default function AdminDashboard() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setShowGoals(!showGoals)}
-                  className="flex items-center gap-2 px-4 py-2 bg-accent text-[rgb(var(--color-text-inverse))] rounded-lg shadow-theme-sm hover:opacity-90 transition-all duration-150 focus-ring"
+                  className="flex items-center gap-2 px-4 py-2 bg-accent text-[rgb(var(--color-text-inverse))] rounded-xl shadow-theme-sm hover:opacity-90 transition-all duration-300 focus-ring"
                 >
                   {showGoals ? (
                     <>

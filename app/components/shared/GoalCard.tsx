@@ -15,7 +15,6 @@ interface GoalCardProps {
 
 type StatusConfig = { bg: string; text: string; icon: IconType };
 
-// Uses semantic CSS variables — no hardcoded colors
 const STATUS_CONFIGS: Record<string, StatusConfig> = {
   APPROVED:    { bg: 'bg-success-muted',  text: 'text-success',  icon: BsCheckCircle },
   REJECTED:    { bg: 'bg-error-muted',    text: 'text-error',    icon: BsXCircle },
@@ -54,11 +53,14 @@ export default function GoalCard({ goal, onClick, onEdit, onDelete, showActions 
   return (
     <button
       onClick={onClick}
-      className="group w-full text-left p-4 rounded-xl bg-surface-elevated border border-theme hover:border-[rgba(var(--color-accent),0.3)] hover:shadow-theme-md transition-all duration-200 cursor-pointer h-[200px] flex flex-col focus-ring"
+      className="group w-full text-left p-5 rounded-2xl bg-surface-elevated border border-theme hover:border-[rgba(var(--color-accent),0.25)] hover:shadow-theme-lg transition-all duration-300 cursor-pointer h-[210px] flex flex-col focus-ring relative overflow-hidden"
     >
+      {/* Hover accent gradient — top edge */}
+      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[rgb(var(--color-accent))]/0 to-transparent group-hover:via-[rgb(var(--color-accent))]/40 transition-all duration-500" />
+
       {/* Header */}
-      <div className="flex items-start gap-3 mb-2">
-        <div className={`p-2 rounded-lg ${categoryConfig.iconColor} bg-opacity-10 flex-shrink-0`}>
+      <div className="flex items-start gap-3 mb-2.5">
+        <div className={`p-2 rounded-xl ${categoryConfig.iconColor} bg-surface-secondary flex-shrink-0 group-hover:scale-110 transition-transform duration-300`}>
           <Icon className="w-4 h-4" />
         </div>
         <div className="min-w-0 flex-1">
@@ -70,7 +72,7 @@ export default function GoalCard({ goal, onClick, onEdit, onDelete, showActions 
             </div>
           )}
         </div>
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-2xs font-medium ${statusConfig.bg} ${statusConfig.text} flex-shrink-0`}>
+        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-2xs font-semibold ${statusConfig.bg} ${statusConfig.text} flex-shrink-0`}>
           <statusConfig.icon className="w-3 h-3" />
           {goal.status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).replace(/\B\w+/g, w => w.toLowerCase())}
         </span>
@@ -94,14 +96,14 @@ export default function GoalCard({ goal, onClick, onEdit, onDelete, showActions 
                 </div>
               );
             })()}
-            <span className="text-2xs font-medium text-secondary tabular-nums">{goal.progress || 0}%</span>
+            <span className="text-2xs font-semibold text-secondary tabular-nums">{goal.progress || 0}%</span>
           </div>
-          <Progress value={goal.progress || 0} className="h-1" />
+          <Progress value={goal.progress || 0} className="h-1.5" />
         </div>
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-2 border-t border-theme mt-2">
+      <div className="flex items-center justify-between pt-2.5 border-t border-theme mt-2">
         <div className="flex items-center gap-3 text-2xs text-tertiary">
           <span className="flex items-center gap-1">
             <BsCalendar className="w-3 h-3" />
@@ -113,11 +115,11 @@ export default function GoalCard({ goal, onClick, onEdit, onDelete, showActions 
           </span>
         </div>
         {showActions && (
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             {onEdit && (
               <button
                 onClick={(e) => { e.stopPropagation(); onEdit(goal); }}
-                className="p-1.5 text-secondary hover:text-accent rounded-md hover:bg-accent-muted transition-colors cursor-pointer focus-ring"
+                className="p-1.5 text-secondary hover:text-accent rounded-lg hover:bg-accent-muted transition-colors cursor-pointer focus-ring"
                 title="Edit"
                 aria-label="Edit goal"
               >
@@ -127,7 +129,7 @@ export default function GoalCard({ goal, onClick, onEdit, onDelete, showActions 
             {onDelete && (
               <button
                 onClick={(e) => { e.stopPropagation(); onDelete(goal); }}
-                className="p-1.5 text-secondary hover:text-error rounded-md hover:bg-error-muted transition-colors cursor-pointer focus-ring"
+                className="p-1.5 text-secondary hover:text-error rounded-lg hover:bg-error-muted transition-colors cursor-pointer focus-ring"
                 title="Delete"
                 aria-label="Delete goal"
               >

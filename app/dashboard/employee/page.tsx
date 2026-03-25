@@ -436,7 +436,34 @@ export default function EmployeeDashboard() {
 
   return (
     <DashboardLayout type="employee">
-      <div className="max-w-7xl mx-auto space-y-5">
+      <div className="relative max-w-7xl mx-auto space-y-6">
+          {/* Floating Background Decorations */}
+          <div className="absolute -top-20 -right-20 w-72 h-72 bg-[rgb(var(--color-accent))]/[0.03] rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-40 -left-16 w-56 h-56 bg-[rgb(var(--color-cat-training))]/[0.03] rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-20 right-10 w-48 h-48 bg-[rgb(var(--color-cat-technical))]/[0.03] rounded-full blur-3xl pointer-events-none" />
+
+          {/* Personalized Welcome Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[rgb(var(--color-accent))]/10 via-[rgb(var(--color-cat-technical))]/5 to-[rgb(var(--color-cat-training))]/10 border border-[rgba(var(--color-accent),0.15)] p-6 md:p-8"
+          >
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-accent))] via-[rgb(var(--color-cat-technical))] to-[rgb(var(--color-cat-training))]" />
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-[rgb(var(--color-accent))]/[0.05] rounded-full blur-2xl" />
+            <div className="relative flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[rgb(var(--color-accent))] to-[rgb(var(--color-cat-technical))] bg-clip-text text-transparent">
+                  Welcome back{session?.user?.name ? `, ${session.user.name.split(' ')[0]}` : ''}
+                </h1>
+                <p className="text-sm text-secondary mt-1">Track your goals, measure your progress, and achieve your aspirations.</p>
+              </div>
+              <div className="hidden md:block text-5xl font-black text-primary/[0.02] select-none">
+                {getGoalStats.totalGoals}
+              </div>
+            </div>
+          </motion.div>
+
           {/* Stats Section */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -500,16 +527,18 @@ export default function EmployeeDashboard() {
           >
             {/* Create Goal Card */}
             <motion.button
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => {
                 resetForm();
                 setShowCreateGoalModal(true);
               }}
-              className="bg-surface-elevated border border-theme hover:border-[rgba(var(--color-success),0.3)] hover:shadow-theme-sm rounded-xl p-6 transition-all text-left group focus-ring"
+              className="relative overflow-hidden bg-surface-elevated border border-theme hover:border-[rgba(var(--color-success),0.2)] hover:shadow-theme-lg rounded-2xl p-6 transition-all duration-300 text-left group focus-ring"
             >
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-success))] to-[rgb(var(--color-cat-training))]" />
+              <div className="absolute -bottom-6 -right-6 text-5xl font-black text-primary/[0.02] select-none">+</div>
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-success-muted rounded-lg group-hover:opacity-80 transition-colors">
+                <div className="p-3 bg-success-muted rounded-xl group-hover:scale-110 transition-all duration-300">
                   <BsPlus className="w-6 h-6 text-success" />
                 </div>
                 <div className="flex-1">
@@ -521,13 +550,15 @@ export default function EmployeeDashboard() {
 
             {/* AI Goal Suggestions Card */}
             <motion.button
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowAIGoalSuggestions(true)}
-              className="bg-surface-elevated border border-theme hover:border-[rgba(var(--color-accent),0.3)] hover:shadow-theme-sm rounded-xl p-6 transition-all text-left group focus-ring"
+              className="relative overflow-hidden bg-surface-elevated border border-theme hover:border-[rgba(var(--color-accent),0.2)] hover:shadow-theme-lg rounded-2xl p-6 transition-all duration-300 text-left group focus-ring"
             >
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-accent))] to-[rgb(var(--color-cat-technical))]" />
+              <div className="absolute -bottom-6 -right-6 text-5xl font-black text-primary/[0.02] select-none">AI</div>
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-accent-muted rounded-lg group-hover:opacity-80 transition-colors">
+                <div className="p-3 bg-accent-muted rounded-xl group-hover:scale-110 transition-all duration-300">
                   <BsStars className="w-6 h-6 text-accent" />
                 </div>
                 <div className="flex-1">
@@ -539,13 +570,15 @@ export default function EmployeeDashboard() {
 
             {/* AI Performance Insights Card */}
             <motion.button
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowAIInsights(true)}
-              className="bg-surface-elevated border border-theme hover:border-[rgba(var(--color-info),0.3)] hover:shadow-theme-sm rounded-xl p-6 transition-all text-left group focus-ring"
+              className="relative overflow-hidden bg-surface-elevated border border-theme hover:border-[rgba(var(--color-info),0.2)] hover:shadow-theme-lg rounded-2xl p-6 transition-all duration-300 text-left group focus-ring"
             >
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-info))] to-[rgb(var(--color-accent))]" />
+              <div className="absolute -bottom-4 -right-4 text-5xl font-black text-primary/[0.02] select-none">%</div>
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-info-muted rounded-lg group-hover:opacity-80 transition-colors">
+                <div className="p-3 bg-info-muted rounded-xl group-hover:scale-110 transition-all duration-300">
                   <BsLightbulb className="w-6 h-6 text-info" />
                 </div>
                 <div className="flex-1">
@@ -679,7 +712,7 @@ export default function EmployeeDashboard() {
                   initial={{ scale: 0.95, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.95, opacity: 0 }}
-                  className="bg-surface-elevated backdrop-blur-sm rounded-xl shadow-theme-lg w-full max-w-2xl border border-theme"
+                  className="bg-surface-elevated backdrop-blur-sm rounded-2xl shadow-theme-lg w-full max-w-2xl border border-theme"
                 >
                   <GoalDetailModal
                     goal={selectedGoal}
@@ -782,7 +815,7 @@ export default function EmployeeDashboard() {
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.95, opacity: 0 }}
                   onClick={(e) => e.stopPropagation()}
-                  className="modal-content rounded-xl shadow-theme-lg w-full max-w-4xl max-h-[85vh] overflow-hidden border-2 border-[rgb(var(--color-warning))]/40 flex flex-col"
+                  className="modal-content rounded-2xl shadow-theme-lg w-full max-w-4xl max-h-[85vh] overflow-hidden border-2 border-[rgb(var(--color-warning))]/40 flex flex-col"
                 >
                   {/* Compact Header - Sticky */}
                   <div className="sticky top-0 z-10 bg-gradient-to-r from-[rgba(var(--color-warning),0.4)] via-[rgba(var(--color-warning),0.4)] to-[rgba(var(--color-rating-2),0.4)] backdrop-blur-md border-b-2 border-[rgb(var(--color-warning))]/50 px-4 py-3 flex items-center justify-between flex-shrink-0">
@@ -854,7 +887,7 @@ export default function EmployeeDashboard() {
                                   // Keep manager ratings modal open - don't close it
                                   // setShowManagerRatingsModal(false);
                                 }}
-                                className="group relative bg-surface-elevated backdrop-blur-sm rounded-xl p-4 border-2 border-theme hover:border-[rgba(var(--color-warning),0.6)] transition-all cursor-pointer hover:shadow-lg hover:shadow-theme-sm"
+                                className="group relative bg-surface-elevated backdrop-blur-sm rounded-2xl p-4 border-2 border-theme hover:border-[rgba(var(--color-warning),0.6)] transition-all duration-300 cursor-pointer hover:shadow-theme-lg hover:-translate-y-0.5"
                               >
                                 {/* Rating Badge */}
                                 <div className="absolute top-3 right-3">

@@ -14,7 +14,7 @@ import { motion } from 'framer-motion';
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 
-import { BsClipboardData, BsPencil, BsCheckCircle, BsXCircle } from 'react-icons/bs';
+import { BsClipboardData, BsPencil, BsCheckCircle, BsXCircle, BsCompass } from 'react-icons/bs';
 import { PageContainer } from '@/app/components/shared/PageContainer';
 
 function AllGoalsPageContent() {
@@ -242,8 +242,36 @@ function AllGoalsPageContent() {
       <div className="fixed inset-0 top-16 left-0 md:left-60 right-0 bottom-0 bg-surface-primary flex flex-col overflow-hidden z-0">
         {/* Subtle Background Pattern */}
         <div className="absolute inset-0 pointer-events-none bg-grid" />
-        
+
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
+          {/* Goals Explorer Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="flex-shrink-0 mb-4 relative overflow-hidden rounded-2xl bg-gradient-to-r from-[rgb(var(--color-info))]/8 via-[rgb(var(--color-accent))]/5 to-[rgb(var(--color-warning))]/8 border border-theme shadow-theme-sm"
+          >
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[rgb(var(--color-info))] via-[rgb(var(--color-accent))] to-[rgb(var(--color-warning))]" />
+            <div className="absolute top-0 right-0 w-48 h-48 bg-[rgb(var(--color-info))]/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
+            <div className="relative px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 rounded-xl bg-info-muted border border-[rgb(var(--color-info))]/20 flex items-center justify-center">
+                  <BsCompass className="w-5 h-5 text-info" />
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold text-primary">Goals Explorer</h1>
+                  <p className="text-xs text-secondary">Browse, filter, and manage all organizational goals</p>
+                </div>
+              </div>
+              <div className="hidden md:flex items-center gap-2">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-secondary border border-theme">
+                  <BsClipboardData className="w-3.5 h-3.5 text-secondary" />
+                  <span className="text-xs font-medium text-secondary">{totalStats.total} Total</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
           {/* Stats Section - Fixed */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -387,7 +415,8 @@ function AllGoalsPageContent() {
               transition={{ delay: 0.2 }}
               className="flex-1 flex flex-col overflow-hidden min-h-0"
             >
-              <div className="relative bg-surface-elevated rounded-lg border border-theme overflow-hidden shadow-sm flex flex-col h-full">
+              <div className="relative bg-surface-elevated rounded-2xl border border-theme overflow-hidden shadow-theme-sm hover:shadow-theme-lg transition-all duration-300 flex flex-col h-full">
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-info))]/50 via-[rgb(var(--color-accent))]/50 to-[rgb(var(--color-warning))]/50" />
                 <div className="p-4 flex flex-col flex-1 overflow-hidden min-h-0">
                   <AdminGoalsTable
                     goals={filteredGoals}

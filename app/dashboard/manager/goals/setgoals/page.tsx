@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { BsExclamationTriangle, BsArrowUpRight, BsCheckCircle, BsClock, BsFileEarmarkText, BsCheck2Circle, BsXCircle, BsListCheck } from 'react-icons/bs';
+import { BsExclamationTriangle, BsArrowUpRight, BsCheckCircle, BsClock, BsFileEarmarkText, BsCheck2Circle, BsXCircle, BsListCheck, BsBullseye, BsPlusLg } from 'react-icons/bs';
 import { Button } from '@/app/components/ui/button';
 
 // Layout
@@ -427,8 +427,39 @@ function ManagerGoalSettingPageContent() {
   }
   return (
     <DashboardLayout type="manager">
-      <div className="max-w-7xl mx-auto space-y-5">
-        <div className="bg-surface-elevated rounded-xl p-4 border border-theme space-y-4">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Goal Assignment Header */}
+        <div className="relative bg-gradient-to-r from-[rgba(var(--color-accent),0.10)] via-[rgba(var(--color-accent),0.04)] to-transparent rounded-2xl border border-theme overflow-hidden">
+          {/* Decorative bullseye pattern */}
+          <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-[0.03]">
+            <BsBullseye className="w-32 h-32 text-accent" />
+          </div>
+          <div className="relative px-6 py-5 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-accent/10 border border-[rgba(var(--color-accent),0.2)] flex items-center justify-center shadow-theme-sm">
+                <BsBullseye className="w-5 h-5 text-accent" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-primary tracking-tight">Goal Assignment</h1>
+                <p className="text-sm text-secondary mt-0.5">Create and manage goals for your team members</p>
+              </div>
+            </div>
+            <div className="hidden md:flex items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-accent-muted text-accent text-xs font-semibold">
+                <BsListCheck className="w-3.5 h-3.5" />
+                <span>{stats.totalGoals} Goals</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-success-muted text-success text-xs font-semibold">
+                <BsCheckCircle className="w-3.5 h-3.5" />
+                <span>{stats.completedGoals} Completed</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-surface-elevated rounded-2xl p-4 border border-theme space-y-4 relative overflow-hidden transition-all duration-300 hover:shadow-theme-sm">
+          {/* Top accent line */}
+          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent" />
           {(() => {
             const statItems: StatItem[] = [
               {
@@ -541,10 +572,10 @@ function ManagerGoalSettingPageContent() {
           {/* View Templates Button */}
           <motion.button
             onClick={() => setShowTemplates(!showTemplates)}
-            className="w-full bg-surface-elevated rounded-xl p-4 
-              shadow-md border border-theme 
-              hover:bg-white/90 dark:hover:bg-surface-tertiary/80 transition-all duration-300
-              text-primary font-medium flex items-center justify-center gap-2"
+            className="w-full bg-surface-elevated rounded-2xl p-4
+              shadow-theme-sm border border-theme
+              hover:shadow-theme-lg hover:border-[rgba(var(--color-accent),0.2)] transition-all duration-300
+              text-primary font-semibold flex items-center justify-center gap-2 focus-ring"
           >
             {showTemplates ? 'Hide Templates' : 'Create Goals Using Templates'}
             <BsArrowUpRight className={`transform transition-transform duration-300 ${showTemplates ? 'rotate-180' : ''}`} />
@@ -558,8 +589,8 @@ function ManagerGoalSettingPageContent() {
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className={`${THEME_COLORS.background.primary} backdrop-blur-xl rounded-2xl p-6 border ${THEME_COLORS.border.light}`}>
-                  <h3 className={`text-xl font-bold ${THEME_COLORS.text.primary} mb-4`}>Goal Templates</h3>
+                <div className="bg-surface-elevated backdrop-blur-xl rounded-2xl p-6 border border-theme shadow-theme-sm">
+                  <h3 className="text-xl font-bold text-primary mb-4">Goal Templates</h3>
                   <GoalTemplates onSelect={(template) => {
                     setFormData(prev => ({
                       ...prev,

@@ -13,7 +13,7 @@ import ReviewCycleForm from './components/ReviewCycleForm';
 import ImportExcelModal from './components/ImportExcelModal';
 import { Pagination } from '@/app/components/shared/Pagination';
 import PageToolbar from '@/app/components/shared/PageToolbar';
-import { BsArrowLeft, BsPerson, BsCheckCircle, BsClock, BsClipboardPlus } from 'react-icons/bs';
+import { BsArrowLeft, BsPerson, BsCheckCircle, BsClock, BsClipboardPlus, BsArrowRepeat } from 'react-icons/bs';
 import Link from 'next/link';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 
@@ -217,8 +217,42 @@ export default function ReviewCyclesPage() {
       <div className="fixed inset-0 top-16 left-0 md:left-60 right-0 bottom-0 bg-surface-primary flex flex-col overflow-hidden z-0">
         {/* Subtle Background Pattern */}
         <div className="absolute inset-0 pointer-events-none bg-grid" />
-        
+
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
+          {/* Review Cycles Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="flex-shrink-0 mb-4 relative overflow-hidden rounded-2xl bg-gradient-to-r from-[rgb(var(--color-accent))]/8 via-[rgb(var(--color-info))]/5 to-[rgb(var(--color-success))]/8 border border-theme shadow-theme-sm"
+          >
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[rgb(var(--color-accent))] via-[rgb(var(--color-info))] to-[rgb(var(--color-success))]" />
+            <div className="absolute top-0 left-0 w-48 h-48 bg-[rgb(var(--color-accent))]/5 rounded-full -translate-y-1/2 -translate-x-1/2 blur-3xl pointer-events-none" />
+            <div className="relative px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 rounded-xl bg-accent/10 border border-[rgb(var(--color-accent))]/20 flex items-center justify-center">
+                  <BsArrowRepeat className="w-5 h-5 text-accent" />
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold text-primary">Review Cycles</h1>
+                  <p className="text-xs text-secondary">Track and manage employee review timelines</p>
+                </div>
+              </div>
+              {/* Timeline visual indicator */}
+              <div className="hidden md:flex items-center gap-3">
+                <div className="flex items-center gap-1">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="flex items-center">
+                      <div className={`w-2.5 h-2.5 rounded-full ${i < 2 ? 'bg-[rgb(var(--color-success))]' : i === 2 ? 'bg-[rgb(var(--color-warning))]' : 'bg-surface-secondary border border-theme'}`} />
+                      {i < 3 && <div className={`w-6 h-0.5 ${i < 2 ? 'bg-[rgb(var(--color-success))]/40' : 'bg-surface-secondary'}`} />}
+                    </div>
+                  ))}
+                </div>
+                <span className="text-xs text-secondary ml-1">Phase Progress</span>
+              </div>
+            </div>
+          </motion.div>
+
           {/* Toolbar */}
           <div className="flex-shrink-0 pb-3">
             <PageToolbar

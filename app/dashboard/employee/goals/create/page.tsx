@@ -301,7 +301,33 @@ function GoalsPageContent() {
 
   return (
     <DashboardLayout type="employee">
-      <div className="max-w-7xl mx-auto space-y-5">
+      <div className="relative max-w-7xl mx-auto space-y-6">
+          {/* Floating Background Decorations */}
+          <div className="absolute -top-16 -right-16 w-64 h-64 bg-[rgb(var(--color-cat-technical))]/[0.03] rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-32 -left-12 w-48 h-48 bg-[rgb(var(--color-success))]/[0.03] rounded-full blur-3xl pointer-events-none" />
+
+          {/* Page Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[rgb(var(--color-cat-technical))]/10 via-[rgb(var(--color-accent))]/5 to-[rgb(var(--color-success))]/10 border border-[rgba(var(--color-cat-technical),0.15)] p-6 md:p-8"
+          >
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-cat-technical))] via-[rgb(var(--color-accent))] to-[rgb(var(--color-success))]" />
+            <div className="absolute -top-10 -right-10 w-36 h-36 bg-[rgb(var(--color-cat-technical))]/[0.05] rounded-full blur-2xl" />
+            <div className="relative flex items-center gap-4">
+              <div className="p-3 bg-[rgb(var(--color-cat-technical))]/10 rounded-xl">
+                <BsClipboardData className="w-6 h-6 text-[rgb(var(--color-cat-technical))]" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[rgb(var(--color-cat-technical))] to-[rgb(var(--color-accent))] bg-clip-text text-transparent">
+                  My Goals
+                </h1>
+                <p className="text-sm text-secondary mt-1">Manage, create, and track all your professional and personal goals.</p>
+              </div>
+            </div>
+          </motion.div>
+
           {/* Stats Section */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -371,10 +397,11 @@ function GoalsPageContent() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowTemplates(!showTemplates)}
-              className="bg-surface-elevated border border-theme hover:border-[rgb(var(--color-cat-technical))]/30 hover:shadow-theme-sm rounded-xl p-6 transition-all text-left group"
+              className="relative overflow-hidden bg-surface-elevated border border-theme hover:border-[rgba(var(--color-cat-technical),0.2)] hover:shadow-theme-lg rounded-2xl p-6 transition-all duration-300 text-left group"
             >
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-cat-technical))] to-[rgb(var(--color-accent))]" />
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-cat-technical rounded-lg group-hover:bg-cat-technical transition-colors">
+                <div className="p-3 bg-cat-technical rounded-xl group-hover:scale-110 transition-all duration-300">
                   <BsStars className="w-6 h-6 text-cat-technical" />
                 </div>
                 <div className="flex-1">
@@ -389,13 +416,15 @@ function GoalsPageContent() {
 
             {/* Create Goal Button */}
             <motion.button
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setIsCreateModalOpen(true)}
-              className="bg-surface-elevated border border-theme hover:border-[rgb(var(--color-success))]/30 hover:shadow-theme-sm rounded-xl p-6 transition-all text-left group"
+              className="relative overflow-hidden bg-surface-elevated border border-theme hover:border-[rgba(var(--color-success),0.2)] hover:shadow-theme-lg rounded-2xl p-6 transition-all duration-300 text-left group"
             >
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-success))] to-[rgb(var(--color-cat-training))]" />
+              <div className="absolute -bottom-6 -right-6 text-5xl font-black text-primary/[0.02] select-none">+</div>
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-cat-training rounded-lg group-hover:bg-cat-training transition-colors">
+                <div className="p-3 bg-cat-training rounded-xl group-hover:scale-110 transition-all duration-300">
                   <BsPlus className="w-6 h-6 text-cat-training" />
                 </div>
                 <div className="flex-1">

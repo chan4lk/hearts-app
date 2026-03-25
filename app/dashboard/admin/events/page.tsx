@@ -8,7 +8,7 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 
 import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
-import { BsPlus, BsSearch, BsCalendarEvent, BsFilter, BsCheckCircle, BsClock, BsArrowCounterclockwise } from 'react-icons/bs';
+import { BsPlus, BsSearch, BsCalendarEvent, BsFilter, BsCheckCircle, BsClock, BsArrowCounterclockwise, BsCalendar2Week } from 'react-icons/bs';
 import { EventFormModal } from '@/app/components/events/EventFormModal';
 import { EventsTable } from '@/app/components/events/EventsTable';
 import { EventDetailsModal } from '@/app/components/events/EventDetailsModal';
@@ -167,8 +167,36 @@ function AdminEventsContent() {
       <div className="fixed inset-0 top-16 left-0 md:left-60 right-0 bottom-0 bg-surface-primary flex flex-col overflow-hidden z-0">
         {/* Subtle Background Pattern */}
         <div className="absolute inset-0 pointer-events-none bg-grid" />
-        
+
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
+          {/* Events Hub Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="flex-shrink-0 mb-4 relative overflow-hidden rounded-2xl bg-gradient-to-r from-[rgb(var(--color-warning))]/8 via-[rgb(var(--color-accent))]/5 to-[rgb(var(--color-success))]/8 border border-theme shadow-theme-sm"
+          >
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[rgb(var(--color-warning))] via-[rgb(var(--color-accent))] to-[rgb(var(--color-success))]" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-[rgb(var(--color-warning))]/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-3xl pointer-events-none" />
+            <div className="relative px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 rounded-xl bg-warning-muted border border-[rgb(var(--color-warning))]/20 flex items-center justify-center">
+                  <BsCalendar2Week className="w-5 h-5 text-warning" />
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold text-primary">Events Hub</h1>
+                  <p className="text-xs text-secondary">Create, schedule, and manage organizational events</p>
+                </div>
+              </div>
+              <div className="hidden md:flex items-center gap-2">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-secondary border border-theme">
+                  <BsCalendarEvent className="w-3.5 h-3.5 text-secondary" />
+                  <span className="text-xs font-medium text-secondary">{pagination.total || 0} Events</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
           {/* Toolbar */}
           <div className="flex-shrink-0 pb-3">
             <PageToolbar
@@ -256,7 +284,8 @@ function AdminEventsContent() {
               transition={{ delay: 0.2 }}
               className="flex-1 flex flex-col overflow-hidden min-h-0"
             >
-              <div className="relative bg-surface-elevated rounded-lg border border-theme overflow-hidden shadow-sm flex flex-col h-full">
+              <div className="relative bg-surface-elevated rounded-2xl border border-theme overflow-hidden shadow-theme-sm hover:shadow-theme-lg transition-all duration-300 flex flex-col h-full">
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-warning))]/50 via-[rgb(var(--color-accent))]/50 to-[rgb(var(--color-success))]/50" />
                 <div className="p-4 flex flex-col flex-1 overflow-hidden min-h-0">
                   <EventsTable
                     events={events}
@@ -273,7 +302,7 @@ function AdminEventsContent() {
             {pagination.pages > 1 && (
               <div className="flex-shrink-0 pt-4 pb-3 border-t border-theme">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-[rgb(var(--color-text-inverse))]/60">
+                  <p className="text-sm text-secondary">
                     Showing {events.length} of {pagination.total} events
                   </p>
                   <div className="flex gap-2">
@@ -282,7 +311,7 @@ function AdminEventsContent() {
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setPage(Math.max(1, page - 1))}
                       disabled={page === 1}
-                      className="rounded-lg border border-white/20 px-4 py-2 text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary disabled:opacity-50 transition-all"
+                      className="rounded-xl border border-theme px-4 py-2 text-secondary hover:bg-surface-tertiary hover:text-primary disabled:opacity-50 transition-all duration-300 focus-ring"
                     >
                       Previous
                     </motion.button>
@@ -294,10 +323,10 @@ function AdminEventsContent() {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => setPage(p)}
-                            className={`rounded-lg px-3 py-1 text-sm font-medium transition-all ${
+                            className={`rounded-xl px-3 py-1 text-sm font-medium transition-all duration-300 focus-ring ${
                               page === p
-                                ? 'bg-accent hover:opacity-90 text-[rgb(var(--color-text-inverse))] shadow-[rgb(var(--color-info))]/30'
-                                : 'border border-white/20 text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary'
+                                ? 'bg-accent hover:opacity-90 text-[rgb(var(--color-text-inverse))] shadow-theme-sm'
+                                : 'border border-theme text-secondary hover:bg-surface-tertiary hover:text-primary'
                             }`}
                           >
                             {p}
@@ -310,7 +339,7 @@ function AdminEventsContent() {
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setPage(Math.min(pagination.pages, page + 1))}
                       disabled={page === pagination.pages}
-                      className="rounded-lg border border-white/20 px-4 py-2 text-[rgb(var(--color-text-inverse))] hover:bg-surface-tertiary disabled:opacity-50 transition-all"
+                      className="rounded-xl border border-theme px-4 py-2 text-secondary hover:bg-surface-tertiary hover:text-primary disabled:opacity-50 transition-all duration-300 focus-ring"
                     >
                       Next
                     </motion.button>

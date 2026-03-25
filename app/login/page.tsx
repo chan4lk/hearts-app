@@ -200,12 +200,14 @@ function LoginForm() {
           {/* Ambient glow behind card */}
           <div className="absolute -inset-4 rounded-[32px] bg-gradient-to-b from-[rgb(var(--color-accent))]/15 via-[rgb(var(--color-cat-technical))]/8 to-transparent blur-2xl opacity-70" />
 
-          <div className="login-glass-card rounded-[24px] p-8 sm:p-10 relative overflow-hidden">
+          <div className="login-glass-card rounded-2xl p-8 sm:p-10 relative overflow-hidden border border-[rgba(var(--color-accent),0.12)] bg-gradient-to-b from-[rgba(var(--color-accent),0.03)] to-transparent transition-all duration-300">
             {/* Shimmer overlay */}
-            <div className="absolute inset-0 login-shimmer rounded-[24px] pointer-events-none" />
+            <div className="absolute inset-0 login-shimmer rounded-2xl pointer-events-none" />
 
             {/* Inner top highlight */}
-            <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-[rgb(var(--color-accent))]/25 to-transparent" />
+            <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-[rgb(var(--color-accent))]/30 to-transparent" />
+            {/* Subtle gradient border shimmer */}
+            <div className="absolute -inset-px rounded-2xl bg-gradient-to-b from-[rgba(var(--color-accent),0.15)] via-transparent to-[rgba(var(--color-cat-technical),0.08)] pointer-events-none -z-10" />
 
             <motion.div
               variants={containerVariants}
@@ -222,13 +224,13 @@ function LoginForm() {
                     <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-[rgb(var(--color-accent))]/20 to-[rgb(var(--color-cat-technical))]/20 blur-xl animate-pulse-slow" />
                     {/* Logo container */}
                     <motion.div
-                      whileHover={{ scale: 1.05, rotate: 2 }}
+                      whileHover={{ scale: 1.08, rotate: 3 }}
                       transition={{ type: 'spring', stiffness: 400 }}
-                      className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-[rgb(var(--color-accent))] via-[rgb(var(--color-accent))] to-[rgb(var(--color-cat-technical))] flex items-center justify-center shadow-xl shadow-[rgb(var(--color-accent))]/30"
+                      className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-[rgb(var(--color-accent))] via-[rgb(var(--color-accent))] to-[rgb(var(--color-cat-technical))] flex items-center justify-center shadow-xl shadow-[rgb(var(--color-accent))]/35 transition-all duration-300"
                     >
                       {/* Inner shine */}
-                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/15 to-transparent" />
-                      <svg className="w-8 h-8 text-[rgb(var(--color-text-inverse))] relative" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[rgba(255,255,255,0.18)] to-transparent" />
+                      <svg className="w-10 h-10 text-[rgb(var(--color-text-inverse))] relative" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
                       </svg>
                     </motion.div>
@@ -268,7 +270,7 @@ function LoginForm() {
                   disabled={isLoading}
                   whileHover={{ scale: 1.02, y: -1 }}
                   whileTap={{ scale: 0.98 }}
-                  className="login-btn-primary group w-full relative flex items-center justify-center gap-3 h-[52px] px-6 rounded-xl bg-gradient-to-r from-[rgb(var(--color-accent))] via-[rgb(var(--color-accent))] to-[rgb(var(--color-cat-technical))] hover:from-[rgb(var(--color-accent))] hover:via-[rgb(var(--color-accent))] hover:to-[rgb(var(--color-cat-technical))] text-[rgb(var(--color-text-inverse))] font-semibold shadow-lg shadow-[rgb(var(--color-accent))]/25 hover:shadow-[rgb(var(--color-accent))]/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="login-btn-primary focus-ring group w-full relative flex items-center justify-center gap-3 h-[52px] px-6 rounded-xl bg-gradient-to-r from-[rgb(var(--color-accent))] via-[rgb(var(--color-accent))] to-[rgb(var(--color-cat-technical))] text-[rgb(var(--color-text-inverse))] font-semibold shadow-lg shadow-[rgb(var(--color-accent))]/25 hover:shadow-xl hover:shadow-[rgb(var(--color-accent))]/40 hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <AnimatePresence mode="wait">
                     {isLoading ? (
@@ -340,6 +342,19 @@ function LoginForm() {
           </div>
         </motion.div>
       </div>
+
+      {/* Powered by Bistec badge */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.8 }}
+        className="relative z-10 pb-6 flex justify-center"
+      >
+        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-elevated/60 backdrop-blur-sm border border-theme">
+          <span className="text-2xs text-tertiary font-medium tracking-wide">Powered by</span>
+          <span className="text-2xs text-accent font-bold tracking-wide">Bistec Global</span>
+        </div>
+      </motion.div>
 
       <ToastContainer
         position="bottom-right"
