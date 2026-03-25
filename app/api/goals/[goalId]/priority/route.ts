@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
 import { logger } from '@/lib/logger';
-import { handleApiError } from '@/app/api/utils/error-handler';
+import { handleApiError, validateUUID } from '@/app/api/utils/error-handler';
 
 // Priority update endpoint for goals
 export async function PATCH(
@@ -16,6 +16,9 @@ export async function PATCH(
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const invalidId = validateUUID(params.goalId, 'goal ID');
+    if (invalidId) return invalidId;
 
     const { priority } = await req.json();
     

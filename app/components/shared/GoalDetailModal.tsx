@@ -208,6 +208,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
     if (isSubmitting) {
       return; // Action in progress
     }
+    setErrorMessage(null);
     onClose();
   };
 

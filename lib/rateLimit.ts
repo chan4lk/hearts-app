@@ -43,47 +43,53 @@ export function rateLimit(options: RateLimitOptions) {
   } = options;
 
   return async (req: NextRequest): Promise<NextResponse | null> => {
-    // Get client identifier (IP address or user ID)
-    const identifier = getClientIdentifier(req);
-    const now = Date.now();
-    const key = `${identifier}:${Math.floor(now / windowMs)}`;
+    try {
+      // Get client identifier (IP address or user ID)
+      const identifier = getClientIdentifier(req);
+      const now = Date.now();
+      const key = `${identifier}:${Math.floor(now / windowMs)}`;
 
-    // Get or create rate limit entry
-    let entry = rateLimitStore[key];
-    if (!entry || entry.resetTime < now) {
-      entry = {
-        count: 0,
-        resetTime: now + windowMs,
-      };
-      rateLimitStore[key] = entry;
-    }
+      // Get or create rate limit entry
+      let entry = rateLimitStore[key];
+      if (!entry || entry.resetTime < now) {
+        entry = {
+          count: 0,
+          resetTime: now + windowMs,
+        };
+        rateLimitStore[key] = entry;
+      }
 
-    // Check if limit exceeded
-    if (entry.count >= maxRequests) {
-      const retryAfter = Math.ceil((entry.resetTime - now) / 1000);
-      
-      return NextResponse.json(
-        {
-          error: message,
-          retryAfter,
-        },
-        {
-          status: 429,
-          headers: {
-            'Retry-After': retryAfter.toString(),
-            'X-RateLimit-Limit': maxRequests.toString(),
-            'X-RateLimit-Remaining': '0',
-            'X-RateLimit-Reset': new Date(entry.resetTime).toISOString(),
+      // Check if limit exceeded
+      if (entry.count >= maxRequests) {
+        const retryAfter = Math.ceil((entry.resetTime - now) / 1000);
+
+        return NextResponse.json(
+          {
+            error: message,
+            retryAfter,
           },
-        }
-      );
+          {
+            status: 429,
+            headers: {
+              'Retry-After': retryAfter.toString(),
+              'X-RateLimit-Limit': maxRequests.toString(),
+              'X-RateLimit-Remaining': '0',
+              'X-RateLimit-Reset': new Date(entry.resetTime).toISOString(),
+            },
+          }
+        );
+      }
+
+      // Increment counter
+      entry.count++;
+
+      // Return null to continue with the request
+      return null;
+    } catch {
+      // Fail open: if rate limiter errors, allow the request rather than blocking users
+      // In production with Redis, consider failing closed instead
+      return null;
     }
-
-    // Increment counter
-    entry.count++;
-
-    // Return null to continue with the request
-    return null;
   };
 }
 

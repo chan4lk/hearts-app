@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 import { NotificationType } from '@prisma/client';
 import { logger } from '@/lib/logger';
-import { handleApiError } from '@/app/api/utils/error-handler';
+import { handleApiError, validateUUID } from '@/app/api/utils/error-handler';
 import { ratingSubmitSchema } from '@/lib/validation';
 
 export async function POST(
@@ -28,6 +28,9 @@ export async function POST(
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const invalidId = validateUUID(goalId, 'goal ID');
+    if (invalidId) return invalidId;
 
     if (session.user.role !== 'MANAGER' && session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });

@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
 import { logger } from '@/lib/logger';
-import { handleApiError } from '@/app/api/utils/error-handler';
+import { handleApiError, validateUUID } from '@/app/api/utils/error-handler';
 
 // Due date update endpoint for goals
 export async function PATCH(
@@ -19,6 +19,9 @@ export async function PATCH(
 
     // Handle both sync and async params (Next.js 15+)
     const resolvedParams = params instanceof Promise ? await params : params;
+
+    const invalidId = validateUUID(resolvedParams.goalId, 'goal ID');
+    if (invalidId) return invalidId;
     const { dueDate } = await req.json();
     
     if (!dueDate) {

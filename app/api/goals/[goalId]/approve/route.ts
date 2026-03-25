@@ -6,7 +6,7 @@ import { approveRejectSchema } from '@/lib/validation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { logger } from '@/lib/logger';
-import { handleApiError } from '@/app/api/utils/error-handler';
+import { handleApiError, validateUUID } from '@/app/api/utils/error-handler';
 import { rateLimiters } from '@/lib/rateLimit';
 
 export async function PUT(
@@ -27,6 +27,9 @@ export async function PUT(
     if (session.user?.role !== 'MANAGER' && session.user?.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
+
+    const invalidId = validateUUID(params.goalId, 'goal ID');
+    if (invalidId) return invalidId;
 
     const body = await request.json();
     const parsed = approveRejectSchema.safeParse(body);

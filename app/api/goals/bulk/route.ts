@@ -104,7 +104,11 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
         errors.push({ index: i, error: 'Title must be less than 255 characters', goal });
         continue;
       }
-      if (goal.description && goal.description.trim().length > 2000) {
+      if (!goal.description || goal.description.trim().length < 10) {
+        errors.push({ index: i, error: 'Description must be at least 10 characters', goal });
+        continue;
+      }
+      if (goal.description.trim().length > 2000) {
         errors.push({ index: i, error: 'Description must be less than 2000 characters', goal });
         continue;
       }

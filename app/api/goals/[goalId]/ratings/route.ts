@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
-import { handleApiError } from '@/app/api/utils/error-handler';
+import { handleApiError, validateUUID } from '@/app/api/utils/error-handler';
 
 // Helper to format rating response
 function formatRatingResponse(rating: any) {
@@ -35,6 +35,9 @@ export async function GET(
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const invalidId = validateUUID(params.goalId, 'goal ID');
+    if (invalidId) return invalidId;
 
     const goalId = params.goalId;
 
@@ -73,6 +76,9 @@ export async function POST(
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const invalidId = validateUUID(params.goalId, 'goal ID');
+    if (invalidId) return invalidId;
 
     const goalId = params.goalId;
     const body = await request.json();

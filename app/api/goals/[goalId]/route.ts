@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
 import { rateLimiters } from '@/lib/rateLimit';
 import { logger } from '@/lib/logger';
-import { handleApiError } from '@/app/api/utils/error-handler';
+import { handleApiError, validateUUID } from '@/app/api/utils/error-handler';
 
 // Standard include for goal queries (matching the main goals route)
 const goalInclude = {
@@ -45,6 +45,9 @@ export async function GET(req: Request, { params }: { params: { goalId: string }
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const invalidId = validateUUID(params.goalId, 'goal ID');
+    if (invalidId) return invalidId;
 
     const goal = await prisma.goal.findUnique({
       where: {
@@ -93,12 +96,15 @@ export async function PATCH(request: NextRequest, { params }: { params: { goalId
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const invalidId = validateUUID(params.goalId, 'goal ID');
+    if (invalidId) return invalidId;
+
     const { status } = await request.json();
 
     // Check if the goal exists
     const goal = await prisma.goal.findUnique({
       where: { id: params.goalId },
-      include: { 
+      include: {
         manager: true,
         employee: true
       }
@@ -159,6 +165,9 @@ export async function PUT(req: NextRequest, { params }: { params: { goalId: stri
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const invalidId = validateUUID(params.goalId, 'goal ID');
+    if (invalidId) return invalidId;
 
     const body = await req.json();
     const { title, description, category, dueDate, department, priority, employeeId } = body;
@@ -276,6 +285,9 @@ export async function DELETE(req: NextRequest, { params }: { params: { goalId: s
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const invalidId = validateUUID(params.goalId, 'goal ID');
+    if (invalidId) return invalidId;
 
     // Check if the goal exists
     const existingGoal = await prisma.goal.findUnique({

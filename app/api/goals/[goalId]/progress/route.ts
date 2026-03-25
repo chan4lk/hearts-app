@@ -6,7 +6,7 @@ import { NotificationType } from '@prisma/client';
 import { rateLimiters } from '@/lib/rateLimit';
 import { logger } from '@/lib/logger';
 import { progressUpdateSchema } from '@/lib/validation';
-import { handleApiError } from '@/app/api/utils/error-handler';
+import { handleApiError, validateUUID } from '@/app/api/utils/error-handler';
 
 // Valid statuses for progress updates — employees track progress while working
 const ALLOWED_STATUSES_FOR_PROGRESS = ['APPROVED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED'];
@@ -28,6 +28,9 @@ export async function PUT(
     if (!session?.user) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
+
+    const invalidId = validateUUID(params.goalId, 'goal ID');
+    if (invalidId) return invalidId;
 
     const body = await req.json();
     const parsed = progressUpdateSchema.safeParse(body);
