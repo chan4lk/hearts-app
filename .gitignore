@@ -44,3 +44,9 @@ next-env.d.ts
 # Docker
 .docker/
 .claude
+ # AI
+_bmad/
+BmadOutput/
+.claude/
+.claude/worktrees/
+.cursor/skills
