@@ -1,159 +1,129 @@
 # Bistec AspireHub
 
-A comprehensive Bistec AspireHub built with Next.js, Prisma, and PostgreSQL.
+A comprehensive performance management system built with Next.js 14, Prisma, and PostgreSQL.
 
 ## Features
 
-- User authentication with NextAuth.js
-- Role-based access control (Admin, Manager, Employee)
-- Goal setting and approval workflow
-- Performance ratings and feedback
-- Modern UI with Tailwind CSS
+- **Authentication** — NextAuth.js with Azure AD and Credentials providers
+- **Role-Based Access Control** — Admin, Manager, and Employee roles
+- **Goal Management** — Full lifecycle: Draft → Pending → Approved → In Progress → Completed
+- **Performance Ratings** — Self and manager ratings with feedback
+- **AI Insights** — OpenAI-powered goal suggestions and analytics
+- **Analytics Dashboard** — Recharts-based performance visualizations
+- **Dark Mode** — Full theme support with semantic design tokens
+- **Notifications** — Real-time in-app notification system
+- **Review Cycles** — Configurable review periods with import/export
+
+## Tech Stack
+
+| Layer        | Technology                              |
+| ------------ | --------------------------------------- |
+| Framework    | Next.js 14 (App Router), React 18, TypeScript |
+| Database     | PostgreSQL + Prisma ORM                 |
+| Auth         | NextAuth.js (Azure AD + Credentials)    |
+| UI           | TailwindCSS, Radix UI, Framer Motion   |
+| Charts       | Recharts                                |
+| AI           | OpenAI (gpt-4o-mini)                    |
+| Testing      | Vitest                                  |
+| Infra        | Docker, Pulumi (Azure)                  |
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ and npm
-- Docker and Docker Compose
-- PostgreSQL (or use the Docker container)
+- Node.js 18+
+- Docker and Docker Compose (or local PostgreSQL)
 
 ### Installation
 
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/yourusername/performance-management-system.git
-   cd performance-management-system
-   ```
-
-2. Install dependencies:
-
-   ```bash
-   npm install
-   ```
-
-3. Set up environment variables:
-   ```bash
-   cp .env.example .env
-   ```
-   Edit the `.env` file with your configuration.
+```bash
+git clone <repository-url>
+cd hearts-app
+npm install
+cp .env.example .env   # Edit with your configuration
+```
 
 ### Database Setup
 
-#### Using Docker (Recommended)
+**Using Docker (recommended):**
 
-1. Start the database and pgAdmin:
+```bash
+scripts\db-manage.bat start     # Start PostgreSQL + pgAdmin
+scripts\db-manage.bat migrate   # Run Prisma migrations
+scripts\db-manage.bat seed      # Seed initial data
+```
 
-   ```bash
-   scripts\db-manage.bat start
-   ```
+pgAdmin is available at http://localhost:5050 (admin@example.com / admin).
 
-2. Access pgAdmin at http://localhost:5050
+**Using Local PostgreSQL:**
 
-   - Login with admin@example.com / admin
-   - Add a new server with these settings:
-     - Host: postgres
-     - Port: 5432
-     - Database: performance_management
-     - Username: postgres
-     - Password: postgres
+```bash
+npx prisma migrate dev
+npx prisma db seed
+```
 
-3. Run migrations and seed the database:
-   ```bash
-   scripts\db-manage.bat migrate
-   scripts\db-manage.bat seed
-   ```
+### Running
 
-#### Using Local PostgreSQL
+```bash
+npm run dev           # Dev server → http://localhost:3000
+npm run build:clean   # Production build
+npm test              # Run Vitest
+npm run lint          # ESLint
+```
 
-1. Create a PostgreSQL database named `performance_management`
-2. Update the `.env` file with your database connection string
-3. Run migrations and seed the database:
-   ```bash
-   npx prisma migrate dev
-   npx prisma db seed
-   ```
+## Project Structure
 
-### Running the Application
-
-1. Start the development server:
-
-   ```bash
-   npm run dev
-   ```
-
-2. Open http://localhost:3003 in your browser
+```
+app/
+├── api/                  # API routes (Next.js Route Handlers)
+├── components/           # Shared and feature-specific components
+│   ├── shared/           # Reusable UI components
+│   ├── goals/            # Goal management components
+│   ├── events/           # Event components
+│   └── ui/               # Base UI primitives (form-primitives, ModalShell)
+├── dashboard/            # Dashboard pages (admin, manager, employee, analytics)
+├── utils/                # Utility functions (badgeConfigs, pdfGenerator)
+├── globals.css           # Design token system
+└── layout.tsx            # Root layout
+lib/
+├── auth.ts               # NextAuth configuration
+├── prisma.ts             # Prisma client
+├── validation.ts         # Zod schemas
+├── rateLimit.ts          # Rate limiting
+├── securityUtils.ts      # Input sanitization
+└── logger.ts             # Logging
+prisma/
+├── schema.prisma         # Database schema
+└── migrations/           # Migration history
+infra/                    # Pulumi infrastructure (Azure)
+__tests__/                # Vitest test suites
+```
 
 ## Database Management
 
-The `scripts\db-manage.bat` script provides several commands for managing the Docker database:
+```bash
+scripts\db-manage.bat start     # Start containers
+scripts\db-manage.bat stop      # Stop containers
+scripts\db-manage.bat restart   # Restart containers
+scripts\db-manage.bat status    # Container status
+scripts\db-manage.bat logs      # View logs
+scripts\db-manage.bat reset     # Reset database
+scripts\db-manage.bat migrate   # Run migrations
+scripts\db-manage.bat seed      # Seed data
+```
 
-- `start` - Start the database and pgAdmin
-- `stop` - Stop the database and pgAdmin
-- `restart` - Restart the database and pgAdmin
-- `status` - Show the status of containers
-- `logs` - Show logs from containers
-- `reset` - Reset the database (delete all data)
-- `migrate` - Run Prisma migrations
-- `seed` - Seed the database with initial data
-- `help` - Show help message
+## Infrastructure (Azure via Pulumi)
 
-## Test Accounts
-
-- Admin: admin@example.com / admin123
-- Manager: manager@example.com / manager123
-- Employee: employee@example.com / employee123
-
-## Deploying Infrastructure with Pulumi on Azure
-
-### Prerequisites
-
-- [Pulumi CLI](https://www.pulumi.com/docs/get-started/install/) installed
-- Azure account and access to create resources
-- Azure CLI installed and logged in (`az login`)
-- Node.js and npm installed
-
-### Steps
-
-1. **Install dependencies:**
-   ```sh
-   cd infra
-   npm install
-   ```
-2. **Login to Pulumi:**
-   ```sh
-   pulumi login
-   ```
-3. **Set up your stack:**
-   ```sh
-   pulumi stack init <stack-name>
-   ```
-   Replace `<stack-name>` with your environment (e.g., `dev`, `prod`).
-4. **Configure Azure credentials:**
-   Pulumi uses your Azure CLI credentials by default. Ensure you are logged in with `az login`.
-5. **Configure stack variables:**
-   ```sh
-   pulumi config set azure:location <location>
-   pulumi config set dbAdminUser <db-admin-username>
-   pulumi config set dbAdminPassword <db-admin-password> --secret
-   ```
-   Adjust variable names as needed for your stack.
-6. **Preview the deployment:**
-   ```sh
-   pulumi preview
-   ```
-7. **Deploy infrastructure:**
-   ```sh
-   pulumi up
-   ```
-8. **Destroy infrastructure:**
-   ```sh
-   pulumi destroy
-   ```
-
-For more details, see the `infra/README.md` or Pulumi documentation.
+```bash
+cd infra && npm install
+pulumi login
+pulumi stack init <stack-name>
+pulumi config set azure:location <location>
+pulumi config set dbAdminUser <username>
+pulumi config set dbAdminPassword <password> --secret
+pulumi up
+```
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT

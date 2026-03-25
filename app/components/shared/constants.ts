@@ -269,14 +269,7 @@ export const getStatusBadge = (status: string) => {
   } as const;
 
   return statusVariants[status as keyof typeof statusVariants] || 'secondary';
-}; 
-export const RATING_COLORS = {
-  1: 'bg-error-muted text-error',
-  2: 'bg-rating-2 text-rating-2',
-  3: 'bg-rating-3 text-warning',
-  4: 'bg-cat-professional text-cat-professional',
-  5: 'bg-cat-training text-cat-training'
-} as const;
+};
 
 export const RATING_LABELS = {
   1: "Needs Improvement",
@@ -293,36 +286,6 @@ export const RATING_DESCRIPTIONS = {
   4: "Performance frequently exceeds job requirements. Demonstrates strong skills and initiative.",
   5: "Performance consistently exceeds all expectations. Demonstrates exceptional achievements."
 } as const;
-
-export const RATING_HOVER_COLORS = {
-  1: 'hover:bg-error-muted hover:text-error',
-  2: 'hover:bg-rating-2 hover:text-rating-2',
-  3: 'hover:bg-rating-3 hover:text-warning',
-  4: 'hover:bg-cat-professional hover:text-cat-professional',
-  5: 'hover:bg-cat-training hover:text-cat-training'
-} as const;
-
-export const STATUS_COLORS = {
-  DRAFT: 'bg-cat-technical text-cat-technical dark:text-cat-technical',
-  PENDING: 'bg-surface-secondary text-secondary dark:text-tertiary',
-  COMPLETED: 'bg-cat-training text-cat-training dark:text-cat-training',
-  APPROVED: 'bg-cat-professional text-info',
-  REJECTED: 'bg-error-muted text-error',
-  MODIFIED: 'bg-rating-3 text-warning dark:text-warning'
-} as const;
-
-/** Shared status badge styles for GoalsTable and AdminGoalsTable. Use for consistent goal status UI. */
-export const GOAL_STATUS_BADGE_CONFIG: Record<string, { bg: string; text: string }> = {
-  APPROVED: { bg: 'bg-success-muted', text: 'text-success' },
-  REJECTED: { bg: 'bg-error-muted', text: 'text-error' },
-  PENDING: { bg: 'bg-warning-muted', text: 'text-warning' },
-  MODIFIED: { bg: 'bg-cat-professional', text: 'text-cat-professional' },
-  COMPLETED: { bg: 'bg-cat-training', text: 'text-cat-training' },
-  DRAFT: { bg: 'bg-surface-secondary', text: 'text-tertiary' },
-  IN_PROGRESS: { bg: 'bg-cat-professional', text: 'text-cat-professional' },
-  ON_HOLD: { bg: 'bg-warning-muted', text: 'text-warning' },
-  BLOCKED: { bg: 'bg-error-muted', text: 'text-error' },
-};
 
 export const DEPARTMENTS = [
   {
