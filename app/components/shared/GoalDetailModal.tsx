@@ -251,9 +251,9 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 modal-overlay z-50"
+        className="fixed inset-0 modal-overlay z-[100]"
       />
-              <div className="fixed inset-0 flex items-center justify-center p-1 sm:p-2 md:p-3 z-50" onClick={onClose}>
+              <div className="fixed inset-0 flex items-center justify-center p-1 sm:p-2 md:p-3 z-[100]" onClick={onClose}>
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}

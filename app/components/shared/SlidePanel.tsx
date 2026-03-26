@@ -59,7 +59,7 @@ export default function SlidePanel({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-md z-50"
+            className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100]"
             onClick={onClose}
           />
 
@@ -69,7 +69,7 @@ export default function SlidePanel({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 400, damping: 35 }}
-            className={`fixed right-0 top-0 h-full ${widthMap[width]} w-full bg-surface-elevated border-l border-theme shadow-theme-xl z-50 flex flex-col`}
+            className={`fixed right-0 top-0 h-full ${widthMap[width]} w-full bg-surface-elevated border-l border-theme shadow-theme-xl z-[100] flex flex-col`}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-theme flex-shrink-0">

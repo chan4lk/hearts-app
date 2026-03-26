@@ -248,12 +248,15 @@ export function BulkGoalFormModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-1 sm:p-3 overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-1 sm:p-3 overflow-hidden">
+      {/* Backdrop */}
+      <div className="absolute inset-0 modal-overlay" onClick={handleClose} />
+      {/* Content */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="modal-content rounded-lg sm:rounded-xl w-full max-w-4xl shadow-theme-lg border border-theme max-h-[90vh] overflow-hidden"
+        className="relative modal-content rounded-lg sm:rounded-xl w-full max-w-4xl shadow-theme-xl border border-theme max-h-[90vh] overflow-hidden"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-3 py-2 border-b border-theme bg-surface-tertiary">
