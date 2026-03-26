@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ModalShell, FORM_STYLES, FormActions } from '@/app/components/ui/form-primitives';
 import { User, GoalFormData } from './types';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
@@ -246,65 +246,57 @@ export function BulkGoalFormModal({
     onClose();
   };
 
-  if (!isOpen) return null;
+  const footerContent = activeTab === 'manual' ? (
+    <div className="flex items-center justify-between w-full">
+      <span className="text-xs text-secondary">{goals.length} goal(s) ready to create</span>
+      <FormActions
+        onCancel={handleClose}
+        submitLabel={isSubmitting ? 'Creating...' : `Create ${goals.length} Goal(s)`}
+        loading={isSubmitting || loading || goals.length === 0}
+        formId="bulk-goal-form"
+      />
+    </div>
+  ) : (
+    <div className="flex items-center justify-between w-full">
+      <span className="text-xs text-secondary">Use templates to quickly create goals</span>
+      <button onClick={handleClose} className={FORM_STYLES.btnSecondary}>Close</button>
+    </div>
+  );
 
-  const modal = (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-1 sm:p-3 overflow-hidden">
-      {/* Backdrop */}
-      <div className="absolute inset-0 modal-overlay" onClick={handleClose} />
+  return (
+    <ModalShell
+      open={isOpen}
+      onClose={handleClose}
+      title="Create Multiple Goals"
+      maxWidth="max-w-4xl"
+      footer={footerContent}
+    >
+      {/* Tabs */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => setActiveTab('manual')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors focus-ring ${
+            activeTab === 'manual'
+              ? 'bg-accent text-[rgb(var(--color-text-inverse))]'
+              : 'bg-surface-secondary text-secondary hover:bg-surface-tertiary hover:text-primary'
+          }`}
+        >
+          Manual Entry ({goals.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('templates')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors focus-ring ${
+            activeTab === 'templates'
+              ? 'bg-accent text-[rgb(var(--color-text-inverse))]'
+              : 'bg-surface-secondary text-secondary hover:bg-surface-tertiary hover:text-primary'
+          }`}
+        >
+          Templates
+        </button>
+      </div>
+
       {/* Content */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="relative modal-content rounded-lg sm:rounded-xl w-full max-w-4xl shadow-theme-xl border border-theme max-h-[90vh] overflow-hidden"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-3 py-2 border-b border-theme bg-surface-tertiary">
-          <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-r from-[rgba(var(--color-warning),0.2)] to-[rgba(var(--color-warning),0.1)] p-1.5 rounded-lg">
-              <svg className="w-4 h-4 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-            </div>
-            <h2 className="text-sm font-medium text-primary">Create Multiple Goals</h2>
-          </div>
-          <button
-            onClick={handleClose}
-            className="p-1.5 hover:bg-surface-tertiary rounded-lg transition-colors text-secondary hover:text-primary"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-1 px-3 py-2 bg-black/10 border-b border-theme">
-          <button
-            onClick={() => setActiveTab('manual')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              activeTab === 'manual'
-                ? 'bg-warning-muted text-warning border border-[rgba(var(--color-warning),0.3)]'
-                : 'text-secondary hover:bg-surface-tertiary hover:text-[rgb(var(--color-text-inverse))]'
-            }`}
-          >
-            Manual Entry ({goals.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('templates')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              activeTab === 'templates'
-                ? 'bg-warning-muted text-warning border border-[rgba(var(--color-warning),0.3)]'
-                : 'text-secondary hover:bg-surface-tertiary hover:text-[rgb(var(--color-text-inverse))]'
-            }`}
-          >
-            Templates
-          </button>
-        </div>
-
-        {/* Content - lock scroll when a dropdown is open so dark dropdown stays visible */}
-        <div className={`p-3 max-h-[calc(90vh-140px)] ${anySelectOpen ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+      <div className={anySelectOpen ? 'overflow-hidden' : ''}>
           {activeTab === 'templates' ? (
             <div className="space-y-4">
               {/* Employee Selection for Templates */}
@@ -532,61 +524,7 @@ export function BulkGoalFormModal({
             </div>
           </form>
           )}
-        </div>
-
-        {/* Footer */}
-        {activeTab === 'manual' && (
-          <div className="bg-black/10 px-3 py-2 flex items-center justify-between border-t border-theme">
-            <div className="text-xs text-tertiary">
-              {goals.length} goal(s) ready to create
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleClose}
-                className="px-3 py-1.5 text-secondary hover:text-primary hover:bg-surface-tertiary rounded-lg transition-colors text-xs"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                form="bulk-goal-form"
-                disabled={isSubmitting || loading || goals.length === 0}
-                className="px-4 py-1.5 bg-warning-muted text-warning border border-[rgba(var(--color-warning),0.3)] rounded-lg hover:bg-[rgb(var(--color-warning))]/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 text-xs font-medium"
-              >
-                {isSubmitting ? (
-                  <>
-                    <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Creating...
-                  </>
-                ) : (
-                  `Create ${goals.length} Goal(s)`
-                )}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'templates' && (
-          <div className="bg-black/10 px-3 py-2 flex items-center justify-between border-t border-theme">
-            <div className="text-xs text-tertiary">
-              Use templates to quickly create goals for multiple employees
-            </div>
-            <button
-              type="button"
-              onClick={handleClose}
-              className="px-3 py-1.5 text-secondary hover:text-primary hover:bg-surface-tertiary rounded-lg transition-colors text-xs"
-            >
-              Close
-            </button>
-          </div>
-        )}
-      </motion.div>
-    </div>
+      </div>
+    </ModalShell>
   );
-
-  return typeof document !== 'undefined' ? createPortal(modal, document.body) : modal;
 }
