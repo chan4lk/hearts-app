@@ -6,10 +6,9 @@ import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { Goal, GoalWithRatingExtended, EmployeeStats } from '@/app/components/shared/types';
 
-import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
+import MetricStrip from '@/app/components/shared/MetricStrip';
 import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 
-import { BsClipboardData, BsCheckCircle, BsXCircle, BsPencil } from 'react-icons/bs';
 import { PageHeader } from '@/app/components/shared/PageHeader';
 import { useToast } from '@/app/components/shared/Toast';
 import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
@@ -355,90 +354,66 @@ export default function ApproveGoalsPage() {
             badge="Manager"
           />
 
-          <div className="bg-surface-elevated rounded-2xl p-4 border border-theme space-y-4 relative overflow-hidden transition-all duration-300 hover:shadow-theme-sm">
-            {/* Top accent line */}
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent" />
-            <PageToolbar
-              searchValue={searchQuery}
-              onSearchChange={(value) => {
-                setSearchQuery(value);
+          {(() => {
+            const sc: Record<string, number> = {};
+            for (const g of goals) sc[g.status] = (sc[g.status] || 0) + 1;
+            const pendingCount = (sc['PENDING'] || 0) + (sc['DRAFT'] || 0);
+            const approvedCount = sc['APPROVED'] || 0;
+            const rejectedCount = sc['REJECTED'] || 0;
+
+            return <MetricStrip metrics={[
+              { label: 'Total Goals', value: goals.length, color: 'accent' },
+              { label: 'Pending', value: pendingCount, color: 'warning' },
+              { label: 'Approved', value: approvedCount, color: 'success' },
+              { label: 'Rejected', value: rejectedCount, color: 'error' },
+            ]} />;
+          })()}
+
+          <PageToolbar
+            searchValue={searchQuery}
+            onSearchChange={(value) => {
+              setSearchQuery(value);
+              setPage(1);
+            }}
+            searchPlaceholder="Search goals..."
+            hasActiveFilters={selectedStatus !== '' || selectedPriority !== ''}
+            onClearFilters={() => {
+              handleClearFilters();
+              setSearchQuery('');
+            }}
+          >
+            <FilterSelect
+              value={selectedStatus}
+              onChange={(value) => {
+                setSelectedStatus(value);
                 setPage(1);
               }}
-              searchPlaceholder="Search goals..."
-              hasActiveFilters={selectedStatus !== '' || selectedPriority !== ''}
-              onClearFilters={() => {
-                handleClearFilters();
-                setSearchQuery('');
+              options={[
+                { value: 'DRAFT', label: 'Draft' },
+                { value: 'PENDING', label: 'Pending' },
+                { value: 'APPROVED', label: 'Approved' },
+                { value: 'REJECTED', label: 'Rejected' },
+              ]}
+              placeholder="All Status"
+            />
+            <FilterSelect
+              value={selectedPriority}
+              onChange={(value) => {
+                setSelectedPriority(value);
+                setPage(1);
               }}
-            >
-              <FilterSelect
-                value={selectedStatus}
-                onChange={(value) => {
-                  setSelectedStatus(value);
-                  setPage(1);
-                }}
-                options={[
-                  { value: 'DRAFT', label: 'Draft' },
-                  { value: 'PENDING', label: 'Pending' },
-                  { value: 'APPROVED', label: 'Approved' },
-                  { value: 'REJECTED', label: 'Rejected' },
-                ]}
-                placeholder="All Status"
-              />
-              <FilterSelect
-                value={selectedPriority}
-                onChange={(value) => {
-                  setSelectedPriority(value);
-                  setPage(1);
-                }}
-                options={[
-                  { value: 'LOW', label: 'Low' },
-                  { value: 'MEDIUM', label: 'Medium' },
-                  { value: 'HIGH', label: 'High' },
-                  { value: 'CRITICAL', label: 'Critical' },
-                ]}
-                placeholder="All Priority"
-              />
-            </PageToolbar>
-
-            {(() => {
-              // Single-pass count instead of 3 separate .filter() calls
-              const sc: Record<string, number> = {};
-              for (const g of goals) sc[g.status] = (sc[g.status] || 0) + 1;
-              const pendingCount = (sc['PENDING'] || 0) + (sc['DRAFT'] || 0);
-              const approvedCount = sc['APPROVED'] || 0;
-              const rejectedCount = sc['REJECTED'] || 0;
-              
-              const statItems: StatItem[] = [
-                {
-                  title: 'Total Goals',
-                  value: goals.length,
-                  icon: <BsClipboardData className="w-4 h-4" />,
-                },
-                {
-                  title: 'Pending',
-                  value: pendingCount,
-                  icon: <BsPencil className="w-4 h-4" />,
-                },
-                {
-                  title: 'Approved',
-                  value: approvedCount,
-                  icon: <BsCheckCircle className="w-4 h-4" />,
-                },
-                {
-                  title: 'Rejected',
-                  value: rejectedCount,
-                  icon: <BsXCircle className="w-4 h-4" />,
-                }
-              ];
-              return <StatsSection stats={statItems} />;
-            })()}
-          </div>
+              options={[
+                { value: 'LOW', label: 'Low' },
+                { value: 'MEDIUM', label: 'Medium' },
+                { value: 'HIGH', label: 'High' },
+                { value: 'CRITICAL', label: 'Critical' },
+              ]}
+              placeholder="All Priority"
+            />
+          </PageToolbar>
 
           {/* Goals Table */}
           <div className="relative bg-surface-elevated rounded-2xl border border-theme overflow-hidden transition-all duration-300 hover:shadow-theme-sm">
-            {/* Top accent line */}
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent" />
             <div className="p-4">
               <GoalsTable
                 goals={filteredGoals}

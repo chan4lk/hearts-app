@@ -6,10 +6,9 @@ import { useRouter } from "next/navigation";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import { GoalWithRatingExtended, EmployeeStats } from "@/app/components/shared/types";
 
-import StatsSection, { StatItem } from "@/app/components/shared/StatsSection";
+import MetricStrip from '@/app/components/shared/MetricStrip';
 import PageToolbar, { FilterSelect } from "@/app/components/shared/PageToolbar";
 
-import { BsClipboardData, BsCheckCircle, BsPercent, BsStarFill as BsStarIcon } from 'react-icons/bs';
 import { PageHeader } from '@/app/components/shared/PageHeader';
 import { useToast } from '@/app/components/shared/Toast';
 import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
@@ -425,41 +424,20 @@ export default function RateEmployeesPage() {
             badge="Manager"
           />
 
-          <div className="bg-surface-elevated rounded-2xl p-4 border border-theme space-y-4 relative overflow-hidden transition-all duration-300 hover:shadow-theme-sm">
-            {/* Top accent line */}
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent" />
-            {(() => {
-              const ratedCount = goals.filter(g => g.rating?.managerScore || g.rating?.score).length;
-              const unratedCount = goals.length - ratedCount;
-              const avgRating = goals.length > 0 
-                ? (goals.reduce((sum, g) => sum + (g.rating?.managerScore || g.rating?.score || 0), 0) / goals.length).toFixed(1)
-                : '0.0';
-              
-              const statItems: StatItem[] = [
-                {
-                  title: 'Total Goals',
-                  value: goals.length,
-                  icon: <BsClipboardData className="w-4 h-4" />,
-                },
-                {
-                  title: 'Rated',
-                  value: ratedCount,
-                  icon: <BsCheckCircle className="w-4 h-4" />,
-                },
-                {
-                  title: 'Pending',
-                  value: unratedCount,
-                  icon: <BsPercent className="w-4 h-4" />,
-                },
-                {
-                  title: 'Avg Rating',
-                  value: `${avgRating}★`,
-                  icon: <BsStarIcon className="w-4 h-4" />,
-                }
-              ];
-              return <StatsSection stats={statItems} />;
-            })()}
-          </div>
+          {(() => {
+            const ratedCount = goals.filter(g => g.rating?.managerScore || g.rating?.score).length;
+            const unratedCount = goals.length - ratedCount;
+            const avgRating = goals.length > 0
+              ? (goals.reduce((sum, g) => sum + (g.rating?.managerScore || g.rating?.score || 0), 0) / goals.length).toFixed(1)
+              : '0.0';
+
+            return <MetricStrip metrics={[
+              { label: 'Total Goals', value: goals.length, color: 'accent' },
+              { label: 'Rated', value: ratedCount, color: 'success' },
+              { label: 'Pending', value: unratedCount, color: 'warning' },
+              { label: 'Avg Rating', value: `${avgRating}★`, color: 'info' },
+            ]} />;
+          })()}
 
           <PageToolbar
             searchValue={searchQuery}
@@ -535,8 +513,6 @@ export default function RateEmployeesPage() {
 
           {/* Goals Table */}
           <div className="relative bg-surface-elevated rounded-2xl border border-theme overflow-hidden transition-all duration-300 hover:shadow-theme-sm">
-            {/* Top accent line */}
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent" />
             <div className="p-4">
               <GoalsTable
                 goals={filteredGoals}

@@ -5,12 +5,12 @@
  import { useRouter } from 'next/navigation';
  import DashboardLayout from '@/app/components/layout/DashboardLayout';
 
- import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
+ import MetricStrip, { Metric } from '@/app/components/shared/MetricStrip';
  import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 
- import { BsStarFill, BsClipboardData, BsCheckCircle, BsPercent } from 'react-icons/bs';
  import { PageHeader } from '@/app/components/shared/PageHeader';
  import { useToast } from '@/app/components/shared/Toast';
+ import { LoadingSkeleton, ErrorState } from '@/app/components/shared/feedback';
  import { GoalWithRating } from '@/app/components/shared/types';
  import { Pagination } from '@/app/components/shared/Pagination';
 import RatingGoalCard from '@/app/components/shared/RatingGoalCard';
@@ -22,6 +22,7 @@ import RatingGoalCard from '@/app/components/shared/RatingGoalCard';
    const toast = useToast();
    const [goals, setGoals] = useState<GoalWithRating[]>([]);
    const [loading, setLoading] = useState(true);
+   const [error, setError] = useState<string | null>(null);
    const [page, setPage] = useState(1);
    const [limit, setLimit] = useState(20);
    const [pagination, setPagination] = useState<{
@@ -51,6 +52,7 @@ import RatingGoalCard from '@/app/components/shared/RatingGoalCard';
    const fetchGoals = async () => {
      try {
        setLoading(true);
+       setError(null);
        const params = new URLSearchParams({
          view: 'my-goals',
          page: page.toString(),
@@ -75,6 +77,9 @@ import RatingGoalCard from '@/app/components/shared/RatingGoalCard';
        if (data.pagination) {
          setPagination(data.pagination);
        }
+     } catch (err) {
+       setError(err instanceof Error ? err.message : 'Failed to load goals');
+       setGoals([]);
      } finally {
        setLoading(false);
      }
@@ -84,32 +89,16 @@ import RatingGoalCard from '@/app/components/shared/RatingGoalCard';
      return goals;
    }, [goals]);
  
-   const statsItems: StatItem[] = useMemo(() => {
+   const statsMetrics: Metric[] = useMemo(() => {
      const total = filteredGoals.length;
      const completed = filteredGoals.filter(g => g.status === 'COMPLETED').length;
      const rated = filteredGoals.filter(g => g.rating?.selfScore != null).length;
      const completionRate = total > 0 ? Math.round((completed / total) * 1000) / 10 : 0;
      return [
-       {
-         title: 'My Goals',
-         value: total,
-         icon: <BsClipboardData className="w-4 h-4" />,
-       },
-       {
-         title: 'Completed',
-         value: completed,
-         icon: <BsCheckCircle className="w-4 h-4" />,
-       },
-       {
-         title: 'Self Rated',
-         value: rated,
-         icon: <BsStarFill className="w-4 h-4" />,
-       },
-       {
-         title: 'Completion Rate',
-         value: `${completionRate}%`,
-         icon: <BsPercent className="w-4 h-4" />,
-       }
+       { label: 'My Goals', value: total, color: 'accent' as const },
+       { label: 'Completed', value: completed, color: 'success' as const },
+       { label: 'Self Rated', value: rated, color: 'info' as const },
+       { label: 'Completion Rate', value: `${completionRate}%`, color: 'warning' as const },
      ];
    }, [filteredGoals]);
  
@@ -153,15 +142,14 @@ import RatingGoalCard from '@/app/components/shared/RatingGoalCard';
  
    return (
      <DashboardLayout type="employee">
+       {loading ? <LoadingSkeleton variant="page" /> : error ? <ErrorState message={error} onRetry={() => { setError(null); fetchGoals(); }} /> :
        <div className="max-w-7xl mx-auto space-y-6">
            <PageHeader
              title="Self Rating"
              description="Rate your own performance"
            />
 
-           <div className="space-y-3">
-             <StatsSection stats={statsItems} />
-           </div>
+           <MetricStrip metrics={statsMetrics} />
            <PageToolbar
              searchValue={search}
              onSearchChange={(value) => {
@@ -256,7 +244,7 @@ import RatingGoalCard from '@/app/components/shared/RatingGoalCard';
                />
              </div>
            )}
-       </div>
+       </div>}
      </DashboardLayout>
    );
  }

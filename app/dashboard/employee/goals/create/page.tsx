@@ -9,10 +9,9 @@ import { BsPlus, BsArrowUpRight } from 'react-icons/bs';
 import GoalTemplates from '@/app/components/shared/GoalTemplates';
 
 import { GoalsList } from './components/GoalsList';
-import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
+import MetricStrip from '@/app/components/shared/MetricStrip';
 import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 
-import { BsClipboardData, BsCheckCircle, BsPencil, BsXCircle } from 'react-icons/bs';
 import { PageHeader } from '@/app/components/shared/PageHeader';
 import { useToast } from '@/app/components/shared/Toast';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
@@ -314,44 +313,21 @@ function GoalsPageContent() {
           </PageHeader>
 
           {/* Stats Section */}
-          <div>
-            {(() => {
-              // Single-pass count instead of 3 separate .filter() calls
-              const sc: Record<string, number> = {};
-              for (const g of goals) sc[g.status] = (sc[g.status] || 0) + 1;
-              const totalGoals = goals.length;
-              const approvedCount = sc['APPROVED'] || 0;
-              const draftCount = sc['DRAFT'] || 0;
-              const rejectedCount = sc['REJECTED'] || 0;
-              
-              const statItems: StatItem[] = [
-                {
-                  title: 'Total Goals',
-                  value: totalGoals,
-                  icon: <BsClipboardData className="w-4 h-4" />,
-                },
-                {
-                  title: 'Draft',
-                  value: draftCount,
-                  icon: <BsPencil className="w-4 h-4" />,
-                  onClick: () => setSelectedStatus('DRAFT')
-                },
-                {
-                  title: 'Approved',
-                  value: approvedCount,
-                  icon: <BsCheckCircle className="w-4 h-4" />,
-                  onClick: () => setSelectedStatus('APPROVED')
-                },
-                {
-                  title: 'Rejected',
-                  value: rejectedCount,
-                  icon: <BsXCircle className="w-4 h-4" />,
-                  onClick: () => setSelectedStatus('REJECTED')
-                }
-              ];
-              return <StatsSection stats={statItems} />;
-            })()}
-          </div>
+          {(() => {
+            const sc: Record<string, number> = {};
+            for (const g of goals) sc[g.status] = (sc[g.status] || 0) + 1;
+            const totalGoals = goals.length;
+            const approvedCount = sc['APPROVED'] || 0;
+            const draftCount = sc['DRAFT'] || 0;
+            const rejectedCount = sc['REJECTED'] || 0;
+
+            return <MetricStrip metrics={[
+              { label: 'Total Goals', value: totalGoals, color: 'accent' },
+              { label: 'Draft', value: draftCount, color: 'secondary', onClick: () => setSelectedStatus('DRAFT') },
+              { label: 'Approved', value: approvedCount, color: 'success', onClick: () => setSelectedStatus('APPROVED') },
+              { label: 'Rejected', value: rejectedCount, color: 'error', onClick: () => setSelectedStatus('REJECTED') },
+            ]} />;
+          })()}
 
           {/* View Templates Button */}
           <button
@@ -396,13 +372,7 @@ function GoalsPageContent() {
                 setPage(1);
               }}
               searchPlaceholder="Search goals..."
-              actions={[
-                {
-                  label: 'Create Goal',
-                  onClick: () => createModal.open(),
-                  variant: 'primary',
-                },
-              ]}
+              actions={[]}
               hasActiveFilters={selectedStatus !== 'all' || selectedCategory !== 'all' || selectedPriority !== ''}
               onClearFilters={() => {
                 handleClearFilters();

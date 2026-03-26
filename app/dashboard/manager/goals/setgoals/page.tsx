@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { usePagination, useModalState } from '@/app/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BsExclamationTriangle, BsArrowUpRight, BsCheckCircle, BsClock, BsFileEarmarkText, BsCheck2Circle, BsXCircle, BsListCheck, BsPlusLg } from 'react-icons/bs';
+import { BsExclamationTriangle, BsArrowUpRight, BsPlusLg } from 'react-icons/bs';
 import { Button } from '@/app/components/ui/button';
 import { PageHeader } from '@/app/components/shared/PageHeader';
 import { useToast } from '@/app/components/shared/Toast';
@@ -16,7 +16,7 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 
 // Components
 
-import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
+import MetricStrip from '@/app/components/shared/MetricStrip';
 import { GoalList } from './components/sections/GoalList';
 import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 
@@ -429,45 +429,14 @@ function ManagerGoalSettingPageContent() {
           </Button>
         </PageHeader>
 
-        <div className="bg-surface-elevated rounded-2xl p-4 border border-theme space-y-4 relative overflow-hidden transition-all duration-300 hover:shadow-theme-sm">
-          {/* Top accent line */}
-          <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent" />
-          {(() => {
-            const statItems: StatItem[] = [
-              {
-                title: 'Total Goals',
-                value: stats.totalGoals,
-                icon: <BsListCheck className="w-4 h-4" />,
-              },
-              {
-                title: 'Draft',
-                value: stats.draftGoals,
-                icon: <BsFileEarmarkText className="w-4 h-4" />,
-              },
-              {
-                title: 'Pending',
-                value: stats.pendingGoals,
-                icon: <BsClock className="w-4 h-4" />,
-              },
-              {
-                title: 'Approved',
-                value: stats.approvedGoals,
-                icon: <BsCheck2Circle className="w-4 h-4" />,
-              },
-              {
-                title: 'Rejected',
-                value: stats.rejectedGoals,
-                icon: <BsXCircle className="w-4 h-4" />,
-              },
-              {
-                title: 'Completed',
-                value: stats.completedGoals,
-                icon: <BsCheckCircle className="w-4 h-4" />,
-              }
-            ];
-            return <StatsSection stats={statItems} />;
-          })()}
-        </div>
+        <MetricStrip metrics={[
+          { label: 'Total Goals', value: stats.totalGoals, color: 'accent' },
+          { label: 'Draft', value: stats.draftGoals, color: 'secondary' },
+          { label: 'Pending', value: stats.pendingGoals, color: 'warning' },
+          { label: 'Approved', value: stats.approvedGoals, color: 'success' },
+          { label: 'Rejected', value: stats.rejectedGoals, color: 'error' },
+          { label: 'Completed', value: stats.completedGoals, color: 'info' },
+        ]} />
 
         {/* Toolbar + Filters */}
         <PageToolbar
@@ -477,18 +446,7 @@ function ManagerGoalSettingPageContent() {
             setPage(1);
           }}
           searchPlaceholder="Search goals..."
-          actions={[
-            {
-              label: 'Bulk Create',
-              onClick: () => bulkCreateModal.open(),
-              variant: 'secondary',
-            },
-            {
-              label: 'Create Goal',
-              onClick: () => createModal.open(),
-              variant: 'primary',
-            },
-          ]}
+          actions={[]}
           hasActiveFilters={selectedEmployee !== 'all' || selectedStatus !== '' || selectedPriority !== ''}
           onClearFilters={() => {
             setSelectedEmployee('all');
