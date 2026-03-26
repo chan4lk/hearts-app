@@ -1,6 +1,7 @@
 'use client';
 
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BsX } from 'react-icons/bs';
 import { Button } from '@/app/components/ui/button';
@@ -49,7 +50,10 @@ export default function SlidePanel({
     return () => document.removeEventListener('keydown', handleKey);
   }, [open, onClose]);
 
-  return (
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  const panel = (
     <AnimatePresence>
       {open && (
         <>
@@ -106,4 +110,7 @@ export default function SlidePanel({
       )}
     </AnimatePresence>
   );
+
+  if (!mounted) return null;
+  return createPortal(panel, document.body);
 }

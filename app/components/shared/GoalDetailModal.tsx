@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, BsArrowRight, BsChevronDown, BsChevronUp, BsPencil, BsTrash, BsPerson, BsGear, BsFlag, BsPlayCircle, BsPauseCircle, BsCircle, BsArrowRepeat } from 'react-icons/bs';
 import { Goal, GoalWithRatingExtended } from '@/app/components/shared/types';
 import { IconType } from 'react-icons';
@@ -244,7 +245,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
     }
   };
 
-  return (
+  const content = (
     <>
       <motion.div
         initial={{ opacity: 0 }}
@@ -681,4 +682,6 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
       </div>
     </>
   );
+
+  return typeof document !== 'undefined' ? createPortal(content, document.body) : content;
 }

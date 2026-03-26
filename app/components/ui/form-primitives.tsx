@@ -1,6 +1,7 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BsX } from 'react-icons/bs';
 
@@ -25,7 +26,10 @@ export function ModalShell({ open, onClose, title, icon, children, maxWidth = 'm
   maxWidth?: string;
   footer?: ReactNode;
 }) {
-  return (
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  const modal = (
     <AnimatePresence>
       {open && (
         <motion.div
@@ -82,6 +86,10 @@ export function ModalShell({ open, onClose, title, icon, children, maxWidth = 'm
       )}
     </AnimatePresence>
   );
+
+  // Portal to document.body so modal is always above header/sidebar
+  if (!mounted) return null;
+  return createPortal(modal, document.body);
 }
 
 // ─── FormField ──────────────────────────────────────────────────

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, GoalFormData } from './types';
 import { Input } from '@/app/components/ui/input';
@@ -247,7 +248,7 @@ export function BulkGoalFormModal({
 
   if (!isOpen) return null;
 
-  return (
+  const modal = (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-1 sm:p-3 overflow-hidden">
       {/* Backdrop */}
       <div className="absolute inset-0 modal-overlay" onClick={handleClose} />
@@ -586,4 +587,6 @@ export function BulkGoalFormModal({
       </motion.div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modal, document.body) : modal;
 }
