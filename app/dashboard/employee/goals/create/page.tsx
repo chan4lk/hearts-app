@@ -16,6 +16,7 @@ import { BsClipboardData, BsCheckCircle, BsPencil, BsXCircle } from 'react-icons
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import { Goal, NewGoal } from '@/app/components/shared/types';
+import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 import { useSession, getSession } from 'next-auth/react';
 import { CATEGORIES } from '@/app/components/shared/constants';
 import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
@@ -32,6 +33,8 @@ function GoalsPageContent() {
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedPriority, setSelectedPriority] = useState('');
@@ -99,6 +102,8 @@ function GoalsPageContent() {
 
   const fetchGoals = async () => {
     try {
+      setIsLoading(true);
+      setError(null);
       const params = new URLSearchParams({
         view: 'my-goals',
         page: page.toString(),
@@ -109,12 +114,12 @@ function GoalsPageContent() {
         ...(selectedCategory && selectedCategory !== 'all' && { category: selectedCategory }),
         ...(selectedPriority && { priority: selectedPriority })
       });
-      
+
       const response = await fetch(`/api/goals?${params}`, { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
         setGoals(data.goals || []);
-        
+
         // Set pagination if available
         if (data.pagination) {
           setPagination(data.pagination);
@@ -123,8 +128,11 @@ function GoalsPageContent() {
         setGoals([]);
         setPagination(null);
       }
-    } catch (error) {
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load goals');
       showNotificationWithTimeout('Failed to load goals', 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -301,6 +309,7 @@ function GoalsPageContent() {
 
   return (
     <DashboardLayout type="employee">
+      {isLoading ? <LoadingSkeleton variant="page" /> : error ? <ErrorState message={error} onRetry={() => { setError(null); fetchGoals(); }} /> :
       <div className="relative max-w-7xl mx-auto space-y-6">
           {/* Floating Background Decorations */}
           <div className="absolute -top-16 -right-16 w-64 h-64 bg-[rgb(var(--color-cat-technical))]/[0.03] rounded-full blur-3xl pointer-events-none" />
@@ -574,7 +583,7 @@ function GoalsPageContent() {
               }}
             />
           </motion.div>
-      </div>
+      </div>}
 
       {/* Modals */}
       <GoalFormModal
@@ -718,7 +727,7 @@ function GoalsPageContent() {
 
 export default function GoalsPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<LoadingSkeleton variant="page" />}>
       <GoalsPageContent />
     </Suspense>
   );

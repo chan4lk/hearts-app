@@ -12,6 +12,7 @@ import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 
 
 import { BsStars, BsLightbulb, BsCheckCircle, BsXCircle, BsPeople, BsPencil, BsGrid3X3Gap, BsShieldCheck } from 'react-icons/bs';
+import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 
 import { Goal, EmployeeStats, DashboardStats } from '@/app/components/shared/types';
 
@@ -22,6 +23,7 @@ export default function ManagerDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [employees, setEmployees] = useState<EmployeeStats[]>([]);
   const [employeeCounts, setEmployeeCounts] = useState({ total: 0, active: 0 });
   const [selectedGoalDetails, setSelectedGoalDetails] = useState<Goal | null>(null);
@@ -114,7 +116,8 @@ export default function ManagerDashboard() {
           total: employeesList.length || 0,
           active: employeesList.filter((emp: any) => emp.isActive !== false).length || 0
         });
-      } catch (error) {
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load employees');
         setEmployees([]);
       }
     };
@@ -148,7 +151,8 @@ export default function ManagerDashboard() {
       const goalData = await goalResponse.json();
       setGoals(goalData.goals || []);
       if (goalData.pagination) setPagination(goalData.pagination);
-    } catch (error) {
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load goals');
       setGoals([]);
     } finally {
       setLoading(false);
@@ -196,6 +200,7 @@ export default function ManagerDashboard() {
   };
   return (
     <DashboardLayout type="manager">
+      {loading ? <LoadingSkeleton variant="page" /> : error ? <ErrorState message={error} onRetry={() => { setError(null); fetchGoals(); }} /> :
       <div className="max-w-7xl mx-auto space-y-6">
           {/* Command Center Header */}
           <div className="relative bg-gradient-to-r from-[rgba(var(--color-accent),0.12)] via-[rgba(var(--color-accent),0.06)] to-transparent rounded-2xl border border-theme overflow-hidden">
@@ -448,7 +453,7 @@ export default function ManagerDashboard() {
               onClose={() => setSelectedGoalDetails(null)}
             />
           )}
-      </div>
+      </div>}
     </DashboardLayout>
   );
 } 

@@ -25,6 +25,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Role } from '@prisma/client';
+import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import AdminGoalsTable from './components/AdminGoalsTable';
 import { Pagination } from '@/app/components/shared/Pagination';
@@ -95,6 +96,7 @@ export default function AdminDashboard() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [goalsToBulkDelete, setGoalsToBulkDelete] = useState<string[]>([]);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // Pagination state for goals section
   const [goalsPage, setGoalsPage] = useState(1);
@@ -137,7 +139,8 @@ export default function AdminDashboard() {
       setStats(statsData);
       setActivities(activitiesData);
       setUsers(usersData.users || []);
-    } catch (error) {
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
     } finally {
       setIsLoading(false);
     }
@@ -313,6 +316,22 @@ export default function AdminDashboard() {
     }
   };
 
+
+  if (isLoading) {
+    return (
+      <DashboardLayout type="admin">
+        <LoadingSkeleton variant="page" />
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout type="admin">
+        <ErrorState message={error} onRetry={() => { setError(null); fetchDashboardData(); }} />
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout type="admin">
@@ -604,9 +623,9 @@ export default function AdminDashboard() {
                   className="p-6"
                 >
                   {goalsLoading ? (
-                    <div className="flex items-center justify-center py-12">
-                      <div className="text-secondary">Loading goals...</div>
-                    </div>
+                    <LoadingSkeleton variant="table" />
+                  ) : filteredGoals.length === 0 ? (
+                    <EmptyState title="No goals found" description="No goals match the current filters. Try adjusting your filters or check back later." />
                   ) : (
                     <>
                       <AdminGoalsTable

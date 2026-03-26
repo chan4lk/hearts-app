@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { BsSearch, BsCalendarPlus, BsArrowRight, BsFilter, BsCheckLg, BsArrowCounterclockwise } from 'react-icons/bs';
 import { toast } from 'react-toastify';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
+import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 import { EventParticipationCard } from '@/app/components/events/EventParticipationCard';
 import { FeedbackModal } from '@/app/components/events/FeedbackModal';
 import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
@@ -25,6 +26,7 @@ function EmployeeEventsContent() {
   const searchParams = useSearchParams();
   const [participations, setParticipations] = useState<Participation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
@@ -47,7 +49,8 @@ function EmployeeEventsContent() {
       const data = await response.json();
       setParticipations(data.participations);
       setPagination(data.pagination);
-    } catch (error) {
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch your events');
       toast.error('Failed to fetch your events');
     } finally {
       setIsLoading(false);
@@ -142,6 +145,7 @@ function EmployeeEventsContent() {
 
   return (
     <DashboardLayout type="employee">
+      {isLoading ? <LoadingSkeleton variant="page" /> : error ? <ErrorState message={error} onRetry={() => { setError(null); fetchParticipations(); }} /> :
       <div className="fixed inset-0 top-16 left-0 md:left-60 right-0 bottom-0 bg-surface-primary flex flex-col overflow-hidden z-0">
         {/* Subtle Background Pattern */}
         <div className="absolute inset-0 pointer-events-none bg-grid" />
@@ -363,7 +367,7 @@ function EmployeeEventsContent() {
           }}
           onSubmit={handleSubmitFeedback}
         />
-      </div>
+      </div>}
     </DashboardLayout>
   );
 }
@@ -372,9 +376,7 @@ export default function EmployeeEventsPage() {
   return (
     <Suspense fallback={
       <DashboardLayout type="employee">
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-[rgb(var(--color-text-inverse))]/60">Loading events...</div>
-        </div>
+        <LoadingSkeleton variant="page" />
       </DashboardLayout>
     }>
       <EmployeeEventsContent />

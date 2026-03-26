@@ -11,6 +11,7 @@ import StatsSection, { StatItem } from "@/app/components/shared/StatsSection";
 import PageToolbar, { FilterSelect } from "@/app/components/shared/PageToolbar";
 
 import { BsClipboardData, BsCheckCircle, BsPercent, BsStarFill as BsStarIcon, BsAward, BsBarChartLine } from 'react-icons/bs';
+import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { Pagination } from '@/app/components/shared/Pagination';
@@ -20,6 +21,7 @@ export default function RateEmployeesPage() {
   const router = useRouter();
   const [goals, setGoals] = useState<GoalWithRatingExtended[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submittingRatingId, setSubmittingRatingId] = useState<string | null>(null);
   const [filterEmployee, setFilterEmployee] = useState<string>('all');
@@ -133,8 +135,9 @@ export default function RateEmployeesPage() {
       }
       
       toast.success("Goals loaded successfully");
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to load goals";
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to load goals";
+      setError(errorMessage);
       toast.error(errorMessage);
       setGoals([]);
     } finally {
@@ -414,6 +417,7 @@ export default function RateEmployeesPage() {
 
   return (
     <DashboardLayout type="manager">
+      {loading ? <LoadingSkeleton variant="page" /> : error ? <ErrorState message={error} onRetry={() => { setError(null); fetchEmployeeGoals(); }} /> :
       <div className="max-w-7xl mx-auto space-y-6">
           {/* Evaluation Studio Header */}
           <div className="relative bg-gradient-to-r from-[rgba(var(--color-accent),0.10)] via-[rgba(var(--color-accent),0.05)] to-transparent rounded-2xl border border-theme overflow-hidden">
@@ -609,7 +613,7 @@ export default function RateEmployeesPage() {
               onClose={() => setSelectedGoal(null)}
             />
           )}
-      </div>
+      </div>}
     </DashboardLayout>
   );
-} 
+}

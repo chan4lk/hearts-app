@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { BsSearch, BsPlus, BsX, BsCheckLg, BsArrowRight, BsCalendar, BsFilter } from 'react-icons/bs';
 import { toast } from 'react-toastify';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
+import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 
 interface Event {
@@ -26,6 +27,7 @@ interface Event {
 export default function BrowseEventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [eventType, setEventType] = useState('');
@@ -49,7 +51,8 @@ export default function BrowseEventsPage() {
       const data = await response.json();
       setEvents(data.events);
       setPagination(data.pagination);
-    } catch (error) {
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch events');
       toast.error('Failed to fetch events');
     } finally {
       setIsLoading(false);
@@ -142,6 +145,7 @@ export default function BrowseEventsPage() {
 
   return (
     <DashboardLayout type="employee">
+      {isLoading ? <LoadingSkeleton variant="page" /> : error ? <ErrorState message={error} onRetry={() => { setError(null); fetchEvents(); }} /> :
       <div className="fixed inset-0 top-16 left-0 md:left-60 right-0 bottom-0 bg-surface-primary flex flex-col overflow-hidden z-0">
         {/* Subtle Background Pattern */}
         <div className="absolute inset-0 pointer-events-none bg-grid" />
@@ -406,7 +410,7 @@ export default function BrowseEventsPage() {
             )}
           </div>
         </div>
-      </div>
+      </div>}
     </DashboardLayout>
   );
 }

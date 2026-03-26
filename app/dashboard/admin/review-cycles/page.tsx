@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
+import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 
@@ -57,6 +58,7 @@ export default function ReviewCyclesPage() {
   const router = useRouter();
   const [reviewCycles, setReviewCycles] = useState<ReviewCycle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCycle, setEditingCycle] = useState<ReviewCycle | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -118,8 +120,8 @@ export default function ReviewCyclesPage() {
         setReviewCycles(data.reviewCycles || []);
         setPagination(data.pagination || null);
       }
-    } catch (error) {
-      // Toast removed
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load review cycles');
     } finally {
       if (showLoading) {
         setLoading(false);
@@ -212,6 +214,30 @@ export default function ReviewCyclesPage() {
     setIsFormOpen(false);
     setEditingCycle(null);
   };
+  if (loading) {
+    return (
+      <DashboardLayout type="admin">
+        <LoadingSkeleton variant="page" />
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout type="admin">
+        <ErrorState message={error} onRetry={() => { setError(null); fetchReviewCycles(); }} />
+      </DashboardLayout>
+    );
+  }
+
+  if (reviewCycles.length === 0 && !searchQuery) {
+    return (
+      <DashboardLayout type="admin">
+        <EmptyState title="No review cycles found" description="There are no review cycles yet. Create your first review cycle to get started." actionLabel="Create Cycle" onAction={() => { setEditingCycle(null); setIsFormOpen(true); }} />
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout type="admin">
       <div className="fixed inset-0 top-16 left-0 md:left-60 right-0 bottom-0 bg-surface-primary flex flex-col overflow-hidden z-0">

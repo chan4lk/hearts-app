@@ -8,12 +8,14 @@ import AnalyticsCharts from './components/AnalyticsCharts';
 import PerformanceTable from './components/PerformanceTable';
 import { useAnalyticsData } from '@/app/hooks/useAnalyticsData';
 import { BsBarChart, BsClipboardData, BsCheckCircle, BsPercent, BsStarFill, BsClock, BsFileEarmarkText, BsCheck2Circle, BsXCircle, BsListCheck, BsGraphUpArrow } from 'react-icons/bs';
+import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 
 export default function AnalyticsPage() {
   const {
     session,
     loading,
     error,
+    handleRefresh,
     analyticsData,
     dashboardType,
     selectedEmployee, setSelectedEmployee,
@@ -62,6 +64,7 @@ export default function AnalyticsPage() {
 
   return (
     <DashboardLayout type={dashboardType}>
+      {loading ? <LoadingSkeleton variant="page" /> :
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Page Header — editorial hero */}
         <motion.div
@@ -117,33 +120,16 @@ export default function AnalyticsPage() {
 
         {/* Error */}
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-error-muted border border-[rgb(var(--color-error))]/30 rounded-2xl p-4 text-error text-sm"
-          >
-            {error}
-          </motion.div>
+          <ErrorState message={error} onRetry={handleRefresh} />
         )}
 
         {/* Empty state */}
         {!analyticsData && !loading && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden bg-surface-elevated rounded-2xl p-16 border border-theme shadow-theme-md text-center transition-all duration-300"
-          >
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[rgb(var(--color-accent))] via-[rgb(var(--color-info))] to-[rgb(var(--color-success))]" />
-            <div className="flex flex-col items-center justify-center">
-              <div className="p-5 bg-accent-muted rounded-2xl mb-5">
-                <BsBarChart className="w-16 h-16 text-accent opacity-60" />
-              </div>
-              <h3 className="text-xl font-bold text-primary mb-2">No Analytics Data Available</h3>
-              <p className="text-secondary text-sm max-w-md leading-relaxed">
-                There is no data to display for the selected filters. Try adjusting your date range or filters.
-              </p>
-            </div>
-          </motion.div>
+          <EmptyState
+            icon={<BsBarChart className="w-8 h-8 text-tertiary" />}
+            title="No Analytics Data Available"
+            description="There is no data to display for the selected filters. Try adjusting your date range or filters."
+          />
         )}
 
         {/* Analytics content */}
@@ -180,7 +166,7 @@ export default function AnalyticsPage() {
             <PerformanceTable data={analyticsData.employeePerformance} userRole={userRole} />
           </>
         )}
-      </div>
+      </div>}
     </DashboardLayout>
   );
 }

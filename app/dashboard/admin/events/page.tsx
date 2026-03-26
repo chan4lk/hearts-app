@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
+import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 
 import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
@@ -32,6 +33,7 @@ function AdminEventsContent() {
   const searchParams = useSearchParams();
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -59,7 +61,8 @@ function AdminEventsContent() {
       const data = await response.json();
       setEvents(data.events);
       setPagination(data.pagination);
-    } catch (error) {
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch events');
       toast.error('Failed to fetch events');
     } finally {
       setIsLoading(false);
@@ -161,6 +164,30 @@ function AdminEventsContent() {
     'TEAM_BUILDING',
     'OTHER',
   ];
+
+  if (isLoading) {
+    return (
+      <DashboardLayout type="admin">
+        <LoadingSkeleton variant="page" />
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout type="admin">
+        <ErrorState message={error} onRetry={() => { setError(null); fetchEvents(); }} />
+      </DashboardLayout>
+    );
+  }
+
+  if (events.length === 0 && !search && !status && !eventType) {
+    return (
+      <DashboardLayout type="admin">
+        <EmptyState title="No events found" description="There are no events yet. Create your first event to get started." actionLabel="Create Event" onAction={() => { setEditingEvent(null); setIsFormOpen(true); }} />
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout type="admin">
@@ -371,9 +398,7 @@ export default function AdminEventsPage() {
   return (
     <Suspense fallback={
       <DashboardLayout type="admin">
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="text-[rgb(var(--color-text-inverse))]/60">Loading events...</div>
-        </div>
+        <LoadingSkeleton variant="page" />
       </DashboardLayout>
     }>
       <AdminEventsContent />

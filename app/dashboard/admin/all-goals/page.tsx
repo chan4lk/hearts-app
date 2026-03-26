@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
+import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import AdminGoalsTable from '../components/AdminGoalsTable';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
@@ -30,6 +31,7 @@ function AllGoalsPageContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [goalsToBulkDelete, setGoalsToBulkDelete] = useState<string[]>([]);
@@ -150,7 +152,8 @@ function AllGoalsPageContent() {
       if (goalsData.pagination) {
         setPagination(goalsData.pagination);
       }
-    } catch (error) {
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load goals');
     } finally {
       setLoading(false);
     }
@@ -236,6 +239,22 @@ function AllGoalsPageContent() {
       // Error toast removed
     }
   };
+
+  if (loading) {
+    return (
+      <DashboardLayout type="admin">
+        <LoadingSkeleton variant="page" />
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout type="admin">
+        <ErrorState message={error} onRetry={() => { setError(null); fetchData(); }} />
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout type="admin">
@@ -502,9 +521,7 @@ export default function AllGoalsPage() {
   return (
     <Suspense fallback={
       <DashboardLayout type="admin">
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-[rgb(var(--color-text-inverse))]">Loading...</div>
-        </div>
+        <LoadingSkeleton variant="page" />
       </DashboardLayout>
     }>
       <AllGoalsPageContent />

@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { BsExclamationTriangle, BsArrowUpRight, BsCheckCircle, BsClock, BsFileEarmarkText, BsCheck2Circle, BsXCircle, BsListCheck, BsBullseye, BsPlusLg } from 'react-icons/bs';
 import { Button } from '@/app/components/ui/button';
+import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 
 // Layout
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
@@ -422,11 +423,9 @@ function ManagerGoalSettingPageContent() {
     );
   };
 
-  if (error) {
-    return <ErrorFallback error={error} resetErrorBoundary={() => setError(null)} />;
-  }
   return (
     <DashboardLayout type="manager">
+      {loading ? <LoadingSkeleton variant="page" /> : error ? <ErrorState message={error.message} onRetry={() => { setError(null); fetchAssignedEmployees(); }} /> :
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Goal Assignment Header */}
         <div className="relative bg-gradient-to-r from-[rgba(var(--color-accent),0.10)] via-[rgba(var(--color-accent),0.04)] to-transparent rounded-2xl border border-theme overflow-hidden">
@@ -700,14 +699,14 @@ function ManagerGoalSettingPageContent() {
           confirmText="Delete"
           cancelText="Cancel"
         />
-      </div>
+      </div>}
     </DashboardLayout>
   );
 }
 
 export default function ManagerGoalSettingPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<LoadingSkeleton variant="page" />}>
       <ManagerGoalSettingPageContent />
     </Suspense>
   );

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
+import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 import UserTable from './components/UserTable';
 
 import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
@@ -77,6 +78,7 @@ function UsersPageContent() {
   const [filters, setFilters] = useState<UserFilters>(() => getInitialFilters(searchParams));
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   
   // Pagination state
@@ -195,8 +197,8 @@ function UsersPageContent() {
       }
       
       setLastRefresh(new Date());
-    } catch (error) {
-      // Toast removed
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load users');
     } finally {
       setIsLoading(false);
     }
@@ -337,6 +339,30 @@ function UsersPageContent() {
     }
     setPage(1); // Reset to first page
   };
+
+  if (isLoading) {
+    return (
+      <DashboardLayout type="admin">
+        <LoadingSkeleton variant="page" />
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout type="admin">
+        <ErrorState message={error} onRetry={() => { setError(null); fetchUsers(); }} />
+      </DashboardLayout>
+    );
+  }
+
+  if (filteredUsers.length === 0 && !searchTerm && !filters.role && !filters.status) {
+    return (
+      <DashboardLayout type="admin">
+        <EmptyState title="No users found" description="There are no users in the system yet." />
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout type="admin">
@@ -500,9 +526,7 @@ export default function UsersPage() {
   return (
     <Suspense fallback={
       <DashboardLayout type="admin">
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-[rgb(var(--color-text-inverse))]">Loading...</div>
-        </div>
+        <LoadingSkeleton variant="page" />
       </DashboardLayout>
     }>
       <UsersPageContent />

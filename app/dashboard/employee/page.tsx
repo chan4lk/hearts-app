@@ -15,6 +15,7 @@ import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmat
 import { Pagination } from '@/app/components/shared/Pagination';
 import { Goal, GoalStats } from '@/app/components/shared/types';
 import { BsStars, BsLightbulb, BsX, BsPlus, BsPersonCheck, BsStarFill, BsStar, BsArrowRight } from 'react-icons/bs';
+import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 import { RATING_LABELS } from '@/app/components/shared/constants';
 import { useSession } from 'next-auth/react';
 import AIGoalSuggestions from '@/app/components/ai/AIGoalSuggestions';
@@ -29,6 +30,7 @@ export default function EmployeeDashboard() {
   const [selectedPriority, setSelectedPriority] = useState('');
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showAIGoalSuggestions, setShowAIGoalSuggestions] = useState(false);
@@ -336,10 +338,11 @@ export default function EmployeeDashboard() {
     const loadGoals = async () => {
       try {
         setLoading(true);
+        setError(null);
         const goals = await fetchGoals();
         setGoals(goals);
-      } catch (error) {
-        // Error toast removed
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load goals');
       } finally {
         setLoading(false);
       }
@@ -436,6 +439,7 @@ export default function EmployeeDashboard() {
 
   return (
     <DashboardLayout type="employee">
+      {loading ? <LoadingSkeleton variant="page" /> : error ? <ErrorState message={error} onRetry={() => { setError(null); setLoading(true); fetchGoals().then(g => setGoals(g)).catch(() => {}).finally(() => setLoading(false)); }} /> :
       <div className="relative max-w-7xl mx-auto space-y-6">
           {/* Floating Background Decorations */}
           <div className="absolute -top-20 -right-20 w-72 h-72 bg-[rgb(var(--color-accent))]/[0.03] rounded-full blur-3xl pointer-events-none" />
@@ -957,7 +961,7 @@ export default function EmployeeDashboard() {
               </motion.div>
             )}
           </AnimatePresence>
-      </div>
+      </div>}
     </DashboardLayout>
   );
 }
