@@ -114,6 +114,7 @@ export interface DashboardStats {
     rejected: number;
     modified: number;
     completed: number;
+    inProgress: number;
   };
   employeeCount: number;
   activeEmployees: number;

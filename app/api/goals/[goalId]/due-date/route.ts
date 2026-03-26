@@ -1,17 +1,21 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NotificationType } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { handleApiError, validateUUID } from '@/app/api/utils/error-handler';
+import { rateLimiters } from '@/lib/rateLimit';
 
 // Due date update endpoint for goals
 export async function PATCH(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ goalId: string }> | { goalId: string } }
 ) {
   try {
+    const rateLimitResponse = await rateLimiters.moderate(req);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

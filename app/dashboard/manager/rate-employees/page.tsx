@@ -3,14 +3,15 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import { GoalWithRatingExtended, EmployeeStats } from "@/app/components/shared/types";
 
 import StatsSection, { StatItem } from "@/app/components/shared/StatsSection";
 import PageToolbar, { FilterSelect } from "@/app/components/shared/PageToolbar";
 
-import { BsClipboardData, BsCheckCircle, BsPercent, BsStarFill as BsStarIcon, BsAward, BsBarChartLine } from 'react-icons/bs';
+import { BsClipboardData, BsCheckCircle, BsPercent, BsStarFill as BsStarIcon } from 'react-icons/bs';
+import { PageHeader } from '@/app/components/shared/PageHeader';
+import { useToast } from '@/app/components/shared/Toast';
 import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
@@ -19,6 +20,7 @@ import { Pagination } from '@/app/components/shared/Pagination';
 export default function RateEmployeesPage() {
   const { data: session } = useSession();
   const router = useRouter();
+  const toast = useToast();
   const [goals, setGoals] = useState<GoalWithRatingExtended[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -134,11 +136,9 @@ export default function RateEmployeesPage() {
         setPagination(data.pagination);
       }
       
-      toast.success("Goals loaded successfully");
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to load goals";
       setError(errorMessage);
-      toast.error(errorMessage);
       setGoals([]);
     } finally {
       setLoading(false);
@@ -419,44 +419,11 @@ export default function RateEmployeesPage() {
     <DashboardLayout type="manager">
       {loading ? <LoadingSkeleton variant="page" /> : error ? <ErrorState message={error} onRetry={() => { setError(null); fetchEmployeeGoals(); }} /> :
       <div className="max-w-7xl mx-auto space-y-6">
-          {/* Evaluation Studio Header */}
-          <div className="relative bg-gradient-to-r from-[rgba(var(--color-accent),0.10)] via-[rgba(var(--color-accent),0.05)] to-transparent rounded-2xl border border-theme overflow-hidden">
-            {/* Decorative star pattern */}
-            <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-[0.04]">
-              <BsAward className="w-28 h-28 text-accent" />
-            </div>
-            <div className="relative px-6 py-5 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-accent/10 border border-[rgba(var(--color-accent),0.2)] flex items-center justify-center shadow-theme-sm">
-                  <BsBarChartLine className="w-5 h-5 text-accent" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-primary tracking-tight">Evaluation Studio</h1>
-                  <p className="text-sm text-secondary mt-0.5">Rate and evaluate completed goals for your team</p>
-                </div>
-              </div>
-              <div className="hidden md:flex items-center gap-2">
-                {(() => {
-                  const ratedBadge = goals.filter(g => g.rating?.managerScore || g.rating?.score).length;
-                  const unratedBadge = goals.length - ratedBadge;
-                  return (
-                    <>
-                      {unratedBadge > 0 && (
-                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-warning-muted text-warning text-xs font-semibold">
-                          <BsPercent className="w-3.5 h-3.5" />
-                          <span>{unratedBadge} Pending Rating</span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-accent-muted text-accent text-xs font-semibold">
-                        <BsStarIcon className="w-3.5 h-3.5" />
-                        <span>{ratedBadge} Rated</span>
-                      </div>
-                    </>
-                  );
-                })()}
-              </div>
-            </div>
-          </div>
+          <PageHeader
+            title="Rate Team"
+            description="Evaluate employee performance"
+            badge="Manager"
+          />
 
           <div className="bg-surface-elevated rounded-2xl p-4 border border-theme space-y-4 relative overflow-hidden transition-all duration-300 hover:shadow-theme-sm">
             {/* Top accent line */}

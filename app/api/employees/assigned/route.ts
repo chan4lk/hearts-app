@@ -6,12 +6,16 @@ import { Role } from '@prisma/client';
 import { getPaginationFromSearchParams, getPaginationMeta, PAGINATION_LIMITS } from '@/lib/pagination';
 import { logger } from '@/lib/logger';
 import { handleApiError } from '@/app/api/utils/error-handler';
+import { rateLimiters } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
+    const rateLimitResponse = await rateLimiters.standard(request);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const session = await getServerSession(authOptions);
 
     if (!session) {

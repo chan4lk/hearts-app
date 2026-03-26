@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
@@ -6,12 +6,16 @@ import { NotificationType } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { handleApiError, validateUUID } from '@/app/api/utils/error-handler';
 import { ratingSubmitSchema } from '@/lib/validation';
+import { rateLimiters } from '@/lib/rateLimit';
 
 export async function POST(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { goalId: string } }
 ) {
   try {
+    const rateLimitResponse = await rateLimiters.moderate(request);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

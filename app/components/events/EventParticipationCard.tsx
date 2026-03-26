@@ -15,8 +15,27 @@ import {
   HEARTS_TALK_ROLES,
 } from '@/app/components/shared/constants';
 
+interface EventParticipation {
+  event: {
+    id: string;
+    title: string;
+    description?: string;
+    location?: string;
+    startDate: string;
+    endDate: string;
+    status: string;
+    eventType: string;
+    categoryLabel?: string;
+  };
+  participationStatus: string;
+  hoursContributed?: number;
+  feedback?: string;
+  toastmasterRole?: string;
+  heartsTalkRole?: string;
+}
+
 interface EventParticipationCardProps {
-  participation: any;
+  participation: EventParticipation;
   onUpdateStatus: (eventId: string, status: string) => void;
   onUpdateRole?: (
     eventId: string,
@@ -51,9 +70,9 @@ export const EventParticipationCard = ({
       case 'NO_SHOW':
         return 'bg-error-muted text-error border-[rgb(var(--color-error))]/30';
       case 'CANCELLED':
-        return 'bg-surface-secondary text-secondary border-gray-500/30';
+        return 'bg-surface-secondary text-secondary border-theme';
       default:
-        return 'bg-white/10 text-[rgb(var(--color-text-inverse))]';
+        return 'bg-surface-secondary/50 text-[rgb(var(--color-text-inverse))]';
     }
   };
 
@@ -237,7 +256,7 @@ export const EventParticipationCard = ({
       {/* Event Status Badge & Category */}
       <div className="mt-3 flex items-center justify-between">
         <span className="text-xs text-tertiary">{categoryLabel}</span>
-        <span className="inline-flex px-2 py-1 rounded text-xs font-medium bg-white/10 text-secondary">
+        <span className="inline-flex px-2 py-1 rounded text-xs font-medium bg-surface-secondary/50 text-secondary">
           {event.status}
         </span>
       </div>

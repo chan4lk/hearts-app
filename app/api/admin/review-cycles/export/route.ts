@@ -5,11 +5,15 @@ import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { handleApiError } from '@/app/api/utils/error-handler';
 import * as XLSX from 'xlsx';
+import { rateLimiters } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
+    const rateLimitResponse = await rateLimiters.moderate(req);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const session = await getServerSession(authOptions);
     
     if (!session?.user || session.user.role !== 'ADMIN') {

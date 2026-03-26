@@ -66,7 +66,7 @@ export default function GoalActivityTimeline({ activities }: GoalActivityTimelin
       case 'completed':
         return 'border-[rgb(var(--color-success))]';
       default:
-        return 'border-gray-500';
+        return 'border-[rgb(var(--color-border-primary))]';
     }
   };
 

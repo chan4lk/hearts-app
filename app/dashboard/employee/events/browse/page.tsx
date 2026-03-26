@@ -3,8 +3,9 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { BsSearch, BsPlus, BsX, BsCheckLg, BsArrowRight, BsCalendar, BsFilter } from 'react-icons/bs';
-import { toast } from 'react-toastify';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
+import { PageHeader } from '@/app/components/shared/PageHeader';
+import { useToast } from '@/app/components/shared/Toast';
 import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 
@@ -25,6 +26,7 @@ interface Event {
 }
 
 export default function BrowseEventsPage() {
+  const toast = useToast();
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +55,6 @@ export default function BrowseEventsPage() {
       setPagination(data.pagination);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch events');
-      toast.error('Failed to fetch events');
     } finally {
       setIsLoading(false);
     }
@@ -151,23 +152,12 @@ export default function BrowseEventsPage() {
         <div className="absolute inset-0 pointer-events-none bg-grid" />
         
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
-          {/* Discovery-style Page Header */}
+          {/* Page Header */}
           <div className="flex-shrink-0 pb-4">
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[rgb(var(--color-info))]/10 via-[rgb(var(--color-accent))]/5 to-[rgb(var(--color-cat-training))]/10 border border-[rgba(var(--color-info),0.15)] p-5 md:p-6">
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-info))] via-[rgb(var(--color-accent))] to-[rgb(var(--color-cat-training))]" />
-              <div className="absolute -top-8 -right-8 w-32 h-32 bg-[rgb(var(--color-info))]/[0.05] rounded-full blur-2xl" />
-              <div className="relative flex items-center gap-4">
-                <div className="p-3 bg-info-muted rounded-xl">
-                  <BsSearch className="w-5 h-5 text-info" />
-                </div>
-                <div>
-                  <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-[rgb(var(--color-info))] to-[rgb(var(--color-cat-training))] bg-clip-text text-transparent">
-                    Discover Events
-                  </h1>
-                  <p className="text-sm text-secondary mt-0.5">Find and register for upcoming events, workshops, and activities.</p>
-                </div>
-              </div>
-            </div>
+            <PageHeader
+              title="Browse Events"
+              description="Discover and register for events"
+            />
           </div>
 
           {/* Stats Section */}

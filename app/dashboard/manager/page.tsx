@@ -1,18 +1,21 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { usePagination, useModalState } from '@/app/hooks';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { useSession } from 'next-auth/react';
 import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 import GoalsSection from './components/GoalsSection';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
-import { Pagination } from '@/app/components/shared/Pagination';
 import AIPerformanceInsights from '@/app/components/ai/AIPerformanceInsights';
-import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
+import MetricStrip, { Metric } from '@/app/components/shared/MetricStrip';
+import { PageHeader } from '@/app/components/shared/PageHeader';
+import SlidePanel from '@/app/components/shared/SlidePanel';
+import { useToast } from '@/app/components/shared/Toast';
+import { Button } from '@/app/components/ui/button';
 
-
-import { BsStars, BsLightbulb, BsCheckCircle, BsXCircle, BsPeople, BsPencil, BsGrid3X3Gap, BsShieldCheck } from 'react-icons/bs';
-import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
+import { BsStars, BsLightbulb, BsChevronDown, BsChevronUp } from 'react-icons/bs';
+import { LoadingSkeleton, ErrorState } from '@/app/components/shared/feedback';
 
 import { Goal, EmployeeStats, DashboardStats } from '@/app/components/shared/types';
 
@@ -26,21 +29,13 @@ export default function ManagerDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [employees, setEmployees] = useState<EmployeeStats[]>([]);
   const [employeeCounts, setEmployeeCounts] = useState({ total: 0, active: 0 });
-  const [selectedGoalDetails, setSelectedGoalDetails] = useState<Goal | null>(null);
+  const goalDetailModal = useModalState<Goal>();
   const [showAIInsights, setShowAIInsights] = useState(false);
+  const [aiInsightsExpanded, setAiInsightsExpanded] = useState(true);
   const { data: session } = useSession();
-  
-  // Pagination state
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
-  const [pagination, setPagination] = useState<{
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  } | null>(null);
+  const toast = useToast();
+
+  const { page, limit, setPage, setLimit, pagination, setPagination } = usePagination();
 
   // Helper function to check if a goal belongs to the current user
   const isCurrentUserGoal = (goal: Goal) => {
@@ -59,8 +54,8 @@ export default function ManagerDashboard() {
     // 1. createdBy exists and matches the employee
     // 2. AND either no managerId or managerId is null/empty
     return !!(
-      goal.createdBy 
-      && goal.createdBy.id === goal.employeeId 
+      goal.createdBy
+      && goal.createdBy.id === goal.employeeId
       && (!goal.managerId || goal.managerId === null || goal.managerId === '')
     );
   };
@@ -89,6 +84,7 @@ export default function ManagerDashboard() {
         rejected: statusCounts['REJECTED'] || 0,
         modified: statusCounts['MODIFIED'] || 0,
         completed: statusCounts['COMPLETED'] || 0,
+        inProgress: statusCounts['IN_PROGRESS'] || 0,
       },
       employeeCount: selectedEmployee && selectedEmployee !== 'all' ? 1 : employeeCounts.total,
       activeEmployees: selectedEmployee && selectedEmployee !== 'all' ? 1 : employeeCounts.active
@@ -177,7 +173,7 @@ export default function ManagerDashboard() {
   }
 
   const handleGoalClick = (goal: Goal) => {
-    setSelectedGoalDetails(goal);
+    goalDetailModal.open(goal);
   };
 
   // Handler for priority update - only for assigned goals
@@ -187,6 +183,7 @@ export default function ManagerDashboard() {
         goal.id === goalId ? updatedGoal : goal
       )
     );
+    toast.success(`Priority updated to ${newPriority}`);
   };
 
   // Handler for due date update - only for assigned goals
@@ -196,6 +193,7 @@ export default function ManagerDashboard() {
         goal.id === goalId ? updatedGoal : goal
       )
     );
+    toast.success('Due date updated successfully');
   };
 
   // Handler for status update - for all goals (but restricted to approved/rejected for non-assigned)
@@ -205,94 +203,35 @@ export default function ManagerDashboard() {
         goal.id === goalId ? updatedGoal : goal
       )
     );
+    toast.success(`Goal status changed to ${newStatus.replace('_', ' ').toLowerCase()}`);
   };
+
+  const metrics: Metric[] = [
+    { label: 'Total Goals', value: stats.employeeGoals.total, color: 'accent' },
+    { label: 'Pending Review', value: stats.employeeGoals.pending, color: 'warning', active: selectedStatus === 'PENDING', onClick: () => setSelectedStatus(selectedStatus === 'PENDING' ? '' : 'PENDING') },
+    { label: 'In Progress', value: stats.employeeGoals.inProgress, color: 'info', active: selectedStatus === 'IN_PROGRESS', onClick: () => setSelectedStatus(selectedStatus === 'IN_PROGRESS' ? '' : 'IN_PROGRESS') },
+    { label: 'Completed', value: stats.employeeGoals.completed, color: 'success', active: selectedStatus === 'COMPLETED', onClick: () => setSelectedStatus(selectedStatus === 'COMPLETED' ? '' : 'COMPLETED') },
+    { label: 'Team Members', value: employeeCounts.total, color: 'secondary' },
+  ];
+
   return (
     <DashboardLayout type="manager">
       {loading ? <LoadingSkeleton variant="page" /> : error ? <ErrorState message={error} onRetry={() => { setError(null); fetchGoals(); }} /> :
       <div className="max-w-7xl mx-auto space-y-6">
-          {/* Command Center Header */}
-          <div className="relative bg-gradient-to-r from-[rgba(var(--color-accent),0.12)] via-[rgba(var(--color-accent),0.06)] to-transparent rounded-2xl border border-theme overflow-hidden">
-            {/* Decorative grid pattern */}
-            <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, rgb(var(--color-accent)) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-            <div className="relative px-6 py-5 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-accent/10 border border-[rgba(var(--color-accent),0.2)] flex items-center justify-center shadow-theme-sm">
-                  <BsGrid3X3Gap className="w-5 h-5 text-accent" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-primary tracking-tight">Team Command Center</h1>
-                  <p className="text-sm text-secondary mt-0.5">Monitor and manage your team&apos;s goals and performance</p>
-                </div>
-              </div>
-              <div className="hidden md:flex items-center gap-3">
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-success-muted text-success text-xs font-semibold">
-                  <BsShieldCheck className="w-3.5 h-3.5" />
-                  <span>{stats.activeEmployees} Active</span>
-                </div>
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-accent-muted text-accent text-xs font-semibold">
-                  <BsPeople className="w-3.5 h-3.5" />
-                  <span>{stats.employeeCount} Team Members</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Page Header */}
+          <PageHeader
+            title="Team Hub"
+            description={`${employeeCounts.total} team members \u2022 ${goals.length} active goals`}
+            badge="Manager"
+          >
+            <Button onClick={() => setShowAIInsights(!showAIInsights)} variant={showAIInsights ? 'secondary' : 'default'}>
+              <BsStars className="w-3.5 h-3.5 mr-1.5" />
+              AI Insights
+            </Button>
+          </PageHeader>
 
-          {/* Stats Section */}
-          {(() => {
-            const statItems: StatItem[] = [
-              {
-                title: 'Total Goals',
-                value: stats.employeeGoals.total,
-                icon: <BsStars className="w-4 h-4" />,
-                onClick: () => {
-                  setSelectedStatus('');
-                  setPage(1);
-                }
-              },
-              {
-                title: 'Draft',
-                value: stats.employeeGoals.draft,
-                icon: <BsPencil className="w-4 h-4" />,
-                onClick: () => {
-                  setSelectedStatus('DRAFT');
-                  setPage(1);
-                }
-              },
-              {
-                title: 'Approved',
-                value: stats.employeeGoals.approved,
-                icon: <BsCheckCircle className="w-4 h-4" />,
-                onClick: () => {
-                  setSelectedStatus('APPROVED');
-                  setPage(1);
-                }
-              },
-              {
-                title: 'Rejected',
-                value: stats.employeeGoals.rejected,
-                icon: <BsXCircle className="w-4 h-4" />,
-                onClick: () => {
-                  setSelectedStatus('REJECTED');
-                  setPage(1);
-                }
-              },
-              {
-                title: 'Completed',
-                value: stats.employeeGoals.completed,
-                icon: <BsCheckCircle className="w-4 h-4" />,
-                onClick: () => {
-                  setSelectedStatus('COMPLETED');
-                  setPage(1);
-                }
-              },
-              {
-                title: 'Total Employees',
-                value: stats.employeeCount,
-                icon: <BsPeople className="w-4 h-4" />,
-              }
-            ];
-            return <StatsSection stats={statItems} />;
-          })()}
+          {/* Metric Strip */}
+          <MetricStrip metrics={metrics} />
 
           {/* Toolbar + Filters */}
           <PageToolbar
@@ -310,14 +249,6 @@ export default function ManagerDashboard() {
               setSearchQuery('');
               setPage(1);
             }}
-            actions={[
-              {
-                label: showAIInsights ? 'Hide AI Insights' : 'AI Insights',
-                onClick: () => setShowAIInsights(!showAIInsights),
-                variant: showAIInsights ? 'secondary' : 'primary',
-                icon: <BsStars className="w-3.5 h-3.5" />,
-              },
-            ]}
           >
             <FilterSelect
               value={selectedEmployee}
@@ -359,39 +290,49 @@ export default function ManagerDashboard() {
             />
           </PageToolbar>
 
-          {/* AI Performance Insights for Selected Employee */}
-          {showAIInsights && selectedEmployee !== 'all' && (
-            <div className="relative bg-surface-elevated rounded-2xl p-5 border border-theme shadow-theme-sm overflow-hidden transition-all duration-300 hover:shadow-theme-lg">
-              {/* Top accent line */}
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent" />
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-accent-muted flex items-center justify-center">
-                  <BsLightbulb className="w-4.5 h-4.5 text-accent" />
+          {/* AI Performance Insights - Collapsible Section */}
+          {showAIInsights && (
+            <div className="rounded-xl border border-theme bg-surface-elevated shadow-theme-sm overflow-hidden transition-all duration-300">
+              <button
+                onClick={() => setAiInsightsExpanded(!aiInsightsExpanded)}
+                className="w-full flex items-center justify-between px-5 py-3 hover:bg-surface-secondary/50 transition-colors focus-ring"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-accent-muted flex items-center justify-center">
+                    <BsLightbulb className="w-4 h-4 text-accent" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-sm font-semibold text-primary">AI Performance Insights</h3>
+                    <p className="text-xs text-secondary">
+                      {selectedEmployee !== 'all'
+                        ? `Analysis for ${employees.find(e => e.email === selectedEmployee)?.name || 'selected employee'}`
+                        : 'Select an employee to view insights'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-primary">AI Performance Insights</h3>
-                  <p className="text-xs text-secondary">
-                    Analysis for {employees.find(e => e.email === selectedEmployee)?.name || 'selected employee'}
-                  </p>
-                </div>
-              </div>
-              <AIPerformanceInsights
-                userId={employees.find(e => e.email === selectedEmployee)?.id}
-                autoLoad={true}
-              />
-            </div>
-          )}
+                {aiInsightsExpanded ? (
+                  <BsChevronUp className="w-4 h-4 text-secondary" />
+                ) : (
+                  <BsChevronDown className="w-4 h-4 text-secondary" />
+                )}
+              </button>
 
-          {/* AI Insights Prompt (when no employee selected) */}
-          {showAIInsights && selectedEmployee === 'all' && (
-            <div className="relative bg-surface-elevated rounded-2xl p-8 border border-theme shadow-theme-sm text-center overflow-hidden transition-all duration-300 hover:shadow-theme-lg">
-              {/* Top accent line */}
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-accent to-transparent" />
-              <div className="w-14 h-14 rounded-2xl bg-accent-muted flex items-center justify-center mx-auto mb-4">
-                <BsLightbulb className="w-6 h-6 text-accent" />
-              </div>
-              <h3 className="text-base font-semibold text-primary mb-1">Select an Employee</h3>
-              <p className="text-sm text-secondary max-w-md mx-auto">Choose a specific employee from the filter above to view AI-powered performance insights</p>
+              {aiInsightsExpanded && (
+                <div className="px-5 pb-5 border-t border-theme">
+                  {selectedEmployee !== 'all' ? (
+                    <div className="pt-4">
+                      <AIPerformanceInsights
+                        userId={employees.find(e => e.email === selectedEmployee)?.id}
+                        autoLoad={true}
+                      />
+                    </div>
+                  ) : (
+                    <div className="pt-6 pb-2 text-center">
+                      <p className="text-sm text-secondary">Choose a specific employee from the filter above to view AI-powered performance insights</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -453,15 +394,18 @@ export default function ManagerDashboard() {
             }}
           />
 
-
-          {/* Goal Details Modal */}
-          {selectedGoalDetails && (
-            <GoalDetailModal
-              goal={selectedGoalDetails}
-              onClose={() => setSelectedGoalDetails(null)}
-            />
-          )}
+          {/* Goal Details - SlidePanel */}
+          <SlidePanel
+            open={goalDetailModal.isOpen}
+            onClose={goalDetailModal.close}
+            title={goalDetailModal.data?.title || 'Goal Details'}
+            width="lg"
+          >
+            {goalDetailModal.data && (
+              <GoalDetailModal goal={goalDetailModal.data} onClose={goalDetailModal.close} />
+            )}
+          </SlidePanel>
       </div>}
     </DashboardLayout>
   );
-} 
+}

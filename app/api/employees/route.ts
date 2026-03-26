@@ -1,25 +1,29 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/lib/auth';
 import { Role } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { handleApiError } from '@/app/api/utils/error-handler';
+import { rateLimiters } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const rateLimitResponse = await rateLimiters.standard(req);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const session = await getServerSession(authOptions);
 
     if (!session?.user) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Allow both ADMIN and MANAGER roles
     if (session.user.role !== Role.ADMIN && session.user.role !== Role.MANAGER) {
-      return new NextResponse('Forbidden', { status: 403 });
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // For managers, only get their managed employees

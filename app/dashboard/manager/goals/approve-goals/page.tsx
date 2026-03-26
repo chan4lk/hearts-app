@@ -3,14 +3,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { Goal, GoalWithRatingExtended, EmployeeStats } from '@/app/components/shared/types';
 
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 
-import { BsClipboardData, BsCheckCircle, BsXCircle, BsPencil, BsShieldCheck, BsClipboard2Check } from 'react-icons/bs';
+import { BsClipboardData, BsCheckCircle, BsXCircle, BsPencil } from 'react-icons/bs';
+import { PageHeader } from '@/app/components/shared/PageHeader';
+import { useToast } from '@/app/components/shared/Toast';
 import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 import GoalsTable from '@/app/components/shared/GoalsTable';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
@@ -20,6 +21,7 @@ import { Pagination } from '@/app/components/shared/Pagination';
 export default function ApproveGoalsPage() {
   const { data: session } = useSession();
   const router = useRouter();
+  const toast = useToast();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -150,7 +152,6 @@ export default function ApproveGoalsPage() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load goals';
       setError(errorMessage);
-      toast.error(errorMessage);
       setGoals([]);
       setEmployeeStats([]);
     } finally {
@@ -348,42 +349,11 @@ export default function ApproveGoalsPage() {
     <DashboardLayout type="manager">
       {isLoading ? <LoadingSkeleton variant="page" /> : error ? <ErrorState message={error} onRetry={() => { setError(null); fetchGoals(); }} /> :
       <div className="max-w-7xl mx-auto space-y-6">
-          {/* Decision Panel Header */}
-          <div className="relative bg-gradient-to-r from-[rgba(var(--color-accent),0.10)] via-[rgba(var(--color-accent),0.05)] to-transparent rounded-2xl border border-theme overflow-hidden">
-            {/* Decorative shield pattern */}
-            <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-[0.03]">
-              <BsShieldCheck className="w-28 h-28 text-accent" />
-            </div>
-            <div className="relative px-6 py-5 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-accent/10 border border-[rgba(var(--color-accent),0.2)] flex items-center justify-center shadow-theme-sm">
-                  <BsClipboard2Check className="w-5 h-5 text-accent" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-primary tracking-tight">Decision Panel</h1>
-                  <p className="text-sm text-secondary mt-0.5">Review and approve or reject team goal submissions</p>
-                </div>
-              </div>
-              <div className="hidden md:flex items-center gap-2">
-                {(() => {
-                  const sc2: Record<string, number> = {};
-                  for (const g of goals) sc2[g.status] = (sc2[g.status] || 0) + 1;
-                  const pendingBadge = (sc2['PENDING'] || 0) + (sc2['DRAFT'] || 0);
-                  return pendingBadge > 0 ? (
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-warning-muted text-warning text-xs font-semibold animate-pulse">
-                      <BsPencil className="w-3.5 h-3.5" />
-                      <span>{pendingBadge} Awaiting Decision</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-success-muted text-success text-xs font-semibold">
-                      <BsCheckCircle className="w-3.5 h-3.5" />
-                      <span>All Reviewed</span>
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-          </div>
+          <PageHeader
+            title="Goal Approvals"
+            description="Review and approve team goals"
+            badge="Manager"
+          />
 
           <div className="bg-surface-elevated rounded-2xl p-4 border border-theme space-y-4 relative overflow-hidden transition-all duration-300 hover:shadow-theme-sm">
             {/* Top accent line */}

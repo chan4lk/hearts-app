@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
@@ -10,18 +10,19 @@ import AdminGoalsTable from '../components/AdminGoalsTable';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import { Pagination } from '@/app/components/shared/Pagination';
 import { Goal, User as UserType } from '@/app/components/shared/types';
-import { motion } from 'framer-motion';
+import { PageHeader } from '@/app/components/shared/PageHeader';
+import MetricStrip, { Metric } from '@/app/components/shared/MetricStrip';
+import { useToast } from '@/app/components/shared/Toast';
 
-import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 
-import { BsClipboardData, BsPencil, BsCheckCircle, BsXCircle, BsCompass } from 'react-icons/bs';
-import { PageContainer } from '@/app/components/shared/PageContainer';
+import { usePagination, useModalState } from '@/app/hooks';
 
 function AllGoalsPageContent() {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const toast = useToast();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [users, setUsers] = useState<UserType[]>([]);
   const [selectedUser, setSelectedUser] = useState<string>('all');
@@ -32,10 +33,8 @@ function AllGoalsPageContent() {
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [goalsToBulkDelete, setGoalsToBulkDelete] = useState<string[]>([]);
-  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const deleteModal = useModalState<Goal>();
+  const bulkDeleteModal = useModalState<string[]>();
 
   // Total stats for status grid (always show total, not filtered)
   const [totalStats, setTotalStats] = useState({
@@ -45,28 +44,19 @@ function AllGoalsPageContent() {
     draft: 0,
     completed: 0
   });
-  
+
   // Pagination state
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
-  const [pagination, setPagination] = useState<{
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  } | null>(null);
+  const { page, limit, setPage, setLimit, pagination, setPagination, paginationProps } = usePagination();
 
   // Read URL params on mount and when they change
   useEffect(() => {
     const statusParam = searchParams.get('status');
     const pageParam = searchParams.get('page');
-    
+
     if (statusParam) {
       setSelectedStatus(statusParam);
     }
-    
+
     if (pageParam) {
       const pageNum = parseInt(pageParam, 10);
       if (!isNaN(pageNum) && pageNum > 0) {
@@ -84,7 +74,7 @@ function AllGoalsPageContent() {
 
       const data = await response.json();
       const apiStats = data.stats;
-      
+
       // Use pre-calculated stats from API (no client-side counting needed)
       if (apiStats) {
         setTotalStats({
@@ -112,14 +102,14 @@ function AllGoalsPageContent() {
 
     // Fetch total stats once on mount
     fetchTotalStats();
-    
+
     fetchData();
   }, [session, router, page, limit, selectedUser, selectedStatus, selectedPriority, selectedCategory]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      
+
       // Build query params with pagination and filters
       const params = new URLSearchParams({
         view: 'all',
@@ -147,7 +137,7 @@ function AllGoalsPageContent() {
 
       setGoals(goalsData.goals || []);
       setUsers(usersData.users || []);
-      
+
       // Set pagination if available
       if (goalsData.pagination) {
         setPagination(goalsData.pagination);
@@ -164,19 +154,18 @@ function AllGoalsPageContent() {
 
   // Handle delete goal
   const handleDeleteGoal = (goal: Goal) => {
-    setGoalToDelete(goal);
-    setShowDeleteModal(true);
+    deleteModal.open(goal);
   };
 
   // Confirm delete goal
   const confirmDeleteGoal = async () => {
-    if (!goalToDelete) return;
-    
+    if (!deleteModal.data) return;
+
     try {
       // Optimistically update goals immediately
-      setGoals(prev => prev.filter(g => g.id !== goalToDelete.id));
+      setGoals(prev => prev.filter(g => g.id !== deleteModal.data!.id));
 
-      const response = await fetch(`/api/goals/${goalToDelete.id}`, {
+      const response = await fetch(`/api/goals/${deleteModal.data.id}`, {
         method: 'DELETE',
       });
 
@@ -184,34 +173,34 @@ function AllGoalsPageContent() {
         throw new Error('Failed to delete goal');
       }
 
-      setShowDeleteModal(false);
-      setGoalToDelete(null);
-      // Goal deleted toast removed
+      deleteModal.close();
+      toast.success('Goal deleted successfully');
       fetchData(); // Refresh goals
       fetchTotalStats(); // Refresh total stats
     } catch (error) {
       // Revert optimistic update on error
       fetchData();
-      // Error toast removed
+      toast.error('Failed to delete goal');
     }
   };
 
   // Handle bulk delete
   const handleBulkDelete = (goalIds: string[]) => {
-    setGoalsToBulkDelete(goalIds);
-    setShowBulkDeleteModal(true);
+    bulkDeleteModal.open(goalIds);
   };
 
   // Confirm bulk delete
   const confirmBulkDelete = async () => {
-    if (goalsToBulkDelete.length === 0) return;
+    if (!bulkDeleteModal.data || bulkDeleteModal.data.length === 0) return;
+
+    const goalIds = bulkDeleteModal.data;
 
     try {
       // Optimistically update goals immediately
-      setGoals(prev => prev.filter(g => !goalsToBulkDelete.includes(g.id)));
+      setGoals(prev => prev.filter(g => !goalIds.includes(g.id)));
 
       // Delete goals in parallel
-      const deletePromises = goalsToBulkDelete.map(goalId =>
+      const deletePromises = goalIds.map(goalId =>
         fetch(`/api/goals/${goalId}`, { method: 'DELETE' })
       );
 
@@ -220,23 +209,22 @@ function AllGoalsPageContent() {
       const failed = results.length - successful;
 
       if (successful > 0) {
-        // Toast removed
+        toast.success(`${successful} goal${successful !== 1 ? 's' : ''} deleted successfully`);
       }
 
       if (failed > 0 && successful === 0) {
-        // Error toast removed
+        toast.error('Failed to delete selected goals');
       }
 
-      setShowBulkDeleteModal(false);
-      setGoalsToBulkDelete([]);
-      
+      bulkDeleteModal.close();
+
       // Refresh goals from server to ensure sync
       fetchData();
       fetchTotalStats(); // Refresh total stats
     } catch (error) {
       // Revert optimistic update on error
       fetchData();
-      // Error toast removed
+      toast.error('Failed to delete selected goals');
     }
   };
 
@@ -256,186 +244,151 @@ function AllGoalsPageContent() {
     );
   }
 
+  const metrics: Metric[] = [
+    {
+      label: 'Total Goals',
+      value: totalStats.total,
+      color: 'accent',
+    },
+    {
+      label: 'Draft',
+      value: totalStats.draft,
+      color: 'secondary',
+      onClick: () => {
+        setSelectedStatus('DRAFT');
+        setPage(1);
+        const params = new URLSearchParams(window.location.search);
+        params.set('status', 'DRAFT');
+        params.delete('page');
+        router.push(`/dashboard/admin/all-goals?${params.toString()}`);
+      },
+      active: selectedStatus === 'DRAFT',
+    },
+    {
+      label: 'Approved',
+      value: totalStats.approved,
+      color: 'success',
+      onClick: () => {
+        setSelectedStatus('APPROVED');
+        setPage(1);
+        const params = new URLSearchParams(window.location.search);
+        params.set('status', 'APPROVED');
+        params.delete('page');
+        router.push(`/dashboard/admin/all-goals?${params.toString()}`);
+      },
+      active: selectedStatus === 'APPROVED',
+    },
+    {
+      label: 'Rejected',
+      value: totalStats.rejected,
+      color: 'error',
+      onClick: () => {
+        setSelectedStatus('REJECTED');
+        setPage(1);
+        const params = new URLSearchParams(window.location.search);
+        params.set('status', 'REJECTED');
+        params.delete('page');
+        router.push(`/dashboard/admin/all-goals?${params.toString()}`);
+      },
+      active: selectedStatus === 'REJECTED',
+    },
+    {
+      label: 'Completed',
+      value: totalStats.completed,
+      color: 'info',
+      onClick: () => {
+        setSelectedStatus('COMPLETED');
+        setPage(1);
+        const params = new URLSearchParams(window.location.search);
+        params.set('status', 'COMPLETED');
+        params.delete('page');
+        router.push(`/dashboard/admin/all-goals?${params.toString()}`);
+      },
+      active: selectedStatus === 'COMPLETED',
+    }
+  ];
+
   return (
     <DashboardLayout type="admin">
       <div className="fixed inset-0 top-16 left-0 md:left-60 right-0 bottom-0 bg-surface-primary flex flex-col overflow-hidden z-0">
-        {/* Subtle Background Pattern */}
-        <div className="absolute inset-0 pointer-events-none bg-grid" />
+        <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden space-y-6">
+          {/* Page Header */}
+          <PageHeader
+            title="All Goals"
+            description="Browse, filter, and manage all organizational goals"
+            badge="Admin"
+          />
 
-        <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
-          {/* Goals Explorer Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="flex-shrink-0 mb-4 relative overflow-hidden rounded-2xl bg-gradient-to-r from-[rgb(var(--color-info))]/8 via-[rgb(var(--color-accent))]/5 to-[rgb(var(--color-warning))]/8 border border-theme shadow-theme-sm"
-          >
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[rgb(var(--color-info))] via-[rgb(var(--color-accent))] to-[rgb(var(--color-warning))]" />
-            <div className="absolute top-0 right-0 w-48 h-48 bg-[rgb(var(--color-info))]/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
-            <div className="relative px-6 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-11 h-11 rounded-xl bg-info-muted border border-[rgb(var(--color-info))]/20 flex items-center justify-center">
-                  <BsCompass className="w-5 h-5 text-info" />
-                </div>
-                <div>
-                  <h1 className="text-lg font-bold text-primary">Goals Explorer</h1>
-                  <p className="text-xs text-secondary">Browse, filter, and manage all organizational goals</p>
-                </div>
-              </div>
-              <div className="hidden md:flex items-center gap-2">
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-secondary border border-theme">
-                  <BsClipboardData className="w-3.5 h-3.5 text-secondary" />
-                  <span className="text-xs font-medium text-secondary">{totalStats.total} Total</span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Stats Section - Fixed */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex-shrink-0 mb-3"
-          >
-            {(() => {
-              const statItems: StatItem[] = [
-                {
-                  title: 'Total Goals',
-                  value: totalStats.total,
-                  icon: <BsClipboardData className="w-4 h-4" />,
-                },
-                {
-                  title: 'Draft',
-                  value: totalStats.draft,
-                  icon: <BsPencil className="w-4 h-4" />,
-                  onClick: () => {
-                    setSelectedStatus('DRAFT');
-                    setPage(1);
-                    const params = new URLSearchParams(window.location.search);
-                    params.set('status', 'DRAFT');
-                    params.delete('page');
-                    router.push(`/dashboard/admin/all-goals?${params.toString()}`);
-                  }
-                },
-                {
-                  title: 'Approved',
-                  value: totalStats.approved,
-                  icon: <BsCheckCircle className="w-4 h-4" />,
-                  onClick: () => {
-                    setSelectedStatus('APPROVED');
-                    setPage(1);
-                    const params = new URLSearchParams(window.location.search);
-                    params.set('status', 'APPROVED');
-                    params.delete('page');
-                    router.push(`/dashboard/admin/all-goals?${params.toString()}`);
-                  }
-                },
-                {
-                  title: 'Rejected',
-                  value: totalStats.rejected,
-                  icon: <BsXCircle className="w-4 h-4" />,
-                  onClick: () => {
-                    setSelectedStatus('REJECTED');
-                    setPage(1);
-                    const params = new URLSearchParams(window.location.search);
-                    params.set('status', 'REJECTED');
-                    params.delete('page');
-                    router.push(`/dashboard/admin/all-goals?${params.toString()}`);
-                  }
-                },
-                {
-                  title: 'Completed',
-                  value: totalStats.completed,
-                  icon: <BsCheckCircle className="w-4 h-4" />,
-                  onClick: () => {
-                    setSelectedStatus('COMPLETED');
-                    setPage(1);
-                    const params = new URLSearchParams(window.location.search);
-                    params.set('status', 'COMPLETED');
-                    params.delete('page');
-                    router.push(`/dashboard/admin/all-goals?${params.toString()}`);
-                  }
-                }
-              ];
-              return <StatsSection stats={statItems} />;
-            })()}
-          </motion.div>
+          {/* Metric Strip */}
+          <MetricStrip metrics={metrics} />
 
           {/* Toolbar + Filters */}
-          <div className="flex-shrink-0 mb-3">
-            <PageToolbar
-              searchValue={searchQuery}
-              onSearchChange={(value) => {
-                setSearchQuery(value);
-                setPage(1);
-              }}
-              searchPlaceholder="Search goals..."
-              hasActiveFilters={selectedUser !== 'all' || selectedStatus !== 'all' || selectedPriority !== '' || selectedCategory !== 'all'}
-              onClearFilters={() => {
-                setSelectedUser('all');
-                setSelectedStatus('all');
-                setSelectedPriority('');
-                setSelectedCategory('all');
-                setSearchQuery('');
-                setPage(1);
-                router.push('/dashboard/admin/all-goals');
-              }}
-            >
-              <FilterSelect
-                value={selectedUser}
-                onChange={setSelectedUser}
-                options={users.map(u => ({ value: u.id || u.email, label: u.name }))}
-                placeholder="All Users"
-              />
-              <FilterSelect
-                value={selectedStatus === 'all' ? '' : selectedStatus}
-                onChange={(value) => setSelectedStatus(value || 'all')}
-                options={[
-                  { value: 'DRAFT', label: 'Draft' },
-                  { value: 'PENDING', label: 'Pending' },
-                  { value: 'APPROVED', label: 'Approved' },
-                  { value: 'REJECTED', label: 'Rejected' },
-                  { value: 'COMPLETED', label: 'Completed' },
-                ]}
-                placeholder="All Status"
-              />
-              <FilterSelect
-                value={selectedPriority}
-                onChange={setSelectedPriority}
-                options={[
-                  { value: 'LOW', label: 'Low' },
-                  { value: 'MEDIUM', label: 'Medium' },
-                  { value: 'HIGH', label: 'High' },
-                  { value: 'CRITICAL', label: 'Critical' },
-                ]}
-                placeholder="All Priority"
-              />
-              <FilterSelect
-                value={selectedCategory === 'all' ? '' : selectedCategory}
-                onChange={(value) => setSelectedCategory(value || 'all')}
-                options={[
-                  { value: 'PROFESSIONAL', label: 'Professional' },
-                  { value: 'TECHNICAL', label: 'Technical' },
-                  { value: 'LEADERSHIP', label: 'Leadership' },
-                  { value: 'PERSONAL', label: 'Personal' },
-                  { value: 'TRAINING', label: 'Training' },
-                  { value: 'KPI', label: 'KPI' },
-                ]}
-                placeholder="All Categories"
-              />
-            </PageToolbar>
-          </div>
+          <PageToolbar
+            searchValue={searchQuery}
+            onSearchChange={(value) => {
+              setSearchQuery(value);
+              setPage(1);
+            }}
+            searchPlaceholder="Search goals..."
+            hasActiveFilters={selectedUser !== 'all' || selectedStatus !== 'all' || selectedPriority !== '' || selectedCategory !== 'all'}
+            onClearFilters={() => {
+              setSelectedUser('all');
+              setSelectedStatus('all');
+              setSelectedPriority('');
+              setSelectedCategory('all');
+              setSearchQuery('');
+              setPage(1);
+              router.push('/dashboard/admin/all-goals');
+            }}
+          >
+            <FilterSelect
+              value={selectedUser}
+              onChange={setSelectedUser}
+              options={users.map(u => ({ value: u.id || u.email, label: u.name }))}
+              placeholder="All Users"
+            />
+            <FilterSelect
+              value={selectedStatus === 'all' ? '' : selectedStatus}
+              onChange={(value) => setSelectedStatus(value || 'all')}
+              options={[
+                { value: 'DRAFT', label: 'Draft' },
+                { value: 'PENDING', label: 'Pending' },
+                { value: 'APPROVED', label: 'Approved' },
+                { value: 'REJECTED', label: 'Rejected' },
+                { value: 'COMPLETED', label: 'Completed' },
+              ]}
+              placeholder="All Status"
+            />
+            <FilterSelect
+              value={selectedPriority}
+              onChange={setSelectedPriority}
+              options={[
+                { value: 'LOW', label: 'Low' },
+                { value: 'MEDIUM', label: 'Medium' },
+                { value: 'HIGH', label: 'High' },
+                { value: 'CRITICAL', label: 'Critical' },
+              ]}
+              placeholder="All Priority"
+            />
+            <FilterSelect
+              value={selectedCategory === 'all' ? '' : selectedCategory}
+              onChange={(value) => setSelectedCategory(value || 'all')}
+              options={[
+                { value: 'PROFESSIONAL', label: 'Professional' },
+                { value: 'TECHNICAL', label: 'Technical' },
+                { value: 'LEADERSHIP', label: 'Leadership' },
+                { value: 'PERSONAL', label: 'Personal' },
+                { value: 'TRAINING', label: 'Training' },
+                { value: 'KPI', label: 'KPI' },
+              ]}
+              placeholder="All Categories"
+            />
+          </PageToolbar>
 
           {/* Goals Table - Scrollable Container */}
           <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="flex-1 flex flex-col overflow-hidden min-h-0"
-            >
-              <div className="relative bg-surface-elevated rounded-2xl border border-theme overflow-hidden shadow-theme-sm hover:shadow-theme-lg transition-all duration-300 flex flex-col h-full">
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-info))]/50 via-[rgb(var(--color-accent))]/50 to-[rgb(var(--color-warning))]/50" />
+            <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+              <div className="bg-surface-elevated rounded-2xl border border-theme overflow-hidden shadow-theme-sm flex flex-col h-full">
                 <div className="p-4 flex flex-col flex-1 overflow-hidden min-h-0">
                   <AdminGoalsTable
                     goals={filteredGoals}
@@ -450,30 +403,16 @@ function AllGoalsPageContent() {
                     showEmployee={true}
                     showManager={true}
                   />
-                  
+
                   {/* Pagination - Fixed at bottom */}
-                  {pagination && (
+                  {paginationProps && (
                     <div className="flex-shrink-0 mt-4 pt-4 border-t border-theme">
-                      <Pagination
-                        page={pagination.page}
-                        limit={pagination.limit}
-                        total={pagination.total}
-                        totalPages={pagination.totalPages}
-                        hasNext={pagination.hasNext}
-                        hasPrev={pagination.hasPrev}
-                        onPageChange={(newPage) => {
-                          setPage(newPage);
-                        }}
-                        onLimitChange={(newLimit) => {
-                          setLimit(newLimit);
-                          setPage(1);
-                        }}
-                      />
+                      <Pagination {...paginationProps} />
                     </div>
                   )}
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
@@ -488,28 +427,22 @@ function AllGoalsPageContent() {
 
       {/* Single Delete Confirmation Modal */}
       <DeleteConfirmationModal
-        isOpen={showDeleteModal}
-        onClose={() => {
-          setShowDeleteModal(false);
-          setGoalToDelete(null);
-        }}
+        isOpen={deleteModal.isOpen}
+        onClose={deleteModal.close}
         onConfirm={confirmDeleteGoal}
         title="Delete Goal"
-        message={goalToDelete ? `Are you sure you want to delete "${goalToDelete.title}"? This action cannot be undone.` : 'Are you sure you want to delete this goal? This action cannot be undone.'}
+        message={deleteModal.data ? `Are you sure you want to delete "${deleteModal.data.title}"? This action cannot be undone.` : 'Are you sure you want to delete this goal? This action cannot be undone.'}
         confirmText="Delete"
         cancelText="Cancel"
       />
 
       {/* Bulk Delete Confirmation Modal */}
       <DeleteConfirmationModal
-        isOpen={showBulkDeleteModal}
-        onClose={() => {
-          setShowBulkDeleteModal(false);
-          setGoalsToBulkDelete([]);
-        }}
+        isOpen={bulkDeleteModal.isOpen}
+        onClose={bulkDeleteModal.close}
         onConfirm={confirmBulkDelete}
         title="Delete Selected Goals"
-        message={`Are you sure you want to delete ${goalsToBulkDelete.length} selected goal${goalsToBulkDelete.length !== 1 ? 's' : ''}? This action cannot be undone.`}
+        message={`Are you sure you want to delete ${bulkDeleteModal.data?.length || 0} selected goal${(bulkDeleteModal.data?.length || 0) !== 1 ? 's' : ''}? This action cannot be undone.`}
         confirmText="Delete All"
         cancelText="Cancel"
       />

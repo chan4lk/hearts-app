@@ -12,6 +12,24 @@ import AIGoalRiskAnalysis from '@/app/components/ai/AIGoalRiskAnalysis';
 import GoalActivityTimeline from '@/app/components/goals/GoalActivityTimeline';
 import { useSession } from 'next-auth/react';
 
+interface Activity {
+  id: string;
+  type: 'created' | 'progress_update' | 'status_change' | 'comment' | 'completed';
+  timestamp: Date;
+  user: {
+    name: string;
+    role: string;
+  };
+  data: {
+    progress?: number;
+    previousProgress?: number;
+    status?: string;
+    previousStatus?: string;
+    notes?: string;
+    comment?: string;
+  };
+}
+
 interface GoalDetailModalProps {
   goal: Goal | GoalWithRatingExtended;
   onClose: () => void;
@@ -47,7 +65,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
   const descriptionRef = useRef<HTMLParagraphElement>(null);
   const [shouldShowExpandButton, setShouldShowExpandButton] = useState(false);
   const [expandedHeight, setExpandedHeight] = useState<number>(0);
-  const [activities, setActivities] = useState<any[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentGoal, setCurrentGoal] = useState<Goal>(goal);

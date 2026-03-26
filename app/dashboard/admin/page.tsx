@@ -2,7 +2,6 @@
 
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import {
-  BsClock,
   BsCheckCircle,
   BsExclamationTriangle,
   BsXCircle,
@@ -10,20 +9,18 @@ import {
   BsChevronRight,
   BsPeople,
   BsBullseye,
-  BsEye,
-  BsEyeSlash,
-  BsGear,
   BsShieldCheck,
-  BsCpu
 } from 'react-icons/bs';
 
-import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
+import MetricStrip, { Metric } from '@/app/components/shared/MetricStrip';
+import { PageHeader } from '@/app/components/shared/PageHeader';
+import { useToast } from '@/app/components/shared/Toast';
 import Filters from '@/app/components/shared/Filters';
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Role } from '@prisma/client';
 import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
@@ -63,9 +60,18 @@ interface Activity {
   status: 'success' | 'warning' | 'error';
 }
 
+const GOAL_TABS = [
+  { label: 'All', value: 'all' },
+  { label: 'Pending', value: 'PENDING' },
+  { label: 'Approved', value: 'APPROVED' },
+  { label: 'In Progress', value: 'IN_PROGRESS' },
+  { label: 'Completed', value: 'COMPLETED' },
+] as const;
+
 export default function AdminDashboard() {
   const { data: session } = useSession();
   const router = useRouter();
+  const toast = useToast();
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     employeeCount: 0,
@@ -80,8 +86,6 @@ export default function AdminDashboard() {
   });
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState('overview');
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [goals, setGoals] = useState<Goal[]>([]);
   const [users, setUsers] = useState<UserType[]>([]);
   const [selectedUser, setSelectedUser] = useState<string>('all');
@@ -90,14 +94,12 @@ export default function AdminDashboard() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
   const [goalsLoading, setGoalsLoading] = useState(false);
-  const [showGoals, setShowGoals] = useState(false);
-  const [showGoalFilters, setShowGoalFilters] = useState(true);
   const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [goalsToBulkDelete, setGoalsToBulkDelete] = useState<string[]>([]);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Pagination state for goals section
   const [goalsPage, setGoalsPage] = useState(1);
   const [goalsLimit, setGoalsLimit] = useState(20);
@@ -109,13 +111,6 @@ export default function AdminDashboard() {
     hasNext: boolean;
     hasPrev: boolean;
   } | null>(null);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   // Fetch dashboard data function
   const fetchDashboardData = async () => {
@@ -162,18 +157,18 @@ export default function AdminDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, router]);
 
-  // Fetch goals when toggled or filters/pagination change
+  // Fetch goals on mount and when filters/pagination change
   useEffect(() => {
-    if (showGoals && session?.user?.role === Role.ADMIN) {
+    if (session?.user?.role === Role.ADMIN) {
       fetchAllGoals();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showGoals, goalsPage, goalsLimit, selectedUser, selectedStatus, selectedPriority, selectedCategory]);
+  }, [goalsPage, goalsLimit, selectedUser, selectedStatus, selectedPriority, selectedCategory]);
 
   const fetchAllGoals = async () => {
     try {
       setGoalsLoading(true);
-      
+
       // Build query params with pagination and filters
       const params = new URLSearchParams({
         view: 'all',
@@ -184,17 +179,18 @@ export default function AdminDashboard() {
         ...(selectedCategory && selectedCategory !== '' && selectedCategory !== 'all' && { category: selectedCategory }),
         ...(selectedUser && selectedUser !== 'all' && { employeeId: selectedUser })
       });
-      
+
       const response = await fetch(`/api/goals?${params}`);
       if (!response.ok) throw new Error('Failed to fetch goals');
       const data = await response.json();
       setGoals(data.goals || []);
-      
+
       // Set pagination if available
       if (data.pagination) {
         setGoalsPagination(data.pagination);
       }
-    } catch (error) {
+    } catch {
+      // silent
     } finally {
       setGoalsLoading(false);
     }
@@ -212,7 +208,7 @@ export default function AdminDashboard() {
   // Confirm delete goal
   const confirmDeleteGoal = async () => {
     if (!goalToDelete) return;
-    
+
     try {
       // Optimistically update goals and stats immediately
       setGoals(prev => prev.filter(g => g.id !== goalToDelete.id));
@@ -231,10 +227,12 @@ export default function AdminDashboard() {
 
       setShowDeleteModal(false);
       setGoalToDelete(null);
+      toast.success('Goal deleted successfully');
 
       // Single refresh to sync both goals and stats (avoid double-refetch)
       await Promise.all([fetchAllGoals(), fetchDashboardData()]);
     } catch {
+      toast.error('Failed to delete goal');
       // Revert optimistic update on error
       await Promise.all([fetchAllGoals(), fetchDashboardData()]);
     }
@@ -267,12 +265,12 @@ export default function AdminDashboard() {
           ...prev,
           totalGoals: Math.max(0, prev.totalGoals - successful)
         }));
-        
-        // Toast removed
+
+        toast.success(`${successful} goal${successful !== 1 ? 's' : ''} deleted successfully`);
       }
 
       if (failed > 0 && successful === 0) {
-        // Error toast removed
+        toast.error('Failed to delete goals');
       }
 
       setShowBulkDeleteModal(false);
@@ -281,6 +279,7 @@ export default function AdminDashboard() {
       // Single parallel refresh to sync both goals and stats
       await Promise.all([fetchAllGoals(), fetchDashboardData()]);
     } catch {
+      toast.error('Failed to delete goals');
       await Promise.all([fetchAllGoals(), fetchDashboardData()]);
     }
   };
@@ -298,19 +297,12 @@ export default function AdminDashboard() {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'operational':
-        return 'text-success bg-success-muted border-[rgb(var(--color-success))]/20';
-      case 'degraded':
-        return 'text-warning bg-warning-muted border-[rgb(var(--color-warning))]/20';
-      case 'down':
-        return 'text-error bg-error-muted border-[rgba(var(--color-error),0.2)]';
-      default:
-        return 'text-secondary bg-surface-secondary border-gray-500/20';
-    }
-  };
-
+  const metrics: Metric[] = [
+    { label: 'Total Users', value: stats.totalUsers, color: 'accent', onClick: () => router.push('/dashboard/admin/users') },
+    { label: 'Employees', value: stats.employeeCount, color: 'info' },
+    { label: 'Managers', value: stats.managerCount, color: 'warning' },
+    { label: 'Total Goals', value: stats.totalGoals, color: 'success', onClick: () => router.push('/dashboard/admin/all-goals') },
+  ];
 
   if (isLoading) {
     return (
@@ -330,340 +322,240 @@ export default function AdminDashboard() {
 
   return (
     <DashboardLayout type="admin">
-      <div className="max-w-7xl mx-auto space-y-5">
-          {/* System Control Panel Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[rgb(var(--color-accent))]/10 via-[rgb(var(--color-info))]/5 to-[rgb(var(--color-accent))]/10 border border-theme shadow-theme-sm"
-          >
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[rgb(var(--color-accent))] via-[rgb(var(--color-info))] to-[rgb(var(--color-accent))]" />
-            <div className="absolute top-0 right-0 w-64 h-64 bg-[rgb(var(--color-accent))]/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
-            <div className="relative p-6 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-accent/10 border border-[rgb(var(--color-accent))]/20 flex items-center justify-center">
-                  <BsCpu className="w-6 h-6 text-accent" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-primary">System Control Panel</h1>
-                  <p className="text-sm text-secondary">Monitor and manage your organization</p>
-                </div>
-              </div>
-              <div className="hidden md:flex items-center gap-4">
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-success-muted border border-[rgb(var(--color-success))]/20">
-                  <div className="w-2 h-2 rounded-full bg-[rgb(var(--color-success))] animate-pulse" />
-                  <span className="text-xs font-medium text-success">System Online</span>
-                </div>
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-secondary border border-theme">
-                  <BsClock className="w-3 h-3 text-secondary" />
-                  <span className="text-xs font-medium text-secondary">
-                    {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Page Header */}
+        <PageHeader title="System Overview" description="Monitor and manage your organization" badge="Admin" />
 
-          {/* Stats Section */}
+        {/* Metric Strip */}
+        <MetricStrip metrics={metrics} />
+
+        {/* Main Content Grid: Role Distribution + Recent Users */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Role Distribution */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="lg:col-span-2 card-glass rounded-2xl shadow-theme-sm overflow-hidden"
           >
-            {(() => {
-              const statItems: StatItem[] = [
-                {
-                  title: 'Total Users',
-                  value: stats.totalUsers,
-                  icon: <BsPeople className="w-4 h-4" />,
-                  onClick: () => router.push('/dashboard/admin/users'),
-                  tooltip: 'Click to view all users'
-                },
-                {
-                  title: 'Employees',
-                  value: stats.employeeCount,
-                  icon: <BsPeople className="w-4 h-4" />,
-                  onClick: () => router.push('/dashboard/admin/users?role=EMPLOYEE'),
-                  tooltip: 'View all employees'
-                },
-                {
-                  title: 'Managers',
-                  value: stats.managerCount,
-                  icon: <BsBullseye className="w-4 h-4" />,
-                  onClick: () => router.push('/dashboard/admin/users?role=MANAGER'),
-                  tooltip: 'View all managers'
-                },
-                {
-                  title: 'Admins',
-                  value: stats.adminCount,
-                  icon: <BsBullseye className="w-4 h-4" />,
-                  onClick: () => router.push('/dashboard/admin/users?role=ADMIN'),
-                  tooltip: 'View all admins'
-                },
-                {
-                  title: 'Total Goals',
-                  value: stats.totalGoals,
-                  icon: <BsBullseye className="w-4 h-4" />,
-                  onClick: () => router.push('/dashboard/admin/all-goals'),
-                  tooltip: 'View all goals'
-                }
-              ];
-              return <StatsSection stats={statItems} />;
-            })()}
-          </motion.div>
-
-                     {/* Main Content Grid */}
-           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Role Distribution */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="lg:col-span-2 card-glass rounded-2xl shadow-theme-sm hover:shadow-theme-lg overflow-hidden transition-all duration-300 group/card relative"
-            >
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-accent))] to-[rgb(var(--color-info))]" />
-              <div className="p-4 border-b border-theme">
-                 <div className="flex items-center justify-between">
-                   <div className="flex items-center gap-2">
-                     <BsShieldCheck className="w-5 h-5 text-accent" />
-                     <h2 className="text-lg font-semibold text-primary">Role Distribution</h2>
-                   </div>
-                  <Link
-                    href="/dashboard/admin/users"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-accent hover:opacity-80 transition-colors"
-                  >
-                    View all
-                    <BsChevronRight className="w-4 h-4" />
-                  </Link>
+            <div className="p-4 border-b border-theme">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <BsShieldCheck className="w-5 h-5 text-accent" />
+                  <h2 className="text-lg font-semibold text-primary">Role Distribution</h2>
                 </div>
+                <Link
+                  href="/dashboard/admin/users"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-accent hover:opacity-80 transition-colors"
+                >
+                  View all
+                  <BsChevronRight className="w-4 h-4" />
+                </Link>
               </div>
-                             <div className="p-4">
-                 <div className="space-y-4">
-                  {stats.roleDistribution.map((role, index) => {
-                    const percentage = (role._count.role / stats.totalUsers) * 100;
-                    return (
-                      <div key={role.role} className="group">
-                                                 <div className="flex items-center justify-between mb-2">
-                           <div className="flex items-center gap-3">
-                             <div className="w-8 h-8 bg-surface-secondary rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                               <BsPeople className="w-4 h-4 text-secondary" />
-                             </div>
-                             <div>
-                               <p className="text-sm font-medium text-primary capitalize">
-                                 {role.role.toLowerCase()}
-                               </p>
-                               <p className="text-xs text-secondary">
-                                 {role._count.role} {role._count.role === 1 ? 'user' : 'users'}
-                               </p>
-                             </div>
-                           </div>
-                           <div className="text-right">
-                             <p className="text-lg font-bold text-primary">{role._count.role}</p>
-                             <p className="text-xs text-secondary">{percentage.toFixed(1)}%</p>
-                           </div>
-                         </div>
-                         <div className="w-full bg-surface-secondary rounded-full h-2">
-                           <div
-                             className="h-2 rounded-full bg-accent transition-all duration-1000"
-                             style={{ width: `${percentage}%` }}
-                           ></div>
-                         </div>
+            </div>
+            <div className="p-4">
+              <div className="space-y-4">
+                {stats.roleDistribution.map((role) => {
+                  const percentage = (role._count.role / stats.totalUsers) * 100;
+                  return (
+                    <div key={role.role} className="group">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-surface-secondary rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                            <BsPeople className="w-4 h-4 text-secondary" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-primary capitalize">
+                              {role.role.toLowerCase()}
+                            </p>
+                            <p className="text-xs text-secondary">
+                              {role._count.role} {role._count.role === 1 ? 'user' : 'users'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-bold text-primary">{role._count.role}</p>
+                          <p className="text-xs text-secondary">{percentage.toFixed(1)}%</p>
+                        </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </motion.div>
-
-                         {/* Recent Users */}
-             <motion.div
-               initial={{ opacity: 0, x: 20 }}
-               animate={{ opacity: 1, x: 0 }}
-               transition={{ duration: 0.6, delay: 0.4 }}
-               className="card-glass rounded-2xl shadow-theme-sm hover:shadow-theme-lg transition-all duration-300 relative overflow-hidden"
-            >
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-info))] to-[rgb(var(--color-accent))]" />
-              <div className="p-6 border-b border-theme">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <BsActivity className="w-5 h-5 text-accent" />
-                    <h2 className="text-xl font-semibold text-primary">Recent Users</h2>
-                  </div>
-                  <Link
-                    href="/dashboard/admin/users"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-accent hover:opacity-80 transition-colors"
-                  >
-                    View all
-                    <BsChevronRight className="w-4 h-4" />
-                  </Link>
-                </div>
-              </div>
-              <div className="p-6">
-                <div className="space-y-4">
-                  {stats.recentUsers.slice(0, 5).map((user, index) => (
-                    <div key={user.email} className="flex items-center gap-4 p-3 rounded-xl bg-surface-secondary hover:bg-surface-tertiary transition-all duration-300">
-                      <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center flex-shrink-0">
-                        <BsPeople className="w-5 h-5 text-[rgb(var(--color-text-inverse))]" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-primary truncate">{user.name}</p>
-                        <p className="text-xs text-secondary truncate">{user.email}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-secondary">
-                          {new Date(user.updatedAt).toLocaleTimeString('en-US', { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })}
-                        </p>
+                      <div className="w-full bg-surface-secondary rounded-full h-2">
+                        <div
+                          className="h-2 rounded-full bg-accent transition-all duration-1000"
+                          style={{ width: `${percentage}%` }}
+                        />
                       </div>
                     </div>
-                  ))}
+                  );
+                })}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Recent Users */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="card-glass rounded-2xl shadow-theme-sm overflow-hidden"
+          >
+            <div className="p-4 border-b border-theme">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <BsActivity className="w-5 h-5 text-accent" />
+                  <h2 className="text-lg font-semibold text-primary">Recent Users</h2>
+                </div>
+                <Link
+                  href="/dashboard/admin/users"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-accent hover:opacity-80 transition-colors"
+                >
+                  View all
+                  <BsChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="space-y-3">
+                {stats.recentUsers.slice(0, 5).map((user) => (
+                  <div key={user.email} className="flex items-center gap-3 p-3 rounded-xl bg-surface-secondary hover:bg-surface-tertiary transition-all duration-300">
+                    <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center flex-shrink-0">
+                      <BsPeople className="w-5 h-5 text-[rgb(var(--color-text-inverse))]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-primary truncate">{user.name}</p>
+                      <p className="text-xs text-secondary truncate">{user.email}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-secondary">
+                        {new Date(user.updatedAt).toLocaleTimeString('en-US', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* All Users Goals Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className="card-glass rounded-2xl shadow-theme-sm overflow-hidden"
+        >
+          <div className="p-6 border-b border-theme">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <BsBullseye className="w-5 h-5 text-accent" />
+                <div>
+                  <h2 className="text-lg font-semibold text-primary">All Users Goals</h2>
+                  <p className="text-sm text-secondary">View and manage goals across all users</p>
                 </div>
               </div>
-            </motion.div>
+            </div>
+
+            {/* Status Tabs */}
+            <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide mb-4">
+              {GOAL_TABS.map((tab) => (
+                <button
+                  key={tab.value}
+                  onClick={() => {
+                    setSelectedStatus(tab.value);
+                    setGoalsPage(1);
+                  }}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-all duration-200 focus-ring ${
+                    selectedStatus === tab.value
+                      ? 'bg-accent text-[rgb(var(--color-text-inverse))] shadow-theme-sm'
+                      : 'text-secondary hover:text-primary hover:bg-surface-secondary'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Filters */}
+            <Filters
+              selectedUser={selectedUser}
+              onUserChange={(value) => {
+                setSelectedUser(value);
+                setGoalsPage(1);
+              }}
+              selectedStatus={selectedStatus}
+              onStatusChange={(value) => {
+                setSelectedStatus(value);
+                setGoalsPage(1);
+              }}
+              selectedPriority={selectedPriority}
+              onPriorityChange={(value) => {
+                setSelectedPriority(value);
+                setGoalsPage(1);
+              }}
+              selectedCategory={selectedCategory}
+              onCategoryChange={(value) => {
+                setSelectedCategory(value);
+                setGoalsPage(1);
+              }}
+              users={users}
+              onClear={() => {
+                setSelectedUser('all');
+                setSelectedStatus('all');
+                setSelectedPriority('');
+                setSelectedCategory('all');
+                setGoalsPage(1);
+              }}
+            />
           </div>
 
-          
+          <div className="p-6">
+            {goalsLoading ? (
+              <LoadingSkeleton variant="table" />
+            ) : filteredGoals.length === 0 ? (
+              <EmptyState title="No goals found" description="No goals match the current filters. Try adjusting your filters or check back later." />
+            ) : (
+              <>
+                <AdminGoalsTable
+                  goals={filteredGoals}
+                  selectedStatus={selectedStatus === 'all' ? '' : selectedStatus}
+                  onStatusChange={(status) => {
+                    setSelectedStatus(status === '' ? 'all' : status);
+                    setGoalsPage(1);
+                  }}
+                  onGoalClick={(goal) => setSelectedGoal(goal)}
+                  onDelete={handleDeleteGoal}
+                  onBulkDelete={handleBulkDelete}
+                  showEmployee={true}
+                  showManager={true}
+                />
 
-          {/* All Users Goals Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="card-glass rounded-2xl shadow-theme-sm hover:shadow-theme-lg overflow-hidden transition-all duration-300 relative"
-          >
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-accent))] via-[rgb(var(--color-info))] to-[rgb(var(--color-accent))]" />
-            <div className="p-6 border-b border-theme">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-[rgb(var(--color-accent))]/20 to-[rgb(var(--color-info))]/20 border border-[rgb(var(--color-accent))]/20 rounded-xl flex items-center justify-center">
-                    <BsBullseye className="w-5 h-5 text-accent" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-primary">All Users Goals</h2>
-                    <p className="text-sm text-secondary">View and manage goals across all users</p>
-                  </div>
-                </div>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setShowGoals(!showGoals)}
-                  className="flex items-center gap-2 px-4 py-2 bg-accent text-[rgb(var(--color-text-inverse))] rounded-xl shadow-theme-sm hover:opacity-90 transition-all duration-300 focus-ring"
-                >
-                  {showGoals ? (
-                    <>
-                      <BsEyeSlash className="w-4 h-4" />
-                      <span className="text-sm font-medium">Hide Goals</span>
-                    </>
-                  ) : (
-                    <>
-                      <BsEye className="w-4 h-4" />
-                      <span className="text-sm font-medium">Show Goals</span>
-                    </>
-                  )}
-                </motion.button>
-              </div>
-              
-              {/* Filters */}
-              <AnimatePresence mode="wait">
-                {showGoals && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2, ease: 'easeInOut' }}
-                  >
-                    <Filters
-                      selectedUser={selectedUser}
-                      onUserChange={(value) => {
-                        setSelectedUser(value);
-                        setGoalsPage(1);
+                {/* Pagination */}
+                {goalsPagination && (
+                  <div className="mt-6 pt-4 border-t border-theme">
+                    <Pagination
+                      page={goalsPagination.page}
+                      limit={goalsPagination.limit}
+                      total={goalsPagination.total}
+                      totalPages={goalsPagination.totalPages}
+                      hasNext={goalsPagination.hasNext}
+                      hasPrev={goalsPagination.hasPrev}
+                      onPageChange={(newPage) => {
+                        setGoalsPage(newPage);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
-                      selectedStatus={selectedStatus}
-                      onStatusChange={(value) => {
-                        setSelectedStatus(value);
-                        setGoalsPage(1);
-                      }}
-                      selectedPriority={selectedPriority}
-                      onPriorityChange={(value) => {
-                        setSelectedPriority(value);
-                        setGoalsPage(1);
-                      }}
-                      selectedCategory={selectedCategory}
-                      onCategoryChange={(value) => {
-                        setSelectedCategory(value);
-                        setGoalsPage(1);
-                      }}
-                      users={users}
-                      onClear={() => {
-                        setSelectedUser('all');
-                        setSelectedStatus('all');
-                        setSelectedPriority('');
-                        setSelectedCategory('all');
+                      onLimitChange={(newLimit) => {
+                        setGoalsLimit(newLimit);
                         setGoalsPage(1);
                       }}
                     />
-                  </motion.div>
+                  </div>
                 )}
-              </AnimatePresence>
-            </div>
-            <AnimatePresence mode="wait">
-              {showGoals && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.2, ease: 'easeInOut' }}
-                  className="p-6"
-                >
-                  {goalsLoading ? (
-                    <LoadingSkeleton variant="table" />
-                  ) : filteredGoals.length === 0 ? (
-                    <EmptyState title="No goals found" description="No goals match the current filters. Try adjusting your filters or check back later." />
-                  ) : (
-                    <>
-                      <AdminGoalsTable
-                        goals={filteredGoals}
-                        selectedStatus={selectedStatus === 'all' ? '' : selectedStatus}
-                        onStatusChange={(status) => {
-                          setSelectedStatus(status === '' ? 'all' : status);
-                          setGoalsPage(1); // Reset to first page on filter change
-                        }}
-                        onGoalClick={(goal) => setSelectedGoal(goal)}
-                        onDelete={handleDeleteGoal}
-                        onBulkDelete={handleBulkDelete}
-                        showEmployee={true}
-                        showManager={true}
-                      />
-                      
-                      {/* Pagination */}
-                      {goalsPagination && (
-                        <div className="mt-6 pt-4 border-t border-theme">
-                          <Pagination
-                            page={goalsPagination.page}
-                            limit={goalsPagination.limit}
-                            total={goalsPagination.total}
-                            totalPages={goalsPagination.totalPages}
-                            hasNext={goalsPagination.hasNext}
-                            hasPrev={goalsPagination.hasPrev}
-                            onPageChange={(newPage) => {
-                              setGoalsPage(newPage);
-                              window.scrollTo({ top: 0, behavior: 'smooth' });
-                            }}
-                            onLimitChange={(newLimit) => {
-                              setGoalsLimit(newLimit);
-                              setGoalsPage(1);
-                            }}
-                          />
-                        </div>
-                      )}
-                    </>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+              </>
+            )}
+          </div>
+        </motion.div>
       </div>
 
       {/* Goal Detail Modal */}

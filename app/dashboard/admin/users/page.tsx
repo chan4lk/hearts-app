@@ -1,17 +1,17 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { motion } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 import UserTable from './components/UserTable';
+import { PageHeader } from '@/app/components/shared/PageHeader';
+import MetricStrip, { Metric } from '@/app/components/shared/MetricStrip';
+import { useToast } from '@/app/components/shared/Toast';
 
 import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
-import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 
-import { BsPeople, BsGraphUp, BsShieldExclamation, BsPersonBadge } from 'react-icons/bs';
 import { Pagination } from '@/app/components/shared/Pagination';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
 import { User, UserFilters } from '@/app/components/shared/types';
@@ -40,7 +40,8 @@ function UsersPageContent() {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+  const toast = useToast();
+
   // Initialize filters from URL params
   const getInitialFilters = (searchParams: URLSearchParams): UserFilters => {
     const roleParam = searchParams.get('role');
@@ -80,7 +81,7 @@ function UsersPageContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
-  
+
   // Pagination state
   const [page, setPage] = useState(() => getInitialPage(searchParams));
   const [limit, setLimit] = useState(20);
@@ -100,7 +101,7 @@ function UsersPageContent() {
   useEffect(() => {
     const roleParam = searchParams.get('role');
     const pageParam = searchParams.get('page');
-    
+
     if (roleParam) {
       const validRoles = ['EMPLOYEE', 'MANAGER', 'ADMIN'];
       if (validRoles.includes(roleParam) && filters.role !== roleParam) {
@@ -116,7 +117,7 @@ function UsersPageContent() {
         role: ''
       }));
     }
-    
+
     if (pageParam) {
       const pageNum = parseInt(pageParam, 10);
       if (!isNaN(pageNum) && pageNum > 0 && page !== pageNum) {
@@ -158,7 +159,6 @@ function UsersPageContent() {
       const response = await fetch(`/api/admin/users?${params}`);
       if (!response.ok) {
         if (response.status === 401) {
-          // Toast removed
           router.push('/login');
           return;
         }
@@ -166,7 +166,7 @@ function UsersPageContent() {
       }
 
       const data = await response.json();
-      
+
       // Handle both old format (array) and new format (object with users and pagination)
       const usersData = Array.isArray(data) ? data : data.users || [];
       const transformedUsers = usersData.map((user: RawUser): User => ({
@@ -187,15 +187,15 @@ function UsersPageContent() {
       }));
 
       setUsers(transformedUsers);
-      setManagers(transformedUsers.filter((user: User) => 
+      setManagers(transformedUsers.filter((user: User) =>
         user.role === Role.MANAGER || user.role === Role.ADMIN
       ));
-      
+
       // Set pagination if available
       if (data.pagination) {
         setPagination(data.pagination);
       }
-      
+
       setLastRefresh(new Date());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load users');
@@ -240,10 +240,10 @@ function UsersPageContent() {
   // Handle quick role update from table
   const handleQuickRoleUpdate = (userId: string, newRole: string, updatedUser: User) => {
     // Optimistically update the user list
-    setUsers(prev => prev.map(user => 
+    setUsers(prev => prev.map(user =>
       user.id === userId ? updatedUser : user
     ));
-    
+
     // Update managers list if role changed
     if (newRole === 'MANAGER' || newRole === 'ADMIN') {
       setManagers(prev => {
@@ -256,22 +256,25 @@ function UsersPageContent() {
     } else {
       setManagers(prev => prev.filter(m => m.id !== userId));
     }
+    toast.success(`Role updated to ${newRole}`);
   };
 
   // Handle quick status update from table
   const handleQuickStatusUpdate = (userId: string, newStatus: string, updatedUser: User) => {
     // Optimistically update the user list
-    setUsers(prev => prev.map(user => 
+    setUsers(prev => prev.map(user =>
       user.id === userId ? updatedUser : user
     ));
+    toast.success(`User status updated to ${newStatus}`);
   };
 
   // Handle quick manager update from table
   const handleQuickManagerUpdate = (userId: string, newManagerId: string | null, updatedUser: User) => {
     // Optimistically update the user list
-    setUsers(prev => prev.map(user => 
+    setUsers(prev => prev.map(user =>
       user.id === userId ? updatedUser : user
     ));
+    toast.success('Manager assignment updated');
   };
 
   // Handle delete user
@@ -298,9 +301,9 @@ function UsersPageContent() {
       setUsers(prev => prev.filter(user => user.id !== userToDelete.id));
       setIsDeleteConfirmOpen(false);
       setUserToDelete(null);
-      // Toast removed
+      toast.success('User deleted successfully');
     } catch (error) {
-      // Toast removed
+      toast.error(error instanceof Error ? error.message : 'Failed to delete user');
     }
   };
 
@@ -364,109 +367,85 @@ function UsersPageContent() {
     );
   }
 
+  const metrics: Metric[] = [
+    {
+      label: 'Total Users',
+      value: userStats.total,
+      color: 'accent',
+    },
+    {
+      label: 'Employees',
+      value: userStats.employees,
+      color: 'info',
+      onClick: () => handleStatFilter('role', 'EMPLOYEE'),
+      active: filters.role === 'EMPLOYEE',
+    },
+    {
+      label: 'Managers',
+      value: userStats.managers,
+      color: 'success',
+      onClick: () => handleStatFilter('role', 'MANAGER'),
+      active: filters.role === 'MANAGER',
+    },
+    {
+      label: 'Admins',
+      value: userStats.admins,
+      color: 'warning',
+      onClick: () => handleStatFilter('role', 'ADMIN'),
+      active: filters.role === 'ADMIN',
+    }
+  ];
+
   return (
     <DashboardLayout type="admin">
       <div className="fixed inset-0 top-16 left-0 md:left-60 right-0 bottom-0 bg-surface-primary flex flex-col overflow-hidden z-0">
-        {/* Subtle Background Pattern */}
-        <div className="absolute inset-0 pointer-events-none bg-grid" />
+        <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden space-y-6">
+          {/* Page Header */}
+          <PageHeader
+            title="User Management"
+            description="Manage users, roles, and team assignments"
+            badge="Admin"
+          />
 
-        <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
-          {/* People Directory Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="flex-shrink-0 mb-4 relative overflow-hidden rounded-2xl bg-gradient-to-r from-[rgb(var(--color-accent))]/8 via-[rgb(var(--color-success))]/5 to-[rgb(var(--color-accent))]/8 border border-theme shadow-theme-sm"
-          >
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[rgb(var(--color-accent))] via-[rgb(var(--color-success))] to-[rgb(var(--color-accent))]" />
-            <div className="absolute top-0 right-0 w-48 h-48 bg-[rgb(var(--color-success))]/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
-            <div className="relative px-6 py-4 flex items-center gap-4">
-              <div className="w-11 h-11 rounded-xl bg-accent/10 border border-[rgb(var(--color-accent))]/20 flex items-center justify-center">
-                <BsPersonBadge className="w-5 h-5 text-accent" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-primary">People Directory</h1>
-                <p className="text-xs text-secondary">Manage users, roles, and team assignments</p>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Stats Section - Fixed */}
-          <div className="flex-shrink-0 pb-3">
-            {(() => {
-              const statItems: StatItem[] = [
-                {
-                  title: 'Total Users',
-                  value: userStats.total,
-                  icon: <BsPeople className="w-4 h-4" />,
-                },
-                {
-                  title: 'Employees',
-                  value: userStats.employees,
-                  icon: <BsPeople className="w-4 h-4" />,
-                  onClick: () => handleStatFilter('role', 'EMPLOYEE')
-                },
-                {
-                  title: 'Managers',
-                  value: userStats.managers,
-                  icon: <BsGraphUp className="w-4 h-4" />,
-                  onClick: () => handleStatFilter('role', 'MANAGER')
-                },
-                {
-                  title: 'Admins',
-                  value: userStats.admins,
-                  icon: <BsShieldExclamation className="w-4 h-4" />,
-                  onClick: () => handleStatFilter('role', 'ADMIN')
-                }
-              ];
-              return <StatsSection stats={statItems} />;
-            })()}
-          </div>
+          {/* Metric Strip */}
+          <MetricStrip metrics={metrics} />
 
           {/* Toolbar + Filters */}
-          <div className="flex-shrink-0 pb-3">
-            <PageToolbar
-              searchValue={searchTerm}
-              onSearchChange={setSearchTerm}
-              searchPlaceholder="Search users by name or email..."
-              hasActiveFilters={filters.role !== '' || filters.status !== ''}
-              onClearFilters={() => {
-                setFilters({ role: '', status: '', manager: '' });
-                setSearchTerm('');
-              }}
-            >
-              <FilterSelect
-                value={filters.role}
-                onChange={(value) => setFilters((prev: UserFilters) => ({ ...prev, role: value }))}
-                options={[
-                  { value: 'EMPLOYEE', label: 'Employee' },
-                  { value: 'MANAGER', label: 'Manager' },
-                  { value: 'ADMIN', label: 'Admin' },
-                ]}
-                placeholder="All Roles"
-              />
-              <FilterSelect
-                value={filters.status}
-                onChange={(value) => setFilters((prev: UserFilters) => ({ ...prev, status: value }))}
-                options={[
-                  { value: 'ACTIVE', label: 'Active' },
-                  { value: 'INACTIVE', label: 'Inactive' },
-                ]}
-                placeholder="All Status"
-              />
-            </PageToolbar>
-          </div>
+          <PageToolbar
+            searchValue={searchTerm}
+            onSearchChange={setSearchTerm}
+            searchPlaceholder="Search users by name or email..."
+            hasActiveFilters={filters.role !== '' || filters.status !== ''}
+            onClearFilters={() => {
+              setFilters({ role: '', status: '', manager: '' });
+              setSearchTerm('');
+            }}
+          >
+            <FilterSelect
+              value={filters.role}
+              onChange={(value) => setFilters((prev: UserFilters) => ({ ...prev, role: value }))}
+              options={[
+                { value: 'EMPLOYEE', label: 'Employee' },
+                { value: 'MANAGER', label: 'Manager' },
+                { value: 'ADMIN', label: 'Admin' },
+              ]}
+              placeholder="All Roles"
+            />
+            <FilterSelect
+              value={filters.status}
+              onChange={(value) => setFilters((prev: UserFilters) => ({ ...prev, status: value }))}
+              options={[
+                { value: 'ACTIVE', label: 'Active' },
+                { value: 'INACTIVE', label: 'Inactive' },
+              ]}
+              placeholder="All Status"
+            />
+          </PageToolbar>
 
           {/* User Table - Scrollable Container */}
           <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="flex-1 flex flex-col overflow-hidden min-h-0"
-            >
-              <div className="relative bg-surface-elevated rounded-2xl border border-theme overflow-hidden shadow-theme-sm hover:shadow-theme-lg transition-all duration-300 flex flex-col h-full">
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-accent))]/50 to-[rgb(var(--color-success))]/50" />
+            <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+              <div className="bg-surface-elevated rounded-2xl border border-theme overflow-hidden shadow-theme-sm flex flex-col h-full">
                 <div className="p-4 flex flex-col flex-1 overflow-hidden min-h-0">
                   <UserTable
                     users={filteredUsers}
@@ -478,8 +457,8 @@ function UsersPageContent() {
                   />
                 </div>
               </div>
-            </motion.div>
-            
+            </div>
+
             {/* Pagination - Fixed at bottom */}
             {pagination && (
               <div className="flex-shrink-0 pt-4 pb-3 border-t border-theme">
@@ -515,8 +494,6 @@ function UsersPageContent() {
           confirmText="Delete"
           cancelText="Cancel"
         />
-
-        {/* Toaster removed */}
       </div>
     </DashboardLayout>
   );

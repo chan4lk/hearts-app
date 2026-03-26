@@ -4,9 +4,10 @@ import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { BsSearch, BsCalendarPlus, BsArrowRight, BsFilter, BsCheckLg, BsArrowCounterclockwise } from 'react-icons/bs';
-import { toast } from 'react-toastify';
+import { BsSearch, BsCalendarPlus, BsArrowRight, BsFilter, BsCheckLg } from 'react-icons/bs';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
+import { PageHeader } from '@/app/components/shared/PageHeader';
+import { useToast } from '@/app/components/shared/Toast';
 import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 import { EventParticipationCard } from '@/app/components/events/EventParticipationCard';
 import { FeedbackModal } from '@/app/components/events/FeedbackModal';
@@ -23,6 +24,7 @@ interface Participation {
 }
 
 function EmployeeEventsContent() {
+  const toast = useToast();
   const searchParams = useSearchParams();
   const [participations, setParticipations] = useState<Participation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,7 +53,6 @@ function EmployeeEventsContent() {
       setPagination(data.pagination);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch your events');
-      toast.error('Failed to fetch your events');
     } finally {
       setIsLoading(false);
     }
@@ -153,21 +154,10 @@ function EmployeeEventsContent() {
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden">
           {/* Page Header */}
           <div className="flex-shrink-0 pb-4">
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[rgb(var(--color-cat-personal))]/10 via-[rgb(var(--color-accent))]/5 to-[rgb(var(--color-info))]/10 border border-[rgba(var(--color-cat-personal),0.15)] p-5 md:p-6">
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-cat-personal))] via-[rgb(var(--color-accent))] to-[rgb(var(--color-info))]" />
-              <div className="absolute -top-8 -right-8 w-32 h-32 bg-[rgb(var(--color-cat-personal))]/[0.05] rounded-full blur-2xl" />
-              <div className="relative flex items-center gap-4">
-                <div className="p-3 bg-cat-personal rounded-xl">
-                  <BsCalendarPlus className="w-5 h-5 text-cat-personal" />
-                </div>
-                <div>
-                  <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-[rgb(var(--color-cat-personal))] to-[rgb(var(--color-info))] bg-clip-text text-transparent">
-                    My Events
-                  </h1>
-                  <p className="text-sm text-secondary mt-0.5">Track your event participation and contribution hours.</p>
-                </div>
-              </div>
-            </div>
+            <PageHeader
+              title="My Events"
+              description="Events you've participated in"
+            />
           </div>
 
           {/* Stats Section */}

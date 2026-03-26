@@ -1,46 +1,45 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { usePagination, useModalState } from '@/app/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 
-import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
+import MetricStrip, { Metric } from '@/app/components/shared/MetricStrip';
+import { PageHeader } from '@/app/components/shared/PageHeader';
+import { useToast } from '@/app/components/shared/Toast';
 import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
 
-import { BsClipboardData, BsCheckCircle, BsPencil, BsXCircle } from 'react-icons/bs';
+import { BsStars, BsLightbulb, BsX, BsPersonCheck, BsStarFill, BsArrowRight } from 'react-icons/bs';
 import GoalsSection from './components/GoalsSection';
 import GoalDetailModal from '@/app/components/shared/GoalDetailModal';
 import { GoalFormModal } from '@/app/components/shared/GoalFormModal';
 import { DeleteConfirmationModal } from '@/app/components/shared/DeleteConfirmationModal';
-import { Pagination } from '@/app/components/shared/Pagination';
 import { Goal, GoalStats } from '@/app/components/shared/types';
-import { BsStars, BsLightbulb, BsX, BsPlus, BsPersonCheck, BsStarFill, BsStar, BsArrowRight } from 'react-icons/bs';
-import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
-import { RATING_LABELS } from '@/app/components/shared/constants';
+import { LoadingSkeleton, ErrorState } from '@/app/components/shared/feedback';
 import { useSession } from 'next-auth/react';
 import AIGoalSuggestionsModal from '@/app/components/ai/AIGoalSuggestionsModal';
 import AIPerformanceInsights from '@/app/components/ai/AIPerformanceInsights';
 import { ModalShell } from '@/app/components/ui/form-primitives';
+import { Button } from '@/app/components/ui/button';
 
 
 export default function EmployeeDashboard() {
   const { data: session, status } = useSession();
+  const toast = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedPriority, setSelectedPriority] = useState('');
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [showAIGoalSuggestions, setShowAIGoalSuggestions] = useState(false);
-  const [showAIInsights, setShowAIInsights] = useState(false);
-  const [showCreateGoalModal, setShowCreateGoalModal] = useState(false);
-  const [showEditGoalModal, setShowEditGoalModal] = useState(false);
-  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
-  const [goalToDelete, setGoalToDelete] = useState<Goal | null>(null);
-  const [showManagerRatingsModal, setShowManagerRatingsModal] = useState(false);
+  const detailModal = useModalState<Goal>();
+  const createGoalModal = useModalState();
+  const editGoalModal = useModalState<Goal>();
+  const deleteConfirmModal = useModalState<Goal>();
+  const aiGoalSuggestionsModal = useModalState();
+  const aiInsightsModal = useModalState();
+  const managerRatingsModal = useModalState();
   const [formLoading, setFormLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -52,18 +51,8 @@ export default function EmployeeDashboard() {
     priority: 'MEDIUM'
   });
   const [errors, setErrors] = useState<{ title?: string; category?: string; employeeId?: string; department?: string; priority?: string }>({});
-  
-  // Pagination state
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
-  const [pagination, setPagination] = useState<{
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  } | null>(null);
+
+  const { page, limit, setPage, setLimit, pagination, setPagination } = usePagination();
 
   // Update employeeId when session loads
   useEffect(() => {
@@ -122,9 +111,9 @@ export default function EmployeeDashboard() {
       department: formData.department,
       priority: goal.priority?.toUpperCase() || 'MEDIUM'
     });
-    setShowCreateGoalModal(true);
+    createGoalModal.open();
     // Keep AI suggestions modal open so user can select multiple goals
-    // setShowAIGoalSuggestions(false);
+    // aiGoalSuggestionsModal.close();
   };
 
   // Reset form
@@ -203,14 +192,15 @@ export default function EmployeeDashboard() {
         throw new Error('Failed to create goal');
       }
 
-      setShowCreateGoalModal(false);
+      createGoalModal.close();
       resetForm();
+      toast.success('Goal created successfully');
 
       // Refresh goals
       const refreshedGoals = await fetchGoals();
       setGoals(refreshedGoals);
     } catch (error) {
-      // Error toast removed
+      toast.error('Failed to create goal. Please try again.');
     } finally {
       setFormLoading(false);
     }
@@ -218,7 +208,6 @@ export default function EmployeeDashboard() {
 
   // Handle edit goal
   const handleEditGoal = (goal: Goal) => {
-    setEditingGoal(goal);
     setFormData({
       title: goal.title,
       description: goal.description || '',
@@ -228,15 +217,16 @@ export default function EmployeeDashboard() {
       department: goal.department || 'ENGINEERING',
       priority: goal.priority || 'MEDIUM'
     });
-    setShowDetailModal(false);
-    setShowEditGoalModal(true);
+    detailModal.close();
+    editGoalModal.open(goal);
   };
 
   // Handle update goal
   const handleUpdateGoal = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!editingGoal) return;
+    if (!editGoalModal.data) return;
+    const editingGoal = editGoalModal.data;
 
     // Validation
     const newErrors: typeof errors = {};
@@ -292,11 +282,11 @@ export default function EmployeeDashboard() {
         });
       });
 
-      setShowEditGoalModal(false);
-      setEditingGoal(null);
+      editGoalModal.close();
       resetForm();
+      toast.success('Goal updated successfully');
     } catch (error) {
-      // Error toast removed
+      toast.error('Failed to update goal. Please try again.');
     } finally {
       setFormLoading(false);
     }
@@ -304,13 +294,13 @@ export default function EmployeeDashboard() {
 
   // Handle delete goal - Show confirmation modal
   const handleDeleteGoal = (goal: Goal) => {
-    setGoalToDelete(goal);
-    setShowDeleteConfirmation(true);
+    deleteConfirmModal.open(goal);
   };
 
   // Confirm delete goal
   const confirmDeleteGoal = async () => {
-    if (!goalToDelete) return;
+    if (!deleteConfirmModal.data) return;
+    const goalToDelete = deleteConfirmModal.data;
 
     try {
       const response = await fetch(`/api/goals/${goalToDelete.id}`, {
@@ -321,15 +311,15 @@ export default function EmployeeDashboard() {
         throw new Error('Failed to delete goal');
       }
 
-      setShowDetailModal(false);
-      setSelectedGoal(null);
-      setGoalToDelete(null);
+      detailModal.close();
+      deleteConfirmModal.close();
+      toast.success('Goal deleted successfully');
 
       // Refresh goals
       const refreshedGoals = await fetchGoals();
       setGoals(refreshedGoals);
     } catch (error) {
-      // Error toast removed
+      toast.error('Failed to delete goal. Please try again.');
     }
   };
 
@@ -407,200 +397,96 @@ export default function EmployeeDashboard() {
       // Refresh goals
       const refreshedGoals = await fetchGoals();
       setGoals(refreshedGoals);
-      setShowDetailModal(false);
-      // Toast removed
+      detailModal.close();
+      toast.success('Goal submitted for review');
     } catch (error) {
-      // Error toast removed
+      toast.error('Failed to submit goal. Please try again.');
     }
   };
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
     setPage(1); // Reset to first page on search change
-    // Optional: Show toast for no results after a delay
-    if (value && !filteredGoals.length) {
-      setTimeout(() => {
-        if (!filteredGoals.length) {
-          // Error toast removed
-        }
-      }, 500);
-    }
   };
 
   const handleStatusChange = (value: string) => {
     setSelectedStatus(value);
     setPage(1); // Reset to first page on status change
-    // Optional: Show toast for no results after filter
-    if (value && !filteredGoals.length) {
-      // Error toast removed
-    }
   };
 
+  const filterByStatus = (status: string) => {
+    setSelectedStatus(prev => prev === status ? '' : status);
+    setPage(1);
+  };
+
+  // Calculate overall progress
+  const completedGoals = goals.filter(g => g.status === 'COMPLETED').length;
+  const totalGoals = goals.length;
+  const completionRate = totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0;
+
+  // Metric strip data
+  const metrics: Metric[] = [
+    { label: 'Draft', value: getGoalStats.draftGoals, color: 'secondary', onClick: () => filterByStatus('DRAFT'), active: selectedStatus === 'DRAFT' },
+    { label: 'In Progress', value: getGoalStats.inProgressGoals, color: 'info', onClick: () => filterByStatus('IN_PROGRESS'), active: selectedStatus === 'IN_PROGRESS' },
+    { label: 'Pending', value: getGoalStats.pendingGoals, color: 'warning', onClick: () => filterByStatus('PENDING'), active: selectedStatus === 'PENDING' },
+    { label: 'Completed', value: getGoalStats.completed, color: 'success', onClick: () => filterByStatus('COMPLETED'), active: selectedStatus === 'COMPLETED' },
+    { label: 'Blocked', value: (goals.filter(g => g.status === 'BLOCKED').length), color: 'error', onClick: () => filterByStatus('BLOCKED'), active: selectedStatus === 'BLOCKED' },
+  ];
 
   return (
     <DashboardLayout type="employee">
       {loading ? <LoadingSkeleton variant="page" /> : error ? <ErrorState message={error} onRetry={() => { setError(null); setLoading(true); fetchGoals().then(g => setGoals(g)).catch(() => {}).finally(() => setLoading(false)); }} /> :
       <div className="relative max-w-7xl mx-auto space-y-6">
-          {/* Floating Background Decorations */}
-          <div className="absolute -top-20 -right-20 w-72 h-72 bg-[rgb(var(--color-accent))]/[0.03] rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute top-40 -left-16 w-56 h-56 bg-[rgb(var(--color-cat-training))]/[0.03] rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-20 right-10 w-48 h-48 bg-[rgb(var(--color-cat-technical))]/[0.03] rounded-full blur-3xl pointer-events-none" />
 
-          {/* Personalized Welcome Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[rgb(var(--color-accent))]/10 via-[rgb(var(--color-cat-technical))]/5 to-[rgb(var(--color-cat-training))]/10 border border-[rgba(var(--color-accent),0.15)] p-6 md:p-8"
-          >
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-accent))] via-[rgb(var(--color-cat-technical))] to-[rgb(var(--color-cat-training))]" />
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-[rgb(var(--color-accent))]/[0.05] rounded-full blur-2xl" />
-            <div className="relative flex items-center justify-between">
+          {/* Page Header */}
+          <PageHeader title="My Goals" description="Track your progress and achievements">
+            <Button onClick={() => { resetForm(); createGoalModal.open(); }}>+ Create Goal</Button>
+          </PageHeader>
+
+          {/* Overall Progress Bar */}
+          <div className="rounded-xl border border-theme bg-surface-elevated p-5">
+            <div className="flex items-center justify-between mb-3">
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[rgb(var(--color-accent))] to-[rgb(var(--color-cat-technical))] bg-clip-text text-transparent">
-                  Welcome back{session?.user?.name ? `, ${session.user.name.split(' ')[0]}` : ''}
-                </h1>
-                <p className="text-sm text-secondary mt-1">Track your goals, measure your progress, and achieve your aspirations.</p>
+                <h3 className="text-sm font-semibold text-primary">Overall Progress</h3>
+                <p className="text-xs text-secondary">{completedGoals} of {totalGoals} goals completed this cycle</p>
               </div>
-              <div className="hidden md:block text-5xl font-black text-primary/[0.02] select-none">
-                {getGoalStats.totalGoals}
+              <span className="text-2xl font-bold text-accent">{completionRate}%</span>
+            </div>
+            <div className="h-2 bg-surface-tertiary rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-accent rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${completionRate}%` }}
+                transition={{ duration: 0.8, ease: 'easeOut' }}
+              />
+            </div>
+          </div>
+
+          {/* Metric Strip */}
+          <MetricStrip metrics={metrics} />
+
+          {/* AI Suggestions Inline Card */}
+          <div className="rounded-xl border border-theme bg-accent-muted/30 p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <BsStars className="w-5 h-5 text-accent" />
+              <div>
+                <p className="text-sm font-medium text-primary">AI Goal Suggestions</p>
+                <p className="text-xs text-secondary">Get personalized goal ideas based on your role</p>
               </div>
             </div>
-          </motion.div>
-
-          {/* Stats Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            {(() => {
-              const goalStats = getGoalStats;
-              const statItems: StatItem[] = [
-                {
-                  title: 'Total Goals',
-                  value: goalStats.totalGoals,
-                  icon: <BsClipboardData className="w-4 h-4" />,
-                },
-                {
-                  title: 'Draft',
-                  value: goalStats.draftGoals,
-                  icon: <BsPencil className="w-4 h-4" />,
-                  onClick: () => {
-                    setSelectedStatus('DRAFT');
-                    setPage(1);
-                  }
-                },
-                {
-                  title: 'Approved',
-                  value: goalStats.approved,
-                  icon: <BsCheckCircle className="w-4 h-4" />,
-                  onClick: () => {
-                    setSelectedStatus('APPROVED');
-                    setPage(1);
-                  }
-                },
-                {
-                  title: 'Rejected',
-                  value: goalStats.rejected,
-                  icon: <BsXCircle className="w-4 h-4" />,
-                  onClick: () => {
-                    setSelectedStatus('REJECTED');
-                    setPage(1);
-                  }
-                },
-                {
-                  title: 'Completed',
-                  value: goalStats.completed,
-                  icon: <BsCheckCircle className="w-4 h-4" />,
-                  onClick: () => {
-                    setSelectedStatus('COMPLETED');
-                    setPage(1);
-                  }
-                }
-              ];
-              return <StatsSection stats={statItems} />;
-            })()}
-          </motion.div>
-
-          {/* Quick Actions */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-4"
-          >
-            {/* Create Goal Card */}
-            <motion.button
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => {
-                resetForm();
-                setShowCreateGoalModal(true);
-              }}
-              className="relative overflow-hidden bg-surface-elevated border border-theme hover:border-[rgba(var(--color-success),0.2)] hover:shadow-theme-lg rounded-2xl p-6 transition-all duration-300 text-left group focus-ring"
-            >
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-success))] to-[rgb(var(--color-cat-training))]" />
-              <div className="absolute -bottom-6 -right-6 text-5xl font-black text-primary/[0.02] select-none">+</div>
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-success-muted rounded-xl group-hover:scale-110 transition-all duration-300">
-                  <BsPlus className="w-6 h-6 text-success" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-primary mb-1">Create New Goal</h3>
-                  <p className="text-sm text-secondary">Set a new personal or professional goal</p>
-                </div>
-              </div>
-            </motion.button>
-
-            {/* AI Goal Suggestions Card */}
-            <motion.button
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setShowAIGoalSuggestions(true)}
-              className="relative overflow-hidden bg-surface-elevated border border-theme hover:border-[rgba(var(--color-accent),0.2)] hover:shadow-theme-lg rounded-2xl p-6 transition-all duration-300 text-left group focus-ring"
-            >
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-accent))] to-[rgb(var(--color-cat-technical))]" />
-              <div className="absolute -bottom-6 -right-6 text-5xl font-black text-primary/[0.02] select-none">AI</div>
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-accent-muted rounded-xl group-hover:scale-110 transition-all duration-300">
-                  <BsStars className="w-6 h-6 text-accent" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-primary mb-1">AI Goal Suggestions</h3>
-                  <p className="text-sm text-secondary">Get AI-powered goal recommendations</p>
-                </div>
-              </div>
-            </motion.button>
-
-            {/* AI Performance Insights Card */}
-            <motion.button
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setShowAIInsights(true)}
-              className="relative overflow-hidden bg-surface-elevated border border-theme hover:border-[rgba(var(--color-info),0.2)] hover:shadow-theme-lg rounded-2xl p-6 transition-all duration-300 text-left group focus-ring"
-            >
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[rgb(var(--color-info))] to-[rgb(var(--color-accent))]" />
-              <div className="absolute -bottom-4 -right-4 text-5xl font-black text-primary/[0.02] select-none">%</div>
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-info-muted rounded-xl group-hover:scale-110 transition-all duration-300">
-                  <BsLightbulb className="w-6 h-6 text-info" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-primary mb-1">Performance Insights</h3>
-                  <p className="text-sm text-secondary">AI-powered analysis of your performance trends and recommendations</p>
-                </div>
-              </div>
-            </motion.button>
-          </motion.div>
+            <Button variant="outline" size="sm" onClick={() => aiGoalSuggestionsModal.open()}>
+              View Suggestions
+            </Button>
+          </div>
 
           {/* AI Goal Suggestions - Component has its own modal */}
-          {showAIGoalSuggestions && (
+          {aiGoalSuggestionsModal.isOpen && (
             <AIGoalSuggestionsModal
               autoGenerate={true}
               showTriggerButton={false}
               onSelectGoal={() => {
                 // Close the modal when user manually closes it (X button or click outside)
-                setShowAIGoalSuggestions(false);
+                aiGoalSuggestionsModal.close();
               }}
               onUseGoal={handleAIGoalSelect}
             />
@@ -608,16 +494,17 @@ export default function EmployeeDashboard() {
 
           {/* AI Performance Insights Modal */}
           <ModalShell
-            open={showAIInsights}
-            onClose={() => setShowAIInsights(false)}
+            open={aiInsightsModal.isOpen}
+            onClose={() => aiInsightsModal.close()}
             title="AI Performance Insights"
             icon={<BsLightbulb className="w-4 h-4" />}
             maxWidth="max-w-4xl"
           >
             <AIPerformanceInsights autoLoad={true} />
           </ModalShell>
-             {/* Toolbar + Filters */}
-             <motion.div
+
+          {/* Toolbar + Filters */}
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -680,8 +567,7 @@ export default function EmployeeDashboard() {
               onSearchChange={handleSearchChange}
               onStatusChange={handleStatusChange}
               onGoalClick={(goal) => {
-                setSelectedGoal(goal);
-                setShowDetailModal(true);
+                detailModal.open(goal);
               }}
               onStatusUpdate={(goalId, newStatus, updatedGoal) => {
                 setGoals(prevGoals =>
@@ -705,7 +591,7 @@ export default function EmployeeDashboard() {
 
           {/* Goal Detail Modal */}
           <AnimatePresence>
-            {showDetailModal && selectedGoal && (
+            {detailModal.isOpen && detailModal.data && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -719,10 +605,9 @@ export default function EmployeeDashboard() {
                   className="bg-surface-elevated backdrop-blur-sm rounded-2xl shadow-theme-lg w-full max-w-2xl border border-theme"
                 >
                   <GoalDetailModal
-                    goal={selectedGoal}
+                    goal={detailModal.data}
                     onClose={() => {
-                      setShowDetailModal(false);
-                      setSelectedGoal(null);
+                      detailModal.close();
                     }}
                     onSubmitGoal={handleSubmitGoal}
                     onEdit={handleEditGoal}
@@ -735,9 +620,9 @@ export default function EmployeeDashboard() {
 
           {/* Create Goal Modal */}
           <GoalFormModal
-            isOpen={showCreateGoalModal}
+            isOpen={createGoalModal.isOpen}
             onClose={() => {
-              setShowCreateGoalModal(false);
+              createGoalModal.close();
               resetForm();
             }}
             onSubmit={handleCreateGoal}
@@ -763,10 +648,9 @@ export default function EmployeeDashboard() {
 
           {/* Edit Goal Modal */}
           <GoalFormModal
-            isOpen={showEditGoalModal}
+            isOpen={editGoalModal.isOpen}
             onClose={() => {
-              setShowEditGoalModal(false);
-              setEditingGoal(null);
+              editGoalModal.close();
               resetForm();
             }}
             onSubmit={handleUpdateGoal}
@@ -792,10 +676,9 @@ export default function EmployeeDashboard() {
 
           {/* Delete Confirmation Modal */}
           <DeleteConfirmationModal
-            isOpen={showDeleteConfirmation}
+            isOpen={deleteConfirmModal.isOpen}
             onClose={() => {
-              setShowDeleteConfirmation(false);
-              setGoalToDelete(null);
+              deleteConfirmModal.close();
             }}
             onConfirm={confirmDeleteGoal}
             title="Delete Goal"
@@ -806,13 +689,13 @@ export default function EmployeeDashboard() {
 
           {/* Manager Ratings Modal */}
           <AnimatePresence>
-            {showManagerRatingsModal && (
+            {managerRatingsModal.isOpen && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-40 p-4"
-                onClick={() => setShowManagerRatingsModal(false)}
+                onClick={() => managerRatingsModal.close()}
               >
                 <motion.div
                   initial={{ scale: 0.95, opacity: 0 }}
@@ -833,7 +716,7 @@ export default function EmployeeDashboard() {
                       </div>
                     </div>
                     <button
-                      onClick={() => setShowManagerRatingsModal(false)}
+                      onClick={() => managerRatingsModal.close()}
                       className="p-1.5 hover:bg-surface-tertiary rounded-lg transition-colors"
                       aria-label="Close"
                     >
@@ -845,7 +728,7 @@ export default function EmployeeDashboard() {
                   <div className="overflow-y-auto flex-1 p-4">
                     {(() => {
                       const ratedGoals = goals.filter(goal => goal.rating?.managerScore);
-                      
+
                       if (ratedGoals.length === 0) {
                         return (
                           <div className="text-center py-16">
@@ -869,7 +752,7 @@ export default function EmployeeDashboard() {
                               4: { bg: 'bg-cat-professional', text: 'text-cat-professional', border: 'border-[rgba(var(--color-info),0.2)]', icon: 'from-[rgb(var(--color-rating-4))] to-[rgb(var(--color-info))]' },
                               5: { bg: 'bg-cat-training', text: 'text-cat-training', border: 'border-[rgba(var(--color-success),0.2)]', icon: 'from-[rgb(var(--color-rating-5))] to-[rgb(var(--color-success))]' }
                             };
-                            const ratingStyle = ratingColors[rating as keyof typeof ratingColors] || { bg: 'bg-surface-secondary', text: 'text-secondary', border: 'border-gray-500/20', icon: 'from-gray-500 to-gray-600' };
+                            const ratingStyle = ratingColors[rating as keyof typeof ratingColors] || { bg: 'bg-surface-secondary', text: 'text-secondary', border: 'border-theme', icon: 'from-surface-tertiary to-surface-tertiary' };
                             const ratingLabels = {
                               1: "Needs Improvement",
                               2: "Below Expectations",
@@ -886,10 +769,9 @@ export default function EmployeeDashboard() {
                                 transition={{ delay: index * 0.05 }}
                                 whileHover={{ scale: 1.01, y: -2 }}
                                 onClick={() => {
-                                  setSelectedGoal(goal);
-                                  setShowDetailModal(true);
+                                  detailModal.open(goal);
                                   // Keep manager ratings modal open - don't close it
-                                  // setShowManagerRatingsModal(false);
+                                  // managerRatingsModal.close();
                                 }}
                                 className="group relative bg-surface-elevated backdrop-blur-sm rounded-2xl p-4 border-2 border-theme hover:border-[rgba(var(--color-warning),0.6)] transition-all duration-300 cursor-pointer hover:shadow-theme-lg hover:-translate-y-0.5"
                               >
@@ -908,7 +790,7 @@ export default function EmployeeDashboard() {
                                   <h4 className="text-base font-bold text-[rgb(var(--color-text-inverse))] mb-2 group-hover:text-warning transition-colors line-clamp-1">
                                     {goal.title}
                                   </h4>
-                                  
+
                                   {/* Description */}
                                   {goal.description && (
                                     <p className="text-sm text-secondary line-clamp-2 mb-3 group-hover:text-secondary transition-colors">
@@ -938,7 +820,7 @@ export default function EmployeeDashboard() {
                                           <BsPersonCheck className="w-3 h-3 text-warning" />
                                         </div>
                                         <p className="text-sm text-secondary italic flex-1">
-                                          "{goal.rating.managerComments}"
+                                          &quot;{goal.rating.managerComments}&quot;
                                         </p>
                                       </div>
                                     </div>

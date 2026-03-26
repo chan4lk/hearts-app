@@ -3,12 +3,16 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
+import { rateLimiters } from '@/lib/rateLimit';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { eventId: string } }
 ) {
   try {
+    const rateLimitResponse = await rateLimiters.moderate(request);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const session = await getServerSession(authOptions);
     
     if (!session?.user) {
@@ -50,6 +54,9 @@ export async function PUT(
   { params }: { params: { eventId: string } }
 ) {
   try {
+    const rateLimitResponse = await rateLimiters.moderate(request);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const session = await getServerSession(authOptions);
     
     if (!session?.user) {
@@ -123,6 +130,9 @@ export async function DELETE(
   { params }: { params: { eventId: string } }
 ) {
   try {
+    const rateLimitResponse = await rateLimiters.moderate(request);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const session = await getServerSession(authOptions);
     
     if (!session?.user) {

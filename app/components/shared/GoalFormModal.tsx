@@ -5,8 +5,8 @@ import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
-import { BsListTask, BsPeople, BsCalendar, BsX, BsArrowCounterclockwise } from 'react-icons/bs';
-import { FORM_STYLES } from '@/app/components/ui/form-primitives';
+import { BsListTask, BsPeople, BsCalendar, BsArrowCounterclockwise } from 'react-icons/bs';
+import { ModalShell, FORM_STYLES, FormField, FormActions } from '@/app/components/ui/form-primitives';
 import { User } from '@/app/components/shared/types';
 import { CATEGORIES, DEPARTMENTS, PRIORITIES } from './constants';
 import { AIGoalSuggestions } from './AIGoalSuggestions';
@@ -37,6 +37,8 @@ interface GoalFormModalProps {
 
 const selectContentClass = 'bg-surface-elevated border-theme z-[100] max-h-[min(14rem,45vh)]';
 
+const FORM_ID = 'goal-form';
+
 export function GoalFormModal({
   isOpen,
   onClose,
@@ -60,219 +62,193 @@ export function GoalFormModal({
     return () => { document.body.style.overflow = prev; };
   }, [isOpen]);
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 modal-overlay z-[60] flex items-center justify-center p-3 overflow-hidden">
-      <div className="modal-content rounded-xl w-full max-w-md shadow-theme-lg border border-theme flex flex-col max-h-[90vh] min-h-0">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-theme bg-surface-tertiary shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-r from-[rgba(var(--color-warning),0.2)] to-[rgba(var(--color-warning),0.1)] p-1.5 rounded-lg">
-              <BsListTask className="w-4 h-4 text-warning" />
-            </div>
-            <h2 className="text-sm font-semibold text-primary">{isEditMode ? 'Update Goal' : 'Create Goal'}</h2>
-          </div>
-          <button
+    <ModalShell
+      open={isOpen}
+      onClose={onClose}
+      title={isEditMode ? 'Update Goal' : 'Create Goal'}
+      icon={<BsListTask className="w-4 h-4" />}
+      maxWidth="max-w-lg"
+      footer={
+        <div className="flex items-center gap-2 w-full">
+          <Button
             type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-tertiary hover:text-primary hover:bg-surface-tertiary transition-colors"
-            aria-label="Close"
+            variant="outline"
+            onClick={onReset}
+            className={FORM_STYLES.btnSecondary}
           >
-            <BsX className="h-5 w-5" />
-          </button>
+            <BsArrowCounterclockwise className="h-3.5 w-3.5" />
+            Reset
+          </Button>
+          {!isEditMode && onTemplateClick && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onTemplateClick}
+              className={FORM_STYLES.btnSecondary}
+            >
+              <BsListTask className="h-3.5 w-3.5" />
+              Templates
+            </Button>
+          )}
+          <div className="flex-1" />
+          <FormActions
+            onCancel={onClose}
+            submitLabel={isEditMode ? 'Update Goal' : 'Create Goal'}
+            loading={loading}
+            formId={FORM_ID}
+          />
+        </div>
+      }
+    >
+      <form id={FORM_ID} onSubmit={onSubmit} className="space-y-5">
+        {/* Section 1: Goal Details */}
+        <div className="space-y-4">
+          <h3 className="text-xs font-semibold text-secondary uppercase tracking-wider">Goal Details</h3>
+
+          <FormField label="Goal Title" required error={errors.title}>
+            <Input
+              value={formData.title}
+              onChange={(e) => onFormDataChange('title', e.target.value)}
+              placeholder="Enter goal title"
+              className={FORM_STYLES.input}
+            />
+          </FormField>
+
+          <FormField label="Description">
+            <Textarea
+              value={formData.description}
+              onChange={(e) => onFormDataChange('description', e.target.value)}
+              placeholder="Describe the goal details..."
+              className={`${FORM_STYLES.textarea} min-h-[80px]`}
+            />
+            <AIGoalSuggestions
+              category={formData.category}
+              context={context}
+              onSuggestionSelect={(s) => {
+                onFormDataChange('title', s.title);
+                onFormDataChange('description', s.description);
+              }}
+            />
+          </FormField>
         </div>
 
-        <form onSubmit={onSubmit} className="flex flex-col min-h-0 flex-1 flex-nowrap">
-          {/* FIXED SECTION: All dropdowns live here – no scroll, so dropdowns never get clipped */}
-          <div className="shrink-0 px-4 py-3 border-b border-theme bg-black/10 space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-secondary mb-1">Category</label>
-                <Select
-                  value={formData.category}
-                  onValueChange={(v) => onFormDataChange('category', v)}
-                >
-                  <SelectTrigger className="bg-surface-secondary border border-theme text-primary text-xs h-9 rounded-lg">
-                    <SelectValue placeholder="Category" />
-                  </SelectTrigger>
-                  <SelectContent className={selectContentClass}>
-                    {CATEGORIES.map((c) => (
-                      <SelectItem key={c.value} value={c.value} className="text-primary text-xs">
-                        <span className="flex items-center gap-2">
-                          {React.createElement(c.icon, { className: c.iconColor })}
-                          {c.label}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.category && <p className="text-error text-2xs mt-0.5">{errors.category}</p>}
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-secondary mb-1">Department</label>
-                <Select
-                  value={formData.department}
-                  onValueChange={(v) => onFormDataChange('department', v)}
-                >
-                  <SelectTrigger className="bg-surface-secondary border border-theme text-primary text-xs h-9 rounded-lg">
-                    <SelectValue placeholder="Department" />
-                  </SelectTrigger>
-                  <SelectContent className={selectContentClass}>
-                    {DEPARTMENTS.map((d) => (
-                      <SelectItem key={d.value} value={d.value} className="text-primary text-xs">
-                        <span className="flex items-center gap-2">
-                          {React.createElement(d.icon, { className: d.iconColor })}
-                          {d.label}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.department && <p className="text-error text-2xs mt-0.5">{errors.department}</p>}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-secondary mb-1">Priority</label>
-                <Select
-                  value={formData.priority}
-                  onValueChange={(v) => onFormDataChange('priority', v)}
-                >
-                  <SelectTrigger className="bg-surface-secondary border border-theme text-primary text-xs h-9 rounded-lg">
-                    <SelectValue placeholder="Priority" />
-                  </SelectTrigger>
-                  <SelectContent className={selectContentClass}>
-                    {PRIORITIES.map((p) => (
-                      <SelectItem key={p.value} value={p.value} className="text-primary text-xs">
-                        <span className="flex items-center gap-2">
-                          {React.createElement(p.icon, { className: p.iconColor })}
-                          {p.label}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.priority && <p className="text-error text-2xs mt-0.5">{errors.priority}</p>}
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-secondary mb-1">Employee</label>
-                <Select
-                  value={formData.employeeId}
-                  onValueChange={(v) => onFormDataChange('employeeId', v)}
-                >
-                  <SelectTrigger className="bg-surface-secondary border border-theme text-primary text-xs h-9 rounded-lg">
-                    <SelectValue placeholder="Select employee" />
-                  </SelectTrigger>
-                  <SelectContent className={selectContentClass}>
-                    {assignedEmployees.map((e) => (
-                      <SelectItem key={e.id} value={e.id} className="text-primary text-xs">
-                        <span className="flex items-center gap-2">
-                          <BsPeople className="h-3 w-3 text-warning" />
-                          {e.name}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.employeeId && <p className="text-error text-2xs mt-0.5">{errors.employeeId}</p>}
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-secondary mb-1">Due Date</label>
-              <div className="relative">
-                <BsCalendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-warning pointer-events-none" />
-                <Input
-                  type="date"
-                  value={formData.dueDate}
-                  onChange={(e) => onFormDataChange('dueDate', e.target.value)}
-                  className="bg-surface-secondary border border-theme text-primary text-xs h-9 rounded-lg pl-9"
-                />
-              </div>
-            </div>
-          </div>
+        {/* Divider */}
+        <div className="border-t border-theme my-4" />
 
-          {/* SCROLLABLE SECTION: Only title + description (no dropdowns here) */}
-          <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 space-y-3">
-            <div>
-              <label className="block text-xs font-medium text-secondary mb-1">Goal Title</label>
-              <Input
-                value={formData.title}
-                onChange={(e) => onFormDataChange('title', e.target.value)}
-                placeholder="Enter goal title"
-                className="bg-surface-secondary border border-theme text-primary text-xs h-9 rounded-lg"
-              />
-              {errors.title && <p className="text-error text-2xs mt-0.5">{errors.title}</p>}
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-secondary mb-1">Description</label>
-              <Textarea
-                value={formData.description}
-                onChange={(e) => onFormDataChange('description', e.target.value)}
-                placeholder="Describe the goal details..."
-                className="bg-surface-secondary border border-theme text-primary text-xs min-h-[80px] rounded-lg resize-none"
-              />
-              <AIGoalSuggestions
-                category={formData.category}
-                context={context}
-                onSuggestionSelect={(s) => {
-                  onFormDataChange('title', s.title);
-                  onFormDataChange('description', s.description);
-                }}
-              />
-            </div>
-          </div>
+        {/* Section 2: Classification */}
+        <div className="space-y-4">
+          <h3 className="text-xs font-semibold text-secondary uppercase tracking-wider">Classification</h3>
 
-          {/* Fixed footer */}
-          <div className="shrink-0 px-4 py-3 border-t border-theme bg-black/10 flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onReset}
-              className="bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary text-xs font-medium h-9 px-4 rounded-lg"
-            >
-              <BsArrowCounterclockwise className="h-3.5 w-3.5 mr-1.5" />
-              Reset
-            </Button>
-            {!isEditMode && onTemplateClick && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onTemplateClick}
-                className="bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary text-xs font-medium h-9 px-4 rounded-lg"
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField label="Category" required error={errors.category}>
+              <Select
+                value={formData.category}
+                onValueChange={(v) => onFormDataChange('category', v)}
               >
-                <BsListTask className="h-3.5 w-3.5 mr-1.5" />
-                Templates
-              </Button>
-            )}
-            <Button
-              type="submit"
-              disabled={loading}
-              className={`flex-1 min-w-[120px] ${FORM_STYLES.btnPrimary}`}
-            >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  {isEditMode ? 'Updating...' : 'Creating...'}
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <BsListTask className="h-3.5 w-3.5" />
-                  {isEditMode ? 'Update Goal' : 'Create Goal'}
-                </span>
-              )}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary text-xs font-medium h-9 px-4 rounded-lg"
-            >
-              Cancel
-            </Button>
+                <SelectTrigger className={FORM_STYLES.select}>
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent className={selectContentClass}>
+                  {CATEGORIES.map((c) => (
+                    <SelectItem key={c.value} value={c.value} className="text-primary text-xs">
+                      <span className="flex items-center gap-2">
+                        {React.createElement(c.icon, { className: c.iconColor })}
+                        {c.label}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
+
+            <FormField label="Priority" required error={errors.priority}>
+              <Select
+                value={formData.priority}
+                onValueChange={(v) => onFormDataChange('priority', v)}
+              >
+                <SelectTrigger className={FORM_STYLES.select}>
+                  <SelectValue placeholder="Priority" />
+                </SelectTrigger>
+                <SelectContent className={selectContentClass}>
+                  {PRIORITIES.map((p) => (
+                    <SelectItem key={p.value} value={p.value} className="text-primary text-xs">
+                      <span className="flex items-center gap-2">
+                        {React.createElement(p.icon, { className: p.iconColor })}
+                        {p.label}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
           </div>
-        </form>
-      </div>
-    </div>
+
+          <FormField label="Department" required error={errors.department}>
+            <Select
+              value={formData.department}
+              onValueChange={(v) => onFormDataChange('department', v)}
+            >
+              <SelectTrigger className={FORM_STYLES.select}>
+                <SelectValue placeholder="Department" />
+              </SelectTrigger>
+              <SelectContent className={selectContentClass}>
+                {DEPARTMENTS.map((d) => (
+                  <SelectItem key={d.value} value={d.value} className="text-primary text-xs">
+                    <span className="flex items-center gap-2">
+                      {React.createElement(d.icon, { className: d.iconColor })}
+                      {d.label}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-theme my-4" />
+
+        {/* Section 3: Assignment */}
+        <div className="space-y-4">
+          <h3 className="text-xs font-semibold text-secondary uppercase tracking-wider">Assignment</h3>
+
+          {assignedEmployees.length > 0 && (
+            <FormField label="Employee" required error={errors.employeeId}>
+              <Select
+                value={formData.employeeId}
+                onValueChange={(v) => onFormDataChange('employeeId', v)}
+              >
+                <SelectTrigger className={FORM_STYLES.select}>
+                  <SelectValue placeholder="Select employee" />
+                </SelectTrigger>
+                <SelectContent className={selectContentClass}>
+                  {assignedEmployees.map((e) => (
+                    <SelectItem key={e.id} value={e.id} className="text-primary text-xs">
+                      <span className="flex items-center gap-2">
+                        <BsPeople className="h-3 w-3 text-warning" />
+                        {e.name}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
+          )}
+
+          <FormField label="Due Date">
+            <div className="relative">
+              <BsCalendar className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-tertiary pointer-events-none" />
+              <Input
+                type="date"
+                value={formData.dueDate}
+                onChange={(e) => onFormDataChange('dueDate', e.target.value)}
+                className={`${FORM_STYLES.input} pl-9`}
+              />
+            </div>
+          </FormField>
+        </div>
+      </form>
+    </ModalShell>
   );
 }

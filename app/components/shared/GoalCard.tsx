@@ -1,4 +1,4 @@
-import { BsCalendar, BsTag, BsGear, BsXCircle, BsPencil, BsTrash, BsPerson, BsPlayCircle, BsPauseCircle, BsFlag, BsCircle, BsCheckCircle } from 'react-icons/bs';
+import { BsCalendar, BsTag, BsGear, BsXCircle, BsPerson, BsPlayCircle, BsPauseCircle, BsFlag, BsCircle, BsCheckCircle } from 'react-icons/bs';
 import { Goal, ProgressStatus } from '@/app/components/shared/types';
 import { IconType } from 'react-icons';
 import { CATEGORIES } from '@/app/components/shared/constants';
@@ -88,7 +88,7 @@ export default function GoalCard({ goal, onClick, onEdit, onDelete, showActions 
 
       {/* Footer */}
       <div className="flex items-center justify-between pt-2.5 border-t border-theme mt-2">
-        <div className="flex items-center gap-3 text-2xs text-tertiary">
+        <div className="flex items-center gap-2 text-2xs text-tertiary">
           <span className="flex items-center gap-1">
             <BsCalendar className="w-3 h-3" />
             {formatDate(goal.dueDate)}
@@ -97,6 +97,9 @@ export default function GoalCard({ goal, onClick, onEdit, onDelete, showActions 
             <BsTag className="w-3 h-3" />
             {goal.category}
           </span>
+          {goal.priority && (
+            <StatusBadge type="priority" value={goal.priority} size="sm" showIcon={false} />
+          )}
         </div>
         {showActions && (
           <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">

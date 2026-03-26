@@ -8,12 +8,13 @@ interface LoadingSkeletonProps {
   variant?: SkeletonVariant;
   rows?: number;
   columns?: number;
+  message?: string;
   className?: string;
 }
 
 function Pulse({ className = '' }: { className?: string }) {
   return (
-    <div className={`animate-pulse rounded-lg bg-surface-tertiary/50 ${className}`} />
+    <div className={`animate-pulse rounded-lg bg-surface-tertiary ${className}`} />
   );
 }
 
@@ -34,13 +35,11 @@ function StatsSkeleton({ columns = 4 }: { columns?: number }) {
 function TableSkeleton({ rows = 5, columns = 5 }: { rows?: number; columns?: number }) {
   return (
     <div className="rounded-xl border border-theme bg-surface-elevated overflow-hidden">
-      {/* Header */}
       <div className="flex gap-4 px-4 py-3 border-b border-theme bg-surface-secondary">
         {Array.from({ length: columns }).map((_, i) => (
           <Pulse key={i} className="h-4 flex-1" />
         ))}
       </div>
-      {/* Rows */}
       {Array.from({ length: rows }).map((_, row) => (
         <div key={row} className="flex gap-4 px-4 py-3 border-b border-theme last:border-0">
           {Array.from({ length: columns }).map((_, col) => (
@@ -74,24 +73,37 @@ function CardSkeleton({ rows = 3 }: { rows?: number }) {
   );
 }
 
-function PageSkeleton() {
+function PageLoadingSpinner({ message }: { message: string }) {
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="space-y-2">
-        <Pulse className="h-8 w-48" />
-        <Pulse className="h-4 w-72" />
+    <div className="flex flex-col items-center justify-center min-h-[60vh]">
+      {/* Spinner */}
+      <div className="relative w-12 h-12 mb-5">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          className="absolute inset-0 rounded-full border-2 border-surface-tertiary border-t-accent"
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <motion.div
+            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+            className="w-2 h-2 rounded-full bg-accent"
+          />
+        </div>
       </div>
-      {/* Stats */}
-      <StatsSkeleton columns={4} />
-      {/* Toolbar */}
-      <div className="flex gap-3 items-center">
-        <Pulse className="h-10 w-64 rounded-lg" />
-        <Pulse className="h-10 w-32 rounded-lg" />
-        <Pulse className="h-10 w-32 rounded-lg" />
+
+      {/* Loading text */}
+      <p className="text-sm font-medium text-secondary mb-1">{message}</p>
+      <div className="flex items-center gap-1">
+        {[0, 1, 2].map((i) => (
+          <motion.div
+            key={i}
+            animate={{ opacity: [0.3, 1, 0.3], y: [0, -3, 0] }}
+            transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.15, ease: 'easeInOut' }}
+            className="w-1.5 h-1.5 rounded-full bg-accent/60"
+          />
+        ))}
       </div>
-      {/* Table */}
-      <TableSkeleton rows={5} columns={5} />
     </div>
   );
 }
@@ -104,6 +116,7 @@ export default function LoadingSkeleton({
   variant = 'page',
   rows,
   columns,
+  message = 'Loading data...',
   className = '',
 }: LoadingSkeletonProps) {
   const content = (() => {
@@ -118,7 +131,7 @@ export default function LoadingSkeleton({
         return <InlineSkeleton />;
       case 'page':
       default:
-        return <PageSkeleton />;
+        return <PageLoadingSpinner message={message} />;
     }
   })();
 

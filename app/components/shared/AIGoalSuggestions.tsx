@@ -126,8 +126,8 @@ export function AIGoalSuggestions({
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
                 onClick={() => onSuggestionSelect(suggestion)}
-                className="group relative p-4 border border-white/10 rounded-xl 
-                  bg-gradient-to-r from-white/5 to-white/10 dark:from-gray-800/50 dark:to-gray-700/50
+                className="group relative p-4 border border-theme rounded-xl
+                  bg-gradient-to-r from-surface-secondary/50 to-surface-tertiary/50
                   backdrop-blur-lg hover:backdrop-blur-xl cursor-pointer
                   transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
               >

@@ -21,11 +21,11 @@ interface GoalProgressTrackerProps {
 }
 
 const STATUS_OPTIONS = [
-  { value: 'NOT_STARTED', label: 'Not Started', icon: BsCircle, color: 'gray' },
-  { value: 'IN_PROGRESS', label: 'In Progress', icon: BsPlayCircle, color: 'blue' },
-  { value: 'ON_HOLD', label: 'On Hold', icon: BsPauseCircle, color: 'amber' },
-  { value: 'COMPLETED', label: 'Completed', icon: BsCheckCircle, color: 'green' },
-  { value: 'BLOCKED', label: 'Blocked', icon: BsFlag, color: 'red' },
+  { value: 'NOT_STARTED', label: 'Not Started', icon: BsCircle, selectedClass: 'border-[rgb(var(--color-border-primary))] bg-surface-tertiary', iconClass: 'text-tertiary' },
+  { value: 'IN_PROGRESS', label: 'In Progress', icon: BsPlayCircle, selectedClass: 'border-[rgb(var(--color-info))] bg-info-muted', iconClass: 'text-info' },
+  { value: 'ON_HOLD', label: 'On Hold', icon: BsPauseCircle, selectedClass: 'border-[rgb(var(--color-warning))] bg-warning-muted', iconClass: 'text-warning' },
+  { value: 'COMPLETED', label: 'Completed', icon: BsCheckCircle, selectedClass: 'border-[rgb(var(--color-success))] bg-success-muted', iconClass: 'text-success' },
+  { value: 'BLOCKED', label: 'Blocked', icon: BsFlag, selectedClass: 'border-[rgb(var(--color-error))] bg-error-muted', iconClass: 'text-error' },
 ];
 
 const PROGRESS_MILESTONES = [
@@ -98,11 +98,6 @@ export default function GoalProgressTracker({
     if (progress < 75) return 'bg-[rgb(var(--color-warning))]';
     if (progress < 100) return 'bg-[rgb(var(--color-info))]';
     return 'bg-[rgb(var(--color-cat-training))]';
-  };
-
-  const getStatusColor = (statusValue: string) => {
-    const statusOption = STATUS_OPTIONS.find(s => s.value === statusValue);
-    return statusOption?.color || 'gray';
   };
 
   return (
@@ -185,7 +180,7 @@ export default function GoalProgressTracker({
             step="5"
             value={progress}
             onChange={(e) => handleProgressChange(parseInt(e.target.value))}
-            className="w-full h-2 bg-[rgb(var(--color-border-primary))] rounded-lg appearance-none cursor-pointer accent-indigo-600"
+            className="w-full h-2 bg-[rgb(var(--color-border-primary))] rounded-lg appearance-none cursor-pointer accent-[rgb(var(--color-accent))]"
             disabled={!isEmployee || isUpdating}
           />
         </div>
@@ -207,11 +202,11 @@ export default function GoalProgressTracker({
                   disabled={isUpdating}
                   className={`flex items-center gap-2 p-3 rounded-lg border transition-all ${
                     isSelected
-                      ? `border-${option.color}-500 bg-${option.color}-500/20`
+                      ? option.selectedClass
                       : 'border-theme bg-surface-secondary hover:bg-surface-tertiary'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 text-${option.color}-400`} />
+                  <Icon className={`w-4 h-4 ${isSelected ? option.iconClass : 'text-secondary'}`} />
                   <span className="text-sm text-primary">{option.label}</span>
                 </button>
               );
@@ -240,7 +235,7 @@ export default function GoalProgressTracker({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="What progress have you made? Any blockers?"
-                className="w-full p-3 bg-surface-secondary border border-theme rounded-lg text-primary placeholder-tertiary focus:outline-none "
+                className="w-full p-3 bg-surface-secondary border border-theme rounded-lg text-primary placeholder-tertiary focus-ring"
                 rows={3}
               />
             </motion.div>

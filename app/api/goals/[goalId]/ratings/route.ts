@@ -1,9 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { handleApiError, validateUUID } from '@/app/api/utils/error-handler';
+import { rateLimiters } from '@/lib/rateLimit';
 
 // Helper to format rating response
 function formatRatingResponse(rating: any) {
@@ -27,10 +28,13 @@ function formatRatingResponse(rating: any) {
 }
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { goalId: string } }
 ) {
   try {
+    const rateLimitResponse = await rateLimiters.standard(request);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -68,10 +72,13 @@ export async function GET(
 }
 
 export async function POST(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { goalId: string } }
 ) {
   try {
+    const rateLimitResponse = await rateLimiters.standard(request);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

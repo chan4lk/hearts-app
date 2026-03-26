@@ -1,8 +1,10 @@
+import { NextRequest } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { validateManagerHierarchy } from '@/lib/securityUtils';
 import { z } from 'zod';
+import { rateLimiters } from '@/lib/rateLimit';
 
 const validateManagerSchema = z.object({
   newManagerId: z.string().min(1, 'Manager ID required'),
@@ -13,10 +15,13 @@ const validateManagerSchema = z.object({
  * POST /api/admin/users/[id]/validate-manager
  */
 export async function POST(
-  req: Request,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const rateLimitResponse = await rateLimiters.standard(req);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const session = await getServerSession(authOptions);
 
     // Only admins can validate manager changes

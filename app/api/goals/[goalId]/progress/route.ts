@@ -26,7 +26,7 @@ export async function PUT(
 
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const invalidId = validateUUID(params.goalId, 'goal ID');
@@ -46,11 +46,11 @@ export async function PUT(
     });
 
     if (!goal) {
-      return new NextResponse('Goal not found', { status: 404 });
+      return NextResponse.json({ error: 'Goal not found' }, { status: 404 });
     }
 
     if (goal.employeeId !== session.user.id) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Check if goal status allows progress updates

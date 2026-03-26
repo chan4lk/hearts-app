@@ -14,7 +14,8 @@ import {
   BsShieldFill as BsShield, BsGraphUpArrow as BsGraphUp,
   BsClipboardData, BsPeople, BsBoxArrowRight, BsList, BsX,
   BsCalendarCheck, BsCalendarEvent as BsCalendar,
-  BsCheckCircle as BsCheckEvent
+  BsCheckCircle as BsCheckEvent,
+  BsChevronLeft, BsChevronRight
 } from 'react-icons/bs';
 import { useSettings } from '@/app/providers';
 import NotificationsDropdown from '@/app/components/shared/NotificationsDropdown';
@@ -34,19 +35,20 @@ interface NavItem {
 type Role = 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
 
 // ─── Nav Link with animated active indicator ─────────────────────
-function NavLink({ item, isActive, onClick }: { item: NavItem; isActive: boolean; onClick?: () => void }) {
+function NavLink({ item, isActive, onClick, collapsed }: { item: NavItem; isActive: boolean; onClick?: () => void; collapsed?: boolean }) {
   return (
     <Link
       href={item.href}
       onClick={onClick}
-      className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-ring group ${
+      title={collapsed ? item.label : undefined}
+      className={`relative flex items-center ${collapsed ? 'justify-center px-2' : 'gap-3 px-3'} py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-ring group ${
         isActive
           ? 'bg-accent text-[rgb(var(--color-text-inverse))] shadow-md shadow-[rgb(var(--color-accent))]/20'
           : 'text-secondary hover:text-primary hover:bg-surface-tertiary'
       }`}
     >
       <item.icon className={`text-base flex-shrink-0 transition-transform duration-200 ${isActive ? '' : 'group-hover:scale-110'}`} />
-      <span>{item.label}</span>
+      {!collapsed && <span>{item.label}</span>}
       {isActive && (
         <motion.div
           layoutId="nav-active"
@@ -83,8 +85,25 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
   const { settings } = useSettings();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Persist collapsed state to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('sidebar-collapsed');
+      if (stored === 'true') setCollapsed(true);
+    }
+  }, []);
+
+  const toggleCollapsed = () => {
+    setCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem('sidebar-collapsed', String(next));
+      return next;
+    });
+  };
 
   useEffect(() => { setIsMobileMenuOpen(false); }, [pathname]);
 
@@ -188,8 +207,8 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
     );
   };
 
-  // ─── Sidebar content ──────────────────────────────────────────
-  const SidebarContent = ({ onNavClick }: { onNavClick?: () => void }) => (
+  // ─── Sidebar content (for mobile drawer — always expanded) ─────
+  const MobileSidebarContent = ({ onNavClick }: { onNavClick?: () => void }) => (
     <>
       {/* Logo section */}
       <div className="px-5 py-5 mb-1">
@@ -204,9 +223,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
 
       {/* Portal badge */}
       <div className="px-5 mb-5">
-        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r ${portalColors[type]} bg-opacity-10`}
-          style={{ background: `linear-gradient(135deg, rgba(var(--color-accent), 0.06), rgba(var(--color-accent), 0.02))` }}
-        >
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-br from-[rgba(var(--color-accent),0.06)] to-[rgba(var(--color-accent),0.02)]">
           <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${portalColors[type]}`} />
           <span className="text-2xs font-bold text-primary tracking-wide uppercase">{portalLabel} Portal</span>
         </div>
@@ -241,6 +258,78 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
     </>
   );
 
+  // ─── Desktop Sidebar content (supports collapsed) ──────────────
+  const DesktopSidebarContent = () => (
+    <>
+      {/* Logo section */}
+      <div className={`py-5 mb-1 ${collapsed ? 'px-2 flex justify-center' : 'px-5'}`}>
+        <Link href="/" className={`flex items-center group ${collapsed ? 'justify-center' : 'gap-2.5'}`}>
+          <Image src="/logo.png" alt="Bistec Global" width={100} height={36} className={`object-contain transition-transform duration-300 group-hover:scale-105 ${collapsed ? 'h-8 w-auto' : 'h-9 w-auto'}`} />
+          {!collapsed && (
+            <div className="flex flex-col">
+              <span className="text-sm font-bold text-primary leading-tight">AspireHub</span>
+              <span className="text-2xs font-semibold text-accent tracking-widest uppercase leading-tight">Bistec Global</span>
+            </div>
+          )}
+        </Link>
+      </div>
+
+      {/* Portal badge */}
+      <div className={`mb-5 ${collapsed ? 'px-2 flex justify-center' : 'px-5'}`}>
+        {collapsed ? (
+          <div className={`w-3 h-3 rounded-full bg-gradient-to-r ${portalColors[type]}`} title={`${portalLabel} Portal`} />
+        ) : (
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-br from-[rgba(var(--color-accent),0.06)] to-[rgba(var(--color-accent),0.02)]">
+            <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${portalColors[type]}`} />
+            <span className="text-2xs font-bold text-primary tracking-wide uppercase">{portalLabel} Portal</span>
+          </div>
+        )}
+      </div>
+
+      {/* Navigation */}
+      <nav className={`space-y-1 flex-1 ${collapsed ? 'px-2' : 'px-3'}`}>
+        {navItems.map((navItem) => (
+          <NavLink key={navItem.href} item={navItem} isActive={isPathActive(navItem.href)} collapsed={collapsed} />
+        ))}
+      </nav>
+
+      {/* Toggle button */}
+      <div className={`px-3 py-2 ${collapsed ? 'flex justify-center' : ''}`}>
+        <button
+          onClick={toggleCollapsed}
+          className={`flex items-center justify-center bg-surface-secondary hover:bg-surface-tertiary rounded-lg transition-all duration-200 cursor-pointer focus-ring ${collapsed ? 'w-10 h-10' : 'w-full py-2'}`}
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {collapsed ? <BsChevronRight className="text-sm text-secondary" /> : <BsChevronLeft className="text-sm text-secondary" />}
+        </button>
+      </div>
+
+      {/* User info + sign out */}
+      <div className={`py-4 mt-auto border-t border-theme ${collapsed ? 'px-2' : 'px-3'}`}>
+        {session?.user && (
+          <div className={`flex items-center py-2 mb-2 ${collapsed ? 'justify-center px-0' : 'gap-3 px-3'}`}>
+            <UserAvatar name={session.user.name || undefined} />
+            {!collapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-primary truncate">{session.user.name || 'User'}</p>
+                <p className="text-2xs text-tertiary truncate">{session.user.email}</p>
+              </div>
+            )}
+          </div>
+        )}
+        <button
+          onClick={handleSignOut}
+          title={collapsed ? 'Sign out' : undefined}
+          className={`flex items-center rounded-xl text-sm font-medium text-error hover:bg-error-muted transition-all duration-200 cursor-pointer focus-ring ${collapsed ? 'justify-center w-full py-2.5' : 'gap-2.5 w-full px-3 py-2.5'}`}
+        >
+          <BsBoxArrowRight className="text-base" />
+          {!collapsed && 'Sign out'}
+        </button>
+      </div>
+    </>
+  );
+
   return (
     <div className="min-h-screen bg-surface-primary">
       {/* Mobile Sidebar */}
@@ -267,19 +356,19 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                   <BsX className="w-5 h-5" />
                 </button>
               </div>
-              <SidebarContent onNavClick={() => setIsMobileMenuOpen(false)} />
+              <MobileSidebarContent onNavClick={() => setIsMobileMenuOpen(false)} />
             </motion.div>
           </>
         )}
       </AnimatePresence>
 
       {/* Desktop Sidebar */}
-      <div className="fixed left-0 top-0 h-full w-[15.5rem] bg-surface-sidebar border-r border-theme hidden md:flex flex-col z-30">
-        <SidebarContent />
+      <div className={`fixed left-0 top-0 h-full bg-surface-sidebar border-r border-theme hidden md:flex flex-col z-30 transition-all duration-300 ease-in-out ${collapsed ? 'w-16' : 'w-56'}`}>
+        <DesktopSidebarContent />
       </div>
 
       {/* Header */}
-      <header className="fixed top-0 right-0 left-0 h-14 bg-surface-header/70 backdrop-blur-2xl border-b border-theme md:pl-[15.5rem] z-20">
+      <header className={`fixed top-0 right-0 left-0 h-14 bg-surface-header/70 backdrop-blur-2xl border-b border-theme z-20 transition-all duration-300 ease-in-out ${collapsed ? 'md:pl-16' : 'md:pl-56'}`}>
         <div className="flex items-center justify-between h-full px-4 sm:px-6">
           {/* Left */}
           <div className="flex items-center gap-3">
@@ -389,7 +478,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       </header>
 
       {/* Main Content */}
-      <main className="md:pl-[15.5rem] pt-14">
+      <main className={`pt-14 transition-all duration-300 ease-in-out ${collapsed ? 'md:pl-16' : 'md:pl-56'}`}>
         <div className="p-4 sm:p-6 lg:p-8">
           {children}
         </div>

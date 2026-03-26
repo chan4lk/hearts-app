@@ -3,10 +3,12 @@
 import { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { usePagination, useModalState } from '@/app/hooks';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'sonner';
-import { BsExclamationTriangle, BsArrowUpRight, BsCheckCircle, BsClock, BsFileEarmarkText, BsCheck2Circle, BsXCircle, BsListCheck, BsBullseye, BsPlusLg } from 'react-icons/bs';
+import { BsExclamationTriangle, BsArrowUpRight, BsCheckCircle, BsClock, BsFileEarmarkText, BsCheck2Circle, BsXCircle, BsListCheck, BsPlusLg } from 'react-icons/bs';
 import { Button } from '@/app/components/ui/button';
+import { PageHeader } from '@/app/components/shared/PageHeader';
+import { useToast } from '@/app/components/shared/Toast';
 import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 
 // Layout
@@ -27,7 +29,6 @@ import { BulkGoalFormModal } from '@/app/components/shared/BulkGoalFormModal';
 import { CATEGORIES } from '@/app/components/shared/constants';
 
 // Styles and Types
-import { THEME_COLORS } from '@/app/components/shared/constants';
 import { GoalFormData, GoalStats, User, Goal } from '@/app/components/shared/types';
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
@@ -46,15 +47,16 @@ function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetError
 function ManagerGoalSettingPageContent() {
   const { data: session } = useSession();
   const router = useRouter();
+  const toast = useToast();
   const [assignedEmployees, setAssignedEmployees] = useState<User[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [viewedGoal, setViewedGoal] = useState<Goal | null>(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
+  const createModal = useModalState();
+  const viewModal = useModalState<Goal>();
+  const editModal = useModalState<Goal>();
+  const deleteModal = useModalState<string>();
+  const bulkCreateModal = useModalState();
   const [selectedEmployee, setSelectedEmployee] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedPriority, setSelectedPriority] = useState('');
@@ -87,23 +89,9 @@ function ManagerGoalSettingPageContent() {
     totalManagers: 0,
     categoryStats: {}
   });
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [goalToDelete, setGoalToDelete] = useState<string | null>(null);
   const [showTemplates, setShowTemplates] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [isBulkCreateModalOpen, setIsBulkCreateModalOpen] = useState(false);
-  
-  // Pagination state
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
-  const [pagination, setPagination] = useState<{
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  } | null>(null);
+  const { page, limit, setPage, setLimit, pagination, setPagination } = usePagination();
 
   useEffect(() => {
     if (!session) {
@@ -225,10 +213,11 @@ function ManagerGoalSettingPageContent() {
 
       const { goal } = await response.json();
       setGoals(prev => [goal, ...prev]);
-      setIsCreateModalOpen(false);
+      createModal.close();
       resetForm();
+      toast.success('Goal created successfully');
     } catch (error) {
-      // Error toast removed
+      toast.error(error instanceof Error ? error.message : 'Failed to create goal');
     } finally {
       setLoading(false);
     }
@@ -254,38 +243,39 @@ function ManagerGoalSettingPageContent() {
       if (result.success) {
         // Add the created goals to the state
         setGoals(prev => [...result.goals, ...prev]);
-        setIsBulkCreateModalOpen(false);
+        bulkCreateModal.close();
 
         // Refresh the goals and stats
         await fetchAssignedEmployees();
+        toast.success(`${result.goals.length} goals created successfully`);
       } else {
         throw new Error(result.message || 'Failed to create goals');
       }
     } catch (error) {
-      // Error toast removed
+      toast.error(error instanceof Error ? error.message : 'Failed to create goals');
     } finally {
       setLoading(false);
     }
   };
 
   const handleUpdateGoal = async (updatedData: GoalFormData) => {
-    if (!selectedGoal) return;
-    
+    if (!editModal.data) return;
+    const selectedGoal = editModal.data;
+
     // Optimistic update - update UI immediately
     const optimisticGoal: Goal = {
       ...selectedGoal,
       ...updatedData,
       updatedAt: new Date().toISOString()
     };
-    
-    setGoals(prev => prev.map(goal => 
+
+    setGoals(prev => prev.map(goal =>
       goal.id === selectedGoal.id ? optimisticGoal : goal
     ));
-    
+
     // Close the modal immediately for a more responsive UX
-    setIsEditModalOpen(false);
+    editModal.close();
     const goalToView = selectedGoal;
-    setSelectedGoal(null);
     
     try {
       // Make API call
@@ -308,38 +298,37 @@ function ManagerGoalSettingPageContent() {
       updatedGoal.updatedAt = new Date(updatedGoal.updatedAt).toISOString();
 
       // Update with server data (replace optimistic update)
-      setGoals(prev => prev.map(goal => 
+      setGoals(prev => prev.map(goal =>
         goal.id === goalToView.id ? updatedGoal : goal
       ));
-      setViewedGoal(updatedGoal);
 
       // Show view modal after update
-      setIsViewModalOpen(true);
-      
+      viewModal.open(updatedGoal);
+      toast.success('Goal updated successfully');
+
     } catch (error) {
       // Revert optimistic update on error
-      setGoals(prev => prev.map(goal => 
+      setGoals(prev => prev.map(goal =>
         goal.id === goalToView.id ? goalToView : goal
       ));
-      // Error toast removed
+      toast.error(error instanceof Error ? error.message : 'Failed to update goal');
       // Reopen edit modal on error
-      setSelectedGoal(goalToView);
-      setIsEditModalOpen(true);
+      editModal.open(goalToView);
     }
   };
 
   const handleDelete = async () => {
-    if (!goalToDelete) return;
+    if (!deleteModal.data) return;
+    const goalToDelete = deleteModal.data;
 
     // Store the goal to restore if deletion fails
     const goalToRestore = goals.find(g => g.id === goalToDelete);
-    
+
     // Optimistic update - remove from UI immediately
     setGoals(prev => prev.filter(goal => goal.id !== goalToDelete));
-    setIsDeleteModalOpen(false);
+    deleteModal.close();
     const deletedGoalId = goalToDelete;
-    setGoalToDelete(null);
-    // Goal deleted toast removed
+    toast.success('Goal deleted successfully');
 
     try {
       const response = await fetch(`/api/goals/${deletedGoalId}`, {
@@ -355,11 +344,11 @@ function ManagerGoalSettingPageContent() {
     } catch (error) {
       // Revert optimistic update on error
       if (goalToRestore) {
-        setGoals(prev => [...prev, goalToRestore].sort((a, b) => 
+        setGoals(prev => [...prev, goalToRestore].sort((a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         ));
       }
-      // Error toast removed
+      toast.error(error instanceof Error ? error.message : 'Failed to delete goal');
     }
   };
 
@@ -376,7 +365,6 @@ function ManagerGoalSettingPageContent() {
   };
 
   const handleEditGoal = (goal: Goal) => {
-    setSelectedGoal(goal);
     setFormData({
       title: goal.title,
       description: goal.description,
@@ -386,7 +374,7 @@ function ManagerGoalSettingPageContent() {
       department: goal.department || 'ENGINEERING',
       priority: goal.priority || 'MEDIUM'
     });
-    setIsEditModalOpen(true);
+    editModal.open(goal);
   };
 
   const handleRefresh = async () => {
@@ -427,34 +415,19 @@ function ManagerGoalSettingPageContent() {
     <DashboardLayout type="manager">
       {loading ? <LoadingSkeleton variant="page" /> : error ? <ErrorState message={error.message} onRetry={() => { setError(null); fetchAssignedEmployees(); }} /> :
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Goal Assignment Header */}
-        <div className="relative bg-gradient-to-r from-[rgba(var(--color-accent),0.10)] via-[rgba(var(--color-accent),0.04)] to-transparent rounded-2xl border border-theme overflow-hidden">
-          {/* Decorative bullseye pattern */}
-          <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-[0.03]">
-            <BsBullseye className="w-32 h-32 text-accent" />
-          </div>
-          <div className="relative px-6 py-5 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-accent/10 border border-[rgba(var(--color-accent),0.2)] flex items-center justify-center shadow-theme-sm">
-                <BsBullseye className="w-5 h-5 text-accent" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-primary tracking-tight">Goal Assignment</h1>
-                <p className="text-sm text-secondary mt-0.5">Create and manage goals for your team members</p>
-              </div>
-            </div>
-            <div className="hidden md:flex items-center gap-2">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-accent-muted text-accent text-xs font-semibold">
-                <BsListCheck className="w-3.5 h-3.5" />
-                <span>{stats.totalGoals} Goals</span>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-success-muted text-success text-xs font-semibold">
-                <BsCheckCircle className="w-3.5 h-3.5" />
-                <span>{stats.completedGoals} Completed</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          title="Set Goals"
+          description="Assign and manage team goals"
+          badge="Manager"
+        >
+          <Button variant="outline" onClick={() => bulkCreateModal.open()}>
+            Bulk Create
+          </Button>
+          <Button onClick={() => createModal.open()}>
+            <BsPlusLg className="w-3.5 h-3.5 mr-1.5" />
+            Create Goal
+          </Button>
+        </PageHeader>
 
         <div className="bg-surface-elevated rounded-2xl p-4 border border-theme space-y-4 relative overflow-hidden transition-all duration-300 hover:shadow-theme-sm">
           {/* Top accent line */}
@@ -507,12 +480,12 @@ function ManagerGoalSettingPageContent() {
           actions={[
             {
               label: 'Bulk Create',
-              onClick: () => setIsBulkCreateModalOpen(true),
+              onClick: () => bulkCreateModal.open(),
               variant: 'secondary',
             },
             {
               label: 'Create Goal',
-              onClick: () => setIsCreateModalOpen(true),
+              onClick: () => createModal.open(),
               variant: 'primary',
             },
           ]}
@@ -599,7 +572,7 @@ function ManagerGoalSettingPageContent() {
                       department: 'ENGINEERING',
                       priority: 'MEDIUM'
                     }));
-                    setIsCreateModalOpen(true);
+                    createModal.open();
                   }} />
                 </div>
               </motion.div>
@@ -613,13 +586,11 @@ function ManagerGoalSettingPageContent() {
           selectedStatus={selectedStatus}
           selectedPriority={selectedPriority}
           onViewGoal={(goal) => {
-            setViewedGoal(goal);
-            setIsViewModalOpen(true);
+            viewModal.open(goal);
           }}
           onEditGoal={handleEditGoal}
           onDeleteGoal={(goalId) => {
-            setGoalToDelete(goalId);
-            setIsDeleteModalOpen(true);
+            deleteModal.open(goalId);
           }}
           onPriorityUpdate={handlePriorityUpdate}
           onDueDateUpdate={handleDueDateUpdate}
@@ -636,62 +607,58 @@ function ManagerGoalSettingPageContent() {
 
         {/* Modals */}
         <CreateGoalModal
-          isOpen={isCreateModalOpen || isEditModalOpen}
+          isOpen={createModal.isOpen || editModal.isOpen}
           onClose={() => {
-            setIsCreateModalOpen(false);
-            setIsEditModalOpen(false);
-            setSelectedGoal(null);
+            createModal.close();
+            editModal.close();
             resetForm();
           }}
-          onSubmit={isEditModalOpen ? handleUpdateGoal : handleSubmit}
+          onSubmit={editModal.isOpen ? handleUpdateGoal : handleSubmit}
           assignedEmployees={assignedEmployees}
           loading={loading}
           formData={formData}
           setFormData={setFormData}
-          mode={isEditModalOpen ? 'edit' : 'create'}
-          initialData={selectedGoal ? {
-            title: selectedGoal.title,
-            description: selectedGoal.description,
-            dueDate: selectedGoal.dueDate,
-            employeeId: selectedGoal.employee?.id || '',
-            category: selectedGoal.category,
-            department: selectedGoal.department || 'ENGINEERING',
-            priority: selectedGoal.priority || 'MEDIUM'
+          mode={editModal.isOpen ? 'edit' : 'create'}
+          initialData={editModal.data ? {
+            title: editModal.data.title,
+            description: editModal.data.description,
+            dueDate: editModal.data.dueDate,
+            employeeId: editModal.data.employee?.id || '',
+            category: editModal.data.category,
+            department: editModal.data.department || 'ENGINEERING',
+            priority: editModal.data.priority || 'MEDIUM'
           } : undefined}
         />
 
-        {viewedGoal && (
+        {viewModal.data && (
           <GoalDetailModal
-            goal={viewedGoal}
+            goal={viewModal.data}
             onClose={() => {
-              setIsViewModalOpen(false);
-              setViewedGoal(null);
+              viewModal.close();
             }}
             onEdit={(goal) => {
               handleEditGoal(goal);
-              setIsViewModalOpen(false);
+              viewModal.close();
             }}
             onDelete={(goal) => {
-              setIsViewModalOpen(false);
-              setIsDeleteModalOpen(true);
-              setGoalToDelete(goal.id);
+              viewModal.close();
+              deleteModal.open(goal.id);
             }}
           />
         )}
 
         <BulkGoalFormModal
-          isOpen={isBulkCreateModalOpen}
-          onClose={() => setIsBulkCreateModalOpen(false)}
+          isOpen={bulkCreateModal.isOpen}
+          onClose={() => bulkCreateModal.close()}
           onSubmit={handleBulkSubmit}
           assignedEmployees={assignedEmployees}
           loading={loading}
         />
 
         <DeleteConfirmationModal
-          isOpen={isDeleteModalOpen}
+          isOpen={deleteModal.isOpen}
           onClose={() => {
-            setIsDeleteModalOpen(false);
-            setGoalToDelete(null);
+            deleteModal.close();
           }}
           onConfirm={handleDelete}
           title="Delete Goal"

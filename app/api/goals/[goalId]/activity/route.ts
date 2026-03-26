@@ -4,12 +4,16 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 import { handleApiError, validateUUID } from '@/app/api/utils/error-handler';
+import { rateLimiters } from '@/lib/rateLimit';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { goalId: string } }
 ) {
   try {
+    const rateLimitResponse = await rateLimiters.standard(request);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const session = await getServerSession(authOptions);
     
     if (!session?.user) {

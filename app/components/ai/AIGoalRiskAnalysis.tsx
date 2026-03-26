@@ -56,7 +56,7 @@ export default function AIGoalRiskAnalysis({ goalId, className = '' }: AIGoalRis
       case 'high':
         return 'from-[rgba(var(--color-error),0.2)] to-[rgba(var(--color-error),0.2)] border-[rgb(var(--color-error))]/30 text-error';
       default:
-        return 'from-gray-500/20 to-gray-500/20 border-gray-500/30 text-secondary';
+        return 'from-surface-tertiary/20 to-surface-tertiary/20 border-theme text-secondary';
     }
   };
 

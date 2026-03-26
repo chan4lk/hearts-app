@@ -202,7 +202,7 @@ export default function ManagerSelector({
           >
             {loading ? (
               <div className="py-12 text-center">
-                <div className="inline-block animate-spin rounded-full h-5 w-5 border-2 border-gray-600 border-t-indigo-500"></div>
+                <div className="inline-block animate-spin rounded-full h-5 w-5 border-2 border-[rgb(var(--color-border-primary))] border-t-accent"></div>
                 <p className="mt-2 text-xs text-secondary">Loading...</p>
               </div>
             ) : (

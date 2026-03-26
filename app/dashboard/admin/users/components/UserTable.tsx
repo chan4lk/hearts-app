@@ -390,7 +390,7 @@ export default function UserTable({
                       onValueChange={(newRole) => handleQuickRoleUpdate(user.id, newRole)}
                       disabled={updatingRole === user.id}
                     >
-                      <SelectTrigger className={`${roleConfig.bg} ${roleConfig.text} border border-white/20 text-xs px-3 py-1.5 h-auto hover:opacity-90 hover:border-white/30 transition-all cursor-pointer min-w-[130px] font-medium`}>
+                      <SelectTrigger className={`${roleConfig.bg} ${roleConfig.text} border border-[rgb(var(--color-border-primary))]/20 text-xs px-3 py-1.5 h-auto hover:opacity-90 hover:border-[rgb(var(--color-border-primary))]/30 transition-all cursor-pointer min-w-[130px] font-medium`}>
                         <SelectValue>{user.role || 'EMPLOYEE'}</SelectValue>
                         <BsGear className="w-3 h-3 ml-auto opacity-50 rotate-90" />
                       </SelectTrigger>
@@ -413,7 +413,7 @@ export default function UserTable({
                       onValueChange={(newStatus) => handleQuickStatusUpdate(user.id, newStatus)}
                       disabled={updatingStatus === user.id}
                     >
-                      <SelectTrigger className={`${statusConfig.bg} ${statusConfig.text} border border-white/20 text-xs px-3 py-1.5 h-auto hover:opacity-90 hover:border-white/30 transition-all cursor-pointer min-w-[120px] font-medium`}>
+                      <SelectTrigger className={`${statusConfig.bg} ${statusConfig.text} border border-[rgb(var(--color-border-primary))]/20 text-xs px-3 py-1.5 h-auto hover:opacity-90 hover:border-[rgb(var(--color-border-primary))]/30 transition-all cursor-pointer min-w-[120px] font-medium`}>
                         <SelectValue>{user.status || 'ACTIVE'}</SelectValue>
                         <BsGear className="w-3 h-3 ml-auto opacity-50 rotate-90" />
                       </SelectTrigger>
@@ -431,7 +431,7 @@ export default function UserTable({
                     <button
                       onClick={() => handleOpenManagerSelector(user.id)}
                       disabled={updatingManager === user.id}
-                      className="bg-cat-professional text-cat-professional border border-white/20 text-xs px-3 py-1.5 h-auto hover:opacity-90 hover:border-white/30 transition-all cursor-pointer min-w-[150px] font-medium rounded-md flex items-center justify-between gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-cat-professional text-cat-professional border border-[rgb(var(--color-border-primary))]/20 text-xs px-3 py-1.5 h-auto hover:opacity-90 hover:border-[rgb(var(--color-border-primary))]/30 transition-all cursor-pointer min-w-[150px] font-medium rounded-md flex items-center justify-between gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <span className="truncate">
                         {updatingManager === user.id ? 'Updating...' : (user.manager?.name || 'Unassigned')}

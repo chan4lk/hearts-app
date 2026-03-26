@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { BsX, BsCalendar, BsPerson, BsBriefcase, BsSearch, BsChevronDown } from 'react-icons/bs';
+import { BsCalendar, BsPerson, BsBriefcase, BsSearch, BsChevronDown } from 'react-icons/bs';
 import { searchDesignations, searchJobCategories } from '@/app/components/shared/constants';
-import { FORM_STYLES } from '@/app/components/ui/form-primitives';
+import { FORM_STYLES, FormField, FormActions } from '@/app/components/ui/form-primitives';
 
 interface ReviewCycle {
   id: string;
@@ -334,42 +334,21 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
     }
   };
 
-  const selectedUser = users.find(u => u.id === formData.userId);
-
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      {/* Fixed Header - Brand Teal Color */}
-      <div className="flex-shrink-0 px-6 py-4 bg-accent border-b border-[rgba(var(--color-event-social),0.3)] z-10 rounded-t-xl">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-[rgb(var(--color-text-inverse))]" style={{ color: '#ffffff' }}>
-            Review Cycle
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-surface-tertiary rounded-lg transition-colors"
-            aria-label="Close modal"
-          >
-            <BsX className="w-5 h-5 text-[rgb(var(--color-text-inverse))]" style={{ color: '#ffffff' }} />
-          </button>
-        </div>
-      </div>
+    <form
+      id="review-cycle-form"
+      onSubmit={handleSubmit}
+      className="space-y-6"
+    >
+      {/* ── Employee Section ── */}
+      <fieldset className="space-y-4">
+        <legend className="text-xs font-semibold text-accent uppercase tracking-wider flex items-center gap-2 mb-1">
+          <BsPerson className="w-3.5 h-3.5" /> Employee
+        </legend>
 
-      {/* Scrollable Form Fields - Only This Scrolls */}
-      <form 
-        id="review-cycle-form" 
-        onSubmit={handleSubmit} 
-        className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-4 space-y-4 min-h-0"
-        style={{
-          scrollbarWidth: 'thin',
-          scrollbarColor: 'rgba(107, 114, 128, 0.5) transparent'
-        }}
-      >
         {/* Employee Selection - Searchable Dropdown */}
         <div ref={employeeRef} className="relative">
-          <label className="block text-sm font-semibold text-secondary mb-2" style={{ color: '#e5e7eb' }}>
-            <BsPerson className="inline w-4 h-4 mr-2" />
-            Employee *
-          </label>
+          <FormField label="Employee" required error={errors.userId}>
           <div className="relative">
             <div className="relative">
               <BsSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -439,17 +418,12 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
               </div>
             )}
           </div>
-          {errors.userId && (
-            <p className="mt-1 text-sm text-error">{errors.userId}</p>
-          )}
+          </FormField>
         </div>
 
         {/* Reporting Person - Searchable Dropdown */}
         <div ref={reportingPersonRef} className="relative">
-          <label className="block text-sm font-semibold text-secondary mb-2" style={{ color: '#e5e7eb' }}>
-            <BsPerson className="inline w-4 h-4 mr-2" />
-            Reporting Person
-          </label>
+          <FormField label="Reporting Person">
           <div className="relative">
             <div className="relative">
               <BsSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -508,14 +482,19 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
               </div>
             )}
           </div>
+          </FormField>
         </div>
+      </fieldset>
+
+      {/* ── Job Details Section ── */}
+      <fieldset className="space-y-4">
+        <legend className="text-xs font-semibold text-accent uppercase tracking-wider flex items-center gap-2 mb-1">
+          <BsBriefcase className="w-3.5 h-3.5" /> Job Details
+        </legend>
 
         {/* Job Category - Searchable Dropdown */}
         <div ref={jobCategoryRef} className="relative">
-          <label className="block text-sm font-semibold text-secondary mb-2" style={{ color: '#e5e7eb' }}>
-            <BsBriefcase className="inline w-4 h-4 mr-2" />
-            Job Category
-          </label>
+          <FormField label="Job Category">
           <div className="relative">
             <div className="relative">
               <BsSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -579,14 +558,12 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
               </div>
             )}
           </div>
+          </FormField>
         </div>
 
         {/* Designation - Searchable Dropdown */}
         <div ref={designationRef} className="relative">
-          <label className="block text-sm font-semibold text-secondary mb-2" style={{ color: '#e5e7eb' }}>
-            <BsBriefcase className="inline w-4 h-4 mr-2" />
-            Designation
-          </label>
+          <FormField label="Designation">
           <div className="relative">
             <div className="relative">
               <BsSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-secondary" />
@@ -650,19 +627,23 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
               </div>
             )}
           </div>
+          </FormField>
         </div>
+      </fieldset>
+
+      {/* ── Review Schedule Section ── */}
+      <fieldset className="space-y-4">
+        <legend className="text-xs font-semibold text-accent uppercase tracking-wider flex items-center gap-2 mb-1">
+          <BsCalendar className="w-3.5 h-3.5" /> Review Schedule
+        </legend>
 
         {/* Date of Appointment */}
-        <div>
-          <label className="block text-sm font-semibold text-secondary mb-2" style={{ color: '#e5e7eb' }}>
-            <BsCalendar className="inline w-4 h-4 mr-2" />
-            Date of Appointment (Joined Date)
-          </label>
+        <FormField label="Date of Appointment (Joined Date)">
           <input
             type="date"
             value={formData.dateOfAppointment}
             onChange={(e) => handleChange('dateOfAppointment', e.target.value)}
-            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus-ring"
+            className={FORM_STYLES.input}
           />
           {formData.dateOfAppointment && (
             <p className="mt-1 text-xs text-secondary">
@@ -673,17 +654,14 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
               })}
             </p>
           )}
-        </div>
+        </FormField>
 
         {/* After 6 Months */}
-        <div>
-          <label className="block text-sm font-semibold text-secondary mb-2" style={{ color: '#e5e7eb' }}>
-            After 6 Months
-          </label>
+        <FormField label="After 6 Months">
           <select
             value={formData.after6Months}
             onChange={(e) => handleChange('after6Months', e.target.value)}
-            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus-ring"
+            className={FORM_STYLES.select}
           >
             <option value="">Select Month</option>
             {MONTHS.map((month) => (
@@ -692,45 +670,35 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
               </option>
             ))}
           </select>
-        </div>
+        </FormField>
 
         {/* Review Month */}
-        <div>
-          <label className="block text-sm font-semibold text-secondary mb-2" style={{ color: '#e5e7eb' }}>
-            Review Month
-            {calculatedReviewMonth && formData.reviewMonth === calculatedReviewMonth && (
-              <span className="ml-2 text-xs text-accent font-normal"></span>
-            )}
-          </label>
+        <FormField label="Review Month">
           <select
             value={formData.reviewMonth}
             onChange={(e) => handleChange('reviewMonth', e.target.value)}
-            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus-ring"
+            className={FORM_STYLES.select}
           >
             <option value="">Select Month</option>
             {MONTHS.map((month) => (
               <option key={month} value={month}>
                 {month}
-                {month === calculatedReviewMonth && formData.reviewMonth === calculatedReviewMonth ? '' : ''}
               </option>
             ))}
           </select>
           {calculatedReviewMonth && formData.reviewMonth !== calculatedReviewMonth && (
             <p className="mt-1 text-xs text-warning">
-              ⚠️ Changed from calculated: <span className="line-through text-secondary">{calculatedReviewMonth}</span>
+              Changed from calculated: <span className="line-through text-secondary">{calculatedReviewMonth}</span>
             </p>
           )}
-        </div>
+        </FormField>
 
         {/* Adjusted Review Month */}
-        <div>
-          <label className="block text-sm font-semibold text-secondary mb-2" style={{ color: '#e5e7eb' }}>
-            Adjusted Review Month
-          </label>
+        <FormField label="Adjusted Review Month">
           <select
             value={formData.adjustedReviewMonth}
             onChange={(e) => handleChange('adjustedReviewMonth', e.target.value)}
-            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus-ring"
+            className={FORM_STYLES.select}
           >
             <option value="">Select Month</option>
             {MONTHS.map((month) => (
@@ -740,8 +708,8 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
             ))}
           </select>
           {/* Show comparison when adjusted month is different from review month */}
-          {formData.adjustedReviewMonth && 
-           formData.reviewMonth && 
+          {formData.adjustedReviewMonth &&
+           formData.reviewMonth &&
            formData.adjustedReviewMonth !== formData.reviewMonth && (
             <div className="mt-2 p-3 bg-warning-muted border border-[rgba(var(--color-warning),0.3)] rounded-lg">
               <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -764,34 +732,19 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
               )}
             </div>
           )}
-          {/* Show calculated review month hint when no adjustment */}
-          {!formData.adjustedReviewMonth && formData.reviewMonth && calculatedReviewMonth && (
-            <p className="mt-1 text-xs text-secondary">
-            </p>
-          )}
-        </div>
+        </FormField>
+      </fieldset>
 
-      </form>
-
-      {/* Fixed Footer with Buttons */}
-      <div className="flex-shrink-0 px-6 py-4 border-t border-theme bg-surface-secondary flex items-center justify-end gap-3 rounded-b-xl">
-        <button
-          type="button"
-          onClick={onClose}
-          className={FORM_STYLES.btnSecondary}
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          form="review-cycle-form"
-          disabled={loading}
-          className={FORM_STYLES.btnPrimary}
-        >
-          {loading ? 'Saving...' : (reviewCycle ? 'Update' : 'Add')}
-        </button>
+      {/* Form Actions */}
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-theme">
+        <FormActions
+          onCancel={onClose}
+          submitLabel={reviewCycle ? 'Update' : 'Add'}
+          loading={loading}
+          formId="review-cycle-form"
+        />
       </div>
-    </div>
+    </form>
   );
 }
 
