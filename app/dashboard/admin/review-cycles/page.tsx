@@ -225,7 +225,13 @@ export default function ReviewCyclesPage() {
   if (reviewCycles.length === 0 && !searchQuery) {
     return (
       <DashboardLayout type="admin">
-        <EmptyState title="No review cycles found" description="There are no review cycles yet. Create your first review cycle to get started." actionLabel="Create Cycle" onAction={() => { setEditingCycle(null); setIsFormOpen(true); }} />
+        <div className="max-w-7xl mx-auto space-y-6">
+          <PageHeader title="Review Cycles" description="Manage employee review schedules" badge="Admin" />
+          <EmptyState title="No review cycles found" description="There are no review cycles yet. Create your first review cycle to get started." actionLabel="Create Cycle" onAction={() => { setEditingCycle(null); setIsFormOpen(true); }} />
+        </div>
+        <ModalShell open={isFormOpen} onClose={handleCloseForm} title="Create Review Cycle" maxWidth="max-w-2xl">
+          <ReviewCycleForm reviewCycle={null} onSave={handleSave} onClose={handleCloseForm} />
+        </ModalShell>
       </DashboardLayout>
     );
   }

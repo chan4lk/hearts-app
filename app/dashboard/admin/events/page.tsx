@@ -178,7 +178,15 @@ function AdminEventsContent() {
   if (events.length === 0 && !search && !status && !eventType) {
     return (
       <DashboardLayout type="admin">
-        <EmptyState title="No events found" description="There are no events yet. Create your first event to get started." actionLabel="Create Event" onAction={() => { formModal.open(); }} />
+        <div className="max-w-7xl mx-auto space-y-6">
+          <PageHeader title="Event Management" description="Create, schedule, and manage organizational events" badge="Admin" />
+          <EmptyState title="No events found" description="There are no events yet. Create your first event to get started." actionLabel="Create Event" onAction={() => { formModal.open(); }} />
+        </div>
+        <EventFormModal
+          isOpen={formModal.isOpen}
+          onClose={handleCloseForm}
+          onSubmit={handleCreateEvent}
+        />
       </DashboardLayout>
     );
   }
