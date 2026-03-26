@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { BsX, BsCalendar, BsPerson, BsBriefcase, BsSearch, BsChevronDown } from 'react-icons/bs';
 import { searchDesignations, searchJobCategories } from '@/app/components/shared/constants';
+import { FORM_STYLES } from '@/app/components/ui/form-primitives';
 
 interface ReviewCycle {
   id: string;
@@ -393,7 +394,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                 disabled={loadingUsers && users.length === 0}
                 className={`w-full pl-10 pr-10 py-2 bg-surface-secondary text-primary rounded-lg border ${
                   errors.userId ? 'border-[rgb(var(--color-error))]' : 'border-theme'
-                } focus:outline-none focus:ring-2 focus-ring disabled:opacity-50 disabled:cursor-wait`}
+                } focus-ring disabled:opacity-50 disabled:cursor-wait`}
               />
               <button
                 type="button"
@@ -471,7 +472,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                 }}
                 placeholder={loadingEmployees ? "Loading reporting persons..." : "Search person by name or email..."}
                 disabled={loadingEmployees && employees.length === 0}
-                className="w-full pl-10 pr-10 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus-ring disabled:opacity-50 disabled:cursor-wait"
+                className="w-full pl-10 pr-10 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus-ring disabled:opacity-50 disabled:cursor-wait"
               />
               <button
                 type="button"
@@ -536,7 +537,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                   }
                 }}
                 placeholder="Search job category..."
-                className="w-full pl-10 pr-10 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus-ring"
+                className="w-full pl-10 pr-10 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus-ring"
               />
               <button
                 type="button"
@@ -607,7 +608,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
                   }
                 }}
                 placeholder="Search designation..."
-                className="w-full pl-10 pr-10 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus-ring"
+                className="w-full pl-10 pr-10 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus-ring"
               />
               <button
                 type="button"
@@ -661,7 +662,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
             type="date"
             value={formData.dateOfAppointment}
             onChange={(e) => handleChange('dateOfAppointment', e.target.value)}
-            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus-ring"
+            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus-ring"
           />
           {formData.dateOfAppointment && (
             <p className="mt-1 text-xs text-secondary">
@@ -682,7 +683,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
           <select
             value={formData.after6Months}
             onChange={(e) => handleChange('after6Months', e.target.value)}
-            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus-ring"
+            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus-ring"
           >
             <option value="">Select Month</option>
             {MONTHS.map((month) => (
@@ -704,7 +705,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
           <select
             value={formData.reviewMonth}
             onChange={(e) => handleChange('reviewMonth', e.target.value)}
-            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus-ring"
+            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus-ring"
           >
             <option value="">Select Month</option>
             {MONTHS.map((month) => (
@@ -729,7 +730,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
           <select
             value={formData.adjustedReviewMonth}
             onChange={(e) => handleChange('adjustedReviewMonth', e.target.value)}
-            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus:outline-none focus:ring-2 focus-ring"
+            className="w-full px-4 py-2 bg-surface-secondary text-primary rounded-lg border border-theme focus-ring"
           >
             <option value="">Select Month</option>
             {MONTHS.map((month) => (
@@ -777,8 +778,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
         <button
           type="button"
           onClick={onClose}
-          className="px-4 py-2 text-sm font-medium text-secondary hover:text-primary transition-colors rounded-lg hover:bg-surface-secondary"
-          style={{ color: '#d1d5db' }}
+          className={FORM_STYLES.btnSecondary}
         >
           Cancel
         </button>
@@ -786,8 +786,7 @@ export default function ReviewCycleForm({ reviewCycle, onSave, onClose }: Review
           type="submit"
           form="review-cycle-form"
           disabled={loading}
-          className="px-6 py-2 text-sm font-medium bg-[rgb(var(--color-event-social))] hover:bg-[rgb(var(--color-event-social))] text-[rgb(var(--color-text-inverse))] rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-          style={{ color: '#ffffff' }}
+          className={FORM_STYLES.btnPrimary}
         >
           {loading ? 'Saving...' : (reviewCycle ? 'Update' : 'Add')}
         </button>

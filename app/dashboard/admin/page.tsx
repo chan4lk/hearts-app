@@ -231,16 +231,12 @@ export default function AdminDashboard() {
 
       setShowDeleteModal(false);
       setGoalToDelete(null);
-      // Goal deleted toast removed
-      
-      // Refresh goals and stats from server to ensure sync
-      fetchAllGoals();
-      fetchDashboardData();
-    } catch (error) {
+
+      // Single refresh to sync both goals and stats (avoid double-refetch)
+      await Promise.all([fetchAllGoals(), fetchDashboardData()]);
+    } catch {
       // Revert optimistic update on error
-      fetchAllGoals();
-      fetchDashboardData();
-      // Error toast removed
+      await Promise.all([fetchAllGoals(), fetchDashboardData()]);
     }
   };
 
@@ -281,12 +277,11 @@ export default function AdminDashboard() {
 
       setShowBulkDeleteModal(false);
       setGoalsToBulkDelete([]);
-      
-      // Refresh goals and stats from server to ensure sync
-      fetchAllGoals();
-      fetchDashboardData();
-    } catch (error) {
-      // Error toast removed
+
+      // Single parallel refresh to sync both goals and stats
+      await Promise.all([fetchAllGoals(), fetchDashboardData()]);
+    } catch {
+      await Promise.all([fetchAllGoals(), fetchDashboardData()]);
     }
   };
 

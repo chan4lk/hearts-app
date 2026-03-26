@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { useSession } from 'next-auth/react';
 import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
@@ -159,8 +159,16 @@ export default function ManagerDashboard() {
     }
   }, [page, limit, selectedStatus, selectedPriority, selectedEmployee, employees]);
 
+  // Debounce filter changes to avoid excessive API calls
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
-    fetchGoals();
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      fetchGoals();
+    }, 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, [fetchGoals]);
 
   // Auth is handled by middleware — just guard render

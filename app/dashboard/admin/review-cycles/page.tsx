@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
+import { ModalShell } from '@/app/components/ui/form-primitives';
 
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 
@@ -376,42 +377,19 @@ export default function ReviewCyclesPage() {
             )}
           </div>
 
-          {/* Review Cycle Form Modal - Fixed Center */}
-          <AnimatePresence>
-            {isFormOpen && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60]"
-                style={{ 
-                  paddingTop: '5rem',
-                  paddingBottom: '2rem',
-                  paddingLeft: '1rem',
-                  paddingRight: '1rem'
-                }}
-                onClick={handleCloseForm}
-              >
-                <motion.div
-                  initial={{ scale: 0.95, opacity: 0, y: 20 }}
-                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="modal-content rounded-xl shadow-theme-lg w-full max-w-2xl flex flex-col overflow-hidden"
-                  style={{ 
-                    maxHeight: 'calc(100vh - 7rem)',
-                    height: 'auto'
-                  }}
-                >
-                  <ReviewCycleForm
-                    reviewCycle={editingCycle}
-                    onSave={handleSave}
-                    onClose={handleCloseForm}
-                  />
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Review Cycle Form Modal */}
+          <ModalShell
+            open={isFormOpen}
+            onClose={handleCloseForm}
+            title={editingCycle ? 'Edit Review Cycle' : 'Create Review Cycle'}
+            maxWidth="max-w-2xl"
+          >
+            <ReviewCycleForm
+              reviewCycle={editingCycle}
+              onSave={handleSave}
+              onClose={handleCloseForm}
+            />
+          </ModalShell>
 
           {/* Delete Confirmation Modal */}
           <DeleteConfirmationModal

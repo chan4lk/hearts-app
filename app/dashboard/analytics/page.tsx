@@ -4,8 +4,19 @@ import { motion } from 'framer-motion';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import StatsSection, { StatItem } from '@/app/components/shared/StatsSection';
 import PageToolbar, { FilterSelect } from '@/app/components/shared/PageToolbar';
-import AnalyticsCharts from './components/AnalyticsCharts';
+import dynamic from 'next/dynamic';
 import PerformanceTable from './components/PerformanceTable';
+
+const AnalyticsCharts = dynamic(() => import('./components/AnalyticsCharts'), {
+  ssr: false,
+  loading: () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {[1, 2, 3, 4].map(i => (
+        <div key={i} className="h-64 rounded-xl border border-theme bg-surface-elevated animate-pulse" />
+      ))}
+    </div>
+  ),
+});
 import { useAnalyticsData } from '@/app/hooks/useAnalyticsData';
 import { BsBarChart, BsClipboardData, BsCheckCircle, BsPercent, BsStarFill, BsClock, BsFileEarmarkText, BsCheck2Circle, BsXCircle, BsListCheck, BsGraphUpArrow } from 'react-icons/bs';
 import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
