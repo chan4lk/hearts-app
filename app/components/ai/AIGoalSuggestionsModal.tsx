@@ -20,7 +20,7 @@ interface AIGoalSuggestionsProps {
   showTriggerButton?: boolean;
 }
 
-export default function AIGoalSuggestions({ onSelectGoal, className = '', onUseGoal, autoGenerate = false, showTriggerButton = true }: AIGoalSuggestionsProps) {
+export default function AIGoalSuggestionsModal({ onSelectGoal, className = '', onUseGoal, autoGenerate = false, showTriggerButton = true }: AIGoalSuggestionsProps) {
   const [loading, setLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<GoalSuggestion[]>([]);
   const [error, setError] = useState<string | null>(null);

@@ -1,8 +1,10 @@
-import { BsCalendar, BsTag, BsGear, BsXCircle, BsCheckCircle, BsClock, BsPencil, BsTrash, BsPerson, BsPlayCircle, BsPauseCircle, BsFlag, BsCircle } from 'react-icons/bs';
+import { BsCalendar, BsTag, BsGear, BsXCircle, BsPencil, BsTrash, BsPerson, BsPlayCircle, BsPauseCircle, BsFlag, BsCircle, BsCheckCircle } from 'react-icons/bs';
 import { Goal, ProgressStatus } from '@/app/components/shared/types';
 import { IconType } from 'react-icons';
 import { CATEGORIES } from '@/app/components/shared/constants';
 import { Progress } from '@/app/components/ui/progress';
+import { StatusBadge } from '@/app/components/shared/feedback';
+import { getStatusConfig } from '@/app/utils/badgeConfigs';
 
 interface GoalCardProps {
   goal: Goal;
@@ -13,21 +15,6 @@ interface GoalCardProps {
   showEmployee?: boolean;
 }
 
-type StatusConfig = { bg: string; text: string; icon: IconType };
-
-const STATUS_CONFIGS: Record<string, StatusConfig> = {
-  APPROVED:    { bg: 'bg-success-muted',  text: 'text-success',  icon: BsCheckCircle },
-  REJECTED:    { bg: 'bg-error-muted',    text: 'text-error',    icon: BsXCircle },
-  COMPLETED:   { bg: 'bg-info-muted',     text: 'text-info',     icon: BsCheckCircle },
-  MODIFIED:    { bg: 'bg-warning-muted',   text: 'text-warning',  icon: BsClock },
-  PENDING:     { bg: 'bg-warning-muted',   text: 'text-warning',  icon: BsClock },
-  IN_PROGRESS: { bg: 'bg-info-muted',     text: 'text-info',     icon: BsPlayCircle },
-  ON_HOLD:     { bg: 'bg-warning-muted',   text: 'text-warning',  icon: BsPauseCircle },
-  BLOCKED:     { bg: 'bg-error-muted',    text: 'text-error',    icon: BsFlag },
-  DRAFT:       { bg: 'bg-surface-secondary', text: 'text-secondary', icon: BsPencil },
-  DELETED:     { bg: 'bg-error-muted',    text: 'text-error',    icon: BsTrash },
-};
-
 const PROGRESS_STATUS_CONFIG: Record<ProgressStatus, { label: string; color: string; icon: IconType }> = {
   'NOT_STARTED': { label: 'Not Started', color: 'text-tertiary', icon: BsCircle },
   'IN_PROGRESS': { label: 'In Progress', color: 'text-info', icon: BsPlayCircle },
@@ -37,7 +24,7 @@ const PROGRESS_STATUS_CONFIG: Record<ProgressStatus, { label: string; color: str
 };
 
 export default function GoalCard({ goal, onClick, onEdit, onDelete, showActions = false, showEmployee = false }: GoalCardProps) {
-  const statusConfig = STATUS_CONFIGS[goal.status] || STATUS_CONFIGS.PENDING;
+  const statusConfig = getStatusConfig(goal.status);
   const categoryConfig = CATEGORIES.find(c => c.value === goal.category) || CATEGORIES[0];
   const Icon = categoryConfig.icon;
 
@@ -72,10 +59,7 @@ export default function GoalCard({ goal, onClick, onEdit, onDelete, showActions 
             </div>
           )}
         </div>
-        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-2xs font-semibold ${statusConfig.bg} ${statusConfig.text} flex-shrink-0`}>
-          <statusConfig.icon className="w-3 h-3" />
-          {goal.status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).replace(/\B\w+/g, w => w.toLowerCase())}
-        </span>
+        <StatusBadge type="status" value={goal.status} size="sm" />
       </div>
 
       {/* Description */}

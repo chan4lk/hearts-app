@@ -18,7 +18,7 @@ import { BsStars, BsLightbulb, BsX, BsPlus, BsPersonCheck, BsStarFill, BsStar, B
 import { LoadingSkeleton, ErrorState, EmptyState } from '@/app/components/shared/feedback';
 import { RATING_LABELS } from '@/app/components/shared/constants';
 import { useSession } from 'next-auth/react';
-import AIGoalSuggestions from '@/app/components/ai/AIGoalSuggestions';
+import AIGoalSuggestionsModal from '@/app/components/ai/AIGoalSuggestionsModal';
 import AIPerformanceInsights from '@/app/components/ai/AIPerformanceInsights';
 import { ModalShell } from '@/app/components/ui/form-primitives';
 
@@ -595,7 +595,7 @@ export default function EmployeeDashboard() {
 
           {/* AI Goal Suggestions - Component has its own modal */}
           {showAIGoalSuggestions && (
-            <AIGoalSuggestions
+            <AIGoalSuggestionsModal
               autoGenerate={true}
               showTriggerButton={false}
               onSelectGoal={() => {
