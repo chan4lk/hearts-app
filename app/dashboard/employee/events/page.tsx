@@ -147,7 +147,7 @@ function EmployeeEventsContent() {
   return (
     <DashboardLayout type="employee">
       {isLoading ? <LoadingSkeleton variant="page" /> : error ? <ErrorState message={error} onRetry={() => { setError(null); fetchParticipations(); }} /> :
-      <div className="fixed inset-0 top-16 left-0 md:left-60 right-0 bottom-0 bg-surface-primary flex flex-col overflow-hidden z-0">
+      <div className="fixed inset-0 top-14 left-0 md:left-56 right-0 bottom-0 bg-surface-primary flex flex-col overflow-hidden z-0">
         {/* Subtle Background Pattern */}
         <div className="absolute inset-0 pointer-events-none bg-grid" />
         

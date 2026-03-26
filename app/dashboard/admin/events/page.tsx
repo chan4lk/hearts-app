@@ -215,7 +215,7 @@ function AdminEventsContent() {
 
   return (
     <DashboardLayout type="admin">
-      <div className="fixed inset-0 top-16 left-0 md:left-60 right-0 bottom-0 bg-surface-primary flex flex-col overflow-hidden z-0">
+      <div className="fixed inset-0 top-14 left-0 md:left-56 right-0 bottom-0 bg-surface-primary flex flex-col overflow-hidden z-0">
         <div className="relative max-w-7xl mx-auto px-6 py-6 flex flex-col h-full w-full overflow-hidden space-y-6">
           {/* Page Header */}
           <PageHeader
