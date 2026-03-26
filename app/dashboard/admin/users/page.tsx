@@ -482,19 +482,20 @@ function UsersPageContent() {
           </div>
         </div>
 
-        <DeleteConfirmationModal
-          isOpen={isDeleteConfirmOpen}
-          onClose={() => {
-            setIsDeleteConfirmOpen(false);
-            setUserToDelete(null);
-          }}
-          onConfirm={confirmDelete}
-          title="Delete User"
-          message={userToDelete ? `Are you sure you want to delete "${userToDelete.name}"? This action cannot be undone.` : "Are you sure you want to delete this user? This action cannot be undone."}
-          confirmText="Delete"
-          cancelText="Cancel"
-        />
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={isDeleteConfirmOpen}
+        onClose={() => {
+          setIsDeleteConfirmOpen(false);
+          setUserToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Delete User"
+        message={userToDelete ? `Are you sure you want to delete "${userToDelete.name}"? This action cannot be undone.` : "Are you sure you want to delete this user? This action cannot be undone."}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </DashboardLayout>
   );
 }

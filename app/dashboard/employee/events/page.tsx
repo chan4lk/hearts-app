@@ -348,16 +348,17 @@ function EmployeeEventsContent() {
           </div>
         </div>
 
-        {/* Feedback Modal */}
-        <FeedbackModal
-          isOpen={isFeedbackOpen}
-          onClose={() => {
-            setIsFeedbackOpen(false);
-            setSelectedEventId(null);
-          }}
-          onSubmit={handleSubmitFeedback}
-        />
       </div>}
+
+      {/* Feedback Modal */}
+      <FeedbackModal
+        isOpen={isFeedbackOpen}
+        onClose={() => {
+          setIsFeedbackOpen(false);
+          setSelectedEventId(null);
+        }}
+        onSubmit={handleSubmitFeedback}
+      />
     </DashboardLayout>
   );
 }

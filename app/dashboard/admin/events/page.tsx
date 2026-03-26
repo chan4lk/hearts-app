@@ -334,19 +334,20 @@ function AdminEventsContent() {
           </div>
         </div>
 
-        {/* Modals */}
-        <EventFormModal
-          isOpen={formModal.isOpen}
-          onClose={handleCloseForm}
-          onSubmit={formModal.data ? handleUpdateEvent : handleCreateEvent}
-          initialData={formModal.data}
-        />
-        <EventDetailsModal
-          isOpen={detailsModal.isOpen}
-          event={detailsModal.data}
-          onClose={detailsModal.close}
-        />
       </div>
+
+      {/* Modals — outside fixed container for correct z-index */}
+      <EventFormModal
+        isOpen={formModal.isOpen}
+        onClose={handleCloseForm}
+        onSubmit={formModal.data ? handleUpdateEvent : handleCreateEvent}
+        initialData={formModal.data}
+      />
+      <EventDetailsModal
+        isOpen={detailsModal.isOpen}
+        event={detailsModal.data}
+        onClose={detailsModal.close}
+      />
     </DashboardLayout>
   );
 }

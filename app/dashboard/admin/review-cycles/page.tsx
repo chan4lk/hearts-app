@@ -313,47 +313,47 @@ export default function ReviewCyclesPage() {
             )}
           </div>
 
-          {/* Review Cycle Form Modal */}
-          <ModalShell
-            open={isFormOpen}
-            onClose={handleCloseForm}
-            title={editingCycle ? 'Edit Review Cycle' : 'Create Review Cycle'}
-            maxWidth="max-w-2xl"
-          >
-            <ReviewCycleForm
-              reviewCycle={editingCycle}
-              onSave={handleSave}
-              onClose={handleCloseForm}
-            />
-          </ModalShell>
-
-          {/* Delete Confirmation Modal */}
-          <DeleteConfirmationModal
-            isOpen={deleteModal.isOpen}
-            onClose={deleteModal.close}
-            onConfirm={async () => {
-              if (deleteModal.data) {
-                await handleDelete(deleteModal.data.id);
-                deleteModal.close();
-              }
-            }}
-            title="Delete Review Cycle"
-            message={`Are you sure you want to delete the review cycle for ${deleteModal.data?.user.name}? This action cannot be undone.`}
-          />
-
-          {/* Import Excel Modal */}
-          <ImportExcelModal
-            isOpen={isImportModalOpen}
-            onClose={() => setIsImportModalOpen(false)}
-            onImportComplete={() => {
-              setIsImportModalOpen(false);
-              toast.success('Excel data imported successfully');
-              fetchReviewCycles();
-            }}
-          />
-
         </div>
       </div>
+
+      {/* Review Cycle Form Modal */}
+      <ModalShell
+        open={isFormOpen}
+        onClose={handleCloseForm}
+        title={editingCycle ? 'Edit Review Cycle' : 'Create Review Cycle'}
+        maxWidth="max-w-2xl"
+      >
+        <ReviewCycleForm
+          reviewCycle={editingCycle}
+          onSave={handleSave}
+          onClose={handleCloseForm}
+        />
+      </ModalShell>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModal.isOpen}
+        onClose={deleteModal.close}
+        onConfirm={async () => {
+          if (deleteModal.data) {
+            await handleDelete(deleteModal.data.id);
+            deleteModal.close();
+          }
+        }}
+        title="Delete Review Cycle"
+        message={`Are you sure you want to delete the review cycle for ${deleteModal.data?.user.name}? This action cannot be undone.`}
+      />
+
+      {/* Import Excel Modal */}
+      <ImportExcelModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onImportComplete={() => {
+          setIsImportModalOpen(false);
+          toast.success('Excel data imported successfully');
+          fetchReviewCycles();
+        }}
+      />
     </DashboardLayout>
   );
 }

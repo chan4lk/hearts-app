@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { BsCalendarEvent } from 'react-icons/bs';
-import { toast } from 'react-toastify';
+import { useToast } from '@/app/components/shared/Toast';
 import { EVENT_CATEGORIES_FORM, EVENT_STATUS_OPTIONS } from '@/app/components/shared/constants';
 import { ModalShell, FORM_STYLES, FormField, FormActions } from '@/app/components/ui/form-primitives';
 
@@ -25,6 +25,7 @@ interface EventFormModalProps {
 }
 
 export const EventFormModal = ({ isOpen, onClose, onSubmit, initialData, isLoading = false }: EventFormModalProps) => {
+  const toast = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
