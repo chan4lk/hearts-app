@@ -31,7 +31,7 @@ export default function EmptyState({
       <div className="rounded-full bg-surface-tertiary p-4 mb-4">
         {icon || <BsInbox className="w-8 h-8 text-tertiary" />}
       </div>
-      <h3 className="text-lg font-semibold text-primary mb-2">{title}</h3>
+      <h3 className="section-heading mb-2">{title}</h3>
       <p className="text-sm text-secondary text-center max-w-md mb-6">{description}</p>
       {actionLabel && onAction && (
         <Button onClick={onAction} className="focus-ring">

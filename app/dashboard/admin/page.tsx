@@ -342,7 +342,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <BsShieldCheck className="w-5 h-5 text-accent" />
-                  <h2 className="text-lg font-semibold text-primary">Role Distribution</h2>
+                  <h2 className="section-heading">Role Distribution</h2>
                 </div>
                 <Link
                   href="/dashboard/admin/users"
@@ -402,7 +402,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <BsActivity className="w-5 h-5 text-accent" />
-                  <h2 className="text-lg font-semibold text-primary">Recent Users</h2>
+                  <h2 className="section-heading">Recent Users</h2>
                 </div>
                 <Link
                   href="/dashboard/admin/users"
@@ -451,7 +451,7 @@ export default function AdminDashboard() {
               <div className="flex items-center gap-3">
                 <BsBullseye className="w-5 h-5 text-accent" />
                 <div>
-                  <h2 className="text-lg font-semibold text-primary">All Users Goals</h2>
+                  <h2 className="section-heading">All Users Goals</h2>
                   <p className="text-sm text-secondary">View and manage goals across all users</p>
                 </div>
               </div>

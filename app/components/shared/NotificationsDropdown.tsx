@@ -247,6 +247,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                   disabled={isRefreshing}
                   className="p-1.5 rounded-lg hover:bg-surface-secondary transition-colors disabled:opacity-50"
                   title="Refresh"
+                  aria-label="Refresh notifications"
                 >
                   <motion.div
                     animate={isRefreshing ? { rotate: 360 } : {}}
@@ -259,6 +260,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                   onClick={() => setIsOpen(false)}
                   className="p-1.5 rounded-lg hover:bg-surface-secondary transition-colors"
                   title="Close"
+                  aria-label="Close notifications"
                 >
                   <BsX className="w-4 h-4 text-secondary hover:text-primary" />
                 </button>
@@ -337,6 +339,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                               }}
                               className="p-2 rounded-lg hover:bg-accent-muted transition-colors"
                               title="Mark as read"
+                              aria-label="Mark notification as read"
                             >
                               <BsCheckCircle className="w-4 h-4 text-accent hover:opacity-80" />
                             </button>
@@ -345,6 +348,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                             onClick={(e) => deleteNotification(notification.id, e)}
                             className="p-2 rounded-lg hover:bg-error-muted transition-colors"
                             title="Delete"
+                            aria-label="Delete notification"
                           >
                             <BsTrash className="w-4 h-4 text-secondary hover:text-error" />
                           </button>

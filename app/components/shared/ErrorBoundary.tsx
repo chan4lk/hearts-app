@@ -34,7 +34,7 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="flex flex-col items-center justify-center p-8 rounded-xl border border-theme bg-surface-secondary">
           <div className="text-center space-y-3">
-            <h3 className="text-lg font-semibold text-primary">Something went wrong</h3>
+            <h3 className="section-heading">Something went wrong</h3>
             <p className="text-sm text-secondary max-w-md">
               {this.state.error?.message || 'An unexpected error occurred while rendering this section.'}
             </p>

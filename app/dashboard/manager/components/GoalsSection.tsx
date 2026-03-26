@@ -63,7 +63,7 @@ export default function GoalsSection({
   );
 
   return (
-    <div className="bg-surface-elevated rounded-xl border border-theme overflow-hidden">
+    <div className="card-base">
       <div className="flex items-center justify-between px-4 py-3 border-b border-theme">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-surface-secondary flex items-center justify-center text-accent">

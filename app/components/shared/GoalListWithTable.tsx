@@ -3,7 +3,7 @@
 import { ReactNode } from 'react';
 
 const wrapperClass =
-  'bg-surface-elevated rounded-xl border border-theme overflow-hidden';
+  'card-base';
 const paginationBorderClass = 'mt-6 pt-4 border-t border-theme';
 
 /**

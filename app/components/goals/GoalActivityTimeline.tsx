@@ -101,7 +101,7 @@ export default function GoalActivityTimeline({ activities }: GoalActivityTimelin
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-primary mb-4">Activity Timeline</h3>
+      <h3 className="section-heading mb-4">Activity Timeline</h3>
       
       <div className="relative">
         {/* Timeline Line */}

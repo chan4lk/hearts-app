@@ -105,7 +105,7 @@ export default function GoalProgressTracker({
       {/* Progress Bar */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-primary">Progress Tracking</h3>
+          <h3 className="section-heading">Progress Tracking</h3>
           <span className="text-2xl font-bold text-primary">{progress}%</span>
         </div>
 

@@ -104,7 +104,7 @@ export function GoalFormModal({
       <form id={FORM_ID} onSubmit={onSubmit} className="space-y-5">
         {/* Section 1: Goal Details */}
         <div className="space-y-4">
-          <h3 className="text-xs font-semibold text-secondary uppercase tracking-wider">Goal Details</h3>
+          <h3 className="section-title">Goal Details</h3>
 
           <FormField label="Goal Title" required error={errors.title}>
             <Input
@@ -138,7 +138,7 @@ export function GoalFormModal({
 
         {/* Section 2: Classification */}
         <div className="space-y-4">
-          <h3 className="text-xs font-semibold text-secondary uppercase tracking-wider">Classification</h3>
+          <h3 className="section-title">Classification</h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField label="Category" required error={errors.category}>
@@ -211,7 +211,7 @@ export function GoalFormModal({
 
         {/* Section 3: Assignment */}
         <div className="space-y-4">
-          <h3 className="text-xs font-semibold text-secondary uppercase tracking-wider">Assignment</h3>
+          <h3 className="section-title">Assignment</h3>
 
           {assignedEmployees.length > 0 && (
             <FormField label="Employee" required error={errors.employeeId}>

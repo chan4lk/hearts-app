@@ -262,6 +262,7 @@ export default function Filters({
             onClick={onClear}
             className="shrink-0 px-3 py-2 rounded-lg bg-surface-secondary text-secondary hover:text-primary hover:bg-surface-tertiary border border-theme transition-all duration-150 flex items-center gap-2 focus-ring"
             title="Clear Filters"
+            aria-label="Clear filters"
           >
             <BsArrowCounterclockwise className="w-5 h-5" />
           </button>

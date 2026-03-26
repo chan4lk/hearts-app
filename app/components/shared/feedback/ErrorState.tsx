@@ -26,7 +26,7 @@ export default function ErrorState({
       <div className="rounded-full bg-error-muted p-4 mb-4">
         <BsExclamationTriangle className="w-8 h-8 text-error" />
       </div>
-      <h3 className="text-lg font-semibold text-primary mb-2">{title}</h3>
+      <h3 className="section-heading mb-2">{title}</h3>
       <p className="text-sm text-secondary text-center max-w-md mb-6">{message}</p>
       {onRetry && (
         <Button

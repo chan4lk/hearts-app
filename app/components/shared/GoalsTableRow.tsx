@@ -505,6 +505,7 @@ export default function GoalsTableRow({
                 onClick={() => onGoalClick(goal)}
                 className="p-1.5 text-accent hover:text-accent hover:bg-accent-muted rounded transition-colors"
                 title="View"
+                aria-label="View goal"
               >
                 <BsEye className="w-4 h-4" />
               </button>
@@ -514,6 +515,7 @@ export default function GoalsTableRow({
                 onClick={() => onEdit(goal)}
                 className="p-1.5 text-cat-professional hover:text-cat-professional hover:bg-cat-professional rounded transition-colors"
                 title="Edit"
+                aria-label="Edit goal"
               >
                 <BsPencil className="w-4 h-4" />
               </button>
@@ -523,6 +525,7 @@ export default function GoalsTableRow({
                 onClick={() => onDelete(goal)}
                 className="p-1.5 text-error hover:text-error hover:bg-error-muted rounded transition-colors"
                 title="Delete"
+                aria-label="Delete goal"
               >
                 <BsTrash className="w-4 h-4" />
               </button>
