@@ -45,9 +45,17 @@ export const createGoalSchema = z.object({
     'KPI',
   ]),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).default('MEDIUM'),
-  dueDate: z.string().datetime('Invalid date format').refine(
-    (d) => new Date(d) > new Date(),
-    'Due date must be in the future'
+  dueDate: z.string().min(1, 'Due date is required').refine(
+    (d) => !isNaN(new Date(d).getTime()),
+    'Invalid date format'
+  ).refine(
+    (d) => {
+      const due = new Date(d);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return due >= today;
+    },
+    'Due date cannot be in the past'
   ),
   weight: z
     .number()
