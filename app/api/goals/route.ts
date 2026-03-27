@@ -11,10 +11,11 @@ import { getPaginationFromSearchParams, getPaginationMeta, PAGINATION_LIMITS } f
 import { createGoalSchema } from '@/lib/validation';
 import { sanitizeInput } from '@/lib/securityUtils';
 
-// UUID validation helper
+// ID validation helper — supports both CUID and UUID formats
+const CUID_REGEX = /^c[a-z0-9]{20,32}$/;
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function isValidUUID(id: string): boolean {
-  return UUID_REGEX.test(id);
+  return CUID_REGEX.test(id) || UUID_REGEX.test(id);
 }
 
 // Define GoalStatus enum locally

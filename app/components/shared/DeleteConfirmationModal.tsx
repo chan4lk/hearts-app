@@ -32,7 +32,7 @@ export function DeleteConfirmationModal({
       footer={
         <>
           <button type="button" onClick={onClose} className={FORM_STYLES.btnSecondary}>{cancelText}</button>
-          <button type="button" onClick={() => { onConfirm(); onClose(); }} className={FORM_STYLES.btnDanger}>{confirmText}</button>
+          <button type="button" onClick={onConfirm} className={FORM_STYLES.btnDanger}>{confirmText}</button>
         </>
       }
     >

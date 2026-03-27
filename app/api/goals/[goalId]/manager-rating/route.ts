@@ -152,9 +152,10 @@ export async function POST(
       );
     }
 
-    if (goal.status !== 'COMPLETED') {
+    const rateableStatuses = ['APPROVED', 'IN_PROGRESS', 'COMPLETED', 'ON_HOLD', 'BLOCKED'];
+    if (!rateableStatuses.includes(goal.status)) {
       return NextResponse.json(
-        { error: 'Goal must be completed before manager rating. The employee needs to complete the goal first.' },
+        { error: `Goal must be approved or in progress before manager rating. Current status: ${goal.status}` },
         { status: 400 }
       );
     }

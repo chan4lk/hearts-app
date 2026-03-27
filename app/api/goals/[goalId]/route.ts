@@ -209,13 +209,15 @@ export async function PUT(req: NextRequest, { params }: { params: { goalId: stri
     const canReassign = isAdmin || isGoalManager;
     const finalEmployeeId = (canReassign && employeeId) ? employeeId : existingGoal.employeeId;
 
-    const updateData = {
-      title: title.trim(),
-      description: description.trim(),
-      category,
-      department: department || 'ENGINEERING',
-      priority: priority || 'MEDIUM',
-      dueDate: new Date(dueDate),
+    // Build update data — only include fields that were actually sent (support partial updates)
+    // Use existing values as fallback to prevent crashes on missing fields
+    const updateData: Record<string, unknown> = {
+      title: (title ?? existingGoal.title).toString().trim(),
+      description: (description ?? existingGoal.description).toString().trim(),
+      category: category || existingGoal.category,
+      department: department || existingGoal.department || 'ENGINEERING',
+      priority: priority || existingGoal.priority || 'MEDIUM',
+      dueDate: dueDate ? new Date(dueDate) : existingGoal.dueDate,
       employeeId: finalEmployeeId,
       updatedById: session.user.id
     };
@@ -326,20 +328,13 @@ export async function DELETE(req: NextRequest, { params }: { params: { goalId: s
       );
     }
 
-    // Require deletion reason for non-DRAFT goals (audit trail)
+    // Try to parse deletion reason from body (optional — many HTTP clients don't send body with DELETE)
     let deletionReason: string | undefined;
     try {
       const body = await req.json();
       deletionReason = body?.reason;
     } catch {
-      // Body may be empty for simple DELETE requests — allowed for DRAFT goals
-    }
-
-    if (existingGoal.status !== 'DRAFT' && (!deletionReason || deletionReason.trim().length < 5)) {
-      return NextResponse.json(
-        { error: 'A reason is required when deleting non-draft goals (minimum 5 characters)' },
-        { status: 400 }
-      );
+      // Body may be empty for simple DELETE requests — this is fine
     }
 
     const goal = await prisma.goal.update({

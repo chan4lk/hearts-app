@@ -64,7 +64,39 @@ export const createGoalSchema = z.object({
     .default(10),
 });
 
-export const updateGoalSchema = createGoalSchema.partial().extend({
+// For updates, dueDate should not enforce "not in the past" — existing goals may already have past due dates.
+// We also make all fields truly optional (partial) so partial updates work correctly.
+export const updateGoalSchema = z.object({
+  title: z
+    .string()
+    .min(3, 'Title must be at least 3 characters')
+    .max(255, 'Title must be less than 255 characters')
+    .trim()
+    .optional(),
+  description: z
+    .string()
+    .min(10, 'Description must be at least 10 characters')
+    .max(2000, 'Description must be less than 2000 characters')
+    .trim()
+    .optional(),
+  category: z.enum([
+    'PROFESSIONAL',
+    'TECHNICAL',
+    'LEADERSHIP',
+    'PERSONAL',
+    'TRAINING',
+    'KPI',
+  ]).optional(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).optional(),
+  dueDate: z.string().min(1, 'Due date is required').refine(
+    (d) => !isNaN(new Date(d).getTime()),
+    'Invalid date format'
+  ).optional(),
+  weight: z
+    .number()
+    .min(1, 'Weight must be at least 1')
+    .max(100, 'Weight cannot exceed 100')
+    .optional(),
   status: z.enum([
     'DRAFT',
     'PENDING',
