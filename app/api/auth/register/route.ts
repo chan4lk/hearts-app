@@ -42,10 +42,11 @@ export async function POST(req: NextRequest) {
     // Create user with original email casing
     const user = await prisma.user.create({
       data: {
+        tenantId: 'bistec-global', // Phase 1: single tenant
         name,
-        email: email.trim(), // Keep original casing
+        email: email.trim(),
         password: hashedPassword,
-        role: 'EMPLOYEE', // Default role for new users
+        role: 'EMPLOYEE',
       },
     });
 

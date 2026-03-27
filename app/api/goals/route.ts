@@ -1,0 +1,109 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { getTenantContext } from '@/lib/tenantScope';
+import { hasMinRole } from '@/lib/rbac';
+import { logAudit, AuditAction } from '@/lib/auditLog';
+import { z } from 'zod';
+
+// GET — list goals (scoped by role)
+export async function GET(req: NextRequest) {
+  const ctx = await getTenantContext();
+  if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
+
+  const { searchParams } = new URL(req.url);
+  const status = searchParams.get('status');
+  const ownerId = searchParams.get('ownerId');
+
+  const where: any = { tenantId: ctx.tenantId };
+
+  if (status) where.status = status;
+
+  // Employee sees own goals, Manager sees team, Admin sees all
+  if (hasMinRole(ctx, 'ADMIN')) {
+    if (ownerId) where.ownerId = ownerId;
+  } else if (hasMinRole(ctx, 'MANAGER')) {
+    if (ownerId) {
+      where.ownerId = ownerId;
+    } else {
+      // Manager sees own goals + direct reports' goals
+      where.OR = [
+        { ownerId: ctx.userId },
+        { owner: { managerId: ctx.userId } },
+      ];
+    }
+  } else {
+    where.ownerId = ctx.userId;
+  }
+
+  const goals = await prisma.goal.findMany({
+    where,
+    orderBy: { updatedAt: 'desc' },
+    include: {
+      owner: { select: { id: true, name: true, department: true } },
+      assigner: { select: { id: true, name: true } },
+      _count: { select: { comments: true } },
+    },
+  });
+
+  return NextResponse.json(goals);
+}
+
+const CreateGoalSchema = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().max(2000).optional(),
+  targetDate: z.string().optional(),
+  ownerId: z.string().optional(), // For manager-assigned goals
+});
+
+// POST — create goal
+export async function POST(req: NextRequest) {
+  const ctx = await getTenantContext();
+  if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
+
+  const body = await req.json();
+  const parsed = CreateGoalSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input', code: 'VALIDATION_ERROR', details: parsed.error.flatten() }, { status: 400 });
+  }
+
+  const { title, description, targetDate, ownerId } = parsed.data;
+  const isManagerAssigned = ownerId && ownerId !== ctx.userId;
+
+  // If manager-assigned, verify manager relationship
+  if (isManagerAssigned) {
+    if (!hasMinRole(ctx, 'MANAGER')) {
+      return NextResponse.json({ error: 'Only managers can assign goals', code: 'FORBIDDEN' }, { status: 403 });
+    }
+    const employee = await prisma.user.findFirst({
+      where: { id: ownerId, tenantId: ctx.tenantId },
+    });
+    if (!employee) {
+      return NextResponse.json({ error: 'Employee not found', code: 'NOT_FOUND' }, { status: 404 });
+    }
+  }
+
+  const goal = await prisma.goal.create({
+    data: {
+      tenantId: ctx.tenantId,
+      title,
+      description: description || null,
+      targetDate: targetDate ? new Date(targetDate) : null,
+      status: isManagerAssigned ? 'PENDING' : 'DRAFT',
+      ownerId: ownerId || ctx.userId,
+      assignerId: isManagerAssigned ? ctx.userId : null,
+    },
+    include: {
+      owner: { select: { id: true, name: true } },
+      assigner: { select: { id: true, name: true } },
+    },
+  });
+
+  await logAudit(ctx, {
+    action: isManagerAssigned ? AuditAction.GOAL_ASSIGNED : AuditAction.GOAL_CREATED,
+    entity: 'Goal',
+    entityId: goal.id,
+    details: { title, ownerId: goal.ownerId, status: goal.status },
+  });
+
+  return NextResponse.json(goal, { status: 201 });
+}

@@ -28,6 +28,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Your account has been deactivated' }, { status: 403 });
     }
 
+    if (!user.password) {
+      return NextResponse.json({ message: 'This account uses Azure AD login' }, { status: 401 });
+    }
+
     const isValidPassword = await compare(password, user.password);
     if (!isValidPassword) {
       await prisma.user.update({

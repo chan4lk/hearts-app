@@ -15,7 +15,8 @@ import {
   BsClipboardData, BsPeople, BsBoxArrowRight, BsList, BsX,
   BsCalendarCheck, BsCalendarEvent as BsCalendar,
   BsCheckCircle as BsCheckEvent,
-  BsChevronLeft, BsChevronRight
+  BsChevronLeft, BsChevronRight,
+  BsHeart, BsJournalCheck
 } from 'react-icons/bs';
 import { useSettings } from '@/app/providers';
 import ThemeToggle from '@/app/components/ui/ThemeToggle';
@@ -127,21 +128,27 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
   }, [type]);
 
   const getNavItems = (): NavItem[] => {
-    const adminItems: NavItem[] = [
-      { href: '/dashboard/admin', label: 'Overview', icon: BsShield },
-      { href: '/dashboard/admin/users', label: 'Users', icon: BsPeople },
+    const userRole = session?.user?.role as Role | undefined;
+
+    // Base items — all roles see these (Employee level)
+    const items: NavItem[] = [
+      { href: '/dashboard/feed', label: 'Feed', icon: BsHeart },
+      { href: '/dashboard/goals', label: 'Goals', icon: BsBullseye },
+      { href: '/dashboard/reviews', label: 'Reviews', icon: BsJournalCheck },
+      { href: '/dashboard/events', label: 'Events', icon: BsCalendar },
     ];
-    const managerItems: NavItem[] = [
-      { href: '/dashboard/manager', label: 'Overview', icon: BsGraphUp },
-    ];
-    const employeeItems: NavItem[] = [
-      { href: '/dashboard/employee', label: 'Overview', icon: BsPerson },
-    ];
-    switch (type) {
-      case 'admin': return adminItems;
-      case 'manager': return managerItems;
-      default: return employeeItems;
+
+    // Manager+ sees Team
+    if (userRole === 'MANAGER' || userRole === 'ADMIN') {
+      items.push({ href: '/dashboard/team', label: 'Team', icon: BsPeople });
     }
+
+    // Admin sees Admin
+    if (userRole === 'ADMIN') {
+      items.push({ href: '/dashboard/admin', label: 'Admin', icon: BsShield });
+    }
+
+    return items;
   };
 
   useEffect(() => {
@@ -157,17 +164,20 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
   }, [status, pathname, session]);
 
   const navItems = getNavItems();
-  const portalLabel = type.charAt(0).toUpperCase() + type.slice(1);
+  const userRole = session?.user?.role as Role | undefined;
+  const portalLabel = userRole || 'Employee';
 
   const portalColors: Record<string, string> = {
-    admin: 'from-[rgb(var(--color-error))] to-[rgb(var(--color-cat-kpi))]',
-    manager: 'from-[rgb(var(--color-info))] to-[rgb(var(--color-accent))]',
-    employee: 'from-[rgb(var(--color-success))] to-[rgb(var(--color-cat-personal))]',
+    ADMIN: 'from-[rgb(var(--color-error))] to-[rgb(var(--color-cat-kpi))]',
+    MANAGER: 'from-[rgb(var(--color-info))] to-[rgb(var(--color-accent))]',
+    EMPLOYEE: 'from-[rgb(var(--color-success))] to-[rgb(var(--color-cat-personal))]',
   };
 
   const isPathActive = (href: string) => {
     const hrefPath = href.split('?')[0].split('#')[0].replace(/\/$/, '');
-    return pathname.replace(/\/$/, '') === hrefPath;
+    const currentPath = pathname.replace(/\/$/, '');
+    // Exact match or nested route (e.g., /dashboard/admin matches /dashboard/admin/users)
+    return currentPath === hrefPath || currentPath.startsWith(hrefPath + '/');
   };
 
   const handleSignOut = async () => {
@@ -211,7 +221,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       {/* Portal badge */}
       <div className="px-5 mb-5">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-br from-[rgba(var(--color-accent),0.06)] to-[rgba(var(--color-accent),0.02)]">
-          <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${portalColors[type]}`} />
+          <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${portalColors[userRole || 'EMPLOYEE']}`} />
           <span className="text-2xs font-bold text-primary tracking-wide uppercase">{portalLabel} Portal</span>
         </div>
       </div>
@@ -265,10 +275,10 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       {/* Portal badge */}
       <div className={`mb-5 ${collapsed ? 'px-2 flex justify-center' : 'px-5'}`}>
         {collapsed ? (
-          <div className={`w-3 h-3 rounded-full bg-gradient-to-r ${portalColors[type]}`} title={`${portalLabel} Portal`} />
+          <div className={`w-3 h-3 rounded-full bg-gradient-to-r ${portalColors[userRole || 'EMPLOYEE']}`} title={`${portalLabel} Portal`} />
         ) : (
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-br from-[rgba(var(--color-accent),0.06)] to-[rgba(var(--color-accent),0.02)]">
-            <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${portalColors[type]}`} />
+            <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${portalColors[userRole || 'EMPLOYEE']}`} />
             <span className="text-2xs font-bold text-primary tracking-wide uppercase">{portalLabel} Portal</span>
           </div>
         )}

@@ -1,0 +1,108 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { getTenantContext } from '@/lib/tenantScope';
+import { requireMinRole } from '@/lib/rbac';
+import { logAudit, AuditAction } from '@/lib/auditLog';
+import { z } from 'zod';
+
+const UpdateUserSchema = z.object({
+  role: z.enum(['ADMIN', 'MANAGER', 'EMPLOYEE']).optional(),
+  managerId: z.string().nullable().optional(),
+  isActive: z.boolean().optional(),
+});
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { userId: string } }
+) {
+  const ctx = await getTenantContext();
+  if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
+  requireMinRole(ctx, 'ADMIN');
+
+  const body = await req.json();
+  const parsed = UpdateUserSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input', code: 'VALIDATION_ERROR', details: parsed.error.flatten() }, { status: 400 });
+  }
+
+  const { userId } = params;
+  const data = parsed.data;
+
+  // Verify user belongs to same tenant
+  const user = await prisma.user.findFirst({
+    where: { id: userId, tenantId: ctx.tenantId },
+  });
+
+  if (!user) {
+    return NextResponse.json({ error: 'User not found', code: 'NOT_FOUND' }, { status: 404 });
+  }
+
+  // Prevent admin from deactivating themselves
+  if (data.isActive === false && userId === ctx.userId) {
+    return NextResponse.json({ error: 'Cannot deactivate your own account', code: 'CONFLICT' }, { status: 409 });
+  }
+
+  // Prevent admin from demoting themselves
+  if (data.role && data.role !== 'ADMIN' && userId === ctx.userId) {
+    return NextResponse.json({ error: 'Cannot change your own role', code: 'CONFLICT' }, { status: 409 });
+  }
+
+  // If assigning a manager, verify manager exists and belongs to same tenant
+  if (data.managerId) {
+    const manager = await prisma.user.findFirst({
+      where: { id: data.managerId, tenantId: ctx.tenantId, isActive: true },
+    });
+    if (!manager) {
+      return NextResponse.json({ error: 'Manager not found', code: 'NOT_FOUND' }, { status: 404 });
+    }
+  }
+
+  const updated = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      ...(data.role !== undefined && { role: data.role }),
+      ...(data.managerId !== undefined && { managerId: data.managerId }),
+      ...(data.isActive !== undefined && { isActive: data.isActive }),
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      department: true,
+      position: true,
+      isActive: true,
+      managerId: true,
+      manager: { select: { id: true, name: true } },
+    },
+  });
+
+  // Audit log for each change
+  if (data.role !== undefined && data.role !== user.role) {
+    await logAudit(ctx, {
+      action: AuditAction.USER_ROLE_CHANGED,
+      entity: 'User',
+      entityId: userId,
+      details: { previousRole: user.role, newRole: data.role },
+    });
+  }
+
+  if (data.managerId !== undefined && data.managerId !== user.managerId) {
+    await logAudit(ctx, {
+      action: AuditAction.USER_MANAGER_ASSIGNED,
+      entity: 'User',
+      entityId: userId,
+      details: { previousManagerId: user.managerId, newManagerId: data.managerId },
+    });
+  }
+
+  if (data.isActive !== undefined && data.isActive !== user.isActive) {
+    await logAudit(ctx, {
+      action: data.isActive ? AuditAction.USER_REACTIVATED : AuditAction.USER_DEACTIVATED,
+      entity: 'User',
+      entityId: userId,
+    });
+  }
+
+  return NextResponse.json(updated);
+}

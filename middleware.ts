@@ -4,9 +4,9 @@ import { NextResponse } from "next/server";
 type Role = 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
 
 const ROLE_DASHBOARD_MAP: Record<Role, string> = {
-  ADMIN: '/dashboard/admin',
-  MANAGER: '/dashboard/manager',
-  EMPLOYEE: '/dashboard/employee'
+  ADMIN: '/dashboard/feed',
+  MANAGER: '/dashboard/feed',
+  EMPLOYEE: '/dashboard/feed'
 };
 
 export default withAuth(
@@ -23,13 +23,14 @@ export default withAuth(
       return NextResponse.redirect(new URL(ROLE_DASHBOARD_MAP[userRole] || '/dashboard/employee', req.url));
     }
 
-    // Role-based access
-    if (path.startsWith('/dashboard/')) {
-      if (userRole === 'ADMIN') return NextResponse.next();
-      if (userRole === 'MANAGER' && (path.startsWith('/dashboard/manager') || path.startsWith('/dashboard/employee'))) return NextResponse.next();
-      if (userRole === 'EMPLOYEE' && path.startsWith('/dashboard/employee')) return NextResponse.next();
+    // Role-based access for admin routes
+    if (path.startsWith('/dashboard/admin') && userRole !== 'ADMIN') {
+      return NextResponse.redirect(new URL('/dashboard/feed', req.url));
+    }
 
-      return NextResponse.redirect(new URL(ROLE_DASHBOARD_MAP[userRole] || '/dashboard/employee', req.url));
+    // Team page requires Manager or Admin
+    if (path.startsWith('/dashboard/team') && userRole === 'EMPLOYEE') {
+      return NextResponse.redirect(new URL('/dashboard/feed', req.url));
     }
 
     return NextResponse.next();

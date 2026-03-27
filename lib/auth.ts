@@ -6,6 +6,10 @@ import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 import { verify } from 'jsonwebtoken';
 
+// Phase 1: Single tenant for BISTEC Global
+// Phase 2: Derive from subdomain or SSO configuration
+const DEFAULT_TENANT_ID = 'bistec-global';
+
 
 declare module 'next-auth' {
   interface User {
@@ -147,9 +151,9 @@ export const authOptions: NextAuthOptions = {
           // Normalize email to lowercase to prevent case sensitivity issues
           const user = await prisma.user.create({
             data: {
-              email: profile.email.trim().toLowerCase(), // Normalize to lowercase
-              name: profile.name || profile.email.split('@')[0], // Fallback to email prefix if no name
-              password: 'azure-ad-auth', // Placeholder for Azure AD users
+              tenantId: DEFAULT_TENANT_ID,
+              email: profile.email.trim().toLowerCase(),
+              name: profile.name || profile.email.split('@')[0],
               role: role,
             },
           });
@@ -339,9 +343,9 @@ export const authOptions: NextAuthOptions = {
               // Create the user with normalized email to prevent case sensitivity issues
               dbUser = await prisma.user.create({
                 data: {
-                  email: user.email.trim().toLowerCase(), // Normalize to lowercase
+                  tenantId: DEFAULT_TENANT_ID,
+                  email: user.email.trim().toLowerCase(),
                   name: user.name || user.email.split('@')[0],
-                  password: 'azure-ad-auth',
                   role: role,
                 },
               });

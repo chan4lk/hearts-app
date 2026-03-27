@@ -9,12 +9,68 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum Role {
+  ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+enum GoalStatus {
+  DRAFT
+  PENDING
+  ACTIVE
+  NEEDS_REVISION
+  COMPLETED
+  CLOSED
+}
+
+enum CommentType {
+  COMMENT
+  APPROVAL
+  REVISION_REQUEST
+  DISCUSSION_REQUEST
+}
+
+enum CycleType {
+  QUARTERLY
+  SEMI_ANNUAL
+  ANNUAL
+}
+
+enum CycleStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CLOSED
+}
+
+enum EventStatus {
+  SCHEDULED
+  CANCELLED
+  COMPLETED
+}
+
+enum ParticipationStatus {
+  PENDING
+  CONFIRMED
+  DECLINED
+}
+
+// ============================================================
+// USER (extended from existing)
+// ============================================================
+
 model User {
   id                  String    @id @default(cuid())
-  email               String    @unique
+  tenantId            String
+  email               String
   name                String
   role                Role      @default(EMPLOYEE)
-  password            String
+  password            String?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
   failedLoginAttempts Int       @default(0)
@@ -24,18 +80,226 @@ model User {
   isActive            Boolean   @default(true)
   position            String?
   managerId           String?
-  manager             User?     @relation("UserToUser", fields: [managerId], references: [id])
-  employees           User[]    @relation("UserToUser")
 
-  @@index([managerId])
-  @@index([role])
-  @@index([isActive])
-  @@index([role, isActive])
-  @@index([managerId, isActive])
+  // Self-referential manager relationship
+  manager   User?  @relation("ManagerEmployee", fields: [managerId], references: [id])
+  employees User[] @relation("ManagerEmployee")
+
+  // Hearts relations
+  heartsGiven    Heart[] @relation("HeartSender")
+  heartsReceived Heart[] @relation("HeartReceiver")
+
+  // Goal relations
+  goals         Goal[] @relation("GoalOwner")
+  goalsAssigned Goal[] @relation("GoalAssigner")
+
+  // Review relations
+  selfReviews    Review[] @relation("ReviewEmployee")
+  managerReviews Review[] @relation("ReviewManager")
+
+  // Event participation
+  eventParticipations EventParticipation[]
+
+  // Audit log
+  auditLogs AuditLog[]
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@index([tenantId, managerId])
+  @@index([tenantId, role])
+  @@index([tenantId, isActive])
+  @@index([tenantId, role, isActive])
 }
 
-enum Role {
-  ADMIN
-  MANAGER
-  EMPLOYEE
+// ============================================================
+// HEARTS RECOGNITION
+// ============================================================
+
+model CompanyValue {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  hearts Heart[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model Heart {
+  id         String   @id @default(cuid())
+  tenantId   String
+  senderId   String
+  receiverId String
+  valueTagId String
+  message    String?
+  createdAt  DateTime @default(now())
+
+  sender   User         @relation("HeartSender", fields: [senderId], references: [id])
+  receiver User         @relation("HeartReceiver", fields: [receiverId], references: [id])
+  valueTag CompanyValue @relation(fields: [valueTagId], references: [id])
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, receiverId])
+  @@index([tenantId, senderId])
+}
+
+// ============================================================
+// GOAL MANAGEMENT
+// ============================================================
+
+model Goal {
+  id            String     @id @default(cuid())
+  tenantId      String
+  title         String
+  description   String?
+  targetDate    DateTime?
+  status        GoalStatus @default(DRAFT)
+  progress      Int        @default(0)
+  ownerId       String
+  assignerId    String?
+  objectiveId   String?
+  reviewCycleId String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  owner       User         @relation("GoalOwner", fields: [ownerId], references: [id])
+  assigner    User?        @relation("GoalAssigner", fields: [assignerId], references: [id])
+  reviewCycle ReviewCycle? @relation(fields: [reviewCycleId], references: [id])
+  comments    GoalComment[]
+
+  @@index([tenantId, ownerId, status])
+  @@index([tenantId, status])
+  @@index([tenantId, reviewCycleId])
+}
+
+model GoalComment {
+  id        String      @id @default(cuid())
+  tenantId  String
+  goalId    String
+  authorId  String
+  content   String
+  type      CommentType @default(COMMENT)
+  createdAt DateTime    @default(now())
+
+  goal Goal @relation(fields: [goalId], references: [id])
+
+  @@index([tenantId, goalId])
+}
+
+// ============================================================
+// REVIEW CYCLES
+// ============================================================
+
+model ReviewCycle {
+  id        String      @id @default(cuid())
+  tenantId  String
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  type      CycleType
+  status    CycleStatus @default(DRAFT)
+  createdAt DateTime    @default(now())
+
+  reviews Review[]
+  goals   Goal[]
+
+  @@index([tenantId, status])
+}
+
+model Review {
+  id                 String    @id @default(cuid())
+  tenantId           String
+  reviewCycleId      String
+  employeeId         String
+  managerId          String
+  selfComments       String?
+  selfRating         Int?
+  selfSubmittedAt    DateTime?
+  managerComments    String?
+  managerRating      Int?
+  managerSubmittedAt DateTime?
+  isFinalized        Boolean   @default(false)
+  finalizedAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  reviewCycle ReviewCycle @relation(fields: [reviewCycleId], references: [id])
+  employee    User        @relation("ReviewEmployee", fields: [employeeId], references: [id])
+  manager     User        @relation("ReviewManager", fields: [managerId], references: [id])
+
+  @@unique([tenantId, reviewCycleId, employeeId])
+  @@index([tenantId, reviewCycleId])
+  @@index([tenantId, managerId])
+}
+
+// ============================================================
+// COMPANY EVENTS
+// ============================================================
+
+model Event {
+  id          String      @id @default(cuid())
+  tenantId    String
+  title       String
+  description String?
+  dateTime    DateTime
+  location    String?
+  eventType   String?
+  status      EventStatus @default(SCHEDULED)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  participations EventParticipation[]
+
+  @@index([tenantId, dateTime])
+}
+
+model EventParticipation {
+  id       String              @id @default(cuid())
+  tenantId String
+  eventId  String
+  userId   String
+  status   ParticipationStatus @default(PENDING)
+
+  event Event @relation(fields: [eventId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([tenantId, eventId, userId])
+  @@index([tenantId, eventId])
+}
+
+// ============================================================
+// AUDIT & NOTIFICATIONS
+// ============================================================
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String
+  action    String
+  entity    String
+  entityId  String
+  details   Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, entity, entityId])
+}
+
+model EmailNotification {
+  id          String    @id @default(cuid())
+  tenantId    String
+  recipientId String
+  type        String
+  subject     String
+  body        String
+  scheduledAt DateTime
+  sentAt      DateTime?
+  status      String    @default("PENDING")
+
+  @@index([tenantId, status, scheduledAt])
 }
