@@ -53,13 +53,17 @@ import RatingGoalCard from '@/app/components/shared/RatingGoalCard';
      try {
        setLoading(true);
        setError(null);
+       // Only load rateable goals (exclude DRAFT, PENDING, REJECTED — can't rate those)
+       const rateableStatus = selectedStatus && selectedStatus !== 'all'
+         ? selectedStatus
+         : undefined;
        const params = new URLSearchParams({
          view: 'my-goals',
          page: page.toString(),
          limit: limit.toString(),
          sortBy: 'createdAt',
          sortOrder: 'desc',
-         ...(selectedStatus && selectedStatus !== 'all' && { status: selectedStatus }),
+         ...(rateableStatus && { status: rateableStatus }),
          ...(selectedPriority && selectedPriority !== '' && { priority: selectedPriority }),
          ...(selectedCategory && selectedCategory !== '' && selectedCategory !== 'all' && { category: selectedCategory }),
          ...(search && search.trim() !== '' && { search })
@@ -85,8 +89,10 @@ import RatingGoalCard from '@/app/components/shared/RatingGoalCard';
      }
    };
  
+   // Only show rateable goals (APPROVED, IN_PROGRESS, COMPLETED, ON_HOLD, BLOCKED)
    const filteredGoals = useMemo(() => {
-     return goals;
+     const rateableStatuses = ['APPROVED', 'IN_PROGRESS', 'COMPLETED', 'ON_HOLD', 'BLOCKED'];
+     return goals.filter(g => rateableStatuses.includes(g.status));
    }, [goals]);
  
    const statsMetrics: Metric[] = useMemo(() => {
@@ -219,7 +225,6 @@ import RatingGoalCard from '@/app/components/shared/RatingGoalCard';
                  goal={goal}
                  onRatingChange={handleSelfRating}
                  submitting={submittingMap}
-                 viewMode="grid"
                  variant="self"
                />
              ))}

@@ -1,13 +1,12 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { BsChevronDown, BsCalendar, BsTag, BsStarFill } from 'react-icons/bs';
-import { Label } from '@/app/components/ui/label';
+import { BsChevronDown, BsCalendar, BsStarFill } from 'react-icons/bs';
 import { GoalWithRating, GoalWithRatingExtended } from '@/app/components/shared/types';
 import { CATEGORIES, RATING_DESCRIPTIONS } from '@/app/components/shared/constants';
-import { useState, useEffect } from 'react';
+import { StatusBadge } from '@/app/components/shared/feedback';
+import { useState } from 'react';
 
-export type RatingGoalCardViewMode = 'grid' | 'list';
 export type RatingGoalCardVariant = 'self' | 'manager';
 
 type RatingGoal = GoalWithRating | GoalWithRatingExtended;
@@ -15,16 +14,9 @@ type RatingGoal = GoalWithRating | GoalWithRatingExtended;
 interface RatingGoalCardProps {
   goal: RatingGoal;
   onRatingChange: (goalId: string, value: number) => void;
-  /** Whether this card (or goal) is submitting. Can be a boolean or a map goalId -> boolean */
   submitting?: boolean | Record<string, boolean>;
-  viewMode?: RatingGoalCardViewMode;
   variant?: RatingGoalCardVariant;
 }
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
 
 function getSubmitting(submitting: boolean | Record<string, boolean> | undefined, goalId: string): boolean {
   if (submitting === undefined) return false;
@@ -48,230 +40,124 @@ function getRatingLabel(goal: RatingGoal, variant: RatingGoalCardVariant): strin
 function getComments(goal: RatingGoal, variant: RatingGoalCardVariant): string | null {
   const r = goal.rating;
   if (!r) return null;
-  if (variant === 'manager') return r.managerComments ?? (r as any).comments ?? null;
-  return (r as any).comments ?? null;
+  return variant === 'manager' ? r.managerComments ?? null : r.selfComments ?? null;
 }
 
 export default function RatingGoalCard({
   goal,
   onRatingChange,
   submitting = false,
-  viewMode = 'list',
   variant = 'self',
 }: RatingGoalCardProps) {
   const [showDetails, setShowDetails] = useState(variant === 'manager');
   const categoryConfig = CATEGORIES.find((c) => c.value === goal.category) ?? CATEGORIES[0];
   const Icon = categoryConfig.icon;
-  const isGridView = viewMode === 'grid';
   const isSubmitting = getSubmitting(submitting, goal.id);
   const currentScore = getCurrentScore(goal, variant);
   const ratingLabel = getRatingLabel(goal, variant);
   const comments = getComments(goal, variant);
   const employeeName = 'employee' in goal && goal.employee ? goal.employee.name : null;
-
-  useEffect(() => {
-    if (variant === 'manager') setShowDetails(true);
-  }, [variant]);
-
-  const titleDisplay = variant === 'manager' && employeeName ? `${employeeName} - ${goal.title}` : goal.title;
+  const titleDisplay = variant === 'manager' && employeeName ? `${employeeName} — ${goal.title}` : goal.title;
 
   return (
-    <motion.div
-      variants={itemVariants}
-      className={`w-full rounded-xl shadow-sm overflow-hidden group ${
-        isGridView
-          ? `h-[280px] flex flex-col relative ${categoryConfig.bgColor} hover:shadow-xl transition-all duration-300`
-          : 'bg-surface-elevated'
-      }`}
-    >
-      {isGridView && (
-        <>
-          <div className={`absolute inset-0 bg-gradient-to-br opacity-20 ${categoryConfig.color}`} />
-          <div className="absolute inset-0 bg-grid-pattern opacity-5" />
-          <div className="absolute top-0 right-0 w-32 h-32 bg-surface-secondary rounded-full blur-3xl transform translate-x-16 -translate-y-16" />
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full blur-3xl transform -translate-x-16 translate-y-16" />
-        </>
-      )}
-
-      <div className={`relative p-4 ${isGridView ? 'flex-1 flex flex-col z-10' : ''}`}>
-        <div className={`flex items-start justify-between gap-4 ${isGridView ? 'mb-3' : ''}`}>
+    <div className="bg-surface-elevated border border-theme rounded-xl overflow-hidden hover:shadow-theme-sm transition-shadow">
+      <div className="p-4">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div
-              className={`p-2 rounded-lg ${categoryConfig.iconColor} bg-opacity-20 backdrop-blur-xl ring-1 ring-white/20 transform transition-transform duration-300 ${
-                isGridView ? 'group-hover:scale-110 group-hover:rotate-[10deg]' : ''
-              }`}
-            >
-              <Icon className="w-5 h-5" />
+            <div className={`p-2 rounded-lg ${categoryConfig.iconColor} bg-surface-secondary flex-shrink-0`}>
+              <Icon className="w-4 h-4" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3
-                  className={`text-base font-medium truncate ${
-                    isGridView
-                      ? 'text-[rgb(var(--color-text-inverse))] group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-white/70'
-                      : 'text-primary'
-                  }`}
-                >
-                  {titleDisplay}
-                </h3>
-                {variant === 'manager' && (
-                  <span
-                    className={`px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap ${
-                      isGridView ? 'bg-surface-tertiary text-[rgb(var(--color-text-inverse))]' : `${categoryConfig.iconColor} bg-opacity-20`
-                    }`}
-                  >
-                    {categoryConfig.label}
-                  </span>
-                )}
-              </div>
+              <h3 className="text-sm font-semibold text-primary truncate">{titleDisplay}</h3>
               <div className="flex items-center gap-2 mt-1 flex-wrap">
-                <span
-                  className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                    goal.status === 'APPROVED'
-                      ? 'bg-success-muted text-success'
-                      : goal.status === 'PENDING'
-                        ? 'bg-warning-muted text-warning'
-                        : goal.status === 'REJECTED'
-                          ? 'bg-error-muted text-error'
-                          : 'bg-surface-secondary text-secondary'
-                  }`}
-                >
-                  {goal.status}
-                </span>
-                {variant === 'manager' && 'employee' in goal && goal.employee?.email && (
-                  <span className={`text-xs ${isGridView ? 'text-[rgb(var(--color-text-inverse))]/70' : 'text-tertiary dark:text-secondary'}`}>
-                    {goal.employee.email}
-                  </span>
+                <StatusBadge type="status" value={goal.status} size="sm" />
+                {variant === 'manager' && (
+                  <StatusBadge type="department" value={goal.category} size="sm" showIcon={false} />
                 )}
-                <span className={`text-xs ${isGridView ? 'text-[rgb(var(--color-text-inverse))]/70' : 'text-tertiary dark:text-secondary'}`}>
+                <span className="text-xs text-tertiary flex items-center gap-1">
+                  <BsCalendar className="w-3 h-3" />
                   Due {new Date(goal.dueDate).toLocaleDateString()}
                 </span>
               </div>
             </div>
           </div>
-          {!isGridView && (
-            <button
-              type="button"
-              onClick={() => setShowDetails(!showDetails)}
-              className="text-secondary p-1 rounded-lg hover:bg-surface-secondary dark:hover:bg-surface-tertiary"
-              aria-label={showDetails ? 'Collapse details' : 'Expand details'}
-            >
-              <motion.div animate={{ rotate: showDetails ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                <BsChevronDown className="w-4 h-4" />
-              </motion.div>
-            </button>
+          <button
+            type="button"
+            onClick={() => setShowDetails(!showDetails)}
+            className="text-secondary p-1.5 rounded-lg hover:bg-surface-secondary focus-ring"
+            aria-label={showDetails ? 'Collapse details' : 'Expand details'}
+          >
+            <motion.div animate={{ rotate: showDetails ? 180 : 0 }} transition={{ duration: 0.2 }}>
+              <BsChevronDown className="w-4 h-4" />
+            </motion.div>
+          </button>
+        </div>
+
+        {/* Description */}
+        <p className="text-xs text-secondary mt-2 line-clamp-2">{goal.description}</p>
+
+        {/* Rating Section */}
+        <div className="mt-3 pt-3 border-t border-theme">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-secondary">{ratingLabel}</span>
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((rating) => (
+                <button
+                  key={rating}
+                  type="button"
+                  onClick={() => !isSubmitting && onRatingChange(goal.id, rating)}
+                  disabled={isSubmitting}
+                  aria-label={`Rate ${rating} out of 5`}
+                  className={`w-7 h-7 flex items-center justify-center rounded-lg transition-all focus-ring ${
+                    currentScore != null && rating <= currentScore
+                      ? 'bg-warning-muted text-warning'
+                      : 'bg-surface-secondary text-tertiary hover:bg-surface-tertiary hover:text-warning'
+                  } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                >
+                  <BsStarFill className="w-3.5 h-3.5" />
+                </button>
+              ))}
+            </div>
+          </div>
+          {currentScore != null && (
+            <p className="text-xs text-secondary mt-1">
+              {RATING_DESCRIPTIONS[currentScore as keyof typeof RATING_DESCRIPTIONS]}
+            </p>
           )}
         </div>
-
-        <p
-          className={`text-sm line-clamp-2 ${
-            isGridView ? 'mb-4 flex-1 text-[rgb(var(--color-text-inverse))]/80' : 'mt-3 text-secondary dark:text-secondary'
-          }`}
-        >
-          {goal.description}
-        </p>
-
-        <div
-          className={`${isGridView ? 'pt-4' : 'mt-4 pt-4'} border-t ${
-            isGridView ? 'border-white/10' : 'border-theme'
-          }`}
-        >
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <Label
-                className={`text-sm ${isGridView ? 'text-[rgb(var(--color-text-inverse))]/90' : 'text-primary dark:text-secondary'}`}
-              >
-                {ratingLabel}
-              </Label>
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((rating) => (
-                  <button
-                    key={rating}
-                    type="button"
-                    onClick={() => !isSubmitting && onRatingChange(goal.id, rating)}
-                    disabled={isSubmitting}
-                    aria-label={`Rate ${rating} out of 5`}
-                    className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors ${
-                      isGridView
-                        ? currentScore === rating
-                          ? 'bg-surface-tertiary text-warning'
-                          : 'bg-surface-secondary text-[rgb(var(--color-text-inverse))]/40 hover:bg-surface-tertiary'
-                        : currentScore === rating
-                          ? 'bg-warning-muted text-warning'
-                          : 'bg-surface-secondary text-secondary hover:bg-surface-tertiary'
-                    }`}
-                  >
-                    <BsStarFill className="w-4 h-4" />
-                  </button>
-                ))}
-              </div>
-            </div>
-            {currentScore != null && (
-              <div
-                className={`text-sm ${
-                  isGridView ? 'text-[rgb(var(--color-text-inverse))]/70' : 'text-secondary dark:text-secondary'
-                }`}
-              >
-                {RATING_DESCRIPTIONS[currentScore as keyof typeof RATING_DESCRIPTIONS]}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {isGridView && (
-          <div className="mt-3 flex items-center gap-4 text-xs text-[rgb(var(--color-text-inverse))]/60">
-            <div className="flex items-center gap-1.5">
-              <BsCalendar className="w-3 h-3" />
-              <span>Created {new Date(goal.createdAt).toLocaleDateString()}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <BsTag className="w-3 h-3" />
-              <span>{variant === 'manager' ? categoryConfig.label : goal.category}</span>
-            </div>
-          </div>
-        )}
       </div>
 
-      {!isGridView && (
-        <AnimatePresence>
-          {showDetails && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="p-4 bg-surface-secondary border-t border-theme">
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-sm font-medium text-primary mb-1">Details</h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm">
-                        <BsCalendar className="w-4 h-4 text-secondary" />
-                        <span className="text-secondary dark:text-secondary">
-                          Created on {new Date(goal.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <BsTag className="w-4 h-4 text-secondary" />
-                        <span className="text-secondary dark:text-secondary">
-                          {categoryConfig.label}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  {comments && (
-                    <div>
-                      <h4 className="text-sm font-medium text-primary mb-1">Comments</h4>
-                      <p className="text-sm text-secondary dark:text-secondary">{comments}</p>
-                    </div>
-                  )}
+      {/* Expandable Details */}
+      <AnimatePresence>
+        {showDetails && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-4 pt-2 border-t border-theme bg-surface-secondary/50 space-y-3">
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-tertiary">Category</span>
+                  <p className="text-primary font-medium">{categoryConfig.label}</p>
+                </div>
+                <div>
+                  <span className="text-tertiary">Created</span>
+                  <p className="text-primary font-medium">{new Date(goal.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      )}
-    </motion.div>
+              {comments && (
+                <div>
+                  <span className="text-xs text-tertiary">Comments</span>
+                  <p className="text-xs text-secondary mt-0.5">{comments}</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
