@@ -87,11 +87,14 @@ model Goal {
   progressNotes      String?
   department         String         @default("ENGINEERING")
   priority           String         @default("MEDIUM")
+  weight             Int            @default(10) // Goal importance weight (1-100). Higher = more strategic.
+  reviewCycleId      String?        // Links goal to a review cycle period
   createdBy          User?          @relation("CreatedGoals", fields: [createdById], references: [id])
   deletedBy          User?          @relation("DeletedGoals", fields: [deletedById], references: [id])
   employee           User           @relation("EmployeeGoals", fields: [employeeId], references: [id])
   manager            User?          @relation("ManagerGoals", fields: [managerId], references: [id])
   updatedBy          User?          @relation("UpdatedGoals", fields: [updatedById], references: [id])
+  reviewCycle        ReviewCycle?   @relation("GoalReviewCycle", fields: [reviewCycleId], references: [id])
   notifications      Notification[]
   rating             Rating? // One-to-one: each goal has at most one rating record
 
@@ -101,7 +104,8 @@ model Goal {
   @@index([createdById])
   @@index([updatedById])
   @@index([deletedById])
-  
+  @@index([reviewCycleId])
+
   // Single column indexes for frequently filtered fields
   @@index([status])
   @@index([category])
@@ -248,6 +252,7 @@ model ReviewCycle {
   user                User     @relation("UserReviewCycle", fields: [userId], references: [id])
   reportingPerson     User?    @relation("ReviewCycleReportingPerson", fields: [reportingPersonId], references: [id])
   updatedBy           User?    @relation("ReviewCycleUpdater", fields: [updatedById], references: [id])
+  goals               Goal[]   @relation("GoalReviewCycle")
 
   @@index([userId])
   @@index([updatedById])

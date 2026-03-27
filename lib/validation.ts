@@ -46,6 +46,11 @@ export const createGoalSchema = z.object({
   ]),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).default('MEDIUM'),
   dueDate: z.string().datetime('Invalid date format'),
+  weight: z
+    .number()
+    .min(1, 'Weight must be at least 1')
+    .max(100, 'Weight cannot exceed 100')
+    .default(10),
 });
 
 export const updateGoalSchema = createGoalSchema.partial().extend({

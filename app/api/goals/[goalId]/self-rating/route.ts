@@ -51,9 +51,9 @@ export async function POST(
       return NextResponse.json({ error: 'Only the goal owner can submit self-rating' }, { status: 403 });
     }
 
-    // Goal must be APPROVED or COMPLETED to be rated
-    if (goal.status !== 'APPROVED' && goal.status !== 'COMPLETED' && goal.status !== 'IN_PROGRESS') {
-      return NextResponse.json({ error: 'Goal must be approved, in progress, or completed to submit a rating' }, { status: 400 });
+    // Goal must be COMPLETED to be rated — cannot rate work that isn't finished
+    if (goal.status !== 'COMPLETED') {
+      return NextResponse.json({ error: 'Goal must be completed before submitting a self-rating. Complete the goal first, then rate your performance.' }, { status: 400 });
     }
 
     // Check if rating exists

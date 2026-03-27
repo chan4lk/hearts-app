@@ -144,9 +144,9 @@ export async function POST(
       );
     }
 
-    if (goal.status !== 'APPROVED' && goal.status !== 'COMPLETED') {
+    if (goal.status !== 'COMPLETED') {
       return NextResponse.json(
-        { error: 'Goal must be approved or completed before rating' },
+        { error: 'Goal must be completed before manager rating. The employee needs to complete the goal first.' },
         { status: 400 }
       );
     }

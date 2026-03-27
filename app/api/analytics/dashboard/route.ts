@@ -209,7 +209,15 @@ export async function GET(req: NextRequest) {
     // ── Compute summary from the status breakdown (no extra query) ──
     const totalGoals = Object.values(byStatus).reduce((s, n) => s + n, 0);
     const completedGoals = byStatus['COMPLETED'] || 0;
-    const completionRate = totalGoals > 0 ? (completedGoals / totalGoals) * 100 : 0;
+    // Completion rate excludes DRAFT/PENDING/REJECTED from denominator
+    // Only count goals that are "in flight" or completed (actionable goals)
+    const actionableGoals =
+      (byStatus['APPROVED'] || 0) +
+      (byStatus['IN_PROGRESS'] || 0) +
+      (byStatus['COMPLETED'] || 0) +
+      (byStatus['ON_HOLD'] || 0) +
+      (byStatus['BLOCKED'] || 0);
+    const completionRate = actionableGoals > 0 ? (completedGoals / actionableGoals) * 100 : 0;
 
     // ── Monthly trend from employeeGoalsRaw (lightweight iteration) ──
     const monthlyTrend: Record<string, number> = {};
