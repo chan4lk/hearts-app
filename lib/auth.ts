@@ -422,8 +422,9 @@ export const authOptions: NextAuthOptions = {
           const dbUser = await getCachedUserAuth(sessionUser.id);
 
           if (!dbUser) {
-            console.error('User not found in database');
-            throw new Error('User not found');
+            // User was deleted or DB was reset — return session with token data
+            // User will need to re-login to get a fresh session
+            return session;
           }
 
           if (!dbUser.isActive) {
