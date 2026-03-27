@@ -144,9 +144,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<BulkGoalRespo
 
     // If there are validation errors, return them
     if (errors.length > 0) {
+      // Differentiate between partial and total validation failure for clearer client messaging
+      const allFailed = errors.length === body.goals.length;
       return NextResponse.json({
         success: false,
-        message: `Validation failed for ${errors.length} goal(s)`,
+        message: allFailed
+          ? `All ${errors.length} goal(s) failed validation. Please check the errors and try again.`
+          : `Validation failed for ${errors.length} of ${body.goals.length} goal(s). None were created — fix errors and resubmit.`,
         created: 0,
         failed: errors.length,
         errors

@@ -51,6 +51,7 @@ export async function GET(req: NextRequest) {
 
     const userWhereClause: Record<string, unknown> = { isActive: true };
 
+    // Admin can override context to view analytics from any role perspective (by design)
     const effectiveContext = (userRole === 'ADMIN' && context) ? context : userRole.toLowerCase();
 
     // Resolve managed employee IDs once (reused in multiple queries)
@@ -157,6 +158,9 @@ export async function GET(req: NextRequest) {
       }),
 
       // 5. Overdue goals count
+      // ON_HOLD and BLOCKED goals are excluded from overdue calculation by design:
+      // these statuses indicate the goal is paused due to external factors, so holding
+      // them against the employee's overdue count would be misleading.
       prisma.goal.count({
         where: {
           ...(goalWhereClause as any),

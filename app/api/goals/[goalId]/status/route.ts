@@ -183,6 +183,9 @@ export async function PATCH(
     });
 
     // Create notifications based on status change
+    // Note: Notifications use groupKey for client-side deduplication (by design).
+    // Multiple status changes on the same goal produce separate notifications intentionally,
+    // so users see the full audit trail. The groupKey allows the UI to collapse them if needed.
     // Sanitize user-provided content to prevent stored XSS
     const oldStatus = goal.status;
     const newStatus = status;

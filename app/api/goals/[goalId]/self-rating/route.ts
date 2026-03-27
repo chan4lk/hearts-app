@@ -42,7 +42,7 @@ export async function POST(
       }
     });
 
-    if (!goal) {
+    if (!goal || goal.status === 'DELETED') {
       return NextResponse.json({ error: 'Goal not found' }, { status: 404 });
     }
 

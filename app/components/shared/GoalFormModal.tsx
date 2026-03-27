@@ -112,6 +112,7 @@ export function GoalFormModal({
               onChange={(e) => onFormDataChange('title', e.target.value)}
               placeholder="Enter goal title"
               className={FORM_STYLES.input}
+              required
             />
           </FormField>
 
@@ -121,6 +122,7 @@ export function GoalFormModal({
               onChange={(e) => onFormDataChange('description', e.target.value)}
               placeholder="Describe the goal details..."
               className={`${FORM_STYLES.textarea} min-h-[80px]`}
+              required
             />
             <AIGoalSuggestions
               category={formData.category}

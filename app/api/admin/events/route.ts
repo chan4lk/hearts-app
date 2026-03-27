@@ -111,6 +111,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Date validation
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return NextResponse.json({ error: 'Invalid date format' }, { status: 400 });
+    }
+    if (start >= end) {
+      return NextResponse.json({ error: 'Start date must be before end date' }, { status: 400 });
+    }
+    if (registrationDeadline) {
+      const regDeadline = new Date(registrationDeadline);
+      if (regDeadline > start) {
+        return NextResponse.json({ error: 'Registration deadline must be before event start date' }, { status: 400 });
+      }
+    }
+
     const event = await prisma.event.create({
       data: {
         title,

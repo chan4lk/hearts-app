@@ -136,6 +136,14 @@ export async function POST(
       );
     }
 
+    // Prevent conflict of interest: cannot rate your own goals
+    if (goal.employeeId === session.user.id) {
+      return NextResponse.json(
+        { error: 'You cannot rate your own goals. Use self-rating instead.' },
+        { status: 403 }
+      );
+    }
+
     // Admin can rate any goal, Manager can only rate their direct reports' goals
     if (session.user.role === 'MANAGER' && goal.employee.managerId !== session.user.id) {
       return NextResponse.json(

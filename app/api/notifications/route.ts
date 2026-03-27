@@ -111,7 +111,7 @@ export async function DELETE(req: Request) {
       }
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, action: 'archived' });
   } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);
