@@ -9,6 +9,7 @@ import { logger } from '@/lib/logger';
 import { rateLimiters } from '@/lib/rateLimit';
 import { getPaginationFromSearchParams, getPaginationMeta, PAGINATION_LIMITS } from '@/lib/pagination';
 import { createGoalSchema } from '@/lib/validation';
+import { sanitizeInput } from '@/lib/securityUtils';
 
 // UUID validation helper
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -459,8 +460,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { title, description, category, dueDate } = parsed.data;
-    const { employeeId, department, priority } = body;
+    const { title: rawTitle, description: rawDesc, category, dueDate, weight } = parsed.data;
+    const title = sanitizeInput(rawTitle, 255);
+    const description = sanitizeInput(rawDesc, 2000);
+    const { employeeId, department, priority, parentGoalId, ratingType } = body;
 
     const userRole = session.user.role;
     const userId = session.user.id;
@@ -498,12 +501,15 @@ export async function POST(req: NextRequest) {
         category: category || 'PROFESSIONAL',
         department: department || 'ENGINEERING',
         priority: priority || 'MEDIUM',
+        weight: weight ?? 10,
         dueDate: new Date(dueDate),
         status: initialStatus,
         employeeId: targetEmployeeId,
         managerId: isAdminOrManager && !isSelfGoal ? userId : null,
         createdById: userId,
-        updatedById: userId
+        updatedById: userId,
+        ...((parentGoalId ? { parentGoalId } : {}) as any),
+        ...((ratingType ? { ratingType } : {}) as any)
       },
       include: goalInclude
     });

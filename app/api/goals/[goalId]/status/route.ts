@@ -8,6 +8,7 @@ import { sanitizeInput } from '@/lib/securityUtils';
 import { statusUpdateSchema } from '@/lib/validation';
 import { validateUUID } from '@/app/api/utils/error-handler';
 import { rateLimiters } from '@/lib/rateLimit';
+import { logGoalChange } from '@/lib/goalChangeLog';
 
 // Status update endpoint for goals
 // Manager-assigned goals: Start as APPROVED → Employee can update to IN_PROGRESS → COMPLETED and others
@@ -151,35 +152,60 @@ export async function PATCH(
 
     // Update the goal status with optimistic locking (version incremented)
     // Note: `version` field added in migration — run `prisma generate` to remove `as any`
-    const updatedGoal = await prisma.goal.update({
-      where: { id: params.goalId },
-      data: {
-        status: status as any,
-        updatedAt: new Date(),
-        updatedById: session.user.id,
-        ...({ version: { increment: 1 } } as any),
-      },
-      include: {
-        employee: { select: { id: true, name: true, email: true } },
-        manager: { select: { id: true, name: true, email: true } },
-        createdBy: { select: { id: true, name: true, email: true } },
-        updatedBy: { select: { id: true, name: true, email: true } },
-        rating: {
-          select: {
-            id: true,
-            selfScore: true,
-            selfComments: true,
-            selfRatedById: true,
-            selfRatedAt: true,
-            managerScore: true,
-            managerComments: true,
-            managerRatedById: true,
-            managerRatedAt: true,
-            createdAt: true,
-            updatedAt: true
+    const currentVersion = (goal as any).version ?? 0;
+    let updatedGoal;
+    try {
+      updatedGoal = await prisma.goal.update({
+        where: {
+          id: params.goalId,
+          ...({ version: currentVersion } as any),
+        } as any,
+        data: {
+          status: status as any,
+          updatedAt: new Date(),
+          updatedById: session.user.id,
+          ...({ version: { increment: 1 } } as any),
+        },
+        include: {
+          employee: { select: { id: true, name: true, email: true } },
+          manager: { select: { id: true, name: true, email: true } },
+          createdBy: { select: { id: true, name: true, email: true } },
+          updatedBy: { select: { id: true, name: true, email: true } },
+          rating: {
+            select: {
+              id: true,
+              selfScore: true,
+              selfComments: true,
+              selfRatedById: true,
+              selfRatedAt: true,
+              managerScore: true,
+              managerComments: true,
+              managerRatedById: true,
+              managerRatedAt: true,
+              createdAt: true,
+              updatedAt: true
+            }
           }
         }
+      });
+    } catch (updateError: any) {
+      // Prisma throws P2025 when the WHERE clause matches no rows (version mismatch)
+      if (updateError?.code === 'P2025') {
+        return NextResponse.json(
+          { error: 'Conflict: goal was modified by another request. Please refresh and try again.' },
+          { status: 409 }
+        );
       }
+      throw updateError;
+    }
+
+    // Log the status change for audit trail
+    await logGoalChange({
+      goalId: params.goalId,
+      changedBy: session.user.id,
+      fieldName: 'status',
+      oldValue: goal.status,
+      newValue: status,
     });
 
     // Create notifications based on status change

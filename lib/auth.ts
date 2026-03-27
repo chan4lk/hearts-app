@@ -67,6 +67,9 @@ async function getCachedUserAuth(userId: string) {
   return dbUser;
 }
 
+// CSRF Protection: NextAuth.js includes built-in CSRF token validation for all
+// sign-in/sign-out/callback requests. It generates a CSRF token stored in a cookie
+// and verified on each POST request, so no additional CSRF middleware is needed.
 export const authOptions: NextAuthOptions = {
   providers: [
     AzureADProvider({

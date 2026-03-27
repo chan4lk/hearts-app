@@ -45,7 +45,10 @@ export const createGoalSchema = z.object({
     'KPI',
   ]),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).default('MEDIUM'),
-  dueDate: z.string().datetime('Invalid date format'),
+  dueDate: z.string().datetime('Invalid date format').refine(
+    (d) => new Date(d) > new Date(),
+    'Due date must be in the future'
+  ),
   weight: z
     .number()
     .min(1, 'Weight must be at least 1')
@@ -158,7 +161,7 @@ export const createRatingSchema = z.object({
     .min(1, 'Goal ID required'),
   selfScore: z
     .number()
-    .min(1, 'Score must be 1 or higher')
+    .min(0, 'Score must be 0 or higher')
     .max(5, 'Score must be 5 or lower')
     .optional(),
   selfComments: z
@@ -167,7 +170,7 @@ export const createRatingSchema = z.object({
     .optional(),
   managerScore: z
     .number()
-    .min(1, 'Score must be 1 or higher')
+    .min(0, 'Score must be 0 or higher')
     .max(5, 'Score must be 5 or lower')
     .optional(),
   managerComments: z

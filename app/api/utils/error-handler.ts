@@ -1,3 +1,8 @@
+// TODO: Standardize API response format across all endpoints.
+// All responses should follow a consistent shape, e.g.:
+//   Success: { success: true, data: T }
+//   Error:   { success: false, error: { message: string, code?: string } }
+// This requires updating all API routes to use a shared response builder.
 import { NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 

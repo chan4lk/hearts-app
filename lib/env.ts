@@ -48,6 +48,13 @@ export function validateEnv(): void {
     invalid.push('DATABASE_URL must be a valid PostgreSQL connection string');
   }
 
+  if (process.env.NEXTAUTH_SECRET && process.env.NEXTAUTH_SECRET.length < 16) {
+    invalid.push(
+      `NEXTAUTH_SECRET must be at least 16 characters long for security. ` +
+      `Current length: ${process.env.NEXTAUTH_SECRET.length} characters.`
+    );
+  }
+
   if (missing.length > 0) {
     throw new Error(
       `Missing required environment variables: ${missing.join(', ')}\n` +
