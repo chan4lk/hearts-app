@@ -151,20 +151,26 @@ export async function PATCH(
     }
 
     // Update the goal status with optimistic locking (version incremented)
-    const currentVersion = goal.version ?? 1;
+    // Graceful fallback: if version column doesn't exist yet, skip optimistic locking
+    const currentVersion = (goal as any).version ?? undefined;
     let updatedGoal;
     try {
+      const whereClause: any = { id: params.goalId };
+      const dataClause: any = {
+        status: status as any,
+        updatedAt: new Date(),
+        updatedById: session.user.id,
+      };
+
+      // Only use version-based optimistic locking if the goal has a version field
+      if (currentVersion !== undefined) {
+        whereClause.version = currentVersion;
+        dataClause.version = { increment: 1 };
+      }
+
       updatedGoal = await prisma.goal.update({
-        where: {
-          id: params.goalId,
-          version: currentVersion,
-        },
-        data: {
-          status: status as any,
-          updatedAt: new Date(),
-          updatedById: session.user.id,
-          version: { increment: 1 },
-        },
+        where: whereClause,
+        data: dataClause,
         include: {
           employee: { select: { id: true, name: true, email: true } },
           manager: { select: { id: true, name: true, email: true } },
@@ -188,14 +194,51 @@ export async function PATCH(
         }
       });
     } catch (updateError: any) {
-      // Prisma throws P2025 when the WHERE clause matches no rows (version mismatch)
+      // Prisma throws P2025 when the WHERE clause matches no rows (version mismatch or missing record)
       if (updateError?.code === 'P2025') {
         return NextResponse.json(
           { error: 'Conflict: goal was modified by another request. Please refresh and try again.' },
           { status: 409 }
         );
       }
-      throw updateError;
+      // If version column doesn't exist yet, retry without optimistic locking
+      if (updateError?.message?.includes('version') || updateError?.code === 'P2009') {
+        try {
+          updatedGoal = await prisma.goal.update({
+            where: { id: params.goalId },
+            data: {
+              status: status as any,
+              updatedAt: new Date(),
+              updatedById: session.user.id,
+            },
+            include: {
+              employee: { select: { id: true, name: true, email: true } },
+              manager: { select: { id: true, name: true, email: true } },
+              createdBy: { select: { id: true, name: true, email: true } },
+              updatedBy: { select: { id: true, name: true, email: true } },
+              rating: {
+                select: {
+                  id: true,
+                  selfScore: true,
+                  selfComments: true,
+                  selfRatedById: true,
+                  selfRatedAt: true,
+                  managerScore: true,
+                  managerComments: true,
+                  managerRatedById: true,
+                  managerRatedAt: true,
+                  createdAt: true,
+                  updatedAt: true
+                }
+              }
+            }
+          });
+        } catch (retryError) {
+          throw retryError;
+        }
+      } else {
+        throw updateError;
+      }
     }
 
     // Log the status change for audit trail

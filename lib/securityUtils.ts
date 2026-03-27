@@ -294,12 +294,14 @@ export function isValidEmail(email: string): boolean {
 }
 
 /**
- * Validate UUID format
+ * Validate ID format — supports both CUID and UUID formats.
+ * CUID: starts with 'c' followed by 20-32 lowercase alphanumeric chars (e.g., cmn8punvk0001lx8gk7fo5nyy)
+ * UUID: standard 8-4-4-4-12 hex format
  */
-export function isValidUUID(uuid: string): boolean {
-  const uuidRegex =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(uuid);
+export function isValidUUID(id: string): boolean {
+  const CUID_REGEX = /^c[a-z0-9]{20,32}$/;
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return CUID_REGEX.test(id) || UUID_REGEX.test(id);
 }
 
 /**
