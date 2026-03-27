@@ -149,13 +149,15 @@ export async function PATCH(
       }
     }
 
-    // Update the goal status
+    // Update the goal status with optimistic locking (version incremented)
+    // Note: `version` field added in migration — run `prisma generate` to remove `as any`
     const updatedGoal = await prisma.goal.update({
       where: { id: params.goalId },
       data: {
-        status: status as any, // Cast to any to allow new status values
+        status: status as any,
         updatedAt: new Date(),
-        updatedById: session.user.id
+        updatedById: session.user.id,
+        ...({ version: { increment: 1 } } as any),
       },
       include: {
         employee: { select: { id: true, name: true, email: true } },
@@ -195,6 +197,7 @@ export async function PATCH(
           message: `Your goal "${safeTitle}" has been approved by ${safeName}`,
           userId: goal.employeeId,
           goalId: goal.id,
+          ...({ groupKey: `goal:${goal.id}` } as any),
         },
       });
     } else if (newStatus === 'REJECTED' && oldStatus !== 'REJECTED') {
@@ -204,6 +207,7 @@ export async function PATCH(
           message: `Your goal "${safeTitle}" has been rejected by ${safeName}`,
           userId: goal.employeeId,
           goalId: goal.id,
+          ...({ groupKey: `goal:${goal.id}` } as any),
         },
       });
     } else if (newStatus === 'COMPLETED' && oldStatus !== 'COMPLETED') {
@@ -214,6 +218,7 @@ export async function PATCH(
             message: `${safeEmpName} completed the goal "${safeTitle}"`,
             userId: goal.managerId,
             goalId: goal.id,
+          ...({ groupKey: `goal:${goal.id}` } as any),
           },
         });
       }
@@ -223,6 +228,7 @@ export async function PATCH(
           message: `You completed the goal "${safeTitle}"`,
           userId: goal.employeeId,
           goalId: goal.id,
+          ...({ groupKey: `goal:${goal.id}` } as any),
         },
       });
     } else if (newStatus !== oldStatus && (newStatus === 'IN_PROGRESS' || newStatus === 'ON_HOLD' || newStatus === 'BLOCKED')) {
@@ -233,6 +239,7 @@ export async function PATCH(
             message: `${safeEmpName} updated goal "${safeTitle}" status to ${newStatus.replace('_', ' ')}`,
             userId: goal.managerId,
             goalId: goal.id,
+          ...({ groupKey: `goal:${goal.id}` } as any),
           },
         });
       }
@@ -248,6 +255,7 @@ export async function PATCH(
             message: `You ${newStatus === 'APPROVED' ? 'approved' : 'rejected'} ${safeEmpName}'s goal "${safeTitle}"`,
             userId: empManagerId,
             goalId: goal.id,
+          ...({ groupKey: `goal:${goal.id}` } as any),
           },
         });
       }

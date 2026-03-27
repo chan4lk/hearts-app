@@ -22,7 +22,8 @@ export async function GET(req: NextRequest) {
       PAGINATION_LIMITS.NOTIFICATIONS
     );
 
-    const notifWhere = { userId: session.user.id };
+    // Only show non-archived notifications (archivedAt field added in migration)
+    const notifWhere = { userId: session.user.id, ...({ archivedAt: null } as any) };
 
     // Run count and findMany in parallel
     const [total, notifications] = await Promise.all([
@@ -98,14 +99,71 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Notification ID is required' }, { status: 400 });
     }
 
-    await prisma.notification.delete({
+    // Archive instead of hard-delete (preserves audit trail)
+    // Note: `archivedAt` field added in migration — run `prisma generate` to remove `as any`
+    await prisma.notification.update({
       where: {
         id: notificationId,
-        userId: session.user.id // Ensure user can only delete their own notifications
+        userId: session.user.id
+      },
+      data: {
+        ...({ archivedAt: new Date() } as any)
       }
     });
 
     return NextResponse.json({ success: true });
+  } catch (error) {
+    logger.error(error instanceof Error ? error : new Error(String(error)));
+    return handleApiError(error);
+  }
+}
+
+// PUT - Bulk archive old read notifications (admin or user's own)
+export async function PUT(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await req.json().catch(() => ({}));
+    const action = body?.action;
+
+    if (action === 'archive-read') {
+      // Archive all read notifications older than 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const result = await prisma.notification.updateMany({
+        where: {
+          userId: session.user.id,
+          isRead: true,
+          ...({ archivedAt: null } as any),
+          createdAt: { lt: thirtyDaysAgo }
+        },
+        data: {
+          ...({ archivedAt: new Date() } as any)
+        }
+      });
+
+      return NextResponse.json({ success: true, archived: result.count });
+    }
+
+    if (action === 'mark-all-read') {
+      const result = await prisma.notification.updateMany({
+        where: {
+          userId: session.user.id,
+          isRead: false,
+          ...({ archivedAt: null } as any)
+        },
+        data: { isRead: true }
+      });
+
+      return NextResponse.json({ success: true, updated: result.count });
+    }
+
+    return NextResponse.json({ error: 'Invalid action. Use: archive-read, mark-all-read' }, { status: 400 });
   } catch (error) {
     logger.error(error instanceof Error ? error : new Error(String(error)));
     return handleApiError(error);

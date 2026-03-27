@@ -38,6 +38,7 @@ model User {
   reportingPersonFor  ReviewCycle[]  @relation("ReviewCycleReportingPerson")
   updatedReviewCycles ReviewCycle[]  @relation("ReviewCycleUpdater")
   goalChangeLogs      GoalChangeLog[] @relation("GoalChanges")
+  goalTemplates       GoalTemplate[] @relation("GoalTemplateCreator")
   createdEvents       Event[]        @relation("EventCreatedBy")
   eventParticipations EventParticipation[]
 
@@ -89,6 +90,7 @@ model Goal {
   department         String         @default("ENGINEERING")
   priority           String         @default("MEDIUM")
   weight             Int            @default(10) // Goal importance weight (1-100). Higher = more strategic.
+  version            Int            @default(1)  // Optimistic locking — incremented on each update
   reviewCycleId      String?        // Links goal to a review cycle period
   createdBy          User?          @relation("CreatedGoals", fields: [createdById], references: [id])
   deletedBy          User?          @relation("DeletedGoals", fields: [deletedById], references: [id])
@@ -181,29 +183,34 @@ model Rating {
 }
 
 model Notification {
-  id        String           @id @default(cuid())
-  type      NotificationType
-  message   String
-  isRead    Boolean          @default(false)
-  createdAt DateTime         @default(now())
-  userId    String
-  goalId    String?
-  goal      Goal?            @relation(fields: [goalId], references: [id])
-  user      User             @relation(fields: [userId], references: [id])
+  id         String           @id @default(cuid())
+  type       NotificationType
+  message    String
+  isRead     Boolean          @default(false)
+  createdAt  DateTime         @default(now())
+  userId     String
+  goalId     String?
+  groupKey   String?          // For deduplication: "goal:{goalId}" or "cycle:{cycleId}"
+  archivedAt DateTime?        // When notification was archived (null = active)
+  goal       Goal?            @relation(fields: [goalId], references: [id])
+  user       User             @relation(fields: [userId], references: [id])
 
   // Foreign key indexes
   @@index([userId])
   @@index([goalId])
-  
+  @@index([groupKey])
+
   // Frequently filtered and sorted fields
   @@index([isRead])
   @@index([createdAt])
   @@index([type])
-  
+  @@index([archivedAt])
+
   // Composite indexes for common query patterns
   @@index([userId, isRead])          // Get unread notifications for user
   @@index([userId, createdAt])       // User notifications sorted by date
   @@index([userId, isRead, createdAt]) // Optimized for unread notifications query
+  @@index([userId, archivedAt])      // Active vs archived notifications
 }
 
 enum Role {
@@ -355,4 +362,25 @@ enum ParticipationStatus {
   ATTENDED
   NO_SHOW
   CANCELLED
+}
+
+// Goal templates for quick creation by role/department
+model GoalTemplate {
+  id          String       @id @default(cuid())
+  name        String
+  description String
+  category    GoalCategory @default(PROFESSIONAL)
+  department  String       @default("ENGINEERING")
+  priority    String       @default("MEDIUM")
+  weight      Int          @default(10)
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  createdById String
+  createdBy   User         @relation("GoalTemplateCreator", fields: [createdById], references: [id])
+
+  @@index([department])
+  @@index([category])
+  @@index([isActive])
+  @@index([createdById])
 }
