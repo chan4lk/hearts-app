@@ -5,7 +5,7 @@ import { prisma } from './prisma';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 import { verify } from 'jsonwebtoken';
-import { logger } from './logger';
+
 
 declare module 'next-auth' {
   interface User {
@@ -87,7 +87,7 @@ export const authOptions: NextAuthOptions = {
         try {
           // Only log in development - never log sensitive profile data in production
           if (process.env.NODE_ENV === 'development') {
-            logger.log('Azure AD processing profile', 'Information', {
+            console.log('Azure AD processing profile', 'Information', {
               hasEmail: !!profile.email,
               hasName: !!profile.name,
               hasTokens: !!tokens
@@ -100,7 +100,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           if (!profile.name && process.env.NODE_ENV === 'development') {
-            logger.log('Azure AD: No name found, using email as fallback', 'Warning');
+            console.log('Azure AD: No name found, using email as fallback', 'Warning');
           }
 
           // Normalize email to lowercase for case-insensitive lookup
@@ -117,7 +117,7 @@ export const authOptions: NextAuthOptions = {
           // If user exists, don't automatically update their role
           if (existingUser) {
             if (process.env.NODE_ENV === 'development') {
-              logger.log('Azure AD: Existing user found', 'Information');
+              console.log('Azure AD: Existing user found', 'Information');
             }
             return {
               id: existingUser.id,
@@ -127,7 +127,7 @@ export const authOptions: NextAuthOptions = {
             };
           }
         } catch (error) {
-          logger.error(error instanceof Error ? error : new Error(String(error)));
+          console.error(error);
           throw error;
         }
 
@@ -139,7 +139,7 @@ export const authOptions: NextAuthOptions = {
         const normalizedEmail = profile.email.toLowerCase().trim();
 
         if (process.env.NODE_ENV === 'development') {
-          logger.log('Azure AD: Creating new user with EMPLOYEE role', 'Information');
+          console.log('Azure AD: Creating new user with EMPLOYEE role', 'Information');
         }
 
         try {
@@ -155,7 +155,7 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (process.env.NODE_ENV === 'development') {
-            logger.log('Azure AD: New user created', 'Information');
+            console.log('Azure AD: New user created', 'Information');
           }
 
           return {
@@ -305,7 +305,7 @@ export const authOptions: NextAuthOptions = {
             role: user.role,
           };
         } catch (error) {
-          logger.error(error instanceof Error ? error : new Error(String(error)));
+          console.error(error);
           throw error;
         }
       },
@@ -328,7 +328,7 @@ export const authOptions: NextAuthOptions = {
           // If user doesn't exist, try to create them (fallback in case profile callback failed)
           if (!dbUser) {
             if (process.env.NODE_ENV === 'development') {
-              logger.log('SignIn: User not found, attempting to create', 'Warning');
+              console.log('SignIn: User not found, attempting to create', 'Warning');
             }
 
             try {
@@ -347,10 +347,10 @@ export const authOptions: NextAuthOptions = {
               });
 
               if (process.env.NODE_ENV === 'development') {
-                logger.log('SignIn: User created successfully', 'Information');
+                console.log('SignIn: User created successfully', 'Information');
               }
             } catch (createError) {
-              logger.error(
+              console.error(
                 createError instanceof Error ? createError : new Error(String(createError))
               );
               // Return false to show access denied error
@@ -365,12 +365,12 @@ export const authOptions: NextAuthOptions = {
           user.email = dbUser.email; // Use the email from database (preserves original casing)
 
           if (process.env.NODE_ENV === 'development') {
-            logger.log('SignIn: User logged in successfully', 'Information');
+            console.log('SignIn: User logged in successfully', 'Information');
           }
         }
         return true;
       } catch (error) {
-        logger.error(
+        console.error(
           error instanceof Error ? error : new Error(String(error)),
           { provider: account?.provider }
         );
@@ -422,12 +422,12 @@ export const authOptions: NextAuthOptions = {
           const dbUser = await getCachedUserAuth(sessionUser.id);
 
           if (!dbUser) {
-            logger.error(new Error('Session: User not found in database'));
+            console.error('User not found in database');
             throw new Error('User not found');
           }
 
           if (!dbUser.isActive) {
-            logger.warn(`Session: Inactive user attempted access - ${sessionUser.email}`);
+            console.warn(`Session: Inactive user attempted access - ${sessionUser.email}`);
             throw new Error('User account is inactive');
           }
 
@@ -435,7 +435,7 @@ export const authOptions: NextAuthOptions = {
           sessionUser.role = dbUser.role;
         } catch (error) {
           const errorMsg = error instanceof Error ? error.message : String(error);
-          logger.error(new Error(`Session validation failed: ${errorMsg}`));
+          console.error(error);
           throw error;
         }
       }
@@ -464,21 +464,7 @@ export const authOptions: NextAuthOptions = {
       }
     }
   },
-  logger: {
-    error(code, ...message) {
-      logger.error(new Error(`NextAuth: ${code} - ${message.join(' ')}`));
-    },
-    warn(code, ...message) {
-      if (process.env.NODE_ENV === 'development') {
-        logger.log(`NextAuth Warning: ${code}`, 'Warning', { message: message.join(' ') });
-      }
-    },
-    debug(code, ...message) {
-      if (process.env.NODE_ENV === 'development') {
-        logger.log(`NextAuth Debug: ${code}`, 'Verbose', { message: message.join(' ') });
-      }
-    },
-  },
+  // logger removed
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development',
 };

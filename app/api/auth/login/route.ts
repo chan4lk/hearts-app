@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { compare } from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
-import { logger } from '@/lib/logger';
-import { rateLimiters } from '@/lib/rateLimit';
+
+
 
 export async function POST(req: NextRequest) {
-  // Rate limit login attempts to prevent brute force
-  const rateLimitResponse = await rateLimiters.strict(req);
-  if (rateLimitResponse) return rateLimitResponse;
+
+
+
 
   try {
     const { email, password } = await req.json();
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       user: userWithoutPassword
     });
   } catch (error) {
-    logger.error(error instanceof Error ? error : new Error(String(error)));
+
     return NextResponse.json({ message: 'Error during login' }, { status: 500 });
   }
 }

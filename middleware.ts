@@ -1,11 +1,8 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
-import { hasAccess, getDefaultRedirectPath } from "./app/utils/roleAccess";
-import { Role } from "@prisma/client";
-// Note: Not importing logger here to avoid bundling applicationinsights in middleware
-// Middleware runs in Edge runtime which doesn't support Node.js modules
 
-// Map database roles to dashboard paths
+type Role = 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
+
 const ROLE_DASHBOARD_MAP: Record<Role, string> = {
   ADMIN: '/dashboard/admin',
   MANAGER: '/dashboard/manager',
@@ -16,28 +13,19 @@ export default withAuth(
   function middleware(req) {
     const token = req.nextauth.token;
     const path = req.nextUrl.pathname;
-    
-    // Only log in development - never log sensitive info in production
-    // Using console.log instead of logger to avoid bundling applicationinsights in middleware
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Middleware] Processing request', { path, hasToken: !!token });
-    }
 
-    // Allow access to public routes
+    // Allow public routes
     if (path === '/register' || path === '/login' || path === '/error' || path === '/') {
       return NextResponse.next();
     }
-    
-    // Handle API routes
+
+    // Allow API routes
     if (path.startsWith('/api/')) {
       return NextResponse.next();
     }
 
     // Redirect to login if no token
     if (!token) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Middleware] No auth token, redirecting to login', { path });
-      }
       const loginUrl = new URL("/login", req.url);
       loginUrl.searchParams.set("callbackUrl", encodeURIComponent(path));
       return NextResponse.redirect(loginUrl);
@@ -45,55 +33,35 @@ export default withAuth(
 
     const userRole = token.role as Role;
 
-    // If on login page and authenticated, redirect to appropriate dashboard
+    // If on login page and authenticated, redirect to dashboard
     if (path === '/login') {
-      const redirectPath = getDefaultRedirectPath(userRole);
-      return NextResponse.redirect(new URL(redirectPath, req.url));
+      return NextResponse.redirect(new URL(ROLE_DASHBOARD_MAP[userRole] || '/dashboard/employee', req.url));
     }
 
-    // If accessing dashboard root, redirect to role-specific dashboard
+    // If accessing /dashboard root, redirect to role-specific dashboard
     if (path === '/dashboard') {
-      const defaultPath = getDefaultRedirectPath(userRole);
-      return NextResponse.redirect(new URL(defaultPath, req.url));
+      return NextResponse.redirect(new URL(ROLE_DASHBOARD_MAP[userRole] || '/dashboard/employee', req.url));
     }
 
-    // Check access permissions for dashboard routes
+    // Role-based access: Admin can access everything, others restricted to their portal
     if (path.startsWith('/dashboard/')) {
-      const hasRouteAccess = hasAccess(userRole, path);
+      if (userRole === 'ADMIN') return NextResponse.next(); // Admin can access all
+      if (userRole === 'MANAGER' && (path.startsWith('/dashboard/manager') || path.startsWith('/dashboard/employee'))) return NextResponse.next();
+      if (userRole === 'EMPLOYEE' && path.startsWith('/dashboard/employee')) return NextResponse.next();
 
-      // If access is granted (including admin access), proceed
-      if (hasRouteAccess) {
-        return NextResponse.next();
-      }
-
-      // If access is denied, redirect to default dashboard
-      const defaultPath = getDefaultRedirectPath(userRole);
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Middleware] Access denied, redirecting', { path, role: userRole });
-      }
-      return NextResponse.redirect(new URL(defaultPath, req.url));
+      // Redirect to own dashboard if unauthorized
+      return NextResponse.redirect(new URL(ROLE_DASHBOARD_MAP[userRole] || '/dashboard/employee', req.url));
     }
 
     return NextResponse.next();
   },
   {
     callbacks: {
-      authorized: ({ token }) => {
-        // Don't log authorization checks - security risk
-        return !!token;
-      },
-    },
-    pages: {
-      signIn: "/login",
+      authorized: ({ token }) => !!token,
     },
   }
 );
 
 export const config = {
-  matcher: [
-    "/dashboard/:path*",
-    "/api/((?!auth).)*",  // Block all API routes except auth
-    "/login",
-    "/register",
-  ],
-}; 
+  matcher: ['/dashboard/:path*', '/api/((?!auth).)*', '/login', '/register'],
+};

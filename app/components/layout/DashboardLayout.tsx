@@ -7,7 +7,7 @@ import { ReactNode, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { IconType } from 'react-icons';
-import { hasAccess } from '@/app/utils/roleAccess';
+// Role-based access will be reimplemented with new feature pages
 
 import {
   BsBullseye, BsStar, BsBarChartLine as BsBarChart, BsPerson,
@@ -18,7 +18,6 @@ import {
   BsChevronLeft, BsChevronRight
 } from 'react-icons/bs';
 import { useSettings } from '@/app/providers';
-import NotificationsDropdown from '@/app/components/shared/NotificationsDropdown';
 import ThemeToggle from '@/app/components/ui/ThemeToggle';
 
 interface DashboardLayoutProps {
@@ -131,25 +130,12 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
     const adminItems: NavItem[] = [
       { href: '/dashboard/admin', label: 'Overview', icon: BsShield },
       { href: '/dashboard/admin/users', label: 'Users', icon: BsPeople },
-      { href: '/dashboard/admin/all-goals', label: 'All Goals', icon: BsBullseye },
-      { href: '/dashboard/admin/review-cycles', label: 'Reviews', icon: BsCalendarCheck },
-      { href: '/dashboard/admin/events', label: 'Events', icon: BsCalendar },
-      { href: '/dashboard/analytics?context=admin', label: 'Analytics', icon: BsBarChart },
     ];
     const managerItems: NavItem[] = [
       { href: '/dashboard/manager', label: 'Overview', icon: BsGraphUp },
-      { href: '/dashboard/manager/goals/approve-goals', label: 'Approvals', icon: BsClipboardData },
-      { href: '/dashboard/manager/goals/setgoals', label: 'Set Goals', icon: BsBullseye },
-      { href: '/dashboard/manager/rate-employees', label: 'Rate Team', icon: BsStar },
-      { href: '/dashboard/analytics?context=manager', label: 'Analytics', icon: BsBarChart },
     ];
     const employeeItems: NavItem[] = [
       { href: '/dashboard/employee', label: 'Overview', icon: BsPerson },
-      { href: '/dashboard/employee/goals/create', label: 'My Goals', icon: BsBullseye },
-      { href: '/dashboard/employee/self-rating', label: 'Self Rating', icon: BsStar },
-      { href: '/dashboard/employee/events', label: 'My Events', icon: BsCheckEvent },
-      { href: '/dashboard/employee/events/browse', label: 'Browse Events', icon: BsCalendar },
-      { href: '/dashboard/analytics?context=employee', label: 'Analytics', icon: BsBarChart },
     ];
     switch (type) {
       case 'admin': return adminItems;
@@ -163,7 +149,8 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       const userRole = session?.user?.role as Role | undefined;
       if (userRole === 'ADMIN') return;
       const currentPath = pathname || '';
-      if (userRole && !hasAccess(userRole, currentPath)) {
+      // Basic role routing — will be expanded with feature pages
+      if (false) { // Disabled until features are rebuilt
         router.push(userRole === 'MANAGER' ? '/dashboard/manager' : '/dashboard/employee');
       }
     }
@@ -407,7 +394,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
           {/* Right */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            {session?.user?.id && <NotificationsDropdown userId={session.user.id} />}
+            {/* Notifications will be added when feature is built */}
 
             {/* User menu */}
             <div className="relative" ref={userMenuRef}>

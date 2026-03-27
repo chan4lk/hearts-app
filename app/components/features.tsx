@@ -1,6 +1,9 @@
 'use client';
 
-import { MotionDiv, container, item } from './animations/motion';
+import { motion } from 'framer-motion';
+const MotionDiv = motion.div;
+const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1 } } };
+const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
 import {
   Target, TrendingUp, ClipboardCheck, Users, Star, CalendarCheck,
   ArrowRight
