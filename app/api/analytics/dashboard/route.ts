@@ -160,7 +160,7 @@ export async function GET(req: NextRequest) {
       prisma.goal.count({
         where: {
           ...(goalWhereClause as any),
-          status: { notIn: ['COMPLETED', 'DELETED'] },
+          status: { notIn: ['COMPLETED', 'DELETED', 'ON_HOLD', 'BLOCKED'] },
           dueDate: { lt: now }
         }
       }),

@@ -39,6 +39,12 @@ model User {
   updatedReviewCycles ReviewCycle[]  @relation("ReviewCycleUpdater")
   goalChangeLogs      GoalChangeLog[] @relation("GoalChanges")
   goalTemplates       GoalTemplate[] @relation("GoalTemplateCreator")
+  escalatedGoals      Goal[]         @relation("EscalatedGoals")
+  peerRatingsGiven    PeerRating[]   @relation("PeerRater")
+  peerRatingsReceived PeerRating[]   @relation("PeerRated")
+  pipAsEmployee       PerformanceImprovementPlan[] @relation("PIPEmployee")
+  pipAsManager        PerformanceImprovementPlan[] @relation("PIPManager")
+  calibrationSessions CalibrationParticipant[]
   createdEvents       Event[]        @relation("EventCreatedBy")
   eventParticipations EventParticipation[]
 
@@ -92,15 +98,24 @@ model Goal {
   weight             Int            @default(10) // Goal importance weight (1-100). Higher = more strategic.
   version            Int            @default(1)  // Optimistic locking — incremented on each update
   reviewCycleId      String?        // Links goal to a review cycle period
+  parentGoalId       String?        // OKR hierarchy: links to parent goal (company → team → individual)
+  ratingType         String         @default("ORDINAL") // BINARY, ORDINAL (1-5), SCALE_100 (0-100%)
+  escalatedAt        DateTime?      // When goal was escalated for approval
+  escalatedToId      String?        // Manager's manager who can approve if direct manager is absent
+  permanentlyDeletedAt DateTime?    // GDPR: When goal data was permanently removed
   createdBy          User?          @relation("CreatedGoals", fields: [createdById], references: [id])
   deletedBy          User?          @relation("DeletedGoals", fields: [deletedById], references: [id])
   employee           User           @relation("EmployeeGoals", fields: [employeeId], references: [id])
   manager            User?          @relation("ManagerGoals", fields: [managerId], references: [id])
   updatedBy          User?          @relation("UpdatedGoals", fields: [updatedById], references: [id])
   reviewCycle        ReviewCycle?   @relation("GoalReviewCycle", fields: [reviewCycleId], references: [id])
+  parentGoal         Goal?          @relation("GoalHierarchy", fields: [parentGoalId], references: [id])
+  childGoals         Goal[]         @relation("GoalHierarchy")
+  escalatedTo        User?          @relation("EscalatedGoals", fields: [escalatedToId], references: [id])
   notifications      Notification[]
   rating             Rating? // One-to-one: each goal has at most one rating record
   changeLogs         GoalChangeLog[]
+  peerRatings        PeerRating[]
 
   // Foreign key indexes
   @@index([managerId])
@@ -109,6 +124,8 @@ model Goal {
   @@index([updatedById])
   @@index([deletedById])
   @@index([reviewCycleId])
+  @@index([parentGoalId])
+  @@index([escalatedToId])
 
   // Single column indexes for frequently filtered fields
   @@index([status])
@@ -171,6 +188,11 @@ model Rating {
   managerComments  String? // Manager's feedback/comments
   managerRatedById String? // Who gave the manager-rating
   managerRatedAt   DateTime? // When manager-rating was submitted
+
+  // Finalization
+  selfFinalized    Boolean  @default(false)  // Once true, self-rating cannot be changed
+  managerFinalized Boolean  @default(false)  // Once true, manager-rating cannot be changed
+  reviewCycleId    String?  // Links rating to specific review cycle
 
   // Relations
   goal           Goal  @relation(fields: [goalId], references: [id])
@@ -274,6 +296,9 @@ model ReviewCycle {
   after6Months        String?  // Month name (October, etc.)
   reviewMonth         String?  // Month name (April, etc.)
   adjustedReviewMonth String?  // Month name (February, March, etc.)
+  cycleStartDate      DateTime? // Proper start date of review cycle
+  cycleEndDate        DateTime? // Proper end date of review cycle
+  cycleStatus         String   @default("ACTIVE") // DRAFT, ACTIVE, CLOSED
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
   updatedById         String?
@@ -383,4 +408,86 @@ model GoalTemplate {
   @@index([category])
   @@index([isActive])
   @@index([createdById])
+}
+
+// GDPR: Archive of permanently deleted goal data (encrypted reference)
+model GoalDeletionArchive {
+  id              String   @id @default(cuid())
+  originalGoalId  String
+  deletedBy       String
+  deletedAt       DateTime @default(now())
+  reason          String
+  goalTitle       String   // Snapshot for audit trail
+  employeeId      String   // Who the goal belonged to
+  permanentlyDeletedAt DateTime @default(now())
+
+  @@index([deletedBy])
+  @@index([employeeId])
+  @@index([deletedAt])
+}
+
+// 360-degree peer feedback
+model PeerRating {
+  id         String   @id @default(cuid())
+  goalId     String
+  raterId    String   // Who gave the rating
+  ratedForId String   // Who the rating is for
+  score      Int      // 1-5 scale
+  comments   String?
+  createdAt  DateTime @default(now())
+  goal       Goal     @relation(fields: [goalId], references: [id])
+  rater      User     @relation("PeerRater", fields: [raterId], references: [id])
+  ratedFor   User     @relation("PeerRated", fields: [ratedForId], references: [id])
+
+  @@unique([goalId, raterId]) // One peer rating per goal per rater
+  @@index([goalId])
+  @@index([raterId])
+  @@index([ratedForId])
+}
+
+// Performance Improvement Plans
+model PerformanceImprovementPlan {
+  id              String   @id @default(cuid())
+  employeeId      String
+  managerId       String
+  startDate       DateTime
+  endDate         DateTime
+  status          String   @default("ACTIVE") // ACTIVE, COMPLETED, FAILED, CANCELLED
+  reason          String   // Why PIP was initiated
+  successCriteria String   // JSON array of criteria
+  checkInFrequency String  @default("BIWEEKLY") // WEEKLY, BIWEEKLY, MONTHLY
+  outcome         String?  // Final outcome notes
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  employee        User     @relation("PIPEmployee", fields: [employeeId], references: [id])
+  manager         User     @relation("PIPManager", fields: [managerId], references: [id])
+
+  @@index([employeeId])
+  @@index([managerId])
+  @@index([status])
+}
+
+// Calibration sessions for rating consistency across managers
+model CalibrationSession {
+  id           String   @id @default(cuid())
+  name         String
+  status       String   @default("DRAFT") // DRAFT, ACTIVE, CLOSED
+  createdAt    DateTime @default(now())
+  closedAt     DateTime?
+  participants CalibrationParticipant[]
+
+  @@index([status])
+}
+
+model CalibrationParticipant {
+  id          String   @id @default(cuid())
+  sessionId   String
+  userId      String   // Manager participating
+  joinedAt    DateTime @default(now())
+  session     CalibrationSession @relation(fields: [sessionId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@unique([sessionId, userId])
+  @@index([sessionId])
+  @@index([userId])
 }
