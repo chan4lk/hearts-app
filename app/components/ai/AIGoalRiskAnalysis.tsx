@@ -168,6 +168,7 @@ export default function AIGoalRiskAnalysis({ goalId, className = '' }: AIGoalRis
 
           {/* Close Button */}
           <button
+            type="button"
             onClick={() => setShowAnalysis(false)}
             className="w-full px-4 py-2 bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary rounded-lg transition-colors text-sm"
           >

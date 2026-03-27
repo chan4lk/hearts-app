@@ -86,7 +86,7 @@ export function CheckboxHeader({ isAllSelected, isPartialSelected, onToggle }: {
 }) {
   return (
     <th style={{ width: '3%' }} className="py-2.5 px-3">
-      <button onClick={onToggle} className="text-secondary hover:text-primary transition-colors cursor-pointer">
+      <button type="button" onClick={onToggle} className="text-secondary hover:text-primary transition-colors cursor-pointer" aria-label={isAllSelected ? 'Deselect all' : 'Select all'}>
         {isAllSelected ? (
           <BsCheckSquare className="w-4 h-4 text-accent" />
         ) : isPartialSelected ? (
@@ -103,7 +103,7 @@ export function CheckboxHeader({ isAllSelected, isPartialSelected, onToggle }: {
 export function CheckboxCell({ checked, onToggle }: { checked: boolean; onToggle: () => void }) {
   return (
     <td className="py-2.5 px-3" onClick={e => e.stopPropagation()}>
-      <button onClick={onToggle} className="text-secondary hover:text-primary transition-colors cursor-pointer">
+      <button type="button" onClick={onToggle} className="text-secondary hover:text-primary transition-colors cursor-pointer" aria-label={checked ? 'Deselect row' : 'Select row'}>
         {checked ? <BsCheckSquare className="w-4 h-4 text-accent" /> : <BsSquare className="w-4 h-4" />}
       </button>
     </td>
@@ -121,9 +121,9 @@ export function SelectionBanner({ count, onBulkDelete, onClear }: {
     <div className="flex items-center gap-3 px-3 py-2 bg-accent-muted border border-theme dark:border-[rgb(var(--color-accent))]/20 rounded-lg text-xs">
       <span className="font-medium text-accent">{count} selected</span>
       {onBulkDelete && (
-        <button onClick={onBulkDelete} className="ml-auto text-error hover:underline font-medium cursor-pointer">Delete selected</button>
+        <button type="button" onClick={onBulkDelete} className="ml-auto text-error hover:underline font-medium cursor-pointer">Delete selected</button>
       )}
-      <button onClick={onClear} className="text-secondary hover:text-primary font-medium cursor-pointer">Clear</button>
+      <button type="button" onClick={onClear} className="text-secondary hover:text-primary font-medium cursor-pointer">Clear</button>
     </div>
   );
 }

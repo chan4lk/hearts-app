@@ -196,6 +196,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2.5 text-secondary hover:text-primary transition-all duration-200 rounded-lg hover:bg-accent-muted group"
         aria-label="Notifications"
@@ -243,6 +244,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
               </div>
               <div className="flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={handleRefresh}
                   disabled={isRefreshing}
                   className="p-1.5 rounded-lg hover:bg-surface-secondary transition-colors disabled:opacity-50"
@@ -257,6 +259,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                   </motion.div>
                 </button>
                 <button
+                  type="button"
                   onClick={() => setIsOpen(false)}
                   className="p-1.5 rounded-lg hover:bg-surface-secondary transition-colors"
                   title="Close"
@@ -333,6 +336,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                         <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                           {!notification.isRead && (
                             <button
+                              type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 markAsRead(notification.id);
@@ -345,6 +349,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                             </button>
                           )}
                           <button
+                            type="button"
                             onClick={(e) => deleteNotification(notification.id, e)}
                             className="p-2 rounded-lg hover:bg-error-muted transition-colors"
                             title="Delete"
@@ -365,6 +370,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
               <div className="px-4 py-3 border-t border-theme bg-surface-secondary flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <button
+                    type="button"
                     onClick={() => {
                       // Mark all as read
                       notifications
@@ -378,6 +384,7 @@ export default function NotificationsDropdown({ userId }: NotificationsDropdownP
                     Mark all as read
                   </button>
                   <button
+                    type="button"
                     onClick={clearAllNotifications}
                     className="text-xs font-medium text-error hover:opacity-80 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-error-muted"
                   >

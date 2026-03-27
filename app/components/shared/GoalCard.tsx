@@ -105,6 +105,7 @@ export default function GoalCard({ goal, onClick, onEdit, onDelete, showActions 
           <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             {onEdit && (
               <button
+                type="button"
                 onClick={(e) => { e.stopPropagation(); onEdit(goal); }}
                 className="p-1.5 text-secondary hover:text-accent rounded-lg hover:bg-accent-muted transition-colors cursor-pointer focus-ring"
                 title="Edit"
@@ -115,6 +116,7 @@ export default function GoalCard({ goal, onClick, onEdit, onDelete, showActions 
             )}
             {onDelete && (
               <button
+                type="button"
                 onClick={(e) => { e.stopPropagation(); onDelete(goal); }}
                 className="p-1.5 text-secondary hover:text-error rounded-lg hover:bg-error-muted transition-colors cursor-pointer focus-ring"
                 title="Delete"

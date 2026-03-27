@@ -104,6 +104,7 @@ export default function PageToolbar({
         {/* Actions */}
         {actions.map((action, i) => (
           <button
+            type="button"
             key={i}
             onClick={action.onClick}
             disabled={action.disabled}

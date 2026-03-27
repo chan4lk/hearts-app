@@ -92,8 +92,8 @@ export default function ReviewCycleTable({ reviewCycles, onEdit, onDelete, onRef
                       </td>
                       <td className={TABLE_STYLES.td}>
                         <div className="flex items-center gap-1.5">
-                          <button onClick={() => onEdit(cycle)} className="p-1 text-accent hover:text-accent hover:bg-accent-muted rounded transition-colors cursor-pointer" title="Edit"><BsPencil className="w-3 h-3" /></button>
-                          <button onClick={() => onDelete(cycle)} className="p-1 text-error hover:text-error hover:bg-error-muted rounded transition-colors cursor-pointer" title="Delete"><BsTrash className="w-3 h-3" /></button>
+                          <button type="button" onClick={() => onEdit(cycle)} className="p-1 text-accent hover:text-accent hover:bg-accent-muted rounded transition-colors cursor-pointer" title="Edit" aria-label="Edit review cycle"><BsPencil className="w-3 h-3" /></button>
+                          <button type="button" onClick={() => onDelete(cycle)} className="p-1 text-error hover:text-error hover:bg-error-muted rounded transition-colors cursor-pointer" title="Delete" aria-label="Delete review cycle"><BsTrash className="w-3 h-3" /></button>
                         </div>
                       </td>
                     </tr>

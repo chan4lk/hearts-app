@@ -31,6 +31,7 @@ export default function ThemeToggle() {
   return (
     <div className="relative" ref={ref}>
       <button
+        type="button"
         onClick={() => setOpen(!open)}
         className="relative flex items-center justify-center w-9 h-9 rounded-xl bg-surface-secondary hover:bg-surface-tertiary border border-theme transition-all duration-200 group"
         aria-label="Toggle theme"
@@ -61,6 +62,7 @@ export default function ThemeToggle() {
               const isActive = theme === value;
               return (
                 <button
+                  type="button"
                   key={value}
                   onClick={() => {
                     setTheme(value);

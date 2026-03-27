@@ -132,6 +132,7 @@ export default function AIGoalSuggestionsModal({ onSelectGoal, className = '', o
                     <h2 className="text-2xl font-bold text-[rgb(var(--color-text-inverse))]">AI-Powered Goal Suggestions</h2>
                   </div>
                   <button
+                    type="button"
                     onClick={() => {
                       setShowSuggestions(false);
                       // Close the parent modal state when manually closed
@@ -140,6 +141,7 @@ export default function AIGoalSuggestionsModal({ onSelectGoal, className = '', o
                       }
                     }}
                     className="text-[rgb(var(--color-text-inverse))]/80 hover:text-[rgb(var(--color-text-inverse))] transition-colors"
+                    aria-label="Close suggestions"
                   >
                     <BsXCircle className="w-6 h-6" />
                   </button>

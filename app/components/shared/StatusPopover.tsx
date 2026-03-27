@@ -41,9 +41,11 @@ export default function StatusPopover({
   return (
     <div className="relative inline-block" ref={popoverRef}>
       <button
+        type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         className={`transition-opacity ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:opacity-80'}`}
+        aria-label={`Change ${type}: currently ${currentStatus}`}
       >
         <StatusBadge type={type} value={currentStatus} size="sm" />
       </button>
@@ -61,6 +63,7 @@ export default function StatusPopover({
               const isActive = option.value === currentStatus;
               return (
                 <button
+                  type="button"
                   key={option.value}
                   onClick={() => {
                     if (!isActive) onStatusChange(option.value);

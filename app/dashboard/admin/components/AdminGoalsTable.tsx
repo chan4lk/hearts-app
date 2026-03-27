@@ -292,9 +292,11 @@ export default function AdminGoalsTable({
                       <td className="py-2 px-3 text-xs" onClick={(e) => e.stopPropagation()}>
                         {onDelete && (
                           <button
+                            type="button"
                             onClick={() => onDelete(goal)}
                             className="p-1 text-error hover:text-error hover:bg-error-muted rounded transition-colors"
                             title="Delete Goal"
+                            aria-label="Delete goal"
                           >
                             <BsTrash className="w-3 h-3" />
                           </button>

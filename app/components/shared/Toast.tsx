@@ -90,6 +90,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 <Icon className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <p className="text-sm font-medium flex-1 text-primary">{t.message}</p>
                 <button
+                  type="button"
                   onClick={() => removeToast(t.id)}
                   className="text-secondary hover:text-primary flex-shrink-0"
                   aria-label="Dismiss"

@@ -105,13 +105,13 @@ export const EventsTable = ({ events, onEdit, onDelete, onView, onBulkDelete, is
                   </td>
                   <td className={TABLE_STYLES.td}>
                     <div className="flex items-center gap-1">
-                      <button onClick={(e) => { e.stopPropagation(); onView(event); }} className="rounded-lg p-1.5 hover:bg-cat-professional transition-colors cursor-pointer" title="View" aria-label="View event">
+                      <button type="button" onClick={(e) => { e.stopPropagation(); onView(event); }} className="rounded-lg p-1.5 hover:bg-cat-professional transition-colors cursor-pointer" title="View" aria-label="View event">
                         <BsEye className="w-3.5 h-3.5 text-cat-professional" />
                       </button>
-                      <button onClick={(e) => { e.stopPropagation(); onEdit(event); }} className="rounded-lg p-1.5 hover:bg-accent-muted transition-colors cursor-pointer" title="Edit" aria-label="Edit event">
+                      <button type="button" onClick={(e) => { e.stopPropagation(); onEdit(event); }} className="rounded-lg p-1.5 hover:bg-accent-muted transition-colors cursor-pointer" title="Edit" aria-label="Edit event">
                         <BsPencilSquare className="w-3.5 h-3.5 text-accent" />
                       </button>
-                      <button onClick={(e) => { e.stopPropagation(); onDelete(event.id); }} className="rounded-lg p-1.5 hover:bg-error-muted transition-colors cursor-pointer" title="Delete" aria-label="Delete event">
+                      <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(event.id); }} className="rounded-lg p-1.5 hover:bg-error-muted transition-colors cursor-pointer" title="Delete" aria-label="Delete event">
                         <BsTrash className="w-3.5 h-3.5 text-error" />
                       </button>
                     </div>

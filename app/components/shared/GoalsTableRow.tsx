@@ -502,6 +502,7 @@ export default function GoalsTableRow({
           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             {onGoalClick && (
               <button
+                type="button"
                 onClick={() => onGoalClick(goal)}
                 className="p-1.5 text-accent hover:text-accent hover:bg-accent-muted rounded transition-colors"
                 title="View"
@@ -512,6 +513,7 @@ export default function GoalsTableRow({
             )}
             {onEdit && (
               <button
+                type="button"
                 onClick={() => onEdit(goal)}
                 className="p-1.5 text-cat-professional hover:text-cat-professional hover:bg-cat-professional rounded transition-colors"
                 title="Edit"
@@ -522,6 +524,7 @@ export default function GoalsTableRow({
             )}
             {onDelete && (
               <button
+                type="button"
                 onClick={() => onDelete(goal)}
                 className="p-1.5 text-error hover:text-error hover:bg-error-muted rounded transition-colors"
                 title="Delete"

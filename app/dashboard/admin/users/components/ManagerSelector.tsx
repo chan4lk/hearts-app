@@ -169,8 +169,10 @@ export default function ManagerSelector({
               <p className="text-xs text-secondary mt-0.5">{userName}</p>
             </div>
             <button
+              type="button"
               onClick={handleClose}
               className="p-1.5 text-secondary hover:text-primary hover:bg-surface-secondary rounded transition-colors"
+              aria-label="Close manager selector"
             >
               <BsX className="w-4 h-4" />
             </button>

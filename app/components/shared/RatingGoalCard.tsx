@@ -154,6 +154,7 @@ export default function RatingGoalCard({
               type="button"
               onClick={() => setShowDetails(!showDetails)}
               className="text-secondary p-1 rounded-lg hover:bg-surface-secondary dark:hover:bg-surface-tertiary"
+              aria-label={showDetails ? 'Collapse details' : 'Expand details'}
             >
               <motion.div animate={{ rotate: showDetails ? 180 : 0 }} transition={{ duration: 0.2 }}>
                 <BsChevronDown className="w-4 h-4" />
@@ -189,6 +190,7 @@ export default function RatingGoalCard({
                     type="button"
                     onClick={() => !isSubmitting && onRatingChange(goal.id, rating)}
                     disabled={isSubmitting}
+                    aria-label={`Rate ${rating} out of 5`}
                     className={`w-8 h-8 flex items-center justify-center rounded-md transition-colors ${
                       isGridView
                         ? currentScore === rating

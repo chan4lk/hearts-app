@@ -197,9 +197,11 @@ export default function GoalProgressTracker({
               
               return (
                 <button
+                  type="button"
                   key={option.value}
                   onClick={() => setStatus(option.value)}
                   disabled={isUpdating}
+                  aria-label={`Set status to ${option.label}`}
                   className={`flex items-center gap-2 p-3 rounded-lg border transition-all ${
                     isSelected
                       ? option.selectedClass
@@ -219,6 +221,7 @@ export default function GoalProgressTracker({
       {isEmployee && (
         <div className="space-y-3">
           <button
+            type="button"
             onClick={() => setShowNotes(!showNotes)}
             className="text-sm text-accent hover:text-accent"
           >

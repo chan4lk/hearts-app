@@ -248,6 +248,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
           </div>
         )}
         <button
+          type="button"
           onClick={handleSignOut}
           className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-error hover:bg-error-muted transition-all duration-200 cursor-pointer focus-ring"
         >
@@ -319,8 +320,10 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
           </div>
         )}
         <button
+          type="button"
           onClick={handleSignOut}
           title={collapsed ? 'Sign out' : undefined}
+          aria-label="Sign out"
           className={`flex items-center rounded-xl text-sm font-medium text-error hover:bg-error-muted transition-all duration-200 cursor-pointer focus-ring ${collapsed ? 'justify-center w-full py-2.5' : 'gap-2.5 w-full px-3 py-2.5'}`}
         >
           <BsBoxArrowRight className="text-base" />
@@ -462,6 +465,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                     {/* Sign out */}
                     <div className="p-2">
                       <button
+                        type="button"
                         onClick={handleSignOut}
                         className="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-error hover:bg-error-muted transition-colors cursor-pointer focus-ring"
                       >

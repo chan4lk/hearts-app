@@ -201,8 +201,10 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                 <h2 className="text-base font-bold text-primary">Import Review Cycles</h2>
               </div>
               <button
+                type="button"
                 onClick={handleClose}
                 className="text-secondary hover:text-primary transition-colors flex-shrink-0"
+                aria-label="Close import modal"
               >
                 <BsX className="w-5 h-5" />
               </button>
@@ -234,6 +236,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                           {(file.size / 1024).toFixed(2)} KB
                         </p>
                         <button
+                          type="button"
                           onClick={() => {
                             setFile(null);
                             if (fileInputRef.current) {
@@ -352,12 +355,14 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
               {!importResult ? (
                 <>
                   <button
+                    type="button"
                     onClick={handleClose}
                     className="px-3 py-1.5 text-xs text-secondary hover:text-primary transition-colors"
                   >
                     Cancel
                   </button>
                   <button
+                    type="button"
                     onClick={handleUpload}
                     disabled={!file || isUploading}
                     className="px-3 py-1.5 bg-[rgb(var(--color-event-social))] hover:bg-[rgb(var(--color-event-social))] text-[rgb(var(--color-text-inverse))] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 text-xs font-medium"
@@ -379,6 +384,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                 <>
                   {importResult.reportData && (
                     <button
+                      type="button"
                       onClick={downloadImportReport}
                       className="px-3 py-1.5 bg-accent hover:opacity-90 text-[rgb(var(--color-text-inverse))] rounded-lg transition-colors flex items-center gap-1.5 text-xs font-medium"
                     >
@@ -387,6 +393,7 @@ export default function ImportExcelModal({ isOpen, onClose, onImportComplete }: 
                     </button>
                   )}
                   <button
+                    type="button"
                     onClick={handleClose}
                     className="px-3 py-1.5 bg-[rgb(var(--color-event-social))] hover:bg-[rgb(var(--color-event-social))] text-[rgb(var(--color-text-inverse))] rounded-lg transition-colors text-xs font-medium"
                   >

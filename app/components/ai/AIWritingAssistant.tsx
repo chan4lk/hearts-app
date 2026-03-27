@@ -122,6 +122,7 @@ export default function AIWritingAssistant({
             {/* Actions */}
             <div className="flex items-center gap-3 pt-2">
               <button
+                type="button"
                 onClick={handleAccept}
                 className="flex items-center gap-2 px-4 py-2 bg-accent hover:opacity-90 text-[rgb(var(--color-text-inverse))] rounded-lg transition-colors text-sm"
               >
@@ -129,6 +130,7 @@ export default function AIWritingAssistant({
                 <span>Use Improved Version</span>
               </button>
               <button
+                type="button"
                 onClick={handleReject}
                 className="flex items-center gap-2 px-4 py-2 bg-surface-secondary hover:bg-surface-tertiary border border-theme text-primary rounded-lg transition-colors text-sm"
               >

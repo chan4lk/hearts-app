@@ -392,6 +392,7 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
               {/* Show More/Less Button */}
               {shouldShowExpandButton && (
                 <button
+                  type="button"
                   onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
                   className="flex items-center justify-center w-full gap-1.5 mt-1.5 sm:mt-2 py-1.5 sm:py-2 text-xs font-medium
                            text-secondary hover:text-primary transition-colors rounded-lg

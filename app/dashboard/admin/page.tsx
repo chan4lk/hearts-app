@@ -461,6 +461,7 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide mb-4">
               {GOAL_TABS.map((tab) => (
                 <button
+                  type="button"
                   key={tab.value}
                   onClick={() => {
                     setSelectedStatus(tab.value);
