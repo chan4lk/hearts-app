@@ -205,6 +205,10 @@ export async function PUT(req: NextRequest, { params }: { params: { goalId: stri
       );
     }
 
+    // Only ADMIN/MANAGER can reassign goals to different employees
+    const canReassign = isAdmin || isGoalManager;
+    const finalEmployeeId = (canReassign && employeeId) ? employeeId : existingGoal.employeeId;
+
     const updateData = {
       title: title.trim(),
       description: description.trim(),
@@ -212,7 +216,7 @@ export async function PUT(req: NextRequest, { params }: { params: { goalId: stri
       department: department || 'ENGINEERING',
       priority: priority || 'MEDIUM',
       dueDate: new Date(dueDate),
-      employeeId: employeeId || existingGoal.employeeId, // Allow updating employee assignment
+      employeeId: finalEmployeeId,
       updatedById: session.user.id
     };
     
@@ -322,6 +326,22 @@ export async function DELETE(req: NextRequest, { params }: { params: { goalId: s
       );
     }
 
+    // Require deletion reason for non-DRAFT goals (audit trail)
+    let deletionReason: string | undefined;
+    try {
+      const body = await req.json();
+      deletionReason = body?.reason;
+    } catch {
+      // Body may be empty for simple DELETE requests — allowed for DRAFT goals
+    }
+
+    if (existingGoal.status !== 'DRAFT' && (!deletionReason || deletionReason.trim().length < 5)) {
+      return NextResponse.json(
+        { error: 'A reason is required when deleting non-draft goals (minimum 5 characters)' },
+        { status: 400 }
+      );
+    }
+
     const goal = await prisma.goal.update({
       where: { id: params.goalId },
       data: {
@@ -329,7 +349,8 @@ export async function DELETE(req: NextRequest, { params }: { params: { goalId: s
         deletedAt: new Date(),
         deletedById: session.user.id,
         updatedAt: new Date(),
-        updatedById: session.user.id
+        updatedById: session.user.id,
+        managerComments: deletionReason ? `[DELETED] ${deletionReason}` : existingGoal.managerComments
       },
       include: goalInclude
     });

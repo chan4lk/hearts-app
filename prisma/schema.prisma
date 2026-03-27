@@ -37,6 +37,7 @@ model User {
   reviewCycle         ReviewCycle?   @relation("UserReviewCycle")
   reportingPersonFor  ReviewCycle[]  @relation("ReviewCycleReportingPerson")
   updatedReviewCycles ReviewCycle[]  @relation("ReviewCycleUpdater")
+  goalChangeLogs      GoalChangeLog[] @relation("GoalChanges")
   createdEvents       Event[]        @relation("EventCreatedBy")
   eventParticipations EventParticipation[]
 
@@ -97,6 +98,7 @@ model Goal {
   reviewCycle        ReviewCycle?   @relation("GoalReviewCycle", fields: [reviewCycleId], references: [id])
   notifications      Notification[]
   rating             Rating? // One-to-one: each goal has at most one rating record
+  changeLogs         GoalChangeLog[]
 
   // Foreign key indexes
   @@index([managerId])
@@ -129,6 +131,25 @@ model Goal {
   @@index([employeeId, status, createdAt, dueDate]) // Employee dashboard queries
   @@index([managerId, status, createdAt]) // Manager review queries
   @@index([status, createdAt, dueDate]) // Analytics and sorting
+}
+
+// Audit trail for goal changes — tracks who changed what when
+model GoalChangeLog {
+  id         String   @id @default(cuid())
+  goalId     String
+  changedBy  String
+  changedAt  DateTime @default(now())
+  fieldName  String   // "status", "title", "dueDate", "weight", etc.
+  oldValue   String?
+  newValue   String?
+  reason     String?  // Required for sensitive changes (status, weight, dueDate)
+  goal       Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  user       User     @relation("GoalChanges", fields: [changedBy], references: [id])
+
+  @@index([goalId])
+  @@index([changedBy])
+  @@index([changedAt])
+  @@index([goalId, changedAt])
 }
 
 model Rating {

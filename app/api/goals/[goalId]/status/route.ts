@@ -106,15 +106,24 @@ export async function PATCH(
           );
         }
       } else if (goal.status === 'APPROVED' || goal.status === 'REJECTED') {
-        // Managers can change between APPROVED/REJECTED or request modifications
-        const allowed = ['APPROVED', 'REJECTED', 'MODIFIED'];
+        // Managers can change between APPROVED/REJECTED/MODIFIED, or reset APPROVED→DRAFT
+        const allowed = ['APPROVED', 'REJECTED', 'MODIFIED', 'DRAFT'];
         if (!allowed.includes(status)) {
           return NextResponse.json(
-            { error: `Managers can change between Approved, Rejected, and Modified` },
+            { error: `Managers can change between Approved, Rejected, Modified, or reset to Draft` },
             { status: 400 }
           );
         }
-      } else if (['IN_PROGRESS', 'ON_HOLD', 'BLOCKED', 'COMPLETED'].includes(goal.status)) {
+      } else if (goal.status === 'COMPLETED') {
+        // Managers can reopen completed goals (COMPLETED → IN_PROGRESS)
+        const allowed = ['IN_PROGRESS'];
+        if (!allowed.includes(status)) {
+          return NextResponse.json(
+            { error: `Completed goals can only be reopened to In Progress by a manager` },
+            { status: 400 }
+          );
+        }
+      } else if (['IN_PROGRESS', 'ON_HOLD', 'BLOCKED'].includes(goal.status)) {
         // Managers can update work statuses
         const allowed = ['IN_PROGRESS', 'COMPLETED', 'ON_HOLD', 'BLOCKED'];
         if (!allowed.includes(status)) {

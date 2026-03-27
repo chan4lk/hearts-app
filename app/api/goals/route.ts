@@ -47,7 +47,13 @@ type StatusTransitions = {
  *
  * APPROVED → Employee works:
  *   → IN_PROGRESS → ON_HOLD / BLOCKED → back to IN_PROGRESS
- *   → COMPLETED (terminal)
+ *   → COMPLETED
+ *
+ * COMPLETED → Manager can reopen if needed:
+ *   → IN_PROGRESS (manager only, with comment required)
+ *
+ * APPROVED → Manager can reset if priorities change:
+ *   → DRAFT (manager only, with comment)
  *
  * Manager assigns → APPROVED directly (skips review)
  */
@@ -55,12 +61,12 @@ const validTransitions: StatusTransitions = {
   [GoalStatus.DRAFT]:       [GoalStatus.PENDING],                                                    // Employee submits for review
   [GoalStatus.PENDING]:     [GoalStatus.APPROVED, GoalStatus.REJECTED, GoalStatus.MODIFIED],         // Manager reviews
   [GoalStatus.MODIFIED]:    [GoalStatus.PENDING, GoalStatus.DRAFT],                                  // Employee revises and resubmits
-  [GoalStatus.APPROVED]:    [GoalStatus.IN_PROGRESS, GoalStatus.COMPLETED],                          // Employee starts work
+  [GoalStatus.APPROVED]:    [GoalStatus.IN_PROGRESS, GoalStatus.COMPLETED, GoalStatus.DRAFT],        // Employee starts work; Manager can reset to DRAFT
   [GoalStatus.REJECTED]:    [GoalStatus.DRAFT],                                                      // Employee revises
   [GoalStatus.IN_PROGRESS]: [GoalStatus.COMPLETED, GoalStatus.ON_HOLD, GoalStatus.BLOCKED],          // Employee tracks work
   [GoalStatus.ON_HOLD]:     [GoalStatus.IN_PROGRESS, GoalStatus.COMPLETED],                          // Resume or complete
   [GoalStatus.BLOCKED]:     [GoalStatus.IN_PROGRESS, GoalStatus.COMPLETED],                          // Unblock or complete
-  [GoalStatus.COMPLETED]:   [],                                                                       // Terminal
+  [GoalStatus.COMPLETED]:   [GoalStatus.IN_PROGRESS],                                                // Manager can reopen if completion was premature
   [GoalStatus.DELETED]:     []                                                                        // Terminal
 };
 
