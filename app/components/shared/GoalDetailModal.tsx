@@ -1,11 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { BsX, BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, BsArrowRight, BsChevronDown, BsChevronUp, BsPencil, BsTrash, BsPerson, BsGear, BsFlag, BsPlayCircle, BsPauseCircle, BsCircle, BsArrowRepeat } from 'react-icons/bs';
+import { BsCheckCircle, BsXCircle, BsClock, BsCalendar, BsShield, BsChat, BsArrowRight, BsChevronDown, BsChevronUp, BsPencil, BsTrash, BsPerson, BsGear, BsFlag, BsPlayCircle, BsPauseCircle, BsCircle, BsArrowRepeat } from 'react-icons/bs';
 import { Goal, GoalWithRatingExtended } from '@/app/components/shared/types';
 import { IconType } from 'react-icons';
 import { getPriorityConfig as getSharedPriorityConfig, getDepartmentConfig as getSharedDepartmentConfig } from '@/app/utils/badgeConfigs';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FORM_STYLES } from '@/app/components/ui/form-primitives';
+import { ModalShell, FORM_STYLES } from '@/app/components/ui/form-primitives';
 import { Button } from '@/app/components/ui/button';
 import { Badge } from '@/app/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
@@ -245,28 +244,15 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
     }
   };
 
-  const content = (
-    <>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="fixed inset-0 modal-overlay z-[100]"
-      />
-              <div className="fixed inset-0 flex items-center justify-center p-1 sm:p-2 md:p-3 z-[100]" onClick={onClose}>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            onClick={e => e.stopPropagation()}
-            className="relative modal-content rounded-2xl w-full max-w-[95vw] sm:max-w-md mx-auto
-                     shadow-theme-xl overflow-hidden max-h-[90vh] sm:max-h-[85vh] flex flex-col"
-         >
-        {/* Header */}
-        <div className="relative px-4 sm:px-5 py-3 sm:py-4 flex items-start justify-between flex-shrink-0 border-b border-theme">
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+  return (
+    <ModalShell
+      open={true}
+      onClose={onClose}
+      title={currentGoal.title}
+      maxWidth="max-w-lg"
+    >
+        {/* Status & Badges */}
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-3">
               {/* Status Dropdown - Show for employees on PENDING/APPROVED goals, or managers/admins on any goal */}
               {((currentGoal.status === 'PENDING' || currentGoal.status === 'APPROVED') && session?.user?.id === currentGoal.employeeId) || 
                (isManagerOrAdmin && (currentGoal.status === 'PENDING' || currentGoal.status === 'DRAFT' || currentGoal.status === 'APPROVED')) ? (
@@ -324,23 +310,6 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
                 <departmentConfig.icon className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
                 {departmentConfig.label}
               </Badge>
-            </div>
-            <h2 className="text-sm sm:text-base font-medium text-primary truncate pr-10 sm:pr-12 leading-tight">{currentGoal.title}</h2>
-          </div>
-          
-          {/* Action Buttons */}
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleClose}
-              disabled={isSubmitting || isUpdatingStatus}
-              aria-label="Close"
-              className="h-7 w-7 sm:h-8 sm:w-8 text-secondary hover:text-primary hover:bg-surface-tertiary touch-manipulation"
-            >
-              <BsX className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </Button>
-          </div>
         </div>
 
         {/* Error Banner */}
@@ -679,10 +648,6 @@ export default function GoalDetailModal({ goal, onClose, onSubmitGoal, onEdit, o
             </Button>
           </div>
         </div>
-      </motion.div>
-      </div>
-    </>
+    </ModalShell>
   );
-
-  return typeof document !== 'undefined' ? createPortal(content, document.body) : content;
 }
