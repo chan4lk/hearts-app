@@ -2,8 +2,7 @@
 
 import { SessionProvider } from 'next-auth/react';
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { ErrorBoundary } from '@/app/components/shared/ErrorBoundary';
-import { ToastProvider } from '@/app/components/shared/Toast';
+// ErrorBoundary and Toast removed — using Next.js error.tsx + inline toasts
 
 // ─── Theme Types ──────────────────────────────────────────────────
 type Theme = 'light' | 'dark' | 'system';
@@ -127,9 +126,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <SessionProvider>
       <ThemeProvider>
         <SettingsProvider>
-          <ErrorBoundary>
-            <ToastProvider>{children}</ToastProvider>
-          </ErrorBoundary>
+          {children}
         </SettingsProvider>
       </ThemeProvider>
     </SessionProvider>
