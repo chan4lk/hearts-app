@@ -86,7 +86,7 @@ export default function GoalsPage() {
         {loading ? (
           <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-24 bg-surface-elevated rounded-2xl border border-theme animate-pulse" />)}</div>
         ) : goals.length === 0 ? (
-          <div className="text-center py-16 bg-surface-elevated rounded-2xl border border-theme">
+          <div className="empty-container">
             <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: 'rgba(var(--color-goal-active),0.1)' }}>
               <Target className="w-10 h-10" style={{ color: 'rgb(var(--color-goal-active))' }} />
             </div>
@@ -97,7 +97,7 @@ export default function GoalsPage() {
           <div className="space-y-3">
             {goals.map((goal, i) => (
               <motion.div key={goal.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-                className="bg-surface-elevated rounded-2xl border border-theme p-5 shadow-theme-sm hover:shadow-theme-md transition-all group">
+                className="card-interactive p-5 group">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5">
@@ -146,9 +146,9 @@ export default function GoalsPage() {
         <AnimatePresence>
           {showCreate && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowCreate(false)} />
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="modal-backdrop" onClick={() => setShowCreate(false)} />
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-                className="relative bg-surface-elevated rounded-2xl border border-theme shadow-theme-xl p-6 w-full max-w-md">
+                className="modal-panel max-w-md">
                 <div className="flex justify-between items-center mb-5">
                   <h2 className="text-lg font-bold text-primary flex items-center gap-2"><Target className="w-5 h-5" style={{ color: 'rgb(var(--color-goal-active))' }} /> New Goal</h2>
                   <button onClick={() => setShowCreate(false)} className="text-secondary hover:text-primary focus-ring rounded-lg p-1"><X className="w-5 h-5" /></button>

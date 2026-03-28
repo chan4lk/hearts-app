@@ -37,7 +37,7 @@ export default function ReviewsPage() {
         {loading ? (
           <div className="space-y-3">{[1,2].map(i => <div key={i} className="h-20 bg-surface-elevated rounded-2xl border border-theme animate-pulse" />)}</div>
         ) : cycles.length === 0 ? (
-          <div className="text-center py-16 bg-surface-elevated rounded-2xl border border-theme">
+          <div className="empty-container">
             <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: 'rgba(var(--color-review),0.1)' }}>
               <ClipboardCheck className="w-10 h-10" style={{ color: 'rgb(var(--color-review))' }} />
             </div>
@@ -48,7 +48,7 @@ export default function ReviewsPage() {
           <div className="space-y-3">
             {cycles.map((cycle, i) => (
               <motion.div key={cycle.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                <Link href={`/dashboard/reviews/${cycle.id}`} className="block bg-surface-elevated rounded-2xl border border-theme p-5 shadow-theme-sm hover:shadow-theme-md transition-all group focus-ring">
+                <Link href={`/dashboard/reviews/${cycle.id}`} className="block card-interactive p-5 focus-ring group">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(var(--color-review),0.1)' }}>

@@ -79,7 +79,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map(({ icon: Icon, title, description, color }) => (
-              <div key={title} className="bg-surface-elevated rounded-2xl border border-theme p-6 shadow-theme-sm hover:shadow-theme-md transition-all group">
+              <div key={title} className="card-interactive p-6 group">
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform" style={{ backgroundColor: `rgba(var(${color}),0.1)` }}>
                   <Icon className="w-6 h-6" style={{ color: `rgb(var(${color}))` }} />
                 </div>
@@ -100,7 +100,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {benefits.map((benefit) => (
-              <div key={benefit} className="flex items-start gap-3 bg-surface-elevated rounded-xl border border-theme p-4 shadow-theme-sm">
+              <div key={benefit} className="flex items-start gap-3 card-stat">
                 <CheckCircle className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-primary font-medium">{benefit}</p>
               </div>

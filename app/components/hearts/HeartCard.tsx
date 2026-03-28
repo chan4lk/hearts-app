@@ -31,7 +31,7 @@ export default function HeartCard({ heart }: HeartCardProps) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="group bg-surface-elevated rounded-2xl border border-theme p-5 shadow-theme-sm hover:shadow-theme-md transition-all duration-200"
+      className="group card-interactive p-5"
     >
       {/* Sender → Receiver header */}
       <div className="flex items-center gap-3 mb-3">
@@ -50,7 +50,7 @@ export default function HeartCard({ heart }: HeartCardProps) {
 
       {/* Value tag */}
       <div className="mb-2">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[rgba(var(--color-heart),0.1)] text-[rgb(var(--color-heart))]">
+        <span className="badge-heart">
           <Heart className="w-3 h-3" fill="currentColor" />
           {heart.valueTag.name}
         </span>

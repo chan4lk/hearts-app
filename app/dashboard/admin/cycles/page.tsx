@@ -77,7 +77,7 @@ export default function AdminCyclesPage() {
           <div className="space-y-3">
             {cycles.map(cycle => (
               <motion.div key={cycle.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                className="bg-surface-elevated rounded-xl border border-theme p-4 shadow-theme-sm">
+                className="card-stat">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-1">

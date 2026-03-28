@@ -132,7 +132,7 @@ export default function CycleDetailPage() {
         </div>
 
         {/* Progress stats */}
-        <div className="bg-surface-elevated rounded-xl border border-theme p-4 shadow-theme-sm">
+        <div className="card-stat">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-semibold text-primary">Cycle Progress</span>
             <span className="text-sm font-bold text-accent">{completionPct}%</span>
@@ -149,7 +149,7 @@ export default function CycleDetailPage() {
 
         {/* My Self-Review */}
         {myReview && (
-          <div className="bg-surface-elevated rounded-xl border border-theme p-4 shadow-theme-sm">
+          <div className="card-stat">
             <h3 className="text-sm font-semibold text-primary mb-3">My Self-Review</h3>
             {myReview.isFinalized ? (
               <div className="flex items-center gap-2 text-success">

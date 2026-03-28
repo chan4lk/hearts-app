@@ -37,7 +37,7 @@ export default function AdminDashboard() {
               { label: 'Active Goals', value: stats.activeGoals || 0, icon: Target, color: '--color-goal-active' },
               { label: 'Goal Completion', value: `${stats.goalCompletionRate || 0}%`, icon: TrendingUp, color: '--color-goal-completed' },
             ].map(({ label, value, icon: Icon, color }) => (
-              <div key={label} className="bg-surface-elevated rounded-xl border border-theme p-4 shadow-theme-sm">
+              <div key={label} className="card-stat">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `rgba(var(${color}),0.1)` }}>
                     <Icon className="w-5 h-5" style={{ color: `rgb(var(${color}))` }} />
@@ -56,7 +56,7 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {adminLinks.map(({ href, label, description, icon: Icon, color }) => (
             <Link key={href} href={href}
-              className="bg-surface-elevated rounded-2xl border border-theme p-6 shadow-theme-sm hover:shadow-theme-md transition-all focus-ring group">
+              className="card-interactive p-6 focus-ring group">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform" style={{ backgroundColor: `rgba(var(${color}),0.1)` }}>
                 <Icon className="w-6 h-6" style={{ color: `rgb(var(${color}))` }} />
               </div>

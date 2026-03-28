@@ -83,7 +83,7 @@ export default function EventsPage() {
         {loading ? (
           <div className="space-y-3">{[1,2].map(i => <div key={i} className="h-28 bg-surface-elevated rounded-2xl border border-theme animate-pulse" />)}</div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-16 bg-surface-elevated rounded-2xl border border-theme">
+          <div className="empty-container">
             <div className="w-20 h-20 rounded-full bg-accent-muted flex items-center justify-center mx-auto mb-4">
               <Calendar className="w-10 h-10 text-accent" />
             </div>
@@ -97,7 +97,7 @@ export default function EventsPage() {
               const isPast = dt < now;
               return (
                 <motion.div key={event.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-                  className="bg-surface-elevated rounded-2xl border border-theme shadow-theme-sm hover:shadow-theme-md transition-all overflow-hidden">
+                  className="card-interactive overflow-hidden">
                   <div className="flex">
                     {/* Date badge */}
                     <div className="w-20 flex-shrink-0 bg-accent-muted flex flex-col items-center justify-center p-3 border-r border-theme">
@@ -152,9 +152,9 @@ export default function EventsPage() {
         <AnimatePresence>
           {showCreate && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowCreate(false)} />
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="modal-backdrop" onClick={() => setShowCreate(false)} />
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-                className="relative bg-surface-elevated rounded-2xl border border-theme shadow-theme-xl p-6 w-full max-w-md">
+                className="modal-panel max-w-md">
                 <div className="flex justify-between items-center mb-5">
                   <h2 className="text-lg font-bold text-primary flex items-center gap-2"><Calendar className="w-5 h-5 text-accent" /> New Event</h2>
                   <button onClick={() => setShowCreate(false)} className="text-secondary hover:text-primary focus-ring rounded-lg p-1"><X className="w-5 h-5" /></button>

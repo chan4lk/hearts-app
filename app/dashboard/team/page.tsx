@@ -39,7 +39,7 @@ export default function TeamPage() {
                   { label: 'Hearts (30d)', value: stats.teamHeartsReceived || 0, icon: Heart, color: '--color-heart' },
                   { label: 'Active Cycles', value: stats.activeCycles || 0, icon: ClipboardCheck, color: '--color-review' },
                 ].map(({ label, value, icon: Icon, color }) => (
-                  <div key={label} className="bg-surface-elevated rounded-xl border border-theme p-4 shadow-theme-sm">
+                  <div key={label} className="card-stat">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `rgba(var(${color}),0.1)` }}>
                         <Icon className="w-5 h-5" style={{ color: `rgb(var(${color}))` }} />
@@ -51,14 +51,14 @@ export default function TeamPage() {
               </div>
             )}
 
-            <div className="bg-surface-elevated rounded-2xl border border-theme shadow-theme-sm overflow-hidden">
+            <div className="card-section">
               <div className="px-5 py-3.5 border-b border-theme"><h3 className="text-sm font-semibold text-primary">Team Members ({members.length})</h3></div>
               <div className="divide-y divide-[rgb(var(--color-border-theme))]">
                 {members.length === 0 ? (
                   <p className="text-center text-sm text-secondary py-12">No team members assigned yet</p>
                 ) : members.map((m) => (
                   <div key={m.id} className="px-5 py-3.5 flex items-center gap-3.5 hover:bg-surface-secondary transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[rgb(var(--color-accent))] to-[rgb(var(--color-review))] flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                    <div className="avatar-md avatar-gradient">
                       {m.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                     </div>
                     <div className="flex-1 min-w-0">
