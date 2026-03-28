@@ -33,6 +33,12 @@ interface NavItem {
   isSub?: boolean;
 }
 
+interface NavSection {
+  title: string;
+  items: NavItem[];
+  defaultOpen?: boolean;
+}
+
 type Role = 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
 
 // ─── Nav Link with animated active indicator ─────────────────────
@@ -73,6 +79,43 @@ function NavLink({ item, isActive, onClick, collapsed }: { item: NavItem; isActi
         />
       )}
     </Link>
+  );
+}
+
+// ─── Collapsible Nav Group ───────────────────────────────────────
+function NavGroup({ section, isPathActive, onClick, collapsed: sidebarCollapsed }: {
+  section: NavSection; isPathActive: (href: string, isSub?: boolean) => boolean; onClick?: () => void; collapsed?: boolean;
+}) {
+  const hasActiveItem = section.items.some(item => isPathActive(item.href, item.isSub));
+  const [open, setOpen] = useState(section.defaultOpen || hasActiveItem);
+
+  return (
+    <div className="mt-1">
+      {!sidebarCollapsed && (
+        <button
+          onClick={() => setOpen(!open)}
+          className="w-full flex items-center justify-between px-3.5 py-1.5 text-2xs font-semibold text-tertiary uppercase tracking-wider hover:text-secondary transition-colors"
+        >
+          {section.title}
+          <motion.span animate={{ rotate: open ? 90 : 0 }} transition={{ duration: 0.15 }} className="text-xs">›</motion.span>
+        </button>
+      )}
+      <AnimatePresence initial={false}>
+        {(open || sidebarCollapsed) && (
+          <motion.div
+            initial={sidebarCollapsed ? false : { height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden space-y-0.5"
+          >
+            {section.items.map(item => (
+              <NavLink key={item.href} item={item} isActive={isPathActive(item.href, item.isSub)} onClick={onClick} collapsed={sidebarCollapsed} />
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -143,34 +186,53 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
     if (typeof window !== 'undefined') sessionStorage.setItem('dashboardContext', type);
   }, [type]);
 
-  const getNavItems = (): NavItem[] => {
+  const getNavSections = (): NavSection[] => {
     const userRole = session?.user?.role as Role | undefined;
-    const isOnAdminPages = pathname.startsWith('/dashboard/admin');
+    const sections: NavSection[] = [];
 
-    // Base items — all roles see these (Employee level)
-    const items: NavItem[] = [
-      { href: '/dashboard/feed', label: 'Feed', icon: BsHeart },
-      { href: '/dashboard/goals', label: 'Goals', icon: BsBullseye },
-      { href: '/dashboard/reviews', label: 'Reviews', icon: BsJournalCheck },
-      { href: '/dashboard/events', label: 'Events', icon: BsCalendar },
-    ];
+    // Employee section — everyone sees this
+    sections.push({
+      title: 'My Work',
+      defaultOpen: true,
+      items: [
+        { href: '/dashboard/feed', label: 'Feed', icon: BsHeart },
+        { href: '/dashboard/goals', label: 'Goals', icon: BsBullseye },
+        { href: '/dashboard/reviews', label: 'Reviews', icon: BsJournalCheck },
+        { href: '/dashboard/events', label: 'Events', icon: BsCalendar },
+      ],
+    });
 
-    // Manager+ sees Team
+    // Manager section
     if (userRole === 'MANAGER' || userRole === 'ADMIN') {
-      items.push({ href: '/dashboard/team', label: 'Team', icon: BsPeople });
+      sections.push({
+        title: 'Manager',
+        defaultOpen: true,
+        items: [
+          { href: '/dashboard/team', label: 'Team', icon: BsPeople },
+        ],
+      });
     }
 
-    // Admin sees Admin with always-visible sub-items
+    // Admin section
     if (userRole === 'ADMIN') {
-      items.push({ href: '/dashboard/admin', label: 'Admin', icon: BsShield });
-      items.push({ href: '/dashboard/admin/users', label: 'Users', icon: BsPeople, isSub: true });
-      items.push({ href: '/dashboard/admin/values', label: 'Values', icon: BsHeart, isSub: true });
-      items.push({ href: '/dashboard/admin/cycles', label: 'Cycles', icon: BsCalendar, isSub: true });
-      items.push({ href: '/dashboard/admin/templates', label: 'Templates', icon: BsBullseye, isSub: true });
+      sections.push({
+        title: 'Admin',
+        defaultOpen: false,
+        items: [
+          { href: '/dashboard/admin', label: 'Dashboard', icon: BsShield },
+          { href: '/dashboard/admin/users', label: 'Users', icon: BsPeople, isSub: true },
+          { href: '/dashboard/admin/values', label: 'Values', icon: BsHeart, isSub: true },
+          { href: '/dashboard/admin/cycles', label: 'Cycles', icon: BsCalendar, isSub: true },
+          { href: '/dashboard/admin/templates', label: 'Templates', icon: BsBullseye, isSub: true },
+        ],
+      });
     }
 
-    return items;
+    return sections;
   };
+
+  // Flat list for header active item detection
+  const getNavItems = (): NavItem[] => getNavSections().flatMap(s => s.items);
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -184,6 +246,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
     }
   }, [status, pathname, session]);
 
+  const navSections = getNavSections();
   const navItems = getNavItems();
   const userRole = session?.user?.role as Role | undefined;
   const portalLabel = userRole || 'Employee';
@@ -254,10 +317,10 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="px-3 space-y-1 flex-1">
-        {navItems.map((navItem) => (
-          <NavLink key={navItem.href} item={navItem} isActive={isPathActive(navItem.href, navItem.isSub)} onClick={onNavClick} />
+      {/* Navigation — sectioned */}
+      <nav className="px-3 flex-1 space-y-1">
+        {navSections.map((section) => (
+          <NavGroup key={section.title} section={section} isPathActive={isPathActive} onClick={onNavClick} />
         ))}
       </nav>
 
@@ -312,10 +375,10 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
         )}
       </div>
 
-      {/* Navigation */}
-      <nav className={`space-y-1 flex-1 ${collapsed ? 'px-2' : 'px-3'}`}>
-        {navItems.map((navItem) => (
-          <NavLink key={navItem.href} item={navItem} isActive={isPathActive(navItem.href, navItem.isSub)} collapsed={collapsed} />
+      {/* Navigation — sectioned */}
+      <nav className={`flex-1 space-y-1 ${collapsed ? 'px-2' : 'px-3'}`}>
+        {navSections.map((section) => (
+          <NavGroup key={section.title} section={section} isPathActive={isPathActive} collapsed={collapsed} />
         ))}
       </nav>
 

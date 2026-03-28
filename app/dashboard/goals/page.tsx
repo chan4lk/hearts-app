@@ -207,19 +207,7 @@ export default function GoalsPage() {
                   <button onClick={() => setShowCreate(false)} className="text-secondary hover:text-primary focus-ring rounded-lg p-1"><X className="w-5 h-5" /></button>
                 </div>
 
-                {/* Mode toggle for managers */}
-                {isManager && (
-                  <div className="flex gap-1.5 mb-5">
-                    <button onClick={() => setBulkMode('self')}
-                      className={`flex-1 py-2 rounded-xl text-xs font-semibold focus-ring transition-all ${bulkMode === 'self' ? 'tab-active' : 'tab-inactive'}`}>
-                      My Goals
-                    </button>
-                    <button onClick={() => setBulkMode('assign')}
-                      className={`flex-1 py-2 rounded-xl text-xs font-semibold focus-ring transition-all ${bulkMode === 'assign' ? 'tab-active' : 'tab-inactive'}`}>
-                      Assign to Team
-                    </button>
-                  </div>
-                )}
+                {/* Employee-only: simple goal creation (no team assign) */}
 
                 <form onSubmit={handleCreate} className="space-y-4">
                   {/* Goal rows */}
@@ -255,62 +243,12 @@ export default function GoalsPage() {
                     + Add Another Goal
                   </button>
 
-                  {/* Team member selector for bulk assign */}
-                  {bulkMode === 'assign' && (
-                    <div className="space-y-2">
-                      <button type="button" onClick={() => setSelectedMembers(prev => prev.length > 0 ? prev : teamMembers.map(m => m.id).slice(0, 0))}
-                        className="input-label flex items-center gap-2 cursor-pointer hover:text-primary transition-colors w-full text-left">
-                        Assign to employees
-                        {selectedMembers.length > 0 && (
-                          <span className="badge-base bg-accent-muted text-accent">{selectedMembers.length} selected</span>
-                        )}
-                      </button>
-
-                      {/* Select All / Deselect All */}
-                      <div className="flex gap-2 mb-1">
-                        <button type="button" onClick={() => setSelectedMembers(teamMembers.map(m => m.id))}
-                          className="text-2xs text-accent hover:underline focus-ring rounded">Select all</button>
-                        <span className="text-2xs text-tertiary">·</span>
-                        <button type="button" onClick={() => setSelectedMembers([])}
-                          className="text-2xs text-tertiary hover:text-error focus-ring rounded">Clear</button>
-                      </div>
-
-                      {/* Employee chips */}
-                      <div className="flex flex-wrap gap-2">
-                        {teamMembers.map(m => {
-                          const selected = selectedMembers.includes(m.id);
-                          return (
-                            <button key={m.id} type="button" onClick={() => toggleMember(m.id)}
-                              className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium focus-ring transition-all ${
-                                selected
-                                  ? 'bg-accent text-[rgb(var(--color-text-inverse))] shadow-sm'
-                                  : 'bg-surface-elevated border border-theme text-secondary hover:text-primary hover:border-accent'
-                              }`}>
-                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-2xs font-bold ${selected ? 'bg-white/20 text-[rgb(var(--color-text-inverse))]' : 'avatar-gradient text-white'}`}>
-                                {m.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                              </div>
-                              {m.name}
-                              {selected && <span className="ml-1">✓</span>}
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      {/* Summary */}
-                      {selectedMembers.length > 0 && (
-                        <div className="card-stat p-3 mt-2">
-                          <p className="text-xs text-primary font-medium">
-                            {bulkGoals.filter(g => g.title.trim()).length} goal(s) × {selectedMembers.length} employee(s) = <strong className="text-accent">{bulkGoals.filter(g => g.title.trim()).length * selectedMembers.length} goals</strong> will be created
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  {/* Team assign moved to Team page — this form is employee self-goals only */}
 
                   <div className="flex gap-3 pt-2">
                     <button type="button" onClick={() => setShowCreate(false)} className="btn-secondary flex-1">Cancel</button>
                     <button type="submit"
-                      disabled={creating || bulkGoals.every(g => !g.title.trim()) || (bulkMode === 'assign' && selectedMembers.length === 0)}
+                      disabled={creating || bulkGoals.every(g => !g.title.trim())}
                       className="btn-primary flex-1">
                       {creating ? 'Creating...' : `Create ${bulkGoals.filter(g => g.title.trim()).length} Goal(s)`}
                     </button>
