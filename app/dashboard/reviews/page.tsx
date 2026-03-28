@@ -7,6 +7,7 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import HeartButton from '@/app/components/hearts/HeartButton';
 import { motion } from 'framer-motion';
 import { ClipboardCheck, Calendar, ChevronRight } from 'lucide-react';
+import PageSkeleton from '@/app/components/shared/PageSkeleton';
 
 interface ReviewCycle { id: string; name: string; startDate: string; endDate: string; type: string; status: string; _count: { reviews: number }; }
 
@@ -35,7 +36,7 @@ export default function ReviewsPage() {
         </div>
 
         {loading ? (
-          <div className="space-y-3">{[1,2].map(i => <div key={i} className="h-20 bg-surface-elevated rounded-2xl border border-theme animate-pulse" />)}</div>
+          <PageSkeleton type="cards" count={2} />
         ) : cycles.length === 0 ? (
           <div className="empty-container">
             <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: 'rgba(var(--color-review),0.1)' }}>

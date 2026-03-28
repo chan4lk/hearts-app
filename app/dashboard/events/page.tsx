@@ -6,6 +6,7 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import HeartButton from '@/app/components/hearts/HeartButton';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, MapPin, Check, X, Plus, Users, Clock } from 'lucide-react';
+import PageSkeleton from '@/app/components/shared/PageSkeleton';
 
 interface EventItem {
   id: string; title: string; description: string | null; dateTime: string;
@@ -81,7 +82,7 @@ export default function EventsPage() {
         </div>
 
         {loading ? (
-          <div className="space-y-3">{[1,2].map(i => <div key={i} className="h-28 bg-surface-elevated rounded-2xl border border-theme animate-pulse" />)}</div>
+          <PageSkeleton type="cards" count={2} />
         ) : filtered.length === 0 ? (
           <div className="empty-container">
             <div className="w-20 h-20 rounded-full bg-accent-muted flex items-center justify-center mx-auto mb-4">

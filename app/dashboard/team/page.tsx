@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import HeartButton from '@/app/components/hearts/HeartButton';
 import { Users, Target, Heart, ClipboardCheck } from 'lucide-react';
+import PageSkeleton from '@/app/components/shared/PageSkeleton';
 
 interface TeamMember { id: string; name: string; email: string; department: string | null; position: string | null; role: string; }
 
@@ -28,7 +29,7 @@ export default function TeamPage() {
         </div>
 
         {loading ? (
-          <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 bg-surface-elevated rounded-2xl border border-theme animate-pulse" />)}</div>
+          <PageSkeleton type="table" count={3} />
         ) : (
           <>
             {stats && (

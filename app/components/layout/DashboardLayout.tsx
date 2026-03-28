@@ -30,12 +30,14 @@ interface NavItem {
   href: string;
   icon: IconType;
   label: string;
+  isSub?: boolean;
 }
 
 type Role = 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
 
 // ─── Nav Link with animated active indicator ─────────────────────
 function NavLink({ item, isActive, onClick, collapsed }: { item: NavItem; isActive: boolean; onClick?: () => void; collapsed?: boolean }) {
+  const isSub = item.isSub;
   // Determine icon color based on nav item
   const iconColorMap: Record<string, string> = {
     Feed: 'rgb(var(--color-heart))',
@@ -52,18 +54,18 @@ function NavLink({ item, isActive, onClick, collapsed }: { item: NavItem; isActi
       href={item.href}
       onClick={onClick}
       title={collapsed ? item.label : undefined}
-      className={`relative flex items-center ${collapsed ? 'justify-center px-2' : 'gap-3 px-3.5'} py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-ring group ${
+      className={`relative flex items-center ${collapsed ? 'justify-center px-2' : isSub ? 'gap-2.5 pl-8 pr-3' : 'gap-3 px-3.5'} ${isSub ? 'py-1.5' : 'py-2.5'} rounded-xl ${isSub ? 'text-xs' : 'text-sm'} font-medium transition-all duration-200 focus-ring group ${
         isActive
-          ? 'bg-surface-elevated text-primary shadow-theme-sm border border-theme'
+          ? isSub ? 'bg-accent-muted text-accent' : 'bg-surface-elevated text-primary shadow-theme-sm border border-theme'
           : 'text-secondary hover:text-primary hover:bg-surface-tertiary'
       }`}
     >
       <item.icon
-        className={`text-base flex-shrink-0 transition-all duration-200 ${isActive ? '' : 'group-hover:scale-110'}`}
+        className={`${isSub ? 'text-xs' : 'text-base'} flex-shrink-0 transition-all duration-200 ${isActive ? '' : 'group-hover:scale-110'}`}
         style={iconColor ? { color: iconColor } : undefined}
       />
       {!collapsed && <span>{item.label}</span>}
-      {isActive && (
+      {isActive && !isSub && (
         <motion.div
           layoutId="nav-active"
           className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-accent rounded-r-full"
@@ -143,6 +145,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
 
   const getNavItems = (): NavItem[] => {
     const userRole = session?.user?.role as Role | undefined;
+    const isOnAdminPages = pathname.startsWith('/dashboard/admin');
 
     // Base items — all roles see these (Employee level)
     const items: NavItem[] = [
@@ -157,9 +160,12 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       items.push({ href: '/dashboard/team', label: 'Team', icon: BsPeople });
     }
 
-    // Admin sees Admin
+    // Admin sees Admin with always-visible sub-items
     if (userRole === 'ADMIN') {
       items.push({ href: '/dashboard/admin', label: 'Admin', icon: BsShield });
+      items.push({ href: '/dashboard/admin/users', label: 'Users', icon: BsPeople, isSub: true });
+      items.push({ href: '/dashboard/admin/values', label: 'Values', icon: BsHeart, isSub: true });
+      items.push({ href: '/dashboard/admin/cycles', label: 'Cycles', icon: BsCalendar, isSub: true });
     }
 
     return items;
@@ -187,10 +193,17 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
     EMPLOYEE: 'from-[rgb(var(--color-success))] to-[rgb(var(--color-cat-personal))]',
   };
 
-  const isPathActive = (href: string) => {
+  const isPathActive = (href: string, isSub?: boolean) => {
     const hrefPath = href.split('?')[0].split('#')[0].replace(/\/$/, '');
     const currentPath = pathname.replace(/\/$/, '');
-    // Exact match or nested route (e.g., /dashboard/admin matches /dashboard/admin/users)
+    if (isSub) {
+      // Sub-items: exact match only
+      return currentPath === hrefPath || currentPath.startsWith(hrefPath + '/');
+    }
+    // Main items: exact match or nested (but NOT if a sub-item would match better)
+    if (hrefPath === '/dashboard/admin' && currentPath.startsWith('/dashboard/admin/')) {
+      return false; // Let sub-items handle /admin/users, /admin/values, /admin/cycles
+    }
     return currentPath === hrefPath || currentPath.startsWith(hrefPath + '/');
   };
 
@@ -243,7 +256,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       {/* Navigation */}
       <nav className="px-3 space-y-1 flex-1">
         {navItems.map((navItem) => (
-          <NavLink key={navItem.href} item={navItem} isActive={isPathActive(navItem.href)} onClick={onNavClick} />
+          <NavLink key={navItem.href} item={navItem} isActive={isPathActive(navItem.href, navItem.isSub)} onClick={onNavClick} />
         ))}
       </nav>
 
@@ -301,7 +314,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       {/* Navigation */}
       <nav className={`space-y-1 flex-1 ${collapsed ? 'px-2' : 'px-3'}`}>
         {navItems.map((navItem) => (
-          <NavLink key={navItem.href} item={navItem} isActive={isPathActive(navItem.href)} collapsed={collapsed} />
+          <NavLink key={navItem.href} item={navItem} isActive={isPathActive(navItem.href, navItem.isSub)} collapsed={collapsed} />
         ))}
       </nav>
 
@@ -394,7 +407,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
             </div>
             <div className="hidden md:flex items-center gap-2.5">
               {(() => {
-                const activeItem = navItems.find(navItem => isPathActive(navItem.href));
+                const activeItem = navItems.find(navItem => isPathActive(navItem.href, navItem.isSub));
                 const ActiveIcon = activeItem?.icon;
                 const iconColorMap: Record<string, string> = {
                   Feed: 'rgba(var(--color-heart),0.1)', Goals: 'rgba(var(--color-goal-active),0.1)',

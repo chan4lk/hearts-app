@@ -8,6 +8,7 @@ import StatusBadge from '@/app/components/goals/StatusBadge';
 import HeartButton from '@/app/components/hearts/HeartButton';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Target, X, ChevronRight } from 'lucide-react';
+import PageSkeleton from '@/app/components/shared/PageSkeleton';
 
 interface Goal {
   id: string; title: string; description: string | null; status: string; progress: number;
@@ -84,7 +85,7 @@ export default function GoalsPage() {
         </div>
 
         {loading ? (
-          <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-24 bg-surface-elevated rounded-2xl border border-theme animate-pulse" />)}</div>
+          <PageSkeleton type="cards" count={3} />
         ) : goals.length === 0 ? (
           <div className="empty-container">
             <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: 'rgba(var(--color-goal-active),0.1)' }}>

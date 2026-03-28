@@ -7,6 +7,7 @@ import HeartButton from '@/app/components/hearts/HeartButton';
 import HeartCard from '@/app/components/hearts/HeartCard';
 import OnboardingWizard from '@/app/components/onboarding/OnboardingWizard';
 import { Heart, Target, Calendar, ClipboardCheck } from 'lucide-react';
+import PageSkeleton, { StatsSkeleton } from '@/app/components/shared/PageSkeleton';
 
 interface HeartItem {
   id: string;
@@ -109,20 +110,7 @@ export default function FeedPage() {
 
         {/* Feed */}
         {loading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-surface-elevated rounded-2xl border border-theme p-5 shadow-theme-sm animate-pulse">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-surface-secondary" />
-                  <div className="flex-1 space-y-1.5">
-                    <div className="h-4 skeleton w-3/4" />
-                    <div className="h-3 bg-surface-secondary rounded w-1/3" />
-                  </div>
-                </div>
-                <div className="h-3 bg-surface-secondary rounded w-full" />
-              </div>
-            ))}
-          </div>
+          <PageSkeleton type="feed" count={3} />
         ) : hearts.length === 0 ? (
           <div className="empty-container">
             <div className="w-20 h-20 rounded-full bg-[rgba(var(--color-heart),0.1)] flex items-center justify-center mx-auto mb-4">
