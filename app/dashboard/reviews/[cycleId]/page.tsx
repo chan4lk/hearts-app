@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import { PageHeader } from '@/app/components/shared/PageHeader';
 import HeartButton from '@/app/components/hearts/HeartButton';
+import PageSkeleton from '@/app/components/shared/PageSkeleton';
 import { motion } from 'framer-motion';
 import { ArrowLeft, CheckCircle, Clock, FileText, Lock } from 'lucide-react';
 import Link from 'next/link';
@@ -116,7 +116,7 @@ export default function CycleDetailPage() {
     if (res.ok) setCycle(await res.json());
   };
 
-  if (loading) return <DashboardLayout type="employee"><div className="text-center py-12 text-secondary">Loading...</div></DashboardLayout>;
+  if (loading) return <DashboardLayout type="employee"><div className="max-w-4xl mx-auto pt-4"><PageSkeleton type="detail" /></div></DashboardLayout>;
   if (!cycle) return <DashboardLayout type="employee"><div className="text-center py-12 text-error">Cycle not found</div></DashboardLayout>;
 
   const completionPct = cycle.stats.total > 0 ? Math.round((cycle.stats.finalized / cycle.stats.total) * 100) : 0;
@@ -128,7 +128,10 @@ export default function CycleDetailPage() {
           <Link href="/dashboard/reviews" className="text-secondary hover:text-primary focus-ring rounded p-1">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <PageHeader title={cycle.name} description={`${new Date(cycle.startDate).toLocaleDateString()} – ${new Date(cycle.endDate).toLocaleDateString()} · ${cycle.type.replace('_', ' ')}`} />
+          <div>
+            <h1 className="text-xl font-bold text-primary">{cycle.name}</h1>
+            <p className="text-xs text-tertiary">{new Date(cycle.startDate).toLocaleDateString()} – {new Date(cycle.endDate).toLocaleDateString()} · {cycle.type.replace('_', ' ')}</p>
+          </div>
         </div>
 
         {/* Progress stats */}
@@ -208,9 +211,9 @@ export default function CycleDetailPage() {
         {/* Review Form Modal */}
         {activeReview && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/50" onClick={() => setActiveReview(null)} />
+            <div className="modal-backdrop" onClick={() => setActiveReview(null)} />
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-              className="relative bg-surface-elevated rounded-xl border border-theme shadow-theme-xl p-6 w-full max-w-lg max-h-[80vh] overflow-y-auto">
+              className="modal-panel max-w-lg max-h-[80vh] overflow-y-auto">
               <h2 className="text-lg font-semibold text-primary mb-4">
                 {activeReview.employeeId === userId ? 'Self-Review' : `Review: ${activeReview.employee.name}`}
               </h2>

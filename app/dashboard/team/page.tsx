@@ -5,6 +5,8 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import HeartButton from '@/app/components/hearts/HeartButton';
 import { Users, Target, Heart, ClipboardCheck } from 'lucide-react';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
+import PageTitle from '@/app/components/shared/PageTitle';
+import StatGrid from '@/app/components/shared/StatGrid';
 
 interface TeamMember { id: string; name: string; email: string; department: string | null; position: string | null; role: string; }
 
@@ -23,33 +25,19 @@ export default function TeamPage() {
   return (
     <DashboardLayout type="manager">
       <div className="max-w-4xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-primary flex items-center gap-2"><Users className="w-6 h-6 text-accent" /> My Team</h1>
-          <p className="text-sm text-secondary mt-0.5">Overview of your team's performance</p>
-        </div>
+        <PageTitle title="My Team" subtitle="Overview of your team's performance" icon={Users} iconColor="--color-accent" />
 
         {loading ? (
           <PageSkeleton type="table" count={3} />
         ) : (
           <>
             {stats && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { label: 'Team Size', value: stats.teamSize || members.length, icon: Users, color: '--color-accent' },
-                  { label: 'Active Goals', value: stats.teamActiveGoals || 0, icon: Target, color: '--color-goal-active' },
-                  { label: 'Hearts (30d)', value: stats.teamHeartsReceived || 0, icon: Heart, color: '--color-heart' },
-                  { label: 'Active Cycles', value: stats.activeCycles || 0, icon: ClipboardCheck, color: '--color-review' },
-                ].map(({ label, value, icon: Icon, color }) => (
-                  <div key={label} className="card-stat">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `rgba(var(${color}),0.1)` }}>
-                        <Icon className="w-5 h-5" style={{ color: `rgb(var(${color}))` }} />
-                      </div>
-                      <div><p className="text-xl font-bold text-primary">{value}</p><p className="text-2xs text-tertiary">{label}</p></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <StatGrid stats={[
+                { label: 'Team Size', value: stats.teamSize || members.length, icon: Users, color: '--color-accent' },
+                { label: 'Active Goals', value: stats.teamActiveGoals || 0, icon: Target, color: '--color-goal-active' },
+                { label: 'Hearts (30d)', value: stats.teamHeartsReceived || 0, icon: Heart, color: '--color-heart' },
+                { label: 'Active Cycles', value: stats.activeCycles || 0, icon: ClipboardCheck, color: '--color-review' },
+              ]} />
             )}
 
             <div className="card-section">

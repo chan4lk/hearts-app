@@ -4,9 +4,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import HeartButton from '@/app/components/hearts/HeartButton';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, Check, X, Plus, Users, Clock } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Calendar, MapPin, Check, X, Plus, Users } from 'lucide-react';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
+import PageTitle from '@/app/components/shared/PageTitle';
+import Modal from '@/app/components/shared/Modal';
+import { Input, Textarea, FormActions } from '@/app/components/shared/FormField';
+import EmptyState2 from '@/app/components/shared/EmptyState2';
 
 interface EventItem {
   id: string; title: string; description: string | null; dateTime: string;
@@ -56,19 +60,8 @@ export default function EventsPage() {
   return (
     <DashboardLayout type="employee">
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
-              <Calendar className="w-6 h-6 text-accent" /> Events
-            </h1>
-            <p className="text-sm text-secondary mt-0.5">Company events and activities</p>
-          </div>
-          {isAdmin && (
-            <button onClick={() => setShowCreate(true)} className="inline-flex items-center gap-2 px-4 py-2.5 bg-accent text-[rgb(var(--color-text-inverse))] rounded-xl text-sm font-medium hover:opacity-90 focus-ring shadow-sm">
-              <Plus className="w-4 h-4" /> New Event
-            </button>
-          )}
-        </div>
+        <PageTitle title="Events" subtitle="Company events and activities" icon={Calendar} iconColor="--color-accent"
+          actions={isAdmin ? <button onClick={() => setShowCreate(true)} className="btn-primary inline-flex items-center gap-2"><Plus className="w-4 h-4" /> New Event</button> : undefined} />
 
         <div className="flex gap-1.5">
           {(['upcoming', 'past'] as const).map(t => (
@@ -84,13 +77,7 @@ export default function EventsPage() {
         {loading ? (
           <PageSkeleton type="cards" count={2} />
         ) : filtered.length === 0 ? (
-          <div className="empty-container">
-            <div className="w-20 h-20 rounded-full bg-accent-muted flex items-center justify-center mx-auto mb-4">
-              <Calendar className="w-10 h-10 text-accent" />
-            </div>
-            <h3 className="text-lg font-semibold text-primary mb-2">No {tab} events</h3>
-            <p className="text-sm text-secondary">{isAdmin ? 'Create an event to get started' : 'Check back soon!'}</p>
-          </div>
+          <EmptyState2 icon={Calendar} title={`No ${tab} events`} description={isAdmin ? 'Create an event to get started' : 'Check back soon!'} />
         ) : (
           <div className="space-y-3">
             {filtered.map((event, i) => {
@@ -149,33 +136,17 @@ export default function EventsPage() {
           </div>
         )}
 
-        {/* Create Event Modal */}
-        <AnimatePresence>
-          {showCreate && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="modal-backdrop" onClick={() => setShowCreate(false)} />
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-                className="modal-panel max-w-md">
-                <div className="flex justify-between items-center mb-5">
-                  <h2 className="text-lg font-bold text-primary flex items-center gap-2"><Calendar className="w-5 h-5 text-accent" /> New Event</h2>
-                  <button onClick={() => setShowCreate(false)} className="text-secondary hover:text-primary focus-ring rounded-lg p-1"><X className="w-5 h-5" /></button>
-                </div>
-                <form onSubmit={handleCreate} className="space-y-4">
-                  <input value={title} onChange={e => setTitle(e.target.value)} required placeholder="Event title" className="input-base" />
-                  <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="Description (optional)" className="input-textarea" />
-                  <input type="datetime-local" value={dateTime} onChange={e => setDateTime(e.target.value)} required className="input-base" />
-                  <input value={location} onChange={e => setLocation(e.target.value)} placeholder="Location (optional)" className="input-base" />
-                  <input value={eventType} onChange={e => setEventType(e.target.value)} placeholder="Event type (optional)" className="input-base" />
-                  <p className="text-xs text-tertiary">All active employees will be invited automatically.</p>
-                  <div className="flex gap-3 pt-2">
-                    <button type="button" onClick={() => setShowCreate(false)} className="flex-1 px-4 py-2.5 text-sm font-medium text-secondary hover:text-primary focus-ring rounded-xl border border-theme">Cancel</button>
-                    <button type="submit" disabled={creating} className="flex-1 px-4 py-2.5 bg-accent text-[rgb(var(--color-text-inverse))] rounded-xl text-sm font-medium focus-ring disabled:opacity-50 shadow-sm">{creating ? 'Creating...' : 'Create Event'}</button>
-                  </div>
-                </form>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
+        <Modal open={showCreate} onClose={() => setShowCreate(false)} title="New Event" icon={<Calendar className="w-5 h-5 text-accent" />}>
+          <form onSubmit={handleCreate} className="space-y-4">
+            <Input value={title} onChange={e => setTitle(e.target.value)} required placeholder="Event title" label="Title" />
+            <Textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="Description" label="Description" optional />
+            <Input type="datetime-local" value={dateTime} onChange={e => setDateTime(e.target.value)} required label="Date & Time" />
+            <Input value={location} onChange={e => setLocation(e.target.value)} placeholder="Location" label="Location" optional />
+            <Input value={eventType} onChange={e => setEventType(e.target.value)} placeholder="Event type" label="Type" optional />
+            <p className="text-xs text-tertiary">All active employees will be invited automatically.</p>
+            <FormActions onCancel={() => setShowCreate(false)} submitLabel={creating ? 'Creating...' : 'Create Event'} loading={creating} />
+          </form>
+        </Modal>
       </div>
       <HeartButton />
     </DashboardLayout>

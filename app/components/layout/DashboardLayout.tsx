@@ -166,6 +166,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
       items.push({ href: '/dashboard/admin/users', label: 'Users', icon: BsPeople, isSub: true });
       items.push({ href: '/dashboard/admin/values', label: 'Values', icon: BsHeart, isSub: true });
       items.push({ href: '/dashboard/admin/cycles', label: 'Cycles', icon: BsCalendar, isSub: true });
+      items.push({ href: '/dashboard/admin/templates', label: 'Templates', icon: BsBullseye, isSub: true });
     }
 
     return items;

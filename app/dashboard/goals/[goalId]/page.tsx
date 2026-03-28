@@ -5,9 +5,9 @@ import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
-import { PageHeader } from '@/app/components/shared/PageHeader';
 import StatusBadge from '@/app/components/goals/StatusBadge';
 import HeartButton from '@/app/components/hearts/HeartButton';
+import PageSkeleton from '@/app/components/shared/PageSkeleton';
 import { ArrowLeft, Send, MessageSquare } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -89,7 +89,7 @@ export default function GoalDetailPage() {
     await fetchGoal();
   };
 
-  if (loading) return <DashboardLayout type="employee"><div className="text-center py-12 text-secondary">Loading...</div></DashboardLayout>;
+  if (loading) return <DashboardLayout type="employee"><div className="max-w-3xl mx-auto pt-4"><PageSkeleton type="detail" /></div></DashboardLayout>;
   if (!goal) return <DashboardLayout type="employee"><div className="text-center py-12 text-error">Goal not found</div></DashboardLayout>;
 
   const isOwner = goal.ownerId === session?.user?.id;
@@ -102,13 +102,14 @@ export default function GoalDetailPage() {
           <Link href="/dashboard/goals" className="text-secondary hover:text-primary focus-ring rounded p-1">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <PageHeader title={goal.title}>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-primary">{goal.title}</h1>
             <StatusBadge status={goal.status} />
-          </PageHeader>
+          </div>
         </div>
 
         {/* Goal details card */}
-        <div className="bg-surface-elevated rounded-xl border border-theme p-5 shadow-theme-sm space-y-4">
+        <div className="card-interactive p-5 space-y-4">
           {goal.description && <p className="text-sm text-secondary">{goal.description}</p>}
 
           <div className="flex flex-wrap gap-4 text-xs text-tertiary">
@@ -154,7 +155,7 @@ export default function GoalDetailPage() {
         </div>
 
         {/* Comments thread */}
-        <div className="bg-surface-elevated rounded-xl border border-theme shadow-theme-sm overflow-hidden">
+        <div className="card-section">
           <div className="px-5 py-3 border-b border-theme flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-secondary" />
             <h3 className="text-sm font-semibold text-primary">Discussion ({goal.comments.length})</h3>

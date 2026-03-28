@@ -8,6 +8,8 @@ import HeartButton from '@/app/components/hearts/HeartButton';
 import { motion } from 'framer-motion';
 import { ClipboardCheck, Calendar, ChevronRight } from 'lucide-react';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
+import PageTitle from '@/app/components/shared/PageTitle';
+import EmptyState2 from '@/app/components/shared/EmptyState2';
 
 interface ReviewCycle { id: string; name: string; startDate: string; endDate: string; type: string; status: string; _count: { reviews: number }; }
 
@@ -28,23 +30,14 @@ export default function ReviewsPage() {
   return (
     <DashboardLayout type="employee">
       <div className="max-w-4xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
-            <ClipboardCheck className="w-6 h-6" style={{ color: 'rgb(var(--color-review))' }} /> Reviews
-          </h1>
-          <p className="text-sm text-secondary mt-0.5">Performance review cycles</p>
-        </div>
+        <PageTitle title="Reviews" subtitle="Performance review cycles" icon={ClipboardCheck} iconColor="--color-review" />
 
         {loading ? (
           <PageSkeleton type="cards" count={2} />
         ) : cycles.length === 0 ? (
-          <div className="empty-container">
-            <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: 'rgba(var(--color-review),0.1)' }}>
-              <ClipboardCheck className="w-10 h-10" style={{ color: 'rgb(var(--color-review))' }} />
-            </div>
-            <h3 className="text-lg font-semibold text-primary mb-2">No review cycles</h3>
-            <p className="text-sm text-secondary">{session?.user?.role === 'ADMIN' ? 'Create one from Admin → Review Cycles' : 'Review cycles will appear when your admin creates them'}</p>
-          </div>
+          <EmptyState2 icon={ClipboardCheck} title="No review cycles"
+            description={session?.user?.role === 'ADMIN' ? 'Create one from Admin → Review Cycles' : 'Review cycles will appear when your admin creates them'}
+            color="--color-review" />
         ) : (
           <div className="space-y-3">
             {cycles.map((cycle, i) => (

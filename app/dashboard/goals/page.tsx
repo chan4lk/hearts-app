@@ -9,6 +9,7 @@ import HeartButton from '@/app/components/hearts/HeartButton';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Target, X, ChevronRight } from 'lucide-react';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
+import EmptyState2 from '@/app/components/shared/EmptyState2';
 
 interface Goal {
   id: string; title: string; description: string | null; status: string; progress: number;
@@ -27,10 +28,12 @@ export default function GoalsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('ALL');
   const [showCreate, setShowCreate] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [targetDate, setTargetDate] = useState('');
   const [creating, setCreating] = useState(false);
+  const [templates, setTemplates] = useState<{ id: string; title: string; description: string | null; category: string | null }[]>([]);
+  const [bulkGoals, setBulkGoals] = useState<{ title: string; description: string; targetDate: string }[]>([{ title: '', description: '', targetDate: '' }]);
+  const [bulkMode, setBulkMode] = useState<'self' | 'assign'>('self');
+  const [teamMembers, setTeamMembers] = useState<{ id: string; name: string }[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
   const fetchGoals = useCallback(async () => {
     const params = new URLSearchParams();
@@ -42,13 +45,54 @@ export default function GoalsPage() {
 
   useEffect(() => { fetchGoals(); }, [fetchGoals]);
 
+  // Load templates and team when modal opens
+  useEffect(() => {
+    if (showCreate) {
+      fetch('/api/goals/templates').then(r => r.ok ? r.json() : []).then(setTemplates);
+      if (isManager) {
+        fetch('/api/admin/users').then(r => r.ok ? r.json() : []).then((users: any[]) =>
+          setTeamMembers(users.filter(u => u.role === 'EMPLOYEE'))
+        );
+      }
+    }
+  }, [showCreate]);
+
+  const addGoalRow = () => setBulkGoals(prev => [...prev, { title: '', description: '', targetDate: '' }]);
+  const removeGoalRow = (i: number) => setBulkGoals(prev => prev.filter((_, idx) => idx !== i));
+  const updateGoalRow = (i: number, field: string, value: string) => setBulkGoals(prev => prev.map((g, idx) => idx === i ? { ...g, [field]: value } : g));
+
+  const applyTemplate = (i: number, templateId: string) => {
+    const t = templates.find(t => t.id === templateId);
+    if (t) updateGoalRow(i, 'title', t.title); if (t?.description) updateGoalRow(i, 'description', t.description);
+  };
+
+  const toggleMember = (id: string) => setSelectedMembers(prev => prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]);
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    const validGoals = bulkGoals.filter(g => g.title.trim());
+    if (validGoals.length === 0) return;
     setCreating(true);
-    const res = await fetch('/api/goals', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, description: description || undefined, targetDate: targetDate || undefined }) });
-    if (res.ok) { setShowCreate(false); setTitle(''); setDescription(''); setTargetDate(''); await fetchGoals(); }
+
+    const body: any = { goals: validGoals.map(g => ({ title: g.title, description: g.description || undefined, targetDate: g.targetDate || undefined })) };
+    if (bulkMode === 'assign' && selectedMembers.length > 0) body.assignToUserIds = selectedMembers;
+
+    const res = await fetch('/api/goals/bulk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (res.ok) {
+      setShowCreate(false);
+      setBulkGoals([{ title: '', description: '', targetDate: '' }]);
+      setSelectedMembers([]);
+      setBulkMode('self');
+      await fetchGoals();
+    }
     setCreating(false);
+  };
+
+  const resetAndOpenCreate = () => {
+    setBulkGoals([{ title: '', description: '', targetDate: '' }]);
+    setSelectedMembers([]);
+    setBulkMode('self');
+    setShowCreate(true);
   };
 
   const handleStatusChange = async (goalId: string, s: string) => { await fetch(`/api/goals/${goalId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: s }) }); await fetchGoals(); };
@@ -68,7 +112,7 @@ export default function GoalsPage() {
             </h1>
             <p className="text-sm text-secondary mt-0.5">Track and manage your objectives</p>
           </div>
-          <button onClick={() => setShowCreate(true)} className="inline-flex items-center gap-2 px-4 py-2.5 bg-accent text-[rgb(var(--color-text-inverse))] rounded-xl text-sm font-medium hover:opacity-90 focus-ring shadow-sm">
+          <button onClick={resetAndOpenCreate} className="btn-primary inline-flex items-center gap-2">
             <Plus className="w-4 h-4" /> New Goal
           </button>
         </div>
@@ -87,13 +131,7 @@ export default function GoalsPage() {
         {loading ? (
           <PageSkeleton type="cards" count={3} />
         ) : goals.length === 0 ? (
-          <div className="empty-container">
-            <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: 'rgba(var(--color-goal-active),0.1)' }}>
-              <Target className="w-10 h-10" style={{ color: 'rgb(var(--color-goal-active))' }} />
-            </div>
-            <h3 className="text-lg font-semibold text-primary mb-2">No goals yet</h3>
-            <p className="text-sm text-secondary">Set your first goal to start tracking progress</p>
-          </div>
+          <EmptyState2 icon={Target} title="No goals yet" description="Set your first goal to start tracking progress" color="--color-goal-active" />
         ) : (
           <div className="space-y-3">
             {goals.map((goal, i) => (
@@ -149,21 +187,92 @@ export default function GoalsPage() {
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="modal-backdrop" onClick={() => setShowCreate(false)} />
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-                className="modal-panel max-w-md">
+                className="modal-panel max-w-lg max-h-[85vh] overflow-y-auto">
                 <div className="flex justify-between items-center mb-5">
-                  <h2 className="text-lg font-bold text-primary flex items-center gap-2"><Target className="w-5 h-5" style={{ color: 'rgb(var(--color-goal-active))' }} /> New Goal</h2>
+                  <h2 className="text-lg font-bold text-primary flex items-center gap-2">
+                    <Target className="w-5 h-5" style={{ color: 'rgb(var(--color-goal-active))' }} />
+                    {bulkMode === 'assign' ? 'Assign Goals to Team' : 'Create Goals'}
+                  </h2>
                   <button onClick={() => setShowCreate(false)} className="text-secondary hover:text-primary focus-ring rounded-lg p-1"><X className="w-5 h-5" /></button>
                 </div>
+
+                {/* Mode toggle for managers */}
+                {isManager && (
+                  <div className="flex gap-1.5 mb-5">
+                    <button onClick={() => setBulkMode('self')}
+                      className={`flex-1 py-2 rounded-xl text-xs font-semibold focus-ring transition-all ${bulkMode === 'self' ? 'tab-active' : 'tab-inactive'}`}>
+                      My Goals
+                    </button>
+                    <button onClick={() => setBulkMode('assign')}
+                      className={`flex-1 py-2 rounded-xl text-xs font-semibold focus-ring transition-all ${bulkMode === 'assign' ? 'tab-active' : 'tab-inactive'}`}>
+                      Assign to Team
+                    </button>
+                  </div>
+                )}
+
                 <form onSubmit={handleCreate} className="space-y-4">
-                  <div><label className="input-label">Title</label>
-                    <input value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} className="input-base" placeholder="What do you want to achieve?" /></div>
-                  <div><label className="input-label">Description <span className="text-tertiary">(optional)</span></label>
-                    <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={2000} className="input-textarea" placeholder="How will you achieve it?" /></div>
-                  <div><label className="input-label">Target Date <span className="text-tertiary">(optional)</span></label>
-                    <input type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} className="input-base" /></div>
+                  {/* Goal rows */}
+                  {bulkGoals.map((goal, i) => (
+                    <div key={i} className="p-4 bg-surface-secondary rounded-xl space-y-3 relative">
+                      {bulkGoals.length > 1 && (
+                        <button type="button" onClick={() => removeGoalRow(i)}
+                          className="absolute top-2 right-2 text-tertiary hover:text-error focus-ring rounded p-0.5">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      <div className="flex items-center gap-2 text-2xs text-tertiary font-semibold">
+                        Goal {i + 1}
+                        {templates.length > 0 && (
+                          <select onChange={(e) => { if (e.target.value) applyTemplate(i, e.target.value); e.target.value = ''; }}
+                            className="text-2xs text-accent bg-transparent border-none cursor-pointer focus-ring rounded" defaultValue="">
+                            <option value="" disabled>Use template...</option>
+                            {templates.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
+                          </select>
+                        )}
+                      </div>
+                      <input value={goal.title} onChange={(e) => updateGoalRow(i, 'title', e.target.value)}
+                        required maxLength={200} className="input-base" placeholder="Goal title" />
+                      <textarea value={goal.description} onChange={(e) => updateGoalRow(i, 'description', e.target.value)}
+                        rows={2} maxLength={2000} className="input-textarea" placeholder="Description (optional)" />
+                      <input type="date" value={goal.targetDate} onChange={(e) => updateGoalRow(i, 'targetDate', e.target.value)}
+                        className="input-base" />
+                    </div>
+                  ))}
+
+                  <button type="button" onClick={addGoalRow}
+                    className="w-full py-2 border-2 border-dashed border-theme rounded-xl text-xs font-medium text-tertiary hover:text-primary hover:border-accent focus-ring transition-colors">
+                    + Add Another Goal
+                  </button>
+
+                  {/* Team member selector for bulk assign */}
+                  {bulkMode === 'assign' && (
+                    <div className="space-y-2">
+                      <label className="input-label">Assign to employees</label>
+                      <div className="flex flex-wrap gap-2">
+                        {teamMembers.map(m => (
+                          <button key={m.id} type="button" onClick={() => toggleMember(m.id)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium focus-ring transition-all ${
+                              selectedMembers.includes(m.id)
+                                ? 'bg-accent text-[rgb(var(--color-text-inverse))]'
+                                : 'bg-surface-elevated border border-theme text-secondary hover:text-primary'
+                            }`}>
+                            {m.name}
+                          </button>
+                        ))}
+                      </div>
+                      {selectedMembers.length > 0 && (
+                        <p className="text-2xs text-tertiary">{bulkGoals.filter(g => g.title.trim()).length} goal(s) × {selectedMembers.length} employee(s) = {bulkGoals.filter(g => g.title.trim()).length * selectedMembers.length} total</p>
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex gap-3 pt-2">
-                    <button type="button" onClick={() => setShowCreate(false)} className="flex-1 px-4 py-2.5 text-sm font-medium text-secondary hover:text-primary focus-ring rounded-xl border border-theme">Cancel</button>
-                    <button type="submit" disabled={creating || !title.trim()} className="flex-1 px-4 py-2.5 bg-accent text-[rgb(var(--color-text-inverse))] rounded-xl text-sm font-medium hover:opacity-90 disabled:opacity-50 focus-ring shadow-sm">{creating ? 'Creating...' : 'Create Goal'}</button>
+                    <button type="button" onClick={() => setShowCreate(false)} className="btn-secondary flex-1">Cancel</button>
+                    <button type="submit"
+                      disabled={creating || bulkGoals.every(g => !g.title.trim()) || (bulkMode === 'assign' && selectedMembers.length === 0)}
+                      className="btn-primary flex-1">
+                      {creating ? 'Creating...' : `Create ${bulkGoals.filter(g => g.title.trim()).length} Goal(s)`}
+                    </button>
                   </div>
                 </form>
               </motion.div>

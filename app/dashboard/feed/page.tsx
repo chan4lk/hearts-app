@@ -7,7 +7,9 @@ import HeartButton from '@/app/components/hearts/HeartButton';
 import HeartCard from '@/app/components/hearts/HeartCard';
 import OnboardingWizard from '@/app/components/onboarding/OnboardingWizard';
 import { Heart, Target, Calendar, ClipboardCheck } from 'lucide-react';
-import PageSkeleton, { StatsSkeleton } from '@/app/components/shared/PageSkeleton';
+import PageSkeleton from '@/app/components/shared/PageSkeleton';
+import StatGrid from '@/app/components/shared/StatGrid';
+import EmptyState2 from '@/app/components/shared/EmptyState2';
 
 interface HeartItem {
   id: string;
@@ -86,40 +88,19 @@ export default function FeedPage() {
 
         {/* Quick Stats */}
         {stats && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[
-              { label: 'Hearts (30d)', value: stats.heartsThisMonth, icon: Heart, color: '--color-heart' },
-              { label: 'Active Goals', value: stats.activeGoals, icon: Target, color: '--color-goal-active' },
-              { label: 'Upcoming Events', value: stats.upcomingEvents, icon: Calendar, color: '--color-accent' },
-              { label: 'Review Cycles', value: stats.activeCycles, icon: ClipboardCheck, color: '--color-review' },
-            ].map(({ label, value, icon: Icon, color }) => (
-              <div key={label} className="card-stat p-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: `rgba(var(${color}),0.1)` }}>
-                    <Icon className="w-4.5 h-4.5" style={{ color: `rgb(var(${color}))` }} />
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold text-primary leading-tight">{value}</p>
-                    <p className="text-2xs text-tertiary">{label}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <StatGrid stats={[
+            { label: 'Hearts (30d)', value: stats.heartsThisMonth, icon: Heart, color: '--color-heart' },
+            { label: 'Active Goals', value: stats.activeGoals, icon: Target, color: '--color-goal-active' },
+            { label: 'Upcoming Events', value: stats.upcomingEvents, icon: Calendar, color: '--color-accent' },
+            { label: 'Review Cycles', value: stats.activeCycles, icon: ClipboardCheck, color: '--color-review' },
+          ]} />
         )}
 
         {/* Feed */}
         {loading ? (
           <PageSkeleton type="feed" count={3} />
         ) : hearts.length === 0 ? (
-          <div className="empty-container">
-            <div className="w-20 h-20 rounded-full bg-[rgba(var(--color-heart),0.1)] flex items-center justify-center mx-auto mb-4">
-              <Heart className="w-10 h-10 text-[rgb(var(--color-heart))]" />
-            </div>
-            <h3 className="text-lg font-semibold text-primary mb-2">No Hearts yet</h3>
-            <p className="text-sm text-secondary mb-1">Be the first to recognize someone!</p>
-            <p className="text-xs text-tertiary">Click the pink heart button below</p>
-          </div>
+          <EmptyState2 icon={Heart} title="No Hearts yet" description="Be the first to recognize someone! Click the pink heart button below." color="--color-heart" />
         ) : (
           <>
             <div className="space-y-4">
