@@ -110,7 +110,7 @@ export default function HeartButton({ onHeartSent }: HeartButtonProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/50"
+              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
               onClick={reset}
             />
             <motion.div
@@ -141,7 +141,7 @@ export default function HeartButton({ onHeartSent }: HeartButtonProps) {
                     animate={{ y: [-10, 0] }}
                     transition={{ repeat: 2, duration: 0.3 }}
                   >
-                    <Heart className="w-16 h-16 text-accent" fill="currentColor" />
+                    <Heart className="w-16 h-16 text-[rgb(var(--color-heart))]" fill="currentColor" />
                   </motion.div>
                   <p className="text-lg font-semibold text-primary mt-4">Heart sent!</p>
                   <p className="text-sm text-secondary">{selectedUser?.name} will be notified</p>

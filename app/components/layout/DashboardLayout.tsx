@@ -36,23 +36,37 @@ type Role = 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
 
 // ─── Nav Link with animated active indicator ─────────────────────
 function NavLink({ item, isActive, onClick, collapsed }: { item: NavItem; isActive: boolean; onClick?: () => void; collapsed?: boolean }) {
+  // Determine icon color based on nav item
+  const iconColorMap: Record<string, string> = {
+    Feed: 'rgb(var(--color-heart))',
+    Goals: 'rgb(var(--color-goal-active))',
+    Reviews: 'rgb(var(--color-review))',
+    Events: 'rgb(var(--color-accent))',
+    Team: 'rgb(var(--color-accent))',
+    Admin: 'rgb(var(--color-error))',
+  };
+  const iconColor = isActive ? (iconColorMap[item.label] || 'rgb(var(--color-accent))') : undefined;
+
   return (
     <Link
       href={item.href}
       onClick={onClick}
       title={collapsed ? item.label : undefined}
-      className={`relative flex items-center ${collapsed ? 'justify-center px-2' : 'gap-3 px-3'} py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-ring group ${
+      className={`relative flex items-center ${collapsed ? 'justify-center px-2' : 'gap-3 px-3.5'} py-2.5 rounded-xl text-sm font-medium transition-all duration-200 focus-ring group ${
         isActive
-          ? 'bg-accent text-[rgb(var(--color-text-inverse))] shadow-md shadow-[rgb(var(--color-accent))]/20'
+          ? 'bg-surface-elevated text-primary shadow-theme-sm border border-theme'
           : 'text-secondary hover:text-primary hover:bg-surface-tertiary'
       }`}
     >
-      <item.icon className={`text-base flex-shrink-0 transition-transform duration-200 ${isActive ? '' : 'group-hover:scale-110'}`} />
+      <item.icon
+        className={`text-base flex-shrink-0 transition-all duration-200 ${isActive ? '' : 'group-hover:scale-110'}`}
+        style={iconColor ? { color: iconColor } : undefined}
+      />
       {!collapsed && <span>{item.label}</span>}
       {isActive && (
         <motion.div
           layoutId="nav-active"
-          className="absolute inset-0 bg-accent rounded-xl -z-10"
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-accent rounded-r-full"
           transition={{ type: 'spring', stiffness: 350, damping: 30 }}
         />
       )}
@@ -64,16 +78,16 @@ function NavLink({ item, isActive, onClick, collapsed }: { item: NavItem; isActi
 function UserAvatar({ name }: { name?: string }) {
   const initials = name ? name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : '';
   return (
-    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[rgb(var(--color-accent))] to-[rgb(var(--color-cat-technical))] flex items-center justify-center relative shadow-sm shadow-[rgb(var(--color-accent))]/15">
+    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[rgb(var(--color-heart))] to-[rgb(var(--color-accent))] flex items-center justify-center relative shadow-sm">
       {initials ? (
-        <span className="text-xs font-bold text-[rgb(var(--color-text-inverse))] leading-none">{initials}</span>
+        <span className="text-xs font-bold text-white leading-none">{initials}</span>
       ) : (
-        <svg className="w-4 h-4 text-[rgb(var(--color-text-inverse))]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" />
           <path d="M6 21V19C6 17.9391 6.42143 16.9217 7.17157 16.1716C7.92172 15.4214 8.93913 15 10 15H14C15.0609 15 16.0783 15.4214 16.8284 16.1716C17.5786 16.9217 18 17.9391 18 19V21" />
         </svg>
       )}
-      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-[rgb(var(--color-success))] ring-2 ring-[rgb(var(--color-bg-sidebar))]" />
+      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-success ring-2 ring-[rgb(var(--color-bg-sidebar))]" />
     </div>
   );
 }
@@ -382,20 +396,30 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
               {(() => {
                 const activeItem = navItems.find(navItem => isPathActive(navItem.href));
                 const ActiveIcon = activeItem?.icon;
+                const iconColorMap: Record<string, string> = {
+                  Feed: 'rgba(var(--color-heart),0.1)', Goals: 'rgba(var(--color-goal-active),0.1)',
+                  Reviews: 'rgba(var(--color-review),0.1)', Events: 'rgba(var(--color-accent),0.1)',
+                  Team: 'rgba(var(--color-accent),0.1)', Admin: 'rgba(var(--color-error),0.1)',
+                };
+                const iconTextMap: Record<string, string> = {
+                  Feed: 'rgb(var(--color-heart))', Goals: 'rgb(var(--color-goal-active))',
+                  Reviews: 'rgb(var(--color-review))', Events: 'rgb(var(--color-accent))',
+                  Team: 'rgb(var(--color-accent))', Admin: 'rgb(var(--color-error))',
+                };
                 return activeItem ? (
                   <div className="flex items-center gap-2.5">
                     {ActiveIcon && (
-                      <div className="w-7 h-7 rounded-lg bg-accent-muted flex items-center justify-center">
-                        <ActiveIcon className="w-3.5 h-3.5 text-accent" />
+                      <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: iconColorMap[activeItem.label] || 'rgba(var(--color-accent),0.1)' }}>
+                        <ActiveIcon className="w-4 h-4" style={{ color: iconTextMap[activeItem.label] || 'rgb(var(--color-accent))' }} />
                       </div>
                     )}
                     <div>
                       <h1 className="text-sm font-semibold text-primary leading-tight">{activeItem.label}</h1>
-                      <p className="text-2xs text-tertiary leading-tight">{portalLabel} Dashboard</p>
+                      <p className="text-2xs text-tertiary leading-tight">AspireHub</p>
                     </div>
                   </div>
                 ) : (
-                  <h1 className="text-sm font-semibold text-primary">{portalLabel} Dashboard</h1>
+                  <h1 className="text-sm font-semibold text-primary">AspireHub</h1>
                 );
               })()}
             </div>
@@ -439,25 +463,12 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                       </div>
                     </div>
 
-                    {/* Dashboard links */}
-                    {(session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER') && (
-                      <div className="p-2 border-b border-theme space-y-0.5">
-                        <p className="px-3 pt-1 pb-1.5 text-2xs font-semibold text-tertiary uppercase tracking-wider">Switch Portal</p>
-                        {session?.user?.role === 'ADMIN' && (
-                          <>
-                            {dashLink('/dashboard/admin', BsShield, 'Admin')}
-                            {dashLink('/dashboard/manager', BsGraphUp, 'Manager')}
-                            {dashLink('/dashboard/employee', BsPerson, 'Employee')}
-                          </>
-                        )}
-                        {session?.user?.role === 'MANAGER' && (
-                          <>
-                            {dashLink('/dashboard/manager', BsGraphUp, 'Manager')}
-                            {dashLink('/dashboard/employee', BsPerson, 'Employee')}
-                          </>
-                        )}
-                      </div>
-                    )}
+                    {/* Quick links */}
+                    <div className="p-2 border-b border-theme space-y-0.5">
+                      {dashLink('/dashboard/feed', BsHeart, 'Hearts Feed')}
+                      {dashLink('/dashboard/goals', BsBullseye, 'My Goals')}
+                      {session?.user?.role === 'ADMIN' && dashLink('/dashboard/admin', BsShield, 'Admin Settings')}
+                    </div>
 
                     {/* Sign out */}
                     <div className="p-2">
