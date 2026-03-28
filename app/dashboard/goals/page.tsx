@@ -154,12 +154,12 @@ export default function GoalsPage() {
                   <button onClick={() => setShowCreate(false)} className="text-secondary hover:text-primary focus-ring rounded-lg p-1"><X className="w-5 h-5" /></button>
                 </div>
                 <form onSubmit={handleCreate} className="space-y-4">
-                  <div><label className="text-sm font-medium text-secondary mb-1.5 block">Title</label>
-                    <input value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} className="w-full px-3.5 py-2.5 bg-surface-primary border border-theme rounded-xl text-sm text-primary focus-ring" placeholder="What do you want to achieve?" /></div>
-                  <div><label className="text-sm font-medium text-secondary mb-1.5 block">Description <span className="text-tertiary">(optional)</span></label>
-                    <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={2000} className="w-full px-3.5 py-2.5 bg-surface-primary border border-theme rounded-xl text-sm text-primary focus-ring resize-none" placeholder="How will you achieve it?" /></div>
-                  <div><label className="text-sm font-medium text-secondary mb-1.5 block">Target Date <span className="text-tertiary">(optional)</span></label>
-                    <input type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} className="w-full px-3.5 py-2.5 bg-surface-primary border border-theme rounded-xl text-sm text-primary focus-ring" /></div>
+                  <div><label className="input-label">Title</label>
+                    <input value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} className="input-base" placeholder="What do you want to achieve?" /></div>
+                  <div><label className="input-label">Description <span className="text-tertiary">(optional)</span></label>
+                    <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={2000} className="input-textarea" placeholder="How will you achieve it?" /></div>
+                  <div><label className="input-label">Target Date <span className="text-tertiary">(optional)</span></label>
+                    <input type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} className="input-base" /></div>
                   <div className="flex gap-3 pt-2">
                     <button type="button" onClick={() => setShowCreate(false)} className="flex-1 px-4 py-2.5 text-sm font-medium text-secondary hover:text-primary focus-ring rounded-xl border border-theme">Cancel</button>
                     <button type="submit" disabled={creating || !title.trim()} className="flex-1 px-4 py-2.5 bg-accent text-[rgb(var(--color-text-inverse))] rounded-xl text-sm font-medium hover:opacity-90 disabled:opacity-50 focus-ring shadow-sm">{creating ? 'Creating...' : 'Create Goal'}</button>

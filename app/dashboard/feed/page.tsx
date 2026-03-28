@@ -92,7 +92,7 @@ export default function FeedPage() {
               { label: 'Upcoming Events', value: stats.upcomingEvents, icon: Calendar, color: '--color-accent' },
               { label: 'Review Cycles', value: stats.activeCycles, icon: ClipboardCheck, color: '--color-review' },
             ].map(({ label, value, icon: Icon, color }) => (
-              <div key={label} className="bg-surface-elevated rounded-xl border border-theme p-3 shadow-theme-sm">
+              <div key={label} className="card-stat p-3">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: `rgba(var(${color}),0.1)` }}>
                     <Icon className="w-4.5 h-4.5" style={{ color: `rgb(var(${color}))` }} />
@@ -115,7 +115,7 @@ export default function FeedPage() {
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-full bg-surface-secondary" />
                   <div className="flex-1 space-y-1.5">
-                    <div className="h-4 bg-surface-secondary rounded w-3/4" />
+                    <div className="h-4 skeleton w-3/4" />
                     <div className="h-3 bg-surface-secondary rounded w-1/3" />
                   </div>
                 </div>
@@ -124,7 +124,7 @@ export default function FeedPage() {
             ))}
           </div>
         ) : hearts.length === 0 ? (
-          <div className="text-center py-16 bg-surface-elevated rounded-2xl border border-theme">
+          <div className="empty-container">
             <div className="w-20 h-20 rounded-full bg-[rgba(var(--color-heart),0.1)] flex items-center justify-center mx-auto mb-4">
               <Heart className="w-10 h-10 text-[rgb(var(--color-heart))]" />
             </div>

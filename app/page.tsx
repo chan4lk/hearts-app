@@ -36,7 +36,7 @@ export default function Home() {
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-primary leading-[1.1] tracking-tight mb-6">
             Performance reviews<br />
-            <span className="bg-gradient-to-r from-[rgb(var(--color-heart))] via-[rgb(var(--color-accent))] to-[rgb(var(--color-review))] bg-clip-text text-transparent">
+            <span className="gradient-heart-text">
               people actually trust
             </span>
           </h1>
@@ -60,7 +60,7 @@ export default function Home() {
               { value: '100%', label: 'Evidence-based', sub: 'Hearts + Goals' },
               { value: '3 roles', label: 'One interface', sub: 'Progressive depth' },
             ].map(({ value, label, sub }) => (
-              <div key={label} className="bg-surface-elevated rounded-2xl border border-theme p-4 shadow-theme-sm">
+              <div key={label} className="card-stat">
                 <p className="text-2xl font-bold text-primary">{value}</p>
                 <p className="text-xs font-semibold text-secondary">{label}</p>
                 <p className="text-2xs text-tertiary">{sub}</p>

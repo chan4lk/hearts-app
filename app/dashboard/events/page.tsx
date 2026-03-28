@@ -160,11 +160,11 @@ export default function EventsPage() {
                   <button onClick={() => setShowCreate(false)} className="text-secondary hover:text-primary focus-ring rounded-lg p-1"><X className="w-5 h-5" /></button>
                 </div>
                 <form onSubmit={handleCreate} className="space-y-4">
-                  <input value={title} onChange={e => setTitle(e.target.value)} required placeholder="Event title" className="w-full px-3.5 py-2.5 bg-surface-primary border border-theme rounded-xl text-sm text-primary focus-ring" />
-                  <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="Description (optional)" className="w-full px-3.5 py-2.5 bg-surface-primary border border-theme rounded-xl text-sm text-primary focus-ring resize-none" />
-                  <input type="datetime-local" value={dateTime} onChange={e => setDateTime(e.target.value)} required className="w-full px-3.5 py-2.5 bg-surface-primary border border-theme rounded-xl text-sm text-primary focus-ring" />
-                  <input value={location} onChange={e => setLocation(e.target.value)} placeholder="Location (optional)" className="w-full px-3.5 py-2.5 bg-surface-primary border border-theme rounded-xl text-sm text-primary focus-ring" />
-                  <input value={eventType} onChange={e => setEventType(e.target.value)} placeholder="Event type (optional)" className="w-full px-3.5 py-2.5 bg-surface-primary border border-theme rounded-xl text-sm text-primary focus-ring" />
+                  <input value={title} onChange={e => setTitle(e.target.value)} required placeholder="Event title" className="input-base" />
+                  <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="Description (optional)" className="input-textarea" />
+                  <input type="datetime-local" value={dateTime} onChange={e => setDateTime(e.target.value)} required className="input-base" />
+                  <input value={location} onChange={e => setLocation(e.target.value)} placeholder="Location (optional)" className="input-base" />
+                  <input value={eventType} onChange={e => setEventType(e.target.value)} placeholder="Event type (optional)" className="input-base" />
                   <p className="text-xs text-tertiary">All active employees will be invited automatically.</p>
                   <div className="flex gap-3 pt-2">
                     <button type="button" onClick={() => setShowCreate(false)} className="flex-1 px-4 py-2.5 text-sm font-medium text-secondary hover:text-primary focus-ring rounded-xl border border-theme">Cancel</button>
