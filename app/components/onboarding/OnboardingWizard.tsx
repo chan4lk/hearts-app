@@ -118,7 +118,7 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
             <p><strong className="text-primary">Events</strong> — Company activities and events</p>
           </div>
           <button onClick={finish}
-            className="w-full py-3 bg-accent text-[rgb(var(--color-text-inverse))] rounded-lg text-sm font-semibold hover:opacity-90 focus-ring">
+            className="w-full py-3 bg-[rgb(var(--color-heart))] text-white rounded-xl text-sm font-semibold hover:bg-[rgb(var(--color-heart-hover))] focus-ring shadow-sm shadow-[rgba(var(--color-heart),0.2)]">
             Go to Hearts Feed
           </button>
         </div>

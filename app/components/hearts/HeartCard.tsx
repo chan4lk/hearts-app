@@ -15,10 +15,11 @@ interface HeartCardProps {
   };
 }
 
-function UserInitials({ name }: { name: string }) {
+function Avatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' }) {
   const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  const sizeClass = size === 'sm' ? 'w-7 h-7 text-2xs' : 'w-10 h-10 text-xs';
   return (
-    <div className="w-9 h-9 rounded-full bg-accent-muted flex items-center justify-center text-xs font-bold text-accent flex-shrink-0">
+    <div className={`${sizeClass} rounded-full bg-gradient-to-br from-[rgb(var(--color-heart))] to-[rgb(var(--color-accent))] flex items-center justify-center font-bold text-[rgb(var(--color-text-inverse))] flex-shrink-0 shadow-sm`}>
       {initials}
     </div>
   );
@@ -27,31 +28,49 @@ function UserInitials({ name }: { name: string }) {
 export default function HeartCard({ heart }: HeartCardProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-surface-elevated rounded-xl border border-theme p-4 shadow-theme-sm"
+      transition={{ duration: 0.3 }}
+      className="group bg-surface-elevated rounded-2xl border border-theme p-5 shadow-theme-sm hover:shadow-theme-md transition-all duration-200"
     >
-      <div className="flex items-start gap-3">
-        <UserInitials name={heart.sender.name} />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-sm font-semibold text-primary">{heart.sender.name}</span>
-            <Heart className="w-3.5 h-3.5 text-accent flex-shrink-0" fill="currentColor" />
-            <span className="text-sm font-semibold text-primary">{heart.receiver.name}</span>
-          </div>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-accent-muted text-accent">
-              {heart.valueTag.name}
-            </span>
-            <span className="text-xs text-tertiary">
-              {formatDistanceToNow(new Date(heart.createdAt), { addSuffix: true })}
-            </span>
-          </div>
-          {heart.message && (
-            <p className="text-sm text-secondary mt-2 leading-relaxed">{heart.message}</p>
-          )}
+      {/* Sender → Receiver header */}
+      <div className="flex items-center gap-3 mb-3">
+        <Avatar name={heart.sender.name} />
+        <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
+          <span className="text-sm font-semibold text-primary">{heart.sender.name}</span>
+          <span className="flex items-center gap-1">
+            <Heart className="w-4 h-4 text-[rgb(var(--color-heart))]" fill="currentColor" />
+          </span>
+          <span className="text-sm font-semibold text-primary">{heart.receiver.name}</span>
         </div>
+        <span className="text-xs text-tertiary flex-shrink-0">
+          {formatDistanceToNow(new Date(heart.createdAt), { addSuffix: true })}
+        </span>
       </div>
+
+      {/* Value tag */}
+      <div className="mb-2">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[rgba(var(--color-heart),0.1)] text-[rgb(var(--color-heart))]">
+          <Heart className="w-3 h-3" fill="currentColor" />
+          {heart.valueTag.name}
+        </span>
+      </div>
+
+      {/* Message */}
+      {heart.message && (
+        <p className="text-sm text-secondary leading-relaxed pl-1 border-l-2 border-[rgba(var(--color-heart),0.2)] ml-1">
+          {heart.message}
+        </p>
+      )}
+
+      {/* Departments */}
+      {(heart.sender.department || heart.receiver.department) && (
+        <div className="flex items-center gap-2 mt-3 text-2xs text-tertiary">
+          {heart.sender.department && <span>{heart.sender.department}</span>}
+          {heart.sender.department && heart.receiver.department && <span>→</span>}
+          {heart.receiver.department && <span>{heart.receiver.department}</span>}
+        </div>
+      )}
     </motion.div>
   );
 }

@@ -100,6 +100,29 @@
   --color-rating-4: 59 130 246;           /* blue-500 */
   --color-rating-5: 34 197 94;            /* green-500 */
 
+  /* ── Hearts Recognition ── */
+  --color-heart: 236 72 153;              /* pink-500 — warm, distinct from accent */
+  --color-heart-muted: 252 231 243;       /* pink-50 */
+  --color-heart-hover: 219 39 119;        /* pink-600 */
+
+  /* ── Goal States ── */
+  --color-goal-draft: 148 163 184;        /* slate-400 */
+  --color-goal-draft-muted: 241 245 249;  /* slate-100 */
+  --color-goal-pending: 245 158 11;       /* amber-500 */
+  --color-goal-pending-muted: 254 243 199;/* amber-100 */
+  --color-goal-active: 59 130 246;        /* blue-500 */
+  --color-goal-active-muted: 219 234 254; /* blue-100 */
+  --color-goal-revision: 249 115 22;      /* orange-500 */
+  --color-goal-revision-muted: 255 237 213;/* orange-100 */
+  --color-goal-completed: 34 197 94;      /* green-500 */
+  --color-goal-completed-muted: 220 252 231;/* green-100 */
+  --color-goal-closed: 107 114 128;       /* gray-500 */
+  --color-goal-closed-muted: 243 244 246; /* gray-100 */
+
+  /* ── Review Cycle ── */
+  --color-review: 139 92 246;             /* violet-500 */
+  --color-review-muted: 237 233 254;      /* violet-100 */
+
   /* ── Grid ── */
   --grid-color: rgba(99, 102, 241, 0.03);
   --grid-opacity: 0.3;
@@ -138,6 +161,29 @@
   --color-error-muted: 127 29 29;
   --color-info: 96 165 250;
   --color-info-muted: 30 58 138;
+
+  /* ── Hearts (dark) ── */
+  --color-heart: 244 114 182;             /* pink-400 */
+  --color-heart-muted: 80 20 55;
+  --color-heart-hover: 236 72 153;
+
+  /* ── Goal States (dark) ── */
+  --color-goal-draft: 148 163 184;
+  --color-goal-draft-muted: 30 41 59;
+  --color-goal-pending: 251 191 36;
+  --color-goal-pending-muted: 69 40 8;
+  --color-goal-active: 96 165 250;
+  --color-goal-active-muted: 23 37 84;
+  --color-goal-revision: 251 146 60;
+  --color-goal-revision-muted: 67 30 10;
+  --color-goal-completed: 74 222 128;
+  --color-goal-completed-muted: 5 46 22;
+  --color-goal-closed: 107 114 128;
+  --color-goal-closed-muted: 31 41 55;
+
+  /* ── Review (dark) ── */
+  --color-review: 167 139 250;
+  --color-review-muted: 46 16 101;
 
   --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.03);
   --shadow-md: 0 4px 16px -2px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.04);

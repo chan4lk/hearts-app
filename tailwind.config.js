@@ -100,6 +100,20 @@ module.exports = {
           '0%, 100%': { opacity: '0.2' },
           '50%': { opacity: '0.3' },
         },
+        'heart-float': {
+          '0%': { transform: 'translateY(0) scale(1)', opacity: '1' },
+          '50%': { transform: 'translateY(-30px) scale(1.2)', opacity: '0.8' },
+          '100%': { transform: 'translateY(-60px) scale(0.8)', opacity: '0' },
+        },
+        'celebrate': {
+          '0%': { transform: 'scale(0.5)', opacity: '0' },
+          '50%': { transform: 'scale(1.2)', opacity: '1' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        'slide-up': {
+          '0%': { transform: 'translateY(10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
       },
 
       /* ── Animations ── */
@@ -111,6 +125,9 @@ module.exports = {
         'float-slow': 'float 6s ease-in-out infinite',
         'float-medium': 'float 5s ease-in-out infinite',
         'pulse-slow': 'pulse-slow 4s ease-in-out infinite',
+        'heart-float': 'heart-float 1s ease-out forwards',
+        'celebrate': 'celebrate 0.5s ease-out forwards',
+        'slide-up': 'slide-up 0.3s ease-out',
       },
 
       /* ── Transitions ── */

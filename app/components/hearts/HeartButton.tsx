@@ -94,9 +94,9 @@ export default function HeartButton({ onHeartSent }: HeartButtonProps) {
       {/* FAB Button */}
       <motion.button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-accent rounded-full shadow-theme-lg flex items-center justify-center text-[rgb(var(--color-text-inverse))] hover:opacity-90 focus-ring"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-[rgb(var(--color-heart))] rounded-full shadow-lg shadow-[rgba(var(--color-heart),0.3)] flex items-center justify-center text-white hover:shadow-[rgba(var(--color-heart),0.5)] hover:shadow-xl focus-ring transition-shadow"
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.92 }}
         aria-label="Give a Heart"
       >
         <Heart className="w-6 h-6" fill="currentColor" />
@@ -205,8 +205,8 @@ export default function HeartButton({ onHeartSent }: HeartButtonProps) {
                               onClick={() => setSelectedValue(v.id)}
                               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors focus-ring ${
                                 selectedValue === v.id
-                                  ? 'bg-accent text-[rgb(var(--color-text-inverse))]'
-                                  : 'bg-surface-secondary text-secondary hover:bg-surface-tertiary'
+                                  ? 'bg-[rgb(var(--color-heart))] text-white'
+                                  : 'bg-[rgba(var(--color-heart),0.08)] text-[rgb(var(--color-heart))] hover:bg-[rgba(var(--color-heart),0.15)]'
                               }`}
                             >
                               {v.name}
@@ -234,7 +234,7 @@ export default function HeartButton({ onHeartSent }: HeartButtonProps) {
                       <button
                         onClick={handleSend}
                         disabled={!selectedValue || sending}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 bg-accent text-[rgb(var(--color-text-inverse))] rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 focus-ring"
+                        className="w-full flex items-center justify-center gap-2 py-2.5 bg-[rgb(var(--color-heart))] text-white rounded-lg text-sm font-medium hover:bg-[rgb(var(--color-heart-hover))] disabled:opacity-50 focus-ring shadow-sm shadow-[rgba(var(--color-heart),0.2)]"
                       >
                         <Send className="w-4 h-4" />
                         {sending ? 'Sending...' : 'Send Heart'}
