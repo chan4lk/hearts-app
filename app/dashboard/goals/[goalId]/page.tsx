@@ -8,6 +8,8 @@ import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import StatusBadge from '@/app/components/goals/StatusBadge';
 import HeartButton from '@/app/components/hearts/HeartButton';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
+import Modal from '@/app/components/shared/Modal';
+import { FormActions } from '@/app/components/shared/FormField';
 import { ArrowLeft, Send, MessageSquare } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -47,6 +49,8 @@ export default function GoalDetailPage() {
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [showRevise, setShowRevise] = useState(false);
+  const [reviseComment, setReviseComment] = useState('');
 
   const fetchGoal = async () => {
     const res = await fetch(`/api/goals/${goalId}`);
@@ -78,9 +82,9 @@ export default function GoalDetailPage() {
   };
 
   const handleRevise = async () => {
-    const comment = prompt('What needs to change? (required)');
-    if (!comment) return;
-    await fetch(`/api/goals/${goalId}/revise`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment }) });
+    if (!reviseComment.trim()) return;
+    await fetch(`/api/goals/${goalId}/revise`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment: reviseComment }) });
+    setShowRevise(false); setReviseComment('');
     await fetchGoal();
   };
 
@@ -142,7 +146,7 @@ export default function GoalDetailPage() {
             {goal.status === 'PENDING' && isManager && (
               <>
                 <button onClick={handleApprove} className="px-4 py-2 bg-success text-[rgb(var(--color-text-inverse))] rounded-lg text-sm font-medium focus-ring">Approve</button>
-                <button onClick={handleRevise} className="px-4 py-2 bg-warning text-[rgb(var(--color-text-inverse))] rounded-lg text-sm font-medium focus-ring">Needs Revision</button>
+                <button onClick={() => { setShowRevise(true); setReviseComment(''); }} className="px-4 py-2 bg-[rgba(var(--color-goal-revision),0.1)] text-[rgb(var(--color-goal-revision))] rounded-xl text-sm font-medium focus-ring hover:bg-[rgba(var(--color-goal-revision),0.2)]">Needs Revision</button>
               </>
             )}
             {goal.status === 'ACTIVE' && isOwner && (
@@ -201,6 +205,16 @@ export default function GoalDetailPage() {
         </div>
       </div>
       <HeartButton />
+
+      <Modal open={showRevise} onClose={() => setShowRevise(false)} title="Request Revision"
+        icon={<span className="text-[rgb(var(--color-goal-revision))]">↩</span>}>
+        <form onSubmit={(e) => { e.preventDefault(); handleRevise(); }} className="space-y-4">
+          <p className="text-sm text-secondary">Explain what needs to change so the employee can improve their goal.</p>
+          <textarea value={reviseComment} onChange={(e) => setReviseComment(e.target.value)} rows={4}
+            className="input-textarea" placeholder="Be specific about what needs to change..." autoFocus />
+          <FormActions onCancel={() => setShowRevise(false)} submitLabel="Send Revision Request" disabled={!reviseComment.trim()} />
+        </form>
+      </Modal>
     </DashboardLayout>
   );
 }

@@ -10,6 +10,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Target, X, ChevronRight } from 'lucide-react';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
 import EmptyState2 from '@/app/components/shared/EmptyState2';
+import Modal from '@/app/components/shared/Modal';
+import { FormActions } from '@/app/components/shared/FormField';
 
 interface Goal {
   id: string; title: string; description: string | null; status: string; progress: number;
@@ -34,6 +36,8 @@ export default function GoalsPage() {
   const [bulkMode, setBulkMode] = useState<'self' | 'assign'>('self');
   const [teamMembers, setTeamMembers] = useState<{ id: string; name: string }[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [reviseGoalId, setReviseGoalId] = useState<string | null>(null);
+  const [reviseComment, setReviseComment] = useState('');
 
   const fetchGoals = useCallback(async () => {
     const params = new URLSearchParams();
@@ -63,7 +67,9 @@ export default function GoalsPage() {
 
   const applyTemplate = (i: number, templateId: string) => {
     const t = templates.find(t => t.id === templateId);
-    if (t) updateGoalRow(i, 'title', t.title); if (t?.description) updateGoalRow(i, 'description', t.description);
+    if (t) {
+      setBulkGoals(prev => prev.map((g, idx) => idx === i ? { ...g, title: t.title, description: t.description || '' } : g));
+    }
   };
 
   const toggleMember = (id: string) => setSelectedMembers(prev => prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]);
@@ -98,7 +104,12 @@ export default function GoalsPage() {
   const handleStatusChange = async (goalId: string, s: string) => { await fetch(`/api/goals/${goalId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: s }) }); await fetchGoals(); };
   const handleProgressChange = async (goalId: string, p: number) => { await fetch(`/api/goals/${goalId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ progress: p }) }); };
   const handleApprove = async (goalId: string) => { await fetch(`/api/goals/${goalId}/approve`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }); await fetchGoals(); };
-  const handleRevise = async (goalId: string) => { const c = prompt('What needs to change? (required)'); if (!c) return; await fetch(`/api/goals/${goalId}/revise`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment: c }) }); await fetchGoals(); };
+  const handleRevise = async () => {
+    if (!reviseGoalId || !reviseComment.trim()) return;
+    await fetch(`/api/goals/${reviseGoalId}/revise`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment: reviseComment }) });
+    setReviseGoalId(null); setReviseComment('');
+    await fetchGoals();
+  };
 
   const isManager = session?.user?.role === 'MANAGER' || session?.user?.role === 'ADMIN';
 
@@ -159,7 +170,7 @@ export default function GoalsPage() {
                       <button onClick={() => handleStatusChange(goal.id, 'PENDING')} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[rgba(var(--color-goal-revision),0.1)] text-[rgb(var(--color-goal-revision))] hover:bg-[rgba(var(--color-goal-revision),0.2)] focus-ring">Resubmit</button>)}
                     {goal.status === 'PENDING' && isManager && (<>
                       <button onClick={() => handleApprove(goal.id)} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[rgba(var(--color-goal-completed),0.1)] text-[rgb(var(--color-goal-completed))] hover:bg-[rgba(var(--color-goal-completed),0.2)] focus-ring">Approve</button>
-                      <button onClick={() => handleRevise(goal.id)} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[rgba(var(--color-goal-revision),0.1)] text-[rgb(var(--color-goal-revision))] hover:bg-[rgba(var(--color-goal-revision),0.2)] focus-ring">Revise</button></>)}
+                      <button onClick={() => { setReviseGoalId(goal.id); setReviseComment(''); }} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[rgba(var(--color-goal-revision),0.1)] text-[rgb(var(--color-goal-revision))] hover:bg-[rgba(var(--color-goal-revision),0.2)] focus-ring">Revise</button></>)}
                     {goal.status === 'ACTIVE' && goal.ownerId === session?.user?.id && (
                       <button onClick={() => handleStatusChange(goal.id, 'COMPLETED')} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[rgba(var(--color-goal-completed),0.1)] text-[rgb(var(--color-goal-completed))] hover:bg-[rgba(var(--color-goal-completed),0.2)] focus-ring">Complete</button>)}
                   </div>
@@ -220,13 +231,13 @@ export default function GoalsPage() {
                           <X className="w-3.5 h-3.5" />
                         </button>
                       )}
-                      <div className="flex items-center gap-2 text-2xs text-tertiary font-semibold">
-                        Goal {i + 1}
+                      <div className="flex items-center justify-between">
+                        <span className="text-2xs text-tertiary font-semibold">Goal {i + 1}</span>
                         {templates.length > 0 && (
                           <select onChange={(e) => { if (e.target.value) applyTemplate(i, e.target.value); e.target.value = ''; }}
-                            className="text-2xs text-accent bg-transparent border-none cursor-pointer focus-ring rounded" defaultValue="">
-                            <option value="" disabled>Use template...</option>
-                            {templates.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
+                            className="text-2xs text-accent bg-transparent border border-theme rounded-lg px-2 py-1 cursor-pointer focus-ring" defaultValue="">
+                            <option value="" disabled>📋 Use template...</option>
+                            {templates.map(t => <option key={t.id} value={t.id}>{t.category ? `[${t.category}] ` : ''}{t.title}</option>)}
                           </select>
                         )}
                       </div>
@@ -247,21 +258,51 @@ export default function GoalsPage() {
                   {/* Team member selector for bulk assign */}
                   {bulkMode === 'assign' && (
                     <div className="space-y-2">
-                      <label className="input-label">Assign to employees</label>
-                      <div className="flex flex-wrap gap-2">
-                        {teamMembers.map(m => (
-                          <button key={m.id} type="button" onClick={() => toggleMember(m.id)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-medium focus-ring transition-all ${
-                              selectedMembers.includes(m.id)
-                                ? 'bg-accent text-[rgb(var(--color-text-inverse))]'
-                                : 'bg-surface-elevated border border-theme text-secondary hover:text-primary'
-                            }`}>
-                            {m.name}
-                          </button>
-                        ))}
+                      <button type="button" onClick={() => setSelectedMembers(prev => prev.length > 0 ? prev : teamMembers.map(m => m.id).slice(0, 0))}
+                        className="input-label flex items-center gap-2 cursor-pointer hover:text-primary transition-colors w-full text-left">
+                        Assign to employees
+                        {selectedMembers.length > 0 && (
+                          <span className="badge-base bg-accent-muted text-accent">{selectedMembers.length} selected</span>
+                        )}
+                      </button>
+
+                      {/* Select All / Deselect All */}
+                      <div className="flex gap-2 mb-1">
+                        <button type="button" onClick={() => setSelectedMembers(teamMembers.map(m => m.id))}
+                          className="text-2xs text-accent hover:underline focus-ring rounded">Select all</button>
+                        <span className="text-2xs text-tertiary">·</span>
+                        <button type="button" onClick={() => setSelectedMembers([])}
+                          className="text-2xs text-tertiary hover:text-error focus-ring rounded">Clear</button>
                       </div>
+
+                      {/* Employee chips */}
+                      <div className="flex flex-wrap gap-2">
+                        {teamMembers.map(m => {
+                          const selected = selectedMembers.includes(m.id);
+                          return (
+                            <button key={m.id} type="button" onClick={() => toggleMember(m.id)}
+                              className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium focus-ring transition-all ${
+                                selected
+                                  ? 'bg-accent text-[rgb(var(--color-text-inverse))] shadow-sm'
+                                  : 'bg-surface-elevated border border-theme text-secondary hover:text-primary hover:border-accent'
+                              }`}>
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-2xs font-bold ${selected ? 'bg-white/20 text-[rgb(var(--color-text-inverse))]' : 'avatar-gradient text-white'}`}>
+                                {m.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                              </div>
+                              {m.name}
+                              {selected && <span className="ml-1">✓</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Summary */}
                       {selectedMembers.length > 0 && (
-                        <p className="text-2xs text-tertiary">{bulkGoals.filter(g => g.title.trim()).length} goal(s) × {selectedMembers.length} employee(s) = {bulkGoals.filter(g => g.title.trim()).length * selectedMembers.length} total</p>
+                        <div className="card-stat p-3 mt-2">
+                          <p className="text-xs text-primary font-medium">
+                            {bulkGoals.filter(g => g.title.trim()).length} goal(s) × {selectedMembers.length} employee(s) = <strong className="text-accent">{bulkGoals.filter(g => g.title.trim()).length * selectedMembers.length} goals</strong> will be created
+                          </p>
+                        </div>
                       )}
                     </div>
                   )}
@@ -281,6 +322,30 @@ export default function GoalsPage() {
         </AnimatePresence>
       </div>
       <HeartButton />
+
+      {/* Revision Comment Modal */}
+      <Modal open={!!reviseGoalId} onClose={() => setReviseGoalId(null)} title="Request Revision"
+        icon={<span className="text-[rgb(var(--color-goal-revision))]">↩</span>}>
+        <form onSubmit={(e) => { e.preventDefault(); handleRevise(); }} className="space-y-4">
+          <p className="text-sm text-secondary">Explain what needs to change so the employee can improve their goal.</p>
+          <div>
+            <label className="input-label">What needs to change? <span className="text-error">*</span></label>
+            <textarea
+              value={reviseComment}
+              onChange={(e) => setReviseComment(e.target.value)}
+              rows={4}
+              className="input-textarea"
+              placeholder="Be specific — e.g., 'The target date seems too aggressive, consider extending to end of quarter. Also add measurable success criteria.'"
+              autoFocus
+            />
+          </div>
+          <FormActions
+            onCancel={() => setReviseGoalId(null)}
+            submitLabel="Send Revision Request"
+            disabled={!reviseComment.trim()}
+          />
+        </form>
+      </Modal>
     </DashboardLayout>
   );
 }

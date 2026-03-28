@@ -121,6 +121,29 @@ async function main() {
       console.log('Created company value:', value.name);
     }
 
+    // Seed goal templates (software industry)
+    const goalTemplates = [
+      { title: 'Complete Sprint Deliverables', description: 'Deliver all assigned user stories and tasks within the sprint timeline with quality standards met.', category: 'Engineering' },
+      { title: 'Code Review Participation', description: 'Review at least 3 pull requests per week, providing constructive feedback to improve code quality.', category: 'Engineering' },
+      { title: 'Reduce Bug Count', description: 'Reduce the number of production bugs in your module by 30% this quarter through proactive testing and code quality.', category: 'Quality' },
+      { title: 'Learn New Technology', description: 'Complete a certification or build a proof-of-concept with a new technology relevant to team goals.', category: 'Learning' },
+      { title: 'Improve Documentation', description: 'Create or update technical documentation for your team\'s key systems and processes.', category: 'Knowledge' },
+      { title: 'Mentorship Program', description: 'Mentor a junior team member through weekly 1:1 sessions and pair programming.', category: 'Leadership' },
+      { title: 'Customer Satisfaction Score', description: 'Achieve a customer satisfaction score of 4.5+ for features delivered this quarter.', category: 'Customer' },
+      { title: 'Process Improvement', description: 'Identify and implement one process improvement that saves the team at least 2 hours per week.', category: 'Efficiency' },
+      { title: 'Security Best Practices', description: 'Complete security training and implement at least 2 security improvements in your codebase.', category: 'Security' },
+      { title: 'Cross-Team Collaboration', description: 'Lead or participate in at least one cross-team initiative this quarter.', category: 'Collaboration' },
+    ];
+
+    for (const t of goalTemplates) {
+      await prisma.goalTemplate.upsert({
+        where: { tenantId_title: { tenantId: TENANT_ID, title: t.title } },
+        update: {},
+        create: { tenantId: TENANT_ID, ...t, isActive: true },
+      });
+    }
+    console.log('Created goal templates:', goalTemplates.length);
+
     console.log('\nDatabase seeded successfully!');
     console.log('Tenant:', TENANT_ID);
     console.log('Users: 1 admin, 2 managers, 5 employees');

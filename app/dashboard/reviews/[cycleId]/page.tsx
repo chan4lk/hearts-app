@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import HeartButton from '@/app/components/hearts/HeartButton';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
+import Modal from '@/app/components/shared/Modal';
 import { motion } from 'framer-motion';
 import { ArrowLeft, CheckCircle, Clock, FileText, Lock } from 'lucide-react';
 import Link from 'next/link';
@@ -49,6 +50,7 @@ export default function CycleDetailPage() {
   const [managerRating, setManagerRating] = useState(3);
   const [saving, setSaving] = useState(false);
   const [evidence, setEvidence] = useState<{ goals: any[]; hearts: any[] } | null>(null);
+  const [confirmFinalizeId, setConfirmFinalizeId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/reviews/cycles/${cycleId}`).then(r => r.ok ? r.json() : null).then(data => {
@@ -109,9 +111,10 @@ export default function CycleDetailPage() {
     if (res.ok) setCycle(await res.json());
   };
 
-  const finalizeReview = async (reviewId: string) => {
-    if (!confirm('Finalize this review? It will become immutable.')) return;
-    await fetch(`/api/reviews/${reviewId}/finalize`, { method: 'POST' });
+  const finalizeReview = async () => {
+    if (!confirmFinalizeId) return;
+    await fetch(`/api/reviews/${confirmFinalizeId}/finalize`, { method: 'POST' });
+    setConfirmFinalizeId(null);
     const res = await fetch(`/api/reviews/cycles/${cycleId}`);
     if (res.ok) setCycle(await res.json());
   };
@@ -194,7 +197,7 @@ export default function CycleDetailPage() {
                           {review.managerSubmittedAt ? 'Edit' : 'Review'}
                         </button>
                         {review.managerSubmittedAt && (
-                          <button onClick={() => finalizeReview(review.id)} className="text-xs font-medium text-success hover:opacity-80 focus-ring rounded px-2 py-1">
+                          <button onClick={() => setConfirmFinalizeId(review.id)} className="text-xs font-medium text-success hover:opacity-80 focus-ring rounded px-2 py-1">
                             Finalize
                           </button>
                         )}
@@ -333,6 +336,21 @@ export default function CycleDetailPage() {
         )}
       </div>
       <HeartButton />
+
+      {/* Finalize Confirmation Modal */}
+      <Modal open={!!confirmFinalizeId} onClose={() => setConfirmFinalizeId(null)} title="Finalize Review"
+        icon={<Lock className="w-5 h-5 text-warning" />}>
+        <div className="space-y-4">
+          <div className="p-4 bg-warning-muted rounded-xl">
+            <p className="text-sm text-warning font-medium">This action cannot be undone.</p>
+            <p className="text-xs text-secondary mt-1">Once finalized, the review becomes immutable — no edits allowed. The employee will be notified that their review is ready.</p>
+          </div>
+          <div className="flex gap-3">
+            <button onClick={() => setConfirmFinalizeId(null)} className="btn-secondary flex-1">Cancel</button>
+            <button onClick={finalizeReview} className="flex-1 px-4 py-2.5 bg-success text-white rounded-xl text-sm font-medium hover:opacity-90 focus-ring shadow-sm">Finalize Review</button>
+          </div>
+        </div>
+      </Modal>
     </DashboardLayout>
   );
 }
