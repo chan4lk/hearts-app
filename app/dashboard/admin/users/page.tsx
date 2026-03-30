@@ -6,12 +6,13 @@ import PageTitle from '@/app/components/shared/PageTitle';
 import StatGrid from '@/app/components/shared/StatGrid';
 import FilterBar, { FilterSelect } from '@/app/components/shared/FilterBar';
 import Modal from '@/app/components/shared/Modal';
-import { Select, FormActions } from '@/app/components/shared/FormField';
+import { Select, Input, FormActions } from '@/app/components/shared/FormField';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
 import { Users, Shield, UserCheck, X } from 'lucide-react';
 
 interface User {
   id: string; name: string; email: string; role: 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
+  jobCategory: string | null; appointmentDate: string | null; reviewMonth: string | null;
   department: string | null; position: string | null; isActive: boolean;
   managerId: string | null; manager: { id: string; name: string } | null;
 }
@@ -133,11 +134,22 @@ export default function AdminUsersPage() {
                 <div><p className="text-sm font-medium text-primary">{editingUser.name}</p><p className="text-xs text-tertiary">{editingUser.email}</p></div>
               </div>
 
-              <Select label="Role" id="edit-role" defaultValue={editingUser.role}
-                options={[{ value: 'EMPLOYEE', label: 'Employee' }, { value: 'MANAGER', label: 'Manager' }, { value: 'ADMIN', label: 'Admin' }]} />
+              <div className="grid grid-cols-2 gap-3">
+                <Select label="Role" id="edit-role" defaultValue={editingUser.role}
+                  options={[{ value: 'EMPLOYEE', label: 'Employee' }, { value: 'MANAGER', label: 'Manager' }, { value: 'ADMIN', label: 'Admin' }]} />
+                <Select label="Job Category" id="edit-jobCategory" defaultValue={editingUser.jobCategory || ''} placeholder="Select..."
+                  options={[{ value: 'Executive', label: 'Executive' }, { value: 'Senior Executive', label: 'Senior Executive' }, { value: 'Associate', label: 'Associate' }, { value: 'Lead', label: 'Lead' }, { value: 'Manager', label: 'Manager' }]} />
+              </div>
 
-              <Select label="Manager" id="edit-manager" defaultValue={editingUser.managerId || ''} placeholder="No Manager"
+              <Select label="Manager (Reporting Person)" id="edit-manager" defaultValue={editingUser.managerId || ''} placeholder="No Manager"
                 options={managers.filter(m => m.id !== editingUser.id).map(m => ({ value: m.id, label: `${m.name} (${m.role})` }))} />
+
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="Appointment Date" id="edit-appointmentDate" type="date"
+                  defaultValue={editingUser.appointmentDate ? new Date(editingUser.appointmentDate).toISOString().split('T')[0] : ''} />
+                <Select label="Review Month" id="edit-reviewMonth" defaultValue={editingUser.reviewMonth || ''} placeholder="Auto-calculate"
+                  options={['January','February','March','April','May','June','July','August','September','October','November','December'].map(m => ({ value: m, label: m }))} />
+              </div>
 
               <div className="flex justify-between items-center pt-2">
                 <button onClick={() => handleUpdate(editingUser.id, { isActive: !editingUser.isActive })} disabled={saving}
@@ -149,7 +161,10 @@ export default function AdminUsersPage() {
                   <button onClick={() => {
                     const role = (document.getElementById('edit-role') as HTMLSelectElement).value;
                     const managerId = (document.getElementById('edit-manager') as HTMLSelectElement).value || null;
-                    handleUpdate(editingUser.id, { role, managerId });
+                    const jobCategory = (document.getElementById('edit-jobCategory') as HTMLSelectElement).value || null;
+                    const appointmentDate = (document.getElementById('edit-appointmentDate') as HTMLInputElement).value || null;
+                    const reviewMonth = (document.getElementById('edit-reviewMonth') as HTMLSelectElement).value || null;
+                    handleUpdate(editingUser.id, { role, managerId, jobCategory, appointmentDate, reviewMonth });
                   }} disabled={saving} className="btn-primary px-4 py-2">{saving ? 'Saving...' : 'Save'}</button>
                 </div>
               </div>

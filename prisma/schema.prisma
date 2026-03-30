@@ -78,7 +78,10 @@ model User {
   lastLoginAttempt    DateTime?
   department          String?
   isActive            Boolean   @default(true)
-  position            String?
+  position            String?    // Designation: "Senior Software Engineer", "QA Lead"
+  jobCategory         String?    // Job level: "Executive", "Senior Executive", "Manager"
+  appointmentDate     DateTime?  // Date of appointment / hire date
+  reviewMonth         String?    // Calculated or manual review month: "April", "October"
   managerId           String?
 
   // Self-referential manager relationship

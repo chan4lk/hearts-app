@@ -9,6 +9,11 @@ const UpdateUserSchema = z.object({
   role: z.enum(['ADMIN', 'MANAGER', 'EMPLOYEE']).optional(),
   managerId: z.string().nullable().optional(),
   isActive: z.boolean().optional(),
+  department: z.string().nullable().optional(),
+  position: z.string().nullable().optional(),
+  jobCategory: z.string().nullable().optional(),
+  appointmentDate: z.string().nullable().optional(),
+  reviewMonth: z.string().nullable().optional(),
 });
 
 export async function PATCH(
@@ -63,6 +68,11 @@ export async function PATCH(
       ...(data.role !== undefined && { role: data.role }),
       ...(data.managerId !== undefined && { managerId: data.managerId }),
       ...(data.isActive !== undefined && { isActive: data.isActive }),
+      ...(data.department !== undefined && { department: data.department }),
+      ...(data.position !== undefined && { position: data.position }),
+      ...(data.jobCategory !== undefined && { jobCategory: data.jobCategory }),
+      ...(data.appointmentDate !== undefined && { appointmentDate: data.appointmentDate ? new Date(data.appointmentDate) : null }),
+      ...(data.reviewMonth !== undefined && { reviewMonth: data.reviewMonth }),
     },
     select: {
       id: true,
