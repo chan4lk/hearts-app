@@ -173,41 +173,86 @@ export default function CycleDetailPage() {
           </div>
         )}
 
-        {/* Manager: Team Reviews */}
-        {isManager && teamReviews.length > 0 && (
-          <div className="bg-surface-elevated rounded-xl border border-theme shadow-theme-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-theme">
-              <h3 className="text-sm font-semibold text-primary">Team Reviews ({teamReviews.length})</h3>
-            </div>
-            <div className="divide-y divide-[rgb(var(--color-border-theme))]">
-              {teamReviews.map((review) => (
-                <div key={review.id} className="px-4 py-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-primary">{review.employee.name}</p>
-                    <div className="flex items-center gap-2 text-xs text-tertiary mt-0.5">
-                      {review.selfSubmittedAt ? <span className="text-success">Self-review done</span> : <span className="text-warning">Self-review pending</span>}
-                      {review.managerSubmittedAt && <span className="text-info">· Your review done</span>}
-                      {review.isFinalized && <span className="text-success">· Finalized</span>}
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    {!review.isFinalized && (
-                      <>
-                        <button onClick={() => openReview(review)} className="text-xs font-medium text-accent hover:opacity-80 focus-ring rounded px-2 py-1">
-                          {review.managerSubmittedAt ? 'Edit' : 'Review'}
-                        </button>
-                        {review.managerSubmittedAt && (
-                          <button onClick={() => setConfirmFinalizeId(review.id)} className="text-xs font-medium text-success hover:opacity-80 focus-ring rounded px-2 py-1">
-                            Finalize
-                          </button>
+        {/* All Reviews Table — visible to manager and admin */}
+        {cycle.reviews.length > 0 && (
+          <div className="card-section overflow-y-auto" style={{ maxHeight: '55vh' }}>
+            <table className="w-full">
+              <thead className="sticky top-0 z-10 bg-surface-secondary">
+                <tr className="border-b border-theme">
+                  <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider w-[22%]">Employee</th>
+                  <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider hidden md:table-cell w-[15%]">Department</th>
+                  <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider w-[15%]">Manager</th>
+                  <th className="text-center px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider w-[13%]">Self-Review</th>
+                  <th className="text-center px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider w-[13%]">Manager Review</th>
+                  <th className="text-center px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider w-[10%]">Status</th>
+                  <th className="text-right px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider w-[12%]">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[rgb(var(--color-border-theme))]">
+                {cycle.reviews.map((review) => {
+                  const isMyReviewRow = review.employeeId === userId;
+                  const isMyTeamReview = review.managerId === userId;
+                  return (
+                    <tr key={review.id} className={`hover:bg-surface-secondary transition-colors ${isMyReviewRow ? 'bg-accent-muted/30' : ''}`}>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="avatar-sm avatar-gradient">{review.employee.name.split(' ').map(n => n[0]).join('').slice(0, 2)}</div>
+                          <div>
+                            <p className="text-sm font-medium text-primary">{review.employee.name} {isMyReviewRow && <span className="text-2xs text-accent">(you)</span>}</p>
+                            <p className="text-2xs text-tertiary">{review.employee.department || ''}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 hidden md:table-cell text-sm text-secondary">{review.employee.department || '—'}</td>
+                      <td className="px-4 py-3 text-sm text-secondary">{review.manager.name}</td>
+                      <td className="px-4 py-3 text-center">
+                        {review.selfSubmittedAt ? (
+                          <span className="badge-base bg-success-muted text-success">Done</span>
+                        ) : (
+                          <span className="badge-base bg-warning-muted text-warning">Pending</span>
                         )}
-                      </>
-                    )}
-                    {review.isFinalized && <Lock className="w-4 h-4 text-tertiary" />}
-                  </div>
-                </div>
-              ))}
-            </div>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {review.managerSubmittedAt ? (
+                          <span className="badge-base bg-success-muted text-success">Done</span>
+                        ) : (
+                          <span className="badge-base bg-warning-muted text-warning">Pending</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {review.isFinalized ? (
+                          <span className="badge-base bg-[rgba(var(--color-review),0.12)] text-[rgb(var(--color-review))]"><Lock className="w-3 h-3" /> Final</span>
+                        ) : (
+                          <span className="badge-base bg-surface-secondary text-tertiary">Open</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {/* Employee: complete self-review */}
+                          {isMyReviewRow && !review.selfSubmittedAt && !review.isFinalized && (
+                            <button onClick={() => openReview(review)} className="text-xs font-medium text-accent focus-ring rounded px-2 py-1">Self-Review</button>
+                          )}
+                          {/* Manager: write review */}
+                          {isMyTeamReview && !review.isFinalized && (
+                            <button onClick={() => openReview(review)} className="text-xs font-medium text-accent focus-ring rounded px-2 py-1">
+                              {review.managerSubmittedAt ? 'Edit' : 'Review'}
+                            </button>
+                          )}
+                          {/* Manager: finalize */}
+                          {isMyTeamReview && review.managerSubmittedAt && !review.isFinalized && (
+                            <button onClick={() => setConfirmFinalizeId(review.id)} className="text-xs font-medium text-success focus-ring rounded px-2 py-1">Finalize</button>
+                          )}
+                          {/* Employee: view finalized */}
+                          {isMyReviewRow && review.isFinalized && (
+                            <button onClick={() => openReview(review)} className="text-xs font-medium text-[rgb(var(--color-review))] focus-ring rounded px-2 py-1">View</button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
 

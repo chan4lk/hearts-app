@@ -8,7 +8,7 @@ import FilterBar, { FilterSelect } from '@/app/components/shared/FilterBar';
 import Modal from '@/app/components/shared/Modal';
 import { Select, Input, FormActions } from '@/app/components/shared/FormField';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
-import { Users, Shield, UserCheck, X } from 'lucide-react';
+import { Users, Shield, UserCheck, X, Upload, Download } from 'lucide-react';
 
 interface User {
   id: string; name: string; email: string; role: 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
@@ -27,6 +27,9 @@ export default function AdminUsersPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ created: number; updated: number; errors: string[] } | null>(null);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -53,6 +56,54 @@ export default function AdminUsersPage() {
     setSaving(false);
   };
 
+  // CSV Import
+  const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true); setImportResult(null);
+
+    const text = await file.text();
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    if (lines.length < 2) { setImporting(false); return; }
+
+    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+    const rows = lines.slice(1).map(line => {
+      const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+      const row: any = {};
+      headers.forEach((h, i) => { row[h] = values[i] || ''; });
+      return row;
+    });
+
+    const res = await fetch('/api/admin/users/import', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rows }),
+    });
+
+    if (res.ok) {
+      const result = await res.json();
+      setImportResult(result);
+      await fetchUsers();
+    }
+    setImporting(false);
+    e.target.value = ''; // reset file input
+  };
+
+  // CSV Export
+  const handleExport = () => {
+    const headers = ['Name','Email','Role','Department','Position','Job Category','Appointment Date','Review Month','Manager','Status'];
+    const csvRows = [headers.join(',')];
+    users.forEach(u => {
+      csvRows.push([
+        `"${u.name}"`, `"${u.email}"`, u.role, `"${u.department || ''}"`, `"${u.position || ''}"`,
+        `"${u.jobCategory || ''}"`, u.appointmentDate ? new Date(u.appointmentDate).toISOString().split('T')[0] : '',
+        `"${u.reviewMonth || ''}"`, `"${u.manager?.name || ''}"`, u.isActive ? 'Active' : 'Inactive',
+      ].join(','));
+    });
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'aspirehub-users.csv'; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const managers = users.filter(u => u.role === 'MANAGER' || u.role === 'ADMIN');
   const hasActiveFilters = !!(roleFilter || statusFilter || search);
 
@@ -61,15 +112,37 @@ export default function AdminUsersPage() {
       <div className="max-w-7xl mx-auto space-y-6">
         <PageTitle title="User Management" subtitle="Manage employee roles, managers, and account status" icon={Users} iconColor="--color-accent"
           actions={
-            <FilterBar search={search} onSearchChange={setSearch} searchPlaceholder="Search name, email, department..."
-              hasActiveFilters={hasActiveFilters} onClearAll={() => { setSearch(''); setRoleFilter(''); setStatusFilter(''); }}>
-              <FilterSelect value={roleFilter} onChange={setRoleFilter} placeholder="All Roles"
-                options={[{ value: 'ADMIN', label: 'Admin' }, { value: 'MANAGER', label: 'Manager' }, { value: 'EMPLOYEE', label: 'Employee' }]} />
-              <FilterSelect value={statusFilter} onChange={setStatusFilter} placeholder="All Status"
-                options={[{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }]} />
-            </FilterBar>
+            <div className="flex items-center gap-2">
+              {/* Import CSV */}
+              <label className="inline-flex items-center gap-1.5 px-3 py-2 bg-surface-elevated border border-theme rounded-xl text-xs font-medium text-secondary hover:text-primary cursor-pointer focus-ring transition-all">
+                <Upload className="w-3.5 h-3.5" /> Import
+                <input type="file" accept=".csv" onChange={handleFileImport} className="hidden" disabled={importing} />
+              </label>
+              {/* Export CSV */}
+              <button onClick={handleExport} className="inline-flex items-center gap-1.5 px-3 py-2 bg-surface-elevated border border-theme rounded-xl text-xs font-medium text-secondary hover:text-primary focus-ring transition-all">
+                <Download className="w-3.5 h-3.5" /> Export
+              </button>
+              <FilterBar search={search} onSearchChange={setSearch} searchPlaceholder="Search name, email, department..."
+                hasActiveFilters={hasActiveFilters} onClearAll={() => { setSearch(''); setRoleFilter(''); setStatusFilter(''); }}>
+                <FilterSelect value={roleFilter} onChange={setRoleFilter} placeholder="All Roles"
+                  options={[{ value: 'ADMIN', label: 'Admin' }, { value: 'MANAGER', label: 'Manager' }, { value: 'EMPLOYEE', label: 'Employee' }]} />
+                <FilterSelect value={statusFilter} onChange={setStatusFilter} placeholder="All Status"
+                  options={[{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }]} />
+              </FilterBar>
+            </div>
           }
         />
+
+        {/* Import result banner */}
+        {importResult && (
+          <div className={`rounded-xl px-4 py-3 text-sm font-medium flex items-center justify-between ${importResult.errors.length > 0 ? 'bg-warning-muted text-warning' : 'bg-success-muted text-success'}`}>
+            <span>Import complete: {importResult.created} created, {importResult.updated} updated{importResult.errors.length > 0 ? `, ${importResult.errors.length} errors` : ''}</span>
+            <button onClick={() => setImportResult(null)} className="text-xs hover:opacity-70 focus-ring rounded">✕</button>
+          </div>
+        )}
+        {importing && (
+          <div className="bg-accent-muted text-accent rounded-xl px-4 py-3 text-sm font-medium">Importing users...</div>
+        )}
 
         {!loading && (
           <StatGrid stats={[
