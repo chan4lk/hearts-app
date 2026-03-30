@@ -82,24 +82,19 @@ export default function AdminUsersPage() {
         {loading ? (
           <PageSkeleton type="table" count={6} />
         ) : (
-          <div className="card-section">
-            <div className="bg-surface-secondary border-b border-theme">
-              <table className="w-full">
-                <thead>
-                  <tr>
-                    <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Name</th>
-                    <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Role</th>
-                    <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider hidden md:table-cell">Department</th>
-                    <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider hidden lg:table-cell">Manager</th>
-                    <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Status</th>
-                    <th className="text-right px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-              </table>
-            </div>
-            <div className="overflow-y-auto" style={{ maxHeight: '55vh' }}>
-              <table className="w-full">
-                <tbody className="divide-y divide-[rgb(var(--color-border-theme))]">
+          <div className="card-section overflow-y-auto" style={{ maxHeight: '65vh' }}>
+            <table className="w-full">
+              <thead className="sticky top-0 z-10 bg-surface-secondary">
+                <tr className="border-b border-theme">
+                  <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider w-[28%]">Name</th>
+                  <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider w-[12%]">Role</th>
+                  <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider hidden md:table-cell w-[16%]">Department</th>
+                  <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider hidden lg:table-cell w-[18%]">Manager</th>
+                  <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider w-[12%]">Status</th>
+                  <th className="text-right px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider w-[10%]">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[rgb(var(--color-border-theme))]">
                   {filteredUsers.length === 0 ? (
                     <tr><td colSpan={6} className="px-4 py-12 text-center text-secondary">No users found</td></tr>
                   ) : filteredUsers.map(user => (
@@ -125,8 +120,7 @@ export default function AdminUsersPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
-            </div>
+            </table>
           </div>
         )}
 
