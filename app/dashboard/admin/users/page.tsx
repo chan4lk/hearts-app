@@ -7,7 +7,7 @@ import StatGrid from '@/app/components/shared/StatGrid';
 import Modal from '@/app/components/shared/Modal';
 import { Select, Input } from '@/app/components/shared/FormField';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
-import { Users, Shield, UserCheck, X, Upload, Download, UserX, Calendar, Search } from 'lucide-react';
+import { Users, Shield, UserCheck, X, Upload, Download, UserX, Calendar, Search, Building2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface User {
@@ -25,10 +25,13 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
+  const [deptFilter, setDeptFilter] = useState('');
   const [showInactive, setShowInactive] = useState(true);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editRole, setEditRole] = useState<string>('EMPLOYEE');
   const [editManagerId, setEditManagerId] = useState<string>('');
+  const [editDepartment, setEditDepartment] = useState<string>('');
+  const [editPosition, setEditPosition] = useState<string>('');
   const [editJobCategory, setEditJobCategory] = useState<string>('');
   const [editAppointmentDate, setEditAppointmentDate] = useState<string>('');
   const [editReviewMonth, setEditReviewMonth] = useState<string>('');
@@ -51,6 +54,8 @@ export default function AdminUsersPage() {
     if (!editingUser) return;
     setEditRole(editingUser.role);
     setEditManagerId(editingUser.managerId || '');
+    setEditDepartment(editingUser.department || '');
+    setEditPosition(editingUser.position || '');
     setEditJobCategory(editingUser.jobCategory || '');
     setEditAppointmentDate(
       editingUser.appointmentDate
@@ -66,6 +71,11 @@ export default function AdminUsersPage() {
       const r = roleFilter.toLowerCase();
       if (!u.role.toLowerCase().includes(r)) return false;
     }
+    if (deptFilter) {
+      const d = deptFilter.toLowerCase();
+      const dept = (u.department ?? '').toLowerCase();
+      if (!dept.includes(d)) return false;
+    }
     if (search) {
       const q = search.toLowerCase();
       const hay = `${u.name} ${u.email} ${u.department ?? ''} ${u.position ?? ''}`.toLowerCase();
@@ -73,6 +83,8 @@ export default function AdminUsersPage() {
     }
     return true;
   });
+
+  const departments = Array.from(new Set(users.map(u => u.department).filter(Boolean))).sort() as string[];
 
   const handleUpdate = async (userId: string, data: any) => {
     setSaving(true);
@@ -145,7 +157,7 @@ export default function AdminUsersPage() {
   };
 
   const managers = users.filter(u => u.role === 'MANAGER' || u.role === 'ADMIN');
-  const hasActiveFilters = !!(roleFilter || search || !showInactive);
+  const hasActiveFilters = !!(roleFilter || deptFilter || search || !showInactive);
 
   return (
     <DashboardLayout type="admin">
@@ -154,6 +166,11 @@ export default function AdminUsersPage() {
           <option value="ADMIN" />
           <option value="MANAGER" />
           <option value="EMPLOYEE" />
+        </datalist>
+        <datalist id="user-dept-options">
+          {departments.map((d) => (
+            <option key={d} value={d} />
+          ))}
         </datalist>
 
         <PageTitle title="User Management" subtitle="Manage employee roles, managers, and account status" icon={Users} iconColor="--color-accent"
@@ -226,6 +243,30 @@ export default function AdminUsersPage() {
               </button>
             )}
           </div>
+          <div className="relative w-48">
+            <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
+            <input
+              type="text"
+              value={deptFilter}
+              onChange={(e) => setDeptFilter(e.target.value)}
+              placeholder="All departments"
+              className="input-base pl-9 pr-8"
+              list="user-dept-options"
+              autoComplete="off"
+              aria-label="Filter by department (type to search)"
+            />
+            {deptFilter && (
+              <button
+                type="button"
+                onClick={() => setDeptFilter('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-tertiary hover:text-primary focus-ring rounded p-0.5"
+                aria-label="Clear department filter"
+                title="Clear"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
           <label className="inline-flex items-center gap-2 text-xs text-secondary cursor-pointer select-none flex-shrink-0">
             <input
               type="checkbox"
@@ -269,6 +310,7 @@ export default function AdminUsersPage() {
                 onClick={() => {
                   setSearch('');
                   setRoleFilter('');
+                  setDeptFilter('');
                   setShowInactive(true);
                 }}
                 className="text-accent hover:underline focus-ring rounded"
@@ -408,6 +450,33 @@ export default function AdminUsersPage() {
                 />
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="input-label">Department</label>
+                  <input
+                    type="text"
+                    value={editDepartment}
+                    onChange={(e) => setEditDepartment(e.target.value)}
+                    className="input-base"
+                    maxLength={100}
+                    placeholder="e.g., Engineering"
+                    list="user-dept-options"
+                    autoComplete="off"
+                  />
+                </div>
+                <div>
+                  <label className="input-label">Designation / Position</label>
+                  <input
+                    type="text"
+                    value={editPosition}
+                    onChange={(e) => setEditPosition(e.target.value)}
+                    className="input-base"
+                    maxLength={100}
+                    placeholder="e.g., Senior Software Engineer"
+                  />
+                </div>
+              </div>
+
               <Select
                 label="Manager (Reporting Person)"
                 value={editManagerId}
@@ -456,6 +525,8 @@ export default function AdminUsersPage() {
                       handleUpdate(editingUser.id, {
                         role: editRole,
                         managerId: editManagerId || null,
+                        department: editDepartment.trim() || null,
+                        position: editPosition.trim() || null,
                         jobCategory: editJobCategory || null,
                         appointmentDate: editAppointmentDate || null,
                         reviewMonth: editReviewMonth || null,
