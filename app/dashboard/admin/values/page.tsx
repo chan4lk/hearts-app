@@ -1,12 +1,22 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
+import PageTitle from '@/app/components/shared/PageTitle';
 import Modal from '@/app/components/shared/Modal';
 import { FormActions } from '@/app/components/shared/FormField';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Plus, ToggleLeft, ToggleRight, Pencil, Trash2, AlertTriangle } from 'lucide-react';
+import {
+  Heart,
+  Plus,
+  ToggleLeft,
+  ToggleRight,
+  Pencil,
+  Trash2,
+  AlertTriangle,
+  Search,
+} from 'lucide-react';
 
 interface CompanyValue {
   id: string;
@@ -20,10 +30,13 @@ export default function AdminValuesPage() {
   const [values, setValues] = useState<CompanyValue[]>([]);
   const [loading, setLoading] = useState(true);
   const [showInactive, setShowInactive] = useState(true);
+  const [search, setSearch] = useState('');
 
+  const [showCreate, setShowCreate] = useState(false);
   const [newValueName, setNewValueName] = useState('');
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
+
   const [flash, setFlash] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
   const [editing, setEditing] = useState<CompanyValue | null>(null);
@@ -47,20 +60,34 @@ export default function AdminValuesPage() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchValues(); }, [fetchValues]);
+  useEffect(() => {
+    fetchValues();
+  }, [fetchValues]);
 
-  const visibleValues = useMemo(
-    () => (showInactive ? values : values.filter((v) => v.isActive)),
-    [values, showInactive]
-  );
+  const visibleValues = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return values.filter((v) => {
+      if (!showInactive && !v.isActive) return false;
+      if (q && !v.name.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [values, showInactive, search]);
 
   const activeCount = values.filter((v) => v.isActive).length;
+  const inactiveCount = values.length - activeCount;
   const totalHearts = values.reduce((sum, v) => sum + v._count.hearts, 0);
+
+  const openCreate = () => {
+    setNewValueName('');
+    setCreateError('');
+    setShowCreate(true);
+  };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newValueName.trim()) return;
-    setCreating(true); setCreateError('');
+    setCreating(true);
+    setCreateError('');
     const res = await fetch('/api/admin/values', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -68,6 +95,7 @@ export default function AdminValuesPage() {
     });
     if (res.ok) {
       setNewValueName('');
+      setShowCreate(false);
       await fetchValues();
       flashMsg('success', 'Value created');
     } else {
@@ -101,7 +129,8 @@ export default function AdminValuesPage() {
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editing || !editName.trim()) return;
-    setSaving(true); setEditError('');
+    setSaving(true);
+    setEditError('');
     const res = await fetch(`/api/admin/values/${editing.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -120,7 +149,8 @@ export default function AdminValuesPage() {
 
   const handleConfirmDelete = async () => {
     if (!deleting) return;
-    setDeleteBusy(true); setDeleteError('');
+    setDeleteBusy(true);
+    setDeleteError('');
     const res = await fetch(`/api/admin/values/${deleting.id}`, { method: 'DELETE' });
     if (res.ok) {
       setDeleting(null);
@@ -136,13 +166,21 @@ export default function AdminValuesPage() {
   return (
     <DashboardLayout type="admin">
       <div className="max-w-3xl mx-auto space-y-6">
-        <div>
-          <h1 className="page-title">
-            <Heart className="w-6 h-6" style={{ color: 'rgb(var(--color-heart))' }} />
-            Company Values
-          </h1>
-          <p className="page-subtitle">Configure the values employees can recognize each other for</p>
-        </div>
+        <PageTitle
+          title="Company Values"
+          subtitle="Configure the values employees can recognize each other for"
+          icon={Heart}
+          iconColor="--color-heart"
+          actions={
+            <button
+              type="button"
+              onClick={openCreate}
+              className="btn-primary inline-flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" /> New Value
+            </button>
+          }
+        />
 
         {flash && (
           <div
@@ -157,10 +195,11 @@ export default function AdminValuesPage() {
         )}
 
         {!loading && (
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
               { label: 'Total Values', value: values.length },
               { label: 'Active', value: activeCount },
+              { label: 'Inactive', value: inactiveCount },
               { label: 'Total Hearts', value: totalHearts },
             ].map(({ label, value }) => (
               <div key={label} className="card-stat text-center">
@@ -171,34 +210,19 @@ export default function AdminValuesPage() {
           </div>
         )}
 
-        <form onSubmit={handleCreate} className="card-stat">
-          <label className="input-label">Add New Value</label>
-          <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
             <input
-              type="text"
-              value={newValueName}
-              onChange={(e) => setNewValueName(e.target.value)}
-              placeholder="e.g., Innovation, Teamwork, Ownership..."
-              className="input-base"
-              maxLength={50}
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search values by name..."
+              className="input-base pl-9"
+              aria-label="Search values"
             />
-            <button
-              type="submit"
-              disabled={creating || !newValueName.trim()}
-              className="btn-primary inline-flex items-center gap-2 flex-shrink-0"
-            >
-              <Plus className="w-4 h-4" /> {creating ? 'Adding...' : 'Add'}
-            </button>
           </div>
-          {createError && <p className="text-xs text-error mt-2">{createError}</p>}
-        </form>
-
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-tertiary">
-            {visibleValues.length} of {values.length} value{values.length === 1 ? '' : 's'}
-            {showInactive ? ' (including inactive)' : ' (active only)'}
-          </p>
-          <label className="inline-flex items-center gap-2 text-xs text-secondary cursor-pointer select-none">
+          <label className="inline-flex items-center gap-2 text-xs text-secondary cursor-pointer select-none flex-shrink-0">
             <input
               type="checkbox"
               checked={showInactive}
@@ -208,6 +232,25 @@ export default function AdminValuesPage() {
             Show inactive
           </label>
         </div>
+
+        <p className="text-xs text-tertiary -mt-2">
+          Showing {visibleValues.length} of {values.length} value{values.length === 1 ? '' : 's'}
+          {(search || !showInactive) && (
+            <>
+              {' · '}
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch('');
+                  setShowInactive(true);
+                }}
+                className="text-accent hover:underline focus-ring rounded"
+              >
+                Clear filters
+              </button>
+            </>
+          )}
+        </p>
 
         {loading ? (
           <PageSkeleton type="cards" count={3} />
@@ -220,16 +263,16 @@ export default function AdminValuesPage() {
               <Heart className="w-10 h-10" style={{ color: 'rgb(var(--color-heart))' }} />
             </div>
             <p className="empty-title">
-              {values.length === 0 ? 'No company values yet' : 'No values match the current filter'}
+              {values.length === 0 ? 'No company values yet' : 'No values match the current filters'}
             </p>
             <p className="empty-description">
               {values.length === 0
-                ? 'Add values above so employees can recognize each other'
-                : 'Toggle "Show inactive" to see deactivated values'}
+                ? 'Click "New Value" to add your first value'
+                : 'Try a different search term or toggle "Show inactive".'}
             </p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-[calc(100vh-16rem)] overflow-y-auto scrollbar-hide pr-1 -mr-1">
             <AnimatePresence initial={false}>
               {visibleValues.map((v) => (
                 <motion.div
@@ -290,6 +333,7 @@ export default function AdminValuesPage() {
                     )}
                     <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                       <button
+                        type="button"
                         onClick={() => openEdit(v)}
                         className="focus-ring rounded-lg p-2 text-tertiary hover:text-accent hover:bg-accent-muted transition-colors"
                         aria-label={`Edit ${v.name}`}
@@ -298,6 +342,7 @@ export default function AdminValuesPage() {
                         <Pencil className="w-4 h-4" />
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleToggle(v)}
                         className="focus-ring rounded-lg p-1"
                         aria-label={v.isActive ? `Deactivate ${v.name}` : `Activate ${v.name}`}
@@ -310,7 +355,11 @@ export default function AdminValuesPage() {
                         )}
                       </button>
                       <button
-                        onClick={() => { setDeleting(v); setDeleteError(''); }}
+                        type="button"
+                        onClick={() => {
+                          setDeleting(v);
+                          setDeleteError('');
+                        }}
                         className="focus-ring rounded-lg p-2 text-tertiary hover:text-error hover:bg-error-muted transition-colors"
                         aria-label={`Delete ${v.name}`}
                         title="Delete"
@@ -327,8 +376,40 @@ export default function AdminValuesPage() {
       </div>
 
       <Modal
+        open={showCreate}
+        onClose={() => !creating && setShowCreate(false)}
+        title="New Company Value"
+        icon={<Heart className="w-5 h-5 text-[rgb(var(--color-heart))]" />}
+      >
+        <form onSubmit={handleCreate} className="space-y-4">
+          <div>
+            <label className="input-label">Name</label>
+            <input
+              value={newValueName}
+              onChange={(e) => setNewValueName(e.target.value)}
+              placeholder="e.g., Innovation, Teamwork, Ownership..."
+              className="input-base"
+              maxLength={50}
+              required
+              autoFocus
+            />
+            <p className="text-2xs text-tertiary mt-1">
+              Shown to employees when they give a Heart.
+            </p>
+          </div>
+          {createError && <p className="text-xs text-error">{createError}</p>}
+          <FormActions
+            onCancel={() => setShowCreate(false)}
+            submitLabel={creating ? 'Creating...' : 'Create Value'}
+            loading={creating}
+            disabled={!newValueName.trim()}
+          />
+        </form>
+      </Modal>
+
+      <Modal
         open={!!editing}
-        onClose={() => setEditing(null)}
+        onClose={() => !saving && setEditing(null)}
         title="Edit Value"
         icon={<Pencil className="w-5 h-5 text-accent" />}
       >
