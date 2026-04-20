@@ -1,9 +1,75 @@
-import { PrismaClient, Role } from '@prisma/client';
+import { PrismaClient, Role, EventStatus } from '@prisma/client';
 import { hash } from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 const TENANT_ID = 'bistec-global';
+
+const EVENT_CATALOG = [
+  {
+    title: 'CodeCrunch',
+    description: 'Monthly internal coding challenge. Teams of 3 solve algorithmic puzzles against the clock. Winners earn Hearts + a spot on the leaderboard.',
+    eventType: 'Technical',
+    location: 'BISTEC HQ — Innovation Lab',
+    daysFromNow: 13,
+  },
+  {
+    title: 'Toastmasters',
+    description: 'Weekly public-speaking club. Prepared speeches, table topics, and evaluator feedback. Open to all — EMPLOYEE through ADMIN.',
+    eventType: 'Community',
+    location: 'BISTEC HQ — Training Room 2',
+    daysFromNow: 5,
+  },
+  {
+    title: 'Hearts Talk',
+    description: 'Monthly all-hands story circle — team members share a recognition moment from the Hearts feed. Great way to spotlight values in action.',
+    eventType: 'Community',
+    location: 'BISTEC HQ — Auditorium',
+    daysFromNow: 20,
+  },
+  {
+    title: 'Mentoring Interns & Undergraduates',
+    description: 'Structured mentorship sprint — senior engineers pair with university interns over 4 weeks. Goals, 1:1s, and a capstone demo.',
+    eventType: 'Education',
+    location: 'Virtual + BISTEC HQ',
+    daysFromNow: 25,
+  },
+  {
+    title: 'University Branding Drive',
+    description: 'Career fair + guest lecture circuit at partner universities. Bring your laptop, your deck, and your team swag.',
+    eventType: 'Branding',
+    location: 'University of Moratuwa + SLIIT',
+    daysFromNow: 46,
+  },
+  {
+    title: 'Marketing & Branding — Hearts Academy',
+    description: 'Sprint planning for the Hearts Academy content calendar: campaigns, ad creative, landing-page refresh.',
+    eventType: 'Branding',
+    location: 'BISTEC HQ — Marketing Studio',
+    daysFromNow: 30,
+  },
+  {
+    title: 'Training Program Organizing Committee',
+    description: 'Quarterly sync to plan BISTEC-hosted training programs — trainers, content, sponsors, venue.',
+    eventType: 'Education',
+    location: 'BISTEC HQ — Boardroom',
+    daysFromNow: 8,
+  },
+  {
+    title: 'BISTEC Podcast — Recording Day',
+    description: 'Bi-weekly podcast recording session. This episode: "Shipping at scale — post-mortems that actually change things". Guests + engineers welcome.',
+    eventType: 'Content',
+    location: 'BISTEC HQ — Podcast Studio',
+    daysFromNow: 18,
+  },
+];
+
+function eventDate(daysFromNow: number) {
+  const d = new Date();
+  d.setDate(d.getDate() + daysFromNow);
+  d.setHours(16, 30, 0, 0);
+  return d;
+}
 
 async function main() {
   try {
@@ -99,6 +165,29 @@ async function main() {
       });
     }
     console.log('Created goal templates:', goalTemplates.length);
+
+    for (const e of EVENT_CATALOG) {
+      const event = await prisma.event.create({
+        data: {
+          tenantId: TENANT_ID,
+          title: e.title,
+          description: e.description,
+          dateTime: eventDate(e.daysFromNow),
+          location: e.location,
+          eventType: e.eventType,
+          status: EventStatus.SCHEDULED,
+        },
+      });
+      // Invite all three seed users so the calendar isn't empty
+      await prisma.eventParticipation.createMany({
+        data: [
+          { tenantId: TENANT_ID, eventId: event.id, userId: admin.id },
+          { tenantId: TENANT_ID, eventId: event.id, userId: manager.id },
+          { tenantId: TENANT_ID, eventId: event.id, userId: employee.id },
+        ],
+      });
+    }
+    console.log('Created events          :', EVENT_CATALOG.length);
 
     console.log('\nDatabase seeded successfully.');
     console.log('Tenant:', TENANT_ID);
