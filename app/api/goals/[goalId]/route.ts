@@ -189,10 +189,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { goalId: 
     }
   }
 
-  await prisma.$transaction([
-    prisma.goalComment.deleteMany({ where: { goalId: goal.id } }),
-    prisma.goal.delete({ where: { id: goal.id } }),
-  ]);
+  await prisma.goal.delete({ where: { id: goal.id } });
 
   await logAudit(ctx, {
     action: AuditAction.GOAL_DELETED,
