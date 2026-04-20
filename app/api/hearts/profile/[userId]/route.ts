@@ -2,49 +2,108 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getTenantContext } from '@/lib/tenantScope';
 
-// GET — Hearts profile for a user
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { userId: string } }
-) {
+export async function GET(_req: NextRequest, { params }: { params: { userId: string } }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
 
   const { userId } = params;
 
-  // Get hearts received with value breakdown
-  const heartsReceived = await prisma.heart.findMany({
-    where: { tenantId: ctx.tenantId, receiverId: userId },
-    orderBy: { createdAt: 'desc' },
-    take: 50,
-    include: {
-      sender: { select: { id: true, name: true } },
-      valueTag: { select: { id: true, name: true } },
+  const user = await prisma.user.findFirst({
+    where: { id: userId, tenantId: ctx.tenantId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      department: true,
+      position: true,
+      isActive: true,
+      createdAt: true,
     },
   });
+  if (!user) return NextResponse.json({ error: 'User not found', code: 'NOT_FOUND' }, { status: 404 });
 
-  // Get hearts given
-  const heartsGiven = await prisma.heart.findMany({
-    where: { tenantId: ctx.tenantId, senderId: userId },
-    orderBy: { createdAt: 'desc' },
-    take: 50,
-    include: {
-      receiver: { select: { id: true, name: true } },
-      valueTag: { select: { id: true, name: true } },
-    },
-  });
+  const [
+    totalReceived,
+    totalGiven,
+    recentReceived,
+    recentGiven,
+    valueGroups,
+    topSenders,
+  ] = await Promise.all([
+    prisma.heart.count({ where: { tenantId: ctx.tenantId, receiverId: userId } }),
+    prisma.heart.count({ where: { tenantId: ctx.tenantId, senderId: userId } }),
+    prisma.heart.findMany({
+      where: { tenantId: ctx.tenantId, receiverId: userId },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      include: {
+        sender: { select: { id: true, name: true, department: true } },
+        valueTag: { select: { id: true, name: true } },
+      },
+    }),
+    prisma.heart.findMany({
+      where: { tenantId: ctx.tenantId, senderId: userId },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+      include: {
+        receiver: { select: { id: true, name: true, department: true } },
+        valueTag: { select: { id: true, name: true } },
+      },
+    }),
+    prisma.heart.groupBy({
+      by: ['valueTagId'],
+      where: { tenantId: ctx.tenantId, receiverId: userId },
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
+    }),
+    prisma.heart.groupBy({
+      by: ['senderId'],
+      where: { tenantId: ctx.tenantId, receiverId: userId },
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
+      take: 5,
+    }),
+  ]);
 
-  // Value tag breakdown
+  const valueIds = valueGroups.map((v) => v.valueTagId);
+  const senderIds = topSenders.map((s) => s.senderId);
+  const [values, senders] = await Promise.all([
+    valueIds.length
+      ? prisma.companyValue.findMany({
+          where: { id: { in: valueIds } },
+          select: { id: true, name: true },
+        })
+      : Promise.resolve([]),
+    senderIds.length
+      ? prisma.user.findMany({
+          where: { id: { in: senderIds } },
+          select: { id: true, name: true, department: true },
+        })
+      : Promise.resolve([]),
+  ]);
+
+  const valueById = new Map(values.map((v) => [v.id, v.name]));
+  const senderById = new Map(senders.map((s) => [s.id, s]));
+
   const valueBreakdown: Record<string, number> = {};
-  heartsReceived.forEach((h) => {
-    valueBreakdown[h.valueTag.name] = (valueBreakdown[h.valueTag.name] || 0) + 1;
-  });
+  for (const g of valueGroups) {
+    valueBreakdown[valueById.get(g.valueTagId) || 'Unknown'] = g._count.id;
+  }
+
+  const topSendersWithNames = topSenders
+    .map((s) => {
+      const u = senderById.get(s.senderId);
+      return u ? { id: u.id, name: u.name, department: u.department, count: s._count.id } : null;
+    })
+    .filter((x): x is NonNullable<typeof x> => !!x);
 
   return NextResponse.json({
-    totalReceived: heartsReceived.length,
-    totalGiven: heartsGiven.length,
+    user,
+    totalReceived,
+    totalGiven,
     valueBreakdown,
-    recentReceived: heartsReceived.slice(0, 10),
-    recentGiven: heartsGiven.slice(0, 10),
+    topSenders: topSendersWithNames,
+    recentReceived,
+    recentGiven,
   });
 }

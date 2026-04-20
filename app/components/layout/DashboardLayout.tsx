@@ -545,6 +545,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                     {/* Quick links */}
                     <div className="p-2 border-b border-theme space-y-0.5">
                       {dashLink('/dashboard/feed', BsHeart, 'Hearts Feed')}
+                      {session?.user?.id && dashLink(`/dashboard/hearts/${session.user.id}`, BsHeart, 'My Hearts')}
                       {dashLink('/dashboard/goals', BsBullseye, 'My Goals')}
                       {session?.user?.role === 'ADMIN' && dashLink('/dashboard/admin', BsShield, 'Admin Settings')}
                     </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
@@ -35,13 +36,29 @@ export default function HeartCard({ heart }: HeartCardProps) {
     >
       {/* Sender → Receiver header */}
       <div className="flex items-center gap-3 mb-3">
-        <Avatar name={heart.sender.name} />
+        <Link
+          href={`/dashboard/hearts/${heart.sender.id}`}
+          aria-label={`Open ${heart.sender.name}'s hearts profile`}
+          className="focus-ring rounded-full"
+        >
+          <Avatar name={heart.sender.name} />
+        </Link>
         <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
-          <span className="text-sm font-semibold text-primary">{heart.sender.name}</span>
+          <Link
+            href={`/dashboard/hearts/${heart.sender.id}`}
+            className="text-sm font-semibold text-primary hover:text-accent focus-ring rounded transition-colors"
+          >
+            {heart.sender.name}
+          </Link>
           <span className="flex items-center gap-1">
             <Heart className="w-4 h-4 text-[rgb(var(--color-heart))]" fill="currentColor" />
           </span>
-          <span className="text-sm font-semibold text-primary">{heart.receiver.name}</span>
+          <Link
+            href={`/dashboard/hearts/${heart.receiver.id}`}
+            className="text-sm font-semibold text-primary hover:text-accent focus-ring rounded transition-colors"
+          >
+            {heart.receiver.name}
+          </Link>
         </div>
         <span className="text-xs text-tertiary flex-shrink-0">
           {formatDistanceToNow(new Date(heart.createdAt), { addSuffix: true })}
