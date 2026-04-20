@@ -1,12 +1,24 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
+import PageTitle from '@/app/components/shared/PageTitle';
 import Modal from '@/app/components/shared/Modal';
 import { FormActions } from '@/app/components/shared/FormField';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, Plus, ToggleLeft, ToggleRight, Pencil, Trash2, AlertTriangle } from 'lucide-react';
+import {
+  Target,
+  Plus,
+  ToggleLeft,
+  ToggleRight,
+  Pencil,
+  Trash2,
+  AlertTriangle,
+  Search,
+  Tag,
+  X,
+} from 'lucide-react';
 
 interface GoalTemplate {
   id: string;
@@ -20,12 +32,16 @@ export default function AdminTemplatesPage() {
   const [templates, setTemplates] = useState<GoalTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [showInactive, setShowInactive] = useState(true);
+  const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
 
+  const [showCreate, setShowCreate] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
+
   const [flash, setFlash] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
   const [editing, setEditing] = useState<GoalTemplate | null>(null);
@@ -45,18 +61,56 @@ export default function AdminTemplatesPage() {
   };
 
   const fetchTemplates = useCallback(async () => {
-    const url = showInactive ? '/api/goals/templates?includeInactive=true' : '/api/goals/templates';
+    const url = showInactive
+      ? '/api/goals/templates?includeInactive=true'
+      : '/api/goals/templates';
     const res = await fetch(url);
     if (res.ok) setTemplates(await res.json());
     setLoading(false);
   }, [showInactive]);
 
-  useEffect(() => { fetchTemplates(); }, [fetchTemplates]);
+  useEffect(() => {
+    fetchTemplates();
+  }, [fetchTemplates]);
+
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    for (const t of templates) if (t.category) set.add(t.category);
+    return Array.from(set).sort();
+  }, [templates]);
+
+  const visibleTemplates = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const catQ = categoryFilter.trim().toLowerCase();
+    return templates.filter((t) => {
+      if (catQ) {
+        const c = (t.category ?? '').toLowerCase();
+        if (!c.includes(catQ)) return false;
+      }
+      if (q) {
+        const hay = `${t.title} ${t.description ?? ''} ${t.category ?? ''}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [templates, search, categoryFilter]);
+
+  const activeCount = templates.filter((t) => t.isActive).length;
+  const inactiveCount = templates.length - activeCount;
+
+  const openCreate = () => {
+    setTitle('');
+    setDescription('');
+    setCategory('');
+    setCreateError('');
+    setShowCreate(true);
+  };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
-    setCreating(true); setCreateError('');
+    setCreating(true);
+    setCreateError('');
     const res = await fetch('/api/goals/templates', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -67,7 +121,10 @@ export default function AdminTemplatesPage() {
       }),
     });
     if (res.ok) {
-      setTitle(''); setDescription(''); setCategory('');
+      setTitle('');
+      setDescription('');
+      setCategory('');
+      setShowCreate(false);
       await fetchTemplates();
       flashMsg('success', 'Template created');
     } else {
@@ -103,7 +160,8 @@ export default function AdminTemplatesPage() {
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editing || !editTitle.trim()) return;
-    setSaving(true); setEditError('');
+    setSaving(true);
+    setEditError('');
     const res = await fetch(`/api/goals/templates/${editing.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -141,14 +199,28 @@ export default function AdminTemplatesPage() {
 
   return (
     <DashboardLayout type="admin">
+      <datalist id="template-category-options">
+        {categories.map((c) => (
+          <option key={c} value={c} />
+        ))}
+      </datalist>
+
       <div className="max-w-3xl mx-auto space-y-6">
-        <div>
-          <h1 className="page-title">
-            <Target className="w-6 h-6" style={{ color: 'rgb(var(--color-goal-active))' }} />
-            Goal Templates
-          </h1>
-          <p className="page-subtitle">Create reusable templates for quick goal creation</p>
-        </div>
+        <PageTitle
+          title="Goal Templates"
+          subtitle="Create reusable templates for quick goal creation"
+          icon={Target}
+          iconColor="--color-goal-active"
+          actions={
+            <button
+              type="button"
+              onClick={openCreate}
+              className="btn-primary inline-flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" /> New Template
+            </button>
+          }
+        />
 
         {flash && (
           <div
@@ -162,49 +234,58 @@ export default function AdminTemplatesPage() {
           </div>
         )}
 
-        <form onSubmit={handleCreate} className="card-stat space-y-3">
-          <label className="input-label">New Template</label>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Template title (e.g., Complete Q1 OKRs)"
-            className="input-base"
-            maxLength={200}
-            required
-          />
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Description (optional)"
-            rows={2}
-            className="input-textarea"
-            maxLength={2000}
-          />
-          <div className="flex gap-3">
-            <input
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              placeholder="Category (optional)"
-              className="input-base"
-              maxLength={50}
-            />
-            <button
-              type="submit"
-              disabled={creating || !title.trim()}
-              className="btn-primary inline-flex items-center gap-2 flex-shrink-0"
-            >
-              <Plus className="w-4 h-4" /> {creating ? 'Adding...' : 'Add'}
-            </button>
+        {!loading && (
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: 'Total Templates', value: templates.length },
+              { label: 'Active', value: activeCount },
+              { label: 'Inactive', value: inactiveCount },
+            ].map(({ label, value }) => (
+              <div key={label} className="card-stat text-center">
+                <p className="text-2xl font-bold text-primary">{value}</p>
+                <p className="text-2xs text-tertiary">{label}</p>
+              </div>
+            ))}
           </div>
-          {createError && <p className="text-xs text-error">{createError}</p>}
-        </form>
+        )}
 
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-tertiary">
-            {templates.length} template{templates.length === 1 ? '' : 's'}
-            {showInactive ? ' (including inactive)' : ' (active only)'}
-          </p>
-          <label className="inline-flex items-center gap-2 text-xs text-secondary cursor-pointer select-none">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by title, description, category..."
+              className="input-base pl-9"
+              aria-label="Search templates"
+            />
+          </div>
+          <div className="relative sm:w-56">
+            <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
+            <input
+              type="text"
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              placeholder="All categories"
+              className="input-base pl-9 pr-8"
+              list="template-category-options"
+              autoComplete="off"
+              aria-label="Filter by category (type to search)"
+            />
+            {categoryFilter && (
+              <button
+                type="button"
+                onClick={() => setCategoryFilter('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-tertiary hover:text-primary focus-ring rounded p-0.5"
+                aria-label="Clear category filter"
+                title="Clear"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+          <label className="inline-flex items-center gap-2 text-xs text-secondary cursor-pointer select-none flex-shrink-0">
             <input
               type="checkbox"
               checked={showInactive}
@@ -215,9 +296,30 @@ export default function AdminTemplatesPage() {
           </label>
         </div>
 
+        <p className="text-xs text-tertiary -mt-2">
+          Showing {visibleTemplates.length} of {templates.length} template
+          {templates.length === 1 ? '' : 's'}
+          {(search || categoryFilter || !showInactive) && (
+            <>
+              {' · '}
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch('');
+                  setCategoryFilter('');
+                  setShowInactive(true);
+                }}
+                className="text-accent hover:underline focus-ring rounded"
+              >
+                Clear filters
+              </button>
+            </>
+          )}
+        </p>
+
         {loading ? (
           <PageSkeleton type="cards" count={3} />
-        ) : templates.length === 0 ? (
+        ) : visibleTemplates.length === 0 ? (
           <div className="empty-container">
             <div
               className="empty-icon-ring"
@@ -225,13 +327,19 @@ export default function AdminTemplatesPage() {
             >
               <Target className="w-10 h-10" style={{ color: 'rgb(var(--color-goal-active))' }} />
             </div>
-            <p className="empty-title">No goal templates yet</p>
-            <p className="empty-description">Create templates above for quick goal creation</p>
+            <p className="empty-title">
+              {templates.length === 0 ? 'No goal templates yet' : 'No templates match the current filters'}
+            </p>
+            <p className="empty-description">
+              {templates.length === 0
+                ? 'Click "New Template" to add your first template'
+                : 'Try a different search term, clear the category filter, or toggle "Show inactive".'}
+            </p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-[calc(100vh-16rem)] overflow-y-auto scrollbar-hide pr-1 -mr-1">
             <AnimatePresence initial={false}>
-              {templates.map((t) => (
+              {visibleTemplates.map((t) => (
                 <motion.div
                   key={t.id}
                   initial={{ opacity: 0, y: 8 }}
@@ -267,7 +375,7 @@ export default function AdminTemplatesPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-primary truncate">{t.title}</p>
-                      <p className="text-xs text-tertiary flex items-center gap-1 flex-wrap">
+                      <p className="text-xs text-tertiary flex items-center gap-2 flex-wrap">
                         {t.category && (
                           <span className="badge-base bg-surface-secondary text-secondary">
                             {t.category}
@@ -295,6 +403,7 @@ export default function AdminTemplatesPage() {
                     )}
                     <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                       <button
+                        type="button"
                         onClick={() => openEdit(t)}
                         className="focus-ring rounded-lg p-2 text-tertiary hover:text-accent hover:bg-accent-muted transition-colors"
                         aria-label={`Edit ${t.title}`}
@@ -303,6 +412,7 @@ export default function AdminTemplatesPage() {
                         <Pencil className="w-4 h-4" />
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleToggle(t)}
                         className="focus-ring rounded-lg p-1"
                         aria-label={t.isActive ? `Deactivate ${t.title}` : `Activate ${t.title}`}
@@ -315,6 +425,7 @@ export default function AdminTemplatesPage() {
                         )}
                       </button>
                       <button
+                        type="button"
                         onClick={() => setDeleting(t)}
                         className="focus-ring rounded-lg p-2 text-tertiary hover:text-error hover:bg-error-muted transition-colors"
                         aria-label={`Delete ${t.title}`}
@@ -332,10 +443,67 @@ export default function AdminTemplatesPage() {
       </div>
 
       <Modal
+        open={showCreate}
+        onClose={() => !creating && setShowCreate(false)}
+        title="New Goal Template"
+        icon={<Target className="w-5 h-5" style={{ color: 'rgb(var(--color-goal-active))' }} />}
+        maxWidth="max-w-lg"
+      >
+        <form onSubmit={handleCreate} className="space-y-4">
+          <div>
+            <label className="input-label">Title</label>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g., Complete Q1 OKRs"
+              className="input-base"
+              maxLength={200}
+              required
+              autoFocus
+            />
+          </div>
+          <div>
+            <label className="input-label">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Optional"
+              rows={3}
+              className="input-textarea"
+              maxLength={2000}
+            />
+          </div>
+          <div>
+            <label className="input-label">Category</label>
+            <input
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="Pick one or type a new one"
+              className="input-base"
+              maxLength={50}
+              list="template-category-options"
+              autoComplete="off"
+            />
+            <p className="text-2xs text-tertiary mt-1">
+              Choose from existing categories or enter a new one.
+            </p>
+          </div>
+          {createError && <p className="text-xs text-error">{createError}</p>}
+          <FormActions
+            onCancel={() => setShowCreate(false)}
+            submitLabel={creating ? 'Creating...' : 'Create Template'}
+            loading={creating}
+            disabled={!title.trim()}
+          />
+        </form>
+      </Modal>
+
+      <Modal
         open={!!editing}
         onClose={() => setEditing(null)}
         title="Edit Template"
         icon={<Pencil className="w-5 h-5 text-accent" />}
+        maxWidth="max-w-lg"
       >
         <form onSubmit={handleSaveEdit} className="space-y-4">
           <div>
@@ -367,7 +535,9 @@ export default function AdminTemplatesPage() {
               onChange={(e) => setEditCategory(e.target.value)}
               className="input-base"
               maxLength={50}
-              placeholder="Optional"
+              placeholder="Pick one or type a new one"
+              list="template-category-options"
+              autoComplete="off"
             />
           </div>
           <label className="flex items-center gap-2 text-sm text-secondary cursor-pointer select-none">
