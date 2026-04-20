@@ -4,11 +4,10 @@ import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import PageTitle from '@/app/components/shared/PageTitle';
 import StatGrid from '@/app/components/shared/StatGrid';
-import FilterBar, { FilterSelect } from '@/app/components/shared/FilterBar';
 import Modal from '@/app/components/shared/Modal';
-import { Select, Input, FormActions } from '@/app/components/shared/FormField';
+import { Select, Input } from '@/app/components/shared/FormField';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
-import { Users, Shield, UserCheck, X, Upload, Download, UserX, Mail, Calendar } from 'lucide-react';
+import { Users, Shield, UserCheck, X, Upload, Download, UserX, Mail, Calendar, Search } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface User {
@@ -26,7 +25,7 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [showInactive, setShowInactive] = useState(true);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [saving, setSaving] = useState(false);
   const [showImport, setShowImport] = useState(false);
@@ -38,21 +37,26 @@ export default function AdminUsersPage() {
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
-    const params = new URLSearchParams();
-    if (roleFilter) params.set('role', roleFilter);
-    if (statusFilter) params.set('status', statusFilter);
-    const res = await fetch(`/api/admin/users?${params}`);
+    const res = await fetch('/api/admin/users');
     if (res.ok) setUsers(await res.json());
     setLoading(false);
-  }, [roleFilter, statusFilter]);
+  }, []);
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
-  const filteredUsers = users.filter(u =>
-    u.name.toLowerCase().includes(search.toLowerCase()) ||
-    u.email.toLowerCase().includes(search.toLowerCase()) ||
-    (u.department && u.department.toLowerCase().includes(search.toLowerCase()))
-  );
+  const filteredUsers = users.filter(u => {
+    if (!showInactive && !u.isActive) return false;
+    if (roleFilter) {
+      const r = roleFilter.toLowerCase();
+      if (!u.role.toLowerCase().includes(r)) return false;
+    }
+    if (search) {
+      const q = search.toLowerCase();
+      const hay = `${u.name} ${u.email} ${u.department ?? ''} ${u.position ?? ''}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
 
   const handleUpdate = async (userId: string, data: any) => {
     setSaving(true);
@@ -137,30 +141,27 @@ export default function AdminUsersPage() {
 
   const managers = users.filter(u => u.role === 'MANAGER' || u.role === 'ADMIN');
   const notLoggedInUsers = users.filter(u => !u.lastLoginAt && u.isActive);
-  const hasActiveFilters = !!(roleFilter || statusFilter || search);
+  const hasActiveFilters = !!(roleFilter || search || !showInactive);
 
   return (
     <DashboardLayout type="admin">
       <div className="max-w-7xl mx-auto space-y-6">
+        <datalist id="user-role-options">
+          <option value="ADMIN" />
+          <option value="MANAGER" />
+          <option value="EMPLOYEE" />
+        </datalist>
+
         <PageTitle title="User Management" subtitle="Manage employee roles, managers, and account status" icon={Users} iconColor="--color-accent"
           actions={
             <div className="flex items-center gap-2">
-              {/* Import CSV */}
               <label className="inline-flex items-center gap-1.5 px-3 py-2 bg-surface-elevated border border-theme rounded-xl text-xs font-medium text-secondary hover:text-primary cursor-pointer focus-ring transition-all">
                 <Upload className="w-3.5 h-3.5" /> Import
                 <input type="file" accept=".csv" onChange={handleFileImport} className="hidden" disabled={importing} />
               </label>
-              {/* Export CSV */}
               <button onClick={handleExport} className="inline-flex items-center gap-1.5 px-3 py-2 bg-surface-elevated border border-theme rounded-xl text-xs font-medium text-secondary hover:text-primary focus-ring transition-all">
                 <Download className="w-3.5 h-3.5" /> Export
               </button>
-              <FilterBar search={search} onSearchChange={setSearch} searchPlaceholder="Search name, email, department..."
-                hasActiveFilters={hasActiveFilters} onClearAll={() => { setSearch(''); setRoleFilter(''); setStatusFilter(''); }}>
-                <FilterSelect value={roleFilter} onChange={setRoleFilter} placeholder="All Roles"
-                  options={[{ value: 'ADMIN', label: 'Admin' }, { value: 'MANAGER', label: 'Manager' }, { value: 'EMPLOYEE', label: 'Employee' }]} />
-                <FilterSelect value={statusFilter} onChange={setStatusFilter} placeholder="All Status"
-                  options={[{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }]} />
-              </FilterBar>
             </div>
           }
         />
@@ -176,24 +177,6 @@ export default function AdminUsersPage() {
           <div className="bg-accent-muted text-accent rounded-xl px-4 py-3 text-sm font-medium">Importing users...</div>
         )}
 
-        {/* View mode tabs */}
-        {!loading && (
-          <div className="flex gap-1.5">
-            {([
-              { key: 'all', label: `All Users (${users.length})` },
-              { key: 'login', label: `Not Logged In (${notLoggedInUsers.length})` },
-              { key: 'review', label: 'Review Schedule' },
-            ] as const).map(t => (
-              <button key={t.key} onClick={() => setViewMode(t.key)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold focus-ring transition-all ${
-                  viewMode === t.key ? 'bg-accent text-[rgb(var(--color-text-inverse))] shadow-sm' : 'bg-surface-elevated border border-theme text-secondary hover:text-primary'
-                }`}>
-                {t.label}
-              </button>
-            ))}
-          </div>
-        )}
-
         {!loading && (
           <StatGrid stats={[
             { label: 'Total Users', value: users.length, icon: Users, color: '--color-accent' },
@@ -202,6 +185,96 @@ export default function AdminUsersPage() {
             { label: 'Managers', value: users.filter(u => u.role === 'MANAGER').length, icon: Shield, color: '--color-warning' },
           ]} />
         )}
+
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name, email, department, designation..."
+              className="input-base pl-9"
+              aria-label="Search users"
+            />
+          </div>
+          <div className="relative w-40">
+            <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
+            <input
+              type="text"
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              placeholder="All roles"
+              className="input-base pl-9 pr-8"
+              list="user-role-options"
+              autoComplete="off"
+              aria-label="Filter by role (type to search)"
+            />
+            {roleFilter && (
+              <button
+                type="button"
+                onClick={() => setRoleFilter('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-tertiary hover:text-primary focus-ring rounded p-0.5"
+                aria-label="Clear role filter"
+                title="Clear"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+          <label className="inline-flex items-center gap-2 text-xs text-secondary cursor-pointer select-none flex-shrink-0">
+            <input
+              type="checkbox"
+              checked={showInactive}
+              onChange={(e) => setShowInactive(e.target.checked)}
+              className="focus-ring"
+            />
+            Show inactive
+          </label>
+
+          {!loading && (
+            <div className="flex gap-1 ml-auto">
+              {([
+                { key: 'all', label: `All (${users.length})` },
+                { key: 'login', label: `Not Logged In (${notLoggedInUsers.length})` },
+                { key: 'review', label: 'Review Schedule' },
+              ] as const).map(t => (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => setViewMode(t.key)}
+                  className={`px-3 py-2 rounded-xl text-xs font-semibold focus-ring transition-all ${
+                    viewMode === t.key
+                      ? 'bg-accent text-[rgb(var(--color-text-inverse))] shadow-sm'
+                      : 'bg-surface-elevated border border-theme text-secondary hover:text-primary'
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <p className="text-xs text-tertiary -mt-2">
+          Showing {filteredUsers.length} of {users.length} user{users.length === 1 ? '' : 's'}
+          {hasActiveFilters && (
+            <>
+              {' · '}
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch('');
+                  setRoleFilter('');
+                  setShowInactive(true);
+                }}
+                className="text-accent hover:underline focus-ring rounded"
+              >
+                Clear filters
+              </button>
+            </>
+          )}
+        </p>
 
         {loading ? (
           <PageSkeleton type="table" count={6} />
