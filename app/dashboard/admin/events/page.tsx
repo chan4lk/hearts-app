@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
+import PageTitle from '@/app/components/shared/PageTitle';
 import Modal from '@/app/components/shared/Modal';
 import { FormActions } from '@/app/components/shared/FormField';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -78,6 +79,7 @@ export default function AdminEventsPage() {
   const [loading, setLoading] = useState(true);
   const [showCancelled, setShowCancelled] = useState(true);
 
+  const [showCreate, setShowCreate] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dateTime, setDateTime] = useState(nowDatetimeLocal);
@@ -85,6 +87,20 @@ export default function AdminEventsPage() {
   const [eventType, setEventType] = useState('');
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState('');
+
+  const resetCreateForm = () => {
+    setTitle('');
+    setDescription('');
+    setDateTime(nowDatetimeLocal());
+    setLocation('');
+    setEventType('');
+    setCreateError('');
+  };
+
+  const openCreate = () => {
+    resetCreateForm();
+    setShowCreate(true);
+  };
 
   const [flash, setFlash] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
@@ -148,11 +164,8 @@ export default function AdminEventsPage() {
       }),
     });
     if (res.ok) {
-      setTitle('');
-      setDescription('');
-      setDateTime(nowDatetimeLocal());
-      setLocation('');
-      setEventType('');
+      resetCreateForm();
+      setShowCreate(false);
       await fetchEvents();
       flashMsg('success', 'Event created');
     } else {
@@ -250,13 +263,21 @@ export default function AdminEventsPage() {
   return (
     <DashboardLayout type="admin">
       <div className="max-w-3xl mx-auto space-y-6">
-        <div>
-          <h1 className="page-title">
-            <Calendar className="w-6 h-6" style={{ color: 'rgb(var(--color-accent))' }} />
-            Events
-          </h1>
-          <p className="page-subtitle">Create and manage company events</p>
-        </div>
+        <PageTitle
+          title="Events"
+          subtitle="Create and manage company events"
+          icon={Calendar}
+          iconColor="--color-accent"
+          actions={
+            <button
+              type="button"
+              onClick={openCreate}
+              className="btn-primary inline-flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" /> New Event
+            </button>
+          }
+        />
 
         {flash && (
           <div
@@ -285,59 +306,6 @@ export default function AdminEventsPage() {
             ))}
           </div>
         )}
-
-        <form onSubmit={handleCreate} className="card-stat space-y-3">
-          <label className="input-label">Add New Event</label>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Event title (e.g., CodeCrunch — Q2)"
-            className="input-base"
-            maxLength={200}
-            required
-          />
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Description (optional)"
-            rows={2}
-            className="input-textarea"
-            maxLength={2000}
-          />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input
-              type="datetime-local"
-              value={dateTime}
-              onChange={(e) => setDateTime(e.target.value)}
-              className="input-base"
-              required
-            />
-            <input
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="Location (optional)"
-              className="input-base"
-              maxLength={200}
-            />
-          </div>
-          <div className="flex gap-3">
-            <input
-              value={eventType}
-              onChange={(e) => setEventType(e.target.value)}
-              placeholder="Type (optional) — Technical, Community, Branding..."
-              className="input-base"
-              maxLength={50}
-            />
-            <button
-              type="submit"
-              disabled={creating || !title.trim() || !dateTime}
-              className="btn-primary inline-flex items-center gap-2 flex-shrink-0"
-            >
-              <Plus className="w-4 h-4" /> {creating ? 'Adding...' : 'Add'}
-            </button>
-          </div>
-          {createError && <p className="text-xs text-error">{createError}</p>}
-        </form>
 
         <div className="flex items-center justify-between">
           <p className="text-xs text-tertiary">
@@ -370,12 +338,12 @@ export default function AdminEventsPage() {
             </p>
             <p className="empty-description">
               {events.length === 0
-                ? 'Add events above so employees can RSVP'
+                ? 'Click "New Event" to add your first event'
                 : 'Toggle "Show cancelled" to see cancelled events'}
             </p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-[calc(100vh-24rem)] overflow-y-auto pr-1 -mr-1">
             <AnimatePresence initial={false}>
               {visibleEvents.map((ev) => (
                 <motion.div
@@ -533,6 +501,83 @@ export default function AdminEventsPage() {
           </div>
         )}
       </div>
+
+      <Modal
+        open={showCreate}
+        onClose={() => !creating && setShowCreate(false)}
+        title="New Event"
+        icon={<Calendar className="w-5 h-5 text-accent" />}
+        maxWidth="max-w-lg"
+      >
+        <form onSubmit={handleCreate} className="space-y-4">
+          <div>
+            <label className="input-label">Title</label>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Event title (e.g., CodeCrunch — Q2)"
+              className="input-base"
+              maxLength={200}
+              required
+              autoFocus
+            />
+          </div>
+          <div>
+            <label className="input-label">Description</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Optional"
+              rows={3}
+              className="input-textarea"
+              maxLength={2000}
+            />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="input-label">When</label>
+              <input
+                type="datetime-local"
+                value={dateTime}
+                onChange={(e) => setDateTime(e.target.value)}
+                className="input-base"
+                required
+              />
+            </div>
+            <div>
+              <label className="input-label">Location</label>
+              <input
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="input-base"
+                maxLength={200}
+                placeholder="Optional"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="input-label">Type</label>
+            <input
+              value={eventType}
+              onChange={(e) => setEventType(e.target.value)}
+              className="input-base"
+              maxLength={50}
+              placeholder="Optional — Technical, Community, Branding..."
+            />
+          </div>
+          <p className="text-xs text-tertiary">
+            All active employees will be invited automatically. They can RSVP and pick a meal
+            preference from their events page.
+          </p>
+          {createError && <p className="text-xs text-error">{createError}</p>}
+          <FormActions
+            onCancel={() => setShowCreate(false)}
+            submitLabel={creating ? 'Creating...' : 'Create Event'}
+            loading={creating}
+            disabled={!title.trim() || !dateTime}
+          />
+        </form>
+      </Modal>
 
       <Modal
         open={!!editing}
