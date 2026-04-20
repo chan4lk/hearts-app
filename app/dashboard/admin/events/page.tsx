@@ -23,6 +23,7 @@ import {
   Check,
   X,
   Clock,
+  Search,
 } from 'lucide-react';
 
 type EventStatus = 'SCHEDULED' | 'CANCELLED' | 'COMPLETED';
@@ -78,6 +79,8 @@ export default function AdminEventsPage() {
   const [events, setEvents] = useState<EventRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCancelled, setShowCancelled] = useState(true);
+  const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState<string>('');
 
   const [showCreate, setShowCreate] = useState(false);
   const [title, setTitle] = useState('');
@@ -138,10 +141,28 @@ export default function AdminEventsPage() {
     fetchEvents();
   }, [fetchEvents]);
 
-  const visibleEvents = useMemo(
-    () => (showCancelled ? events : events.filter((e) => e.status !== 'CANCELLED')),
-    [events, showCancelled]
-  );
+  const eventTypes = useMemo(() => {
+    const set = new Set<string>();
+    for (const e of events) if (e.eventType) set.add(e.eventType);
+    return Array.from(set).sort();
+  }, [events]);
+
+  const visibleEvents = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const typeQ = typeFilter.trim().toLowerCase();
+    return events.filter((e) => {
+      if (!showCancelled && e.status === 'CANCELLED') return false;
+      if (typeQ) {
+        const et = (e.eventType ?? '').toLowerCase();
+        if (!et.includes(typeQ)) return false;
+      }
+      if (q) {
+        const hay = `${e.title} ${e.description ?? ''} ${e.location ?? ''} ${e.eventType ?? ''}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [events, showCancelled, typeFilter, search]);
 
   const scheduledCount = events.filter((e) => e.status === 'SCHEDULED').length;
   const cancelledCount = events.filter((e) => e.status === 'CANCELLED').length;
@@ -262,6 +283,11 @@ export default function AdminEventsPage() {
 
   return (
     <DashboardLayout type="admin">
+      <datalist id="event-type-options">
+        {eventTypes.map((t) => (
+          <option key={t} value={t} />
+        ))}
+      </datalist>
       <div className="max-w-3xl mx-auto space-y-6">
         <PageTitle
           title="Events"
@@ -307,12 +333,43 @@ export default function AdminEventsPage() {
           </div>
         )}
 
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-tertiary">
-            {visibleEvents.length} of {events.length} event{events.length === 1 ? '' : 's'}
-            {showCancelled ? ' (including cancelled)' : ' (scheduled + completed)'}
-          </p>
-          <label className="inline-flex items-center gap-2 text-xs text-secondary cursor-pointer select-none">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by title, description, location, type..."
+              className="input-base pl-9"
+              aria-label="Search events"
+            />
+          </div>
+          <div className="relative sm:w-56">
+            <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
+            <input
+              type="text"
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              placeholder="All types"
+              className="input-base pl-9 pr-8"
+              list="event-type-options"
+              autoComplete="off"
+              aria-label="Filter by type (type to search)"
+            />
+            {typeFilter && (
+              <button
+                type="button"
+                onClick={() => setTypeFilter('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-tertiary hover:text-primary focus-ring rounded p-0.5"
+                aria-label="Clear type filter"
+                title="Clear"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+          <label className="inline-flex items-center gap-2 text-xs text-secondary cursor-pointer select-none flex-shrink-0">
             <input
               type="checkbox"
               checked={showCancelled}
@@ -322,6 +379,26 @@ export default function AdminEventsPage() {
             Show cancelled
           </label>
         </div>
+
+        <p className="text-xs text-tertiary -mt-2">
+          Showing {visibleEvents.length} of {events.length} event{events.length === 1 ? '' : 's'}
+          {(search || typeFilter || !showCancelled) && (
+            <>
+              {' · '}
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch('');
+                  setTypeFilter('');
+                  setShowCancelled(true);
+                }}
+                className="text-accent hover:underline focus-ring rounded"
+              >
+                Clear filters
+              </button>
+            </>
+          )}
+        </p>
 
         {loading ? (
           <PageSkeleton type="cards" count={3} />
@@ -334,16 +411,16 @@ export default function AdminEventsPage() {
               <Calendar className="w-10 h-10" style={{ color: 'rgb(var(--color-accent))' }} />
             </div>
             <p className="empty-title">
-              {events.length === 0 ? 'No events yet' : 'No events match the current filter'}
+              {events.length === 0 ? 'No events yet' : 'No events match the current filters'}
             </p>
             <p className="empty-description">
               {events.length === 0
                 ? 'Click "New Event" to add your first event'
-                : 'Toggle "Show cancelled" to see cancelled events'}
+                : 'Try a different search term, clear the type filter, or toggle "Show cancelled".'}
             </p>
           </div>
         ) : (
-          <div className="space-y-2 max-h-[calc(100vh-24rem)] overflow-y-auto pr-1 -mr-1">
+          <div className="space-y-2 max-h-[calc(100vh-16rem)] overflow-y-auto scrollbar-hide pr-1 -mr-1">
             <AnimatePresence initial={false}>
               {visibleEvents.map((ev) => (
                 <motion.div
@@ -562,8 +639,13 @@ export default function AdminEventsPage() {
               onChange={(e) => setEventType(e.target.value)}
               className="input-base"
               maxLength={50}
-              placeholder="Optional — Technical, Community, Branding..."
+              placeholder="Pick one or type a new one"
+              list="event-type-options"
+              autoComplete="off"
             />
+            <p className="text-2xs text-tertiary mt-1">
+              Choose from existing types or enter a new one.
+            </p>
           </div>
           <p className="text-xs text-tertiary">
             All active employees will be invited automatically. They can RSVP and pick a meal
@@ -639,7 +721,9 @@ export default function AdminEventsPage() {
                 onChange={(e) => setEditEventType(e.target.value)}
                 className="input-base"
                 maxLength={50}
-                placeholder="Optional"
+                placeholder="Pick one or type a new one"
+                list="event-type-options"
+                autoComplete="off"
               />
             </div>
             <div>
