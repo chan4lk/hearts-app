@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Target, X } from 'lucide-react';
 import Modal from '@/app/components/shared/Modal';
 import TemplatePicker, { GoalTemplate } from '@/app/components/goals/TemplatePicker';
@@ -28,12 +28,6 @@ export default function GoalCreateModal({ open, isManager, onClose, onCreated, f
   const [bulkGoals, setBulkGoals] = useState<{ title: string; description: string; category: string; targetDate: string }[]>([makeEmptyGoal()]);
   const [creating, setCreating] = useState(false);
   const [templates, setTemplates] = useState<Template[]>([]);
-
-  const categoryOptions = useMemo(() => {
-    const set = new Set<string>();
-    for (const t of templates) if (t.category) set.add(t.category);
-    return Array.from(set).sort();
-  }, [templates]);
 
   useEffect(() => {
     if (!open) return;
@@ -165,12 +159,6 @@ export default function GoalCreateModal({ open, isManager, onClose, onCreated, f
             </div>
           </div>
         ))}
-
-        <datalist id="goal-category-options">
-          {categoryOptions.map((c) => (
-            <option key={c} value={c} />
-          ))}
-        </datalist>
 
         <button
           type="button"

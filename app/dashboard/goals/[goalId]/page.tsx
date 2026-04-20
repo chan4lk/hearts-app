@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -9,6 +9,8 @@ import StatusBadge from '@/app/components/goals/StatusBadge';
 import HeartButton from '@/app/components/hearts/HeartButton';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
 import Modal from '@/app/components/shared/Modal';
+import GoalEditModal from '@/app/components/goals/GoalEditModal';
+import type { Goal as GoalShape } from '@/app/components/goals/types';
 import { FormActions } from '@/app/components/shared/FormField';
 import { ArrowLeft, Send, MessageSquare, Pencil, Trash2, AlertTriangle, Pause, Ban, Play } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -17,6 +19,7 @@ interface GoalDetail {
   id: string;
   title: string;
   description: string | null;
+  category: string | null;
   status: string;
   progress: number;
   targetDate: string | null;
@@ -65,12 +68,26 @@ export default function GoalDetailPage() {
   const [showRevise, setShowRevise] = useState(false);
   const [reviseComment, setReviseComment] = useState('');
 
-  const [showEdit, setShowEdit] = useState(false);
-  const [editTitle, setEditTitle] = useState('');
-  const [editDescription, setEditDescription] = useState('');
-  const [editTargetDate, setEditTargetDate] = useState('');
-  const [editBusy, setEditBusy] = useState(false);
-  const [editError, setEditError] = useState('');
+  const [editingGoal, setEditingGoal] = useState<GoalShape | null>(null);
+  const [templateCategories, setTemplateCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch('/api/goals/templates')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((templates: { category: string | null }[]) => {
+        const set = new Set<string>();
+        for (const t of templates) if (t.category) set.add(t.category);
+        setTemplateCategories(Array.from(set));
+      })
+      .catch(() => setTemplateCategories([]));
+  }, []);
+
+  const datalistCategories = useMemo(() => {
+    const set = new Set<string>();
+    if (goal?.category) set.add(goal.category);
+    for (const c of templateCategories) set.add(c);
+    return Array.from(set).sort();
+  }, [goal, templateCategories]);
 
   const [showDelete, setShowDelete] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
@@ -144,35 +161,22 @@ export default function GoalDetailPage() {
 
   const openEdit = () => {
     if (!goal) return;
-    setEditTitle(goal.title);
-    setEditDescription(goal.description || '');
-    setEditTargetDate(goal.targetDate ? new Date(goal.targetDate).toISOString().split('T')[0] : '');
-    setEditError('');
-    setShowEdit(true);
-  };
-
-  const handleSaveEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editTitle.trim()) return;
-    setEditBusy(true); setEditError('');
-    const res = await fetch(`/api/goals/${goalId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: editTitle.trim(),
-        description: editDescription.trim() ? editDescription.trim() : null,
-        targetDate: editTargetDate || null,
-      }),
+    // GoalEditModal only reads id/title/description/category/targetDate — cast via shim
+    setEditingGoal({
+      id: goal.id,
+      title: goal.title,
+      description: goal.description,
+      category: goal.category,
+      status: goal.status,
+      progress: goal.progress,
+      targetDate: goal.targetDate,
+      ownerId: goal.ownerId,
+      assignerId: goal.assignerId,
+      owner: { id: goal.owner.id, name: goal.owner.name, department: goal.owner.department },
+      assigner: goal.assigner,
+      _count: { comments: goal.comments.length },
+      updatedAt: new Date().toISOString(),
     });
-    if (res.ok) {
-      setShowEdit(false);
-      flashMsg('success', 'Goal updated');
-      await fetchGoal();
-    } else {
-      const d = await res.json().catch(() => ({}));
-      setEditError(d.error || 'Failed to save changes');
-    }
-    setEditBusy(false);
   };
 
   const handleConfirmDelete = async () => {
@@ -243,6 +247,12 @@ export default function GoalDetailPage() {
 
   return (
     <DashboardLayout type="employee">
+      <datalist id="goal-category-options">
+        {datalistCategories.map((c) => (
+          <option key={c} value={c} />
+        ))}
+      </datalist>
+
       <div className="max-w-3xl mx-auto space-y-6">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
@@ -420,49 +430,12 @@ export default function GoalDetailPage() {
         </form>
       </Modal>
 
-      <Modal open={showEdit} onClose={() => !editBusy && setShowEdit(false)} title="Edit Goal"
-        icon={<Pencil className="w-5 h-5 text-accent" />}>
-        <form onSubmit={handleSaveEdit} className="space-y-4">
-          <div>
-            <label className="input-label">Title</label>
-            <input
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-              className="input-base"
-              maxLength={200}
-              required
-              autoFocus
-            />
-          </div>
-          <div>
-            <label className="input-label">Description</label>
-            <textarea
-              value={editDescription}
-              onChange={(e) => setEditDescription(e.target.value)}
-              rows={4}
-              maxLength={2000}
-              className="input-textarea"
-              placeholder="Optional"
-            />
-          </div>
-          <div>
-            <label className="input-label">Target Date</label>
-            <input
-              type="date"
-              value={editTargetDate}
-              onChange={(e) => setEditTargetDate(e.target.value)}
-              className="input-base"
-            />
-          </div>
-          {editError && <p className="text-xs text-error">{editError}</p>}
-          <FormActions
-            onCancel={() => setShowEdit(false)}
-            submitLabel="Save Changes"
-            loading={editBusy}
-            disabled={!editTitle.trim()}
-          />
-        </form>
-      </Modal>
+      <GoalEditModal
+        goal={editingGoal}
+        onClose={() => setEditingGoal(null)}
+        onSaved={fetchGoal}
+        flash={flashMsg}
+      />
 
       <Modal open={showDelete} onClose={() => !deleteBusy && setShowDelete(false)} title="Delete Goal"
         icon={<AlertTriangle className="w-5 h-5 text-error" />}>

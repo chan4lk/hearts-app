@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { Plus, Target, Search, User, X, Building2, Tag } from 'lucide-react';
+import { Plus, Target, Search, User, X, Tag } from 'lucide-react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import HeartButton from '@/app/components/hearts/HeartButton';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
@@ -29,8 +29,8 @@ export default function GoalsPage() {
   const [activeTab, setActiveTab] = useState('ALL');
   const [search, setSearch] = useState('');
   const [ownerFilter, setOwnerFilter] = useState('');
-  const [deptFilter, setDeptFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [templateCategories, setTemplateCategories] = useState<string[]>([]);
 
   const [showCreate, setShowCreate] = useState(false);
   const [editGoal, setEditGoal] = useState<Goal | null>(null);
@@ -55,6 +55,17 @@ export default function GoalsPage() {
     fetchGoals();
   }, [fetchGoals]);
 
+  useEffect(() => {
+    fetch('/api/goals/templates')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((templates: { category: string | null }[]) => {
+        const set = new Set<string>();
+        for (const t of templates) if (t.category) set.add(t.category);
+        setTemplateCategories(Array.from(set));
+      })
+      .catch(() => setTemplateCategories([]));
+  }, []);
+
   const isManager = session?.user?.role === 'MANAGER' || session?.user?.role === 'ADMIN';
   const isAdmin = session?.user?.role === 'ADMIN';
 
@@ -64,29 +75,19 @@ export default function GoalsPage() {
     return Array.from(set.values()).sort();
   }, [goals]);
 
-  const departments = useMemo(() => {
-    const set = new Set<string>();
-    for (const g of goals) if (g.owner.department) set.add(g.owner.department);
-    return Array.from(set).sort();
-  }, [goals]);
-
   const categories = useMemo(() => {
     const set = new Set<string>();
     for (const g of goals) if (g.category) set.add(g.category);
+    for (const c of templateCategories) set.add(c);
     return Array.from(set).sort();
-  }, [goals]);
+  }, [goals, templateCategories]);
 
   const visibleGoals = useMemo(() => {
     const q = search.trim().toLowerCase();
     const o = ownerFilter.trim().toLowerCase();
-    const d = deptFilter.trim().toLowerCase();
     const c = categoryFilter.trim().toLowerCase();
     return goals.filter((g) => {
       if (o && !g.owner.name.toLowerCase().includes(o)) return false;
-      if (d) {
-        const dept = (g.owner.department ?? '').toLowerCase();
-        if (!dept.includes(d)) return false;
-      }
       if (c) {
         const cat = (g.category ?? '').toLowerCase();
         if (!cat.includes(c)) return false;
@@ -97,9 +98,9 @@ export default function GoalsPage() {
       }
       return true;
     });
-  }, [goals, search, ownerFilter, deptFilter, categoryFilter]);
+  }, [goals, search, ownerFilter, categoryFilter]);
 
-  const hasFilters = !!(search || ownerFilter || deptFilter || categoryFilter || activeTab !== 'ALL');
+  const hasFilters = !!(search || ownerFilter || categoryFilter || activeTab !== 'ALL');
 
   const handleStatusChange = async (goalId: string, s: string) => {
     const endpoint = s === 'COMPLETED' ? `/api/goals/${goalId}/complete` : `/api/goals/${goalId}`;
@@ -146,6 +147,12 @@ export default function GoalsPage() {
 
   return (
     <DashboardLayout type="employee">
+      <datalist id="goal-category-options">
+        {categories.map((c) => (
+          <option key={c} value={c} />
+        ))}
+      </datalist>
+
       <div className="max-w-4xl mx-auto space-y-6">
         <PageTitle
           title="Goals"
@@ -198,16 +205,6 @@ export default function GoalsPage() {
                 <option key={n} value={n} />
               ))}
             </datalist>
-            <datalist id="goal-dept-options">
-              {departments.map((d) => (
-                <option key={d} value={d} />
-              ))}
-            </datalist>
-            <datalist id="goal-category-filter-options">
-              {categories.map((c) => (
-                <option key={c} value={c} />
-              ))}
-            </datalist>
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
               <div className="relative flex-1">
@@ -216,7 +213,7 @@ export default function GoalsPage() {
                   type="search"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search by title, description, owner, department..."
+                  placeholder="Search by title, description, owner..."
                   className="input-base pl-9"
                   aria-label="Search goals"
                 />
@@ -247,32 +244,6 @@ export default function GoalsPage() {
                   )}
                 </div>
               )}
-              {departments.length > 1 && (
-                <div className="relative sm:w-48">
-                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
-                  <input
-                    type="text"
-                    value={deptFilter}
-                    onChange={(e) => setDeptFilter(e.target.value)}
-                    placeholder="All departments"
-                    className="input-base pl-9 pr-8"
-                    list="goal-dept-options"
-                    autoComplete="off"
-                    aria-label="Filter by department (type to search)"
-                  />
-                  {deptFilter && (
-                    <button
-                      type="button"
-                      onClick={() => setDeptFilter('')}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-tertiary hover:text-primary focus-ring rounded p-0.5"
-                      aria-label="Clear department filter"
-                      title="Clear"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              )}
               {categories.length > 0 && (
                 <div className="relative sm:w-48">
                   <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
@@ -282,7 +253,7 @@ export default function GoalsPage() {
                     onChange={(e) => setCategoryFilter(e.target.value)}
                     placeholder="All categories"
                     className="input-base pl-9 pr-8"
-                    list="goal-category-filter-options"
+                    list="goal-category-options"
                     autoComplete="off"
                     aria-label="Filter by category (type to search)"
                   />
@@ -312,7 +283,6 @@ export default function GoalsPage() {
                     onClick={() => {
                       setSearch('');
                       setOwnerFilter('');
-                      setDeptFilter('');
                       setCategoryFilter('');
                       setActiveTab('ALL');
                     }}

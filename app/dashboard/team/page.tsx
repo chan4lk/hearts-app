@@ -12,7 +12,7 @@ import { FormActions } from '@/app/components/shared/FormField';
 import TemplatePicker, { GoalTemplate } from '@/app/components/goals/TemplatePicker';
 
 const todayStr = () => new Date().toISOString().split('T')[0];
-const makeEmptyGoal = () => ({ title: '', description: '', targetDate: todayStr() });
+const makeEmptyGoal = () => ({ title: '', description: '', category: '', targetDate: todayStr() });
 
 interface TeamMember {
   id: string; name: string; email: string; department: string | null;
@@ -30,7 +30,7 @@ export default function TeamPage() {
   const [showAssign, setShowAssign] = useState(false);
   const [templates, setTemplates] = useState<GoalTemplate[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
-  const [bulkGoals, setBulkGoals] = useState<{ title: string; description: string; targetDate: string }[]>([makeEmptyGoal()]);
+  const [bulkGoals, setBulkGoals] = useState<{ title: string; description: string; category: string; targetDate: string }[]>([makeEmptyGoal()]);
   const [assigning, setAssigning] = useState(false);
   const [assignResult, setAssignResult] = useState('');
 
