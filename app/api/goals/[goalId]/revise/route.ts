@@ -40,7 +40,7 @@ export async function POST(req: NextRequest, { params }: { params: { goalId: str
 
   await logAudit(ctx, { action: AuditAction.GOAL_REVISION_REQUESTED, entity: 'Goal', entityId: goal.id, details: { comment: parsed.data.comment } });
 
-  notifyGoalStatus(ctx.tenantId, goal.ownerId, goal.title, 'NEEDS_REVISION', parsed.data.comment).catch(() => {});
+  notifyGoalStatus(ctx.tenantId, goal.ownerId, goal.title, 'NEEDS_REVISION', parsed.data.comment, goal.id).catch(() => {});
 
   return NextResponse.json(updated);
 }

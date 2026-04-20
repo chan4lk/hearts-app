@@ -55,6 +55,8 @@ interface SendEmailParams {
   subject: string;
   body: string;
   scheduledAt?: Date;
+  entityType?: 'GOAL' | 'REVIEW' | 'HEART' | 'EVENT';
+  entityId?: string;
 }
 
 /**
@@ -75,7 +77,7 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
       return;
     }
 
-    // Save to DB (always — serves as notification log)
+    // Save to DB (always — serves as email delivery log)
     const notification = await prisma.emailNotification.create({
       data: {
         tenantId: params.tenantId,
@@ -87,6 +89,19 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
         status: 'PENDING',
       },
     });
+
+    // Create in-app notification row (unread by default)
+    await prisma.notification.create({
+      data: {
+        tenantId: params.tenantId,
+        userId: params.recipientId,
+        type: params.template,
+        title: params.subject,
+        message: params.body.slice(0, 500),
+        entityType: params.entityType ?? null,
+        entityId: params.entityId ?? null,
+      },
+    }).catch((e) => console.error('[Notification] Failed to create in-app:', e));
 
     // Build HTML for sending
     const html = buildEmailHtml({
@@ -211,17 +226,19 @@ function buildEmailHtml(params: { recipientName: string; subject: string; body: 
 
 // ── Helper functions (unchanged API) ──
 
-export async function notifyHeartReceived(tenantId: string, receiverId: string, senderName: string, valueName: string, message?: string) {
+export async function notifyHeartReceived(tenantId: string, receiverId: string, senderName: string, valueName: string, message?: string, heartId?: string) {
   await sendEmail({
     tenantId,
     recipientId: receiverId,
     template: 'HEART_RECEIVED',
     subject: `${senderName} recognized you for ${valueName}`,
     body: `${senderName} gave you a Heart for "${valueName}"${message ? `:\n\n"${message}"` : ''}\n\nLog in to see your Hearts profile and give recognition to others.`,
+    entityType: 'HEART',
+    entityId: heartId,
   });
 }
 
-export async function notifyGoalStatus(tenantId: string, recipientId: string, goalTitle: string, status: string, comment?: string) {
+export async function notifyGoalStatus(tenantId: string, recipientId: string, goalTitle: string, status: string, comment?: string, goalId?: string) {
   const isApproved = status === 'ACTIVE';
   await sendEmail({
     tenantId,
@@ -231,16 +248,20 @@ export async function notifyGoalStatus(tenantId: string, recipientId: string, go
     body: isApproved
       ? `Your goal "${goalTitle}" has been approved! You can now start tracking your progress.`
       : `Your goal "${goalTitle}" needs some changes.\n\nFeedback from your manager:\n${comment || '(No comment provided)'}\n\nPlease review the feedback and resubmit your goal.`,
+    entityType: 'GOAL',
+    entityId: goalId,
   });
 }
 
-export async function notifyReviewReady(tenantId: string, recipientId: string, cycleName: string) {
+export async function notifyReviewReady(tenantId: string, recipientId: string, cycleName: string, cycleId?: string) {
   await sendEmail({
     tenantId,
     recipientId,
     template: 'REVIEW_DELIVERED',
     subject: `Your ${cycleName} review is ready`,
     body: `Your performance review for ${cycleName} has been finalized and is ready to view.\n\nThis review includes your goals, hearts received from peers, and your manager's assessment.`,
+    entityType: 'REVIEW',
+    entityId: cycleId,
   });
 }
 

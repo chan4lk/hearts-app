@@ -30,7 +30,7 @@ export async function POST(req: NextRequest, { params }: { params: { reviewId: s
 
   // Get cycle name for email
   const cycle = await prisma.reviewCycle.findUnique({ where: { id: review.reviewCycleId }, select: { name: true } });
-  notifyReviewReady(ctx.tenantId, review.employeeId, cycle?.name || 'Performance Review').catch(() => {});
+  notifyReviewReady(ctx.tenantId, review.employeeId, cycle?.name || 'Performance Review', review.reviewCycleId).catch(() => {});
 
   return NextResponse.json(updated);
 }

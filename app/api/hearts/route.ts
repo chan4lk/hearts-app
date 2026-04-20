@@ -102,8 +102,8 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  // Queue email notification
-  notifyHeartReceived(ctx.tenantId, receiverId, heart.sender.name, heart.valueTag.name, message).catch(() => {});
+  // Queue email + in-app notification
+  notifyHeartReceived(ctx.tenantId, receiverId, heart.sender.name, heart.valueTag.name, message, heart.id).catch(() => {});
 
   return NextResponse.json(heart, { status: 201 });
 }

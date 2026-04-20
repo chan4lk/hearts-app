@@ -20,6 +20,7 @@ import {
 } from 'react-icons/bs';
 import { useSettings } from '@/app/providers';
 import ThemeToggle from '@/app/components/ui/ThemeToggle';
+import NotificationBell from '@/app/components/layout/NotificationBell';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -506,7 +507,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
           {/* Right */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            {/* Notifications will be added when feature is built */}
+            <NotificationBell />
 
             {/* User menu */}
             <div className="relative" ref={userMenuRef}>
