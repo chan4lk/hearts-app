@@ -223,8 +223,9 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
           { href: '/dashboard/admin', label: 'Dashboard', icon: BsShield },
           { href: '/dashboard/admin/users', label: 'Users', icon: BsPeople, isSub: true },
           { href: '/dashboard/admin/values', label: 'Values', icon: BsHeart, isSub: true },
-          { href: '/dashboard/admin/cycles', label: 'Cycles', icon: BsCalendar, isSub: true },
           { href: '/dashboard/admin/templates', label: 'Templates', icon: BsBullseye, isSub: true },
+          { href: '/dashboard/admin/events', label: 'Events', icon: BsCalendarCheck, isSub: true },
+          { href: '/dashboard/admin/cycles', label: 'Cycles', icon: BsCalendar, isSub: true },
           { href: '/dashboard/admin/notifications', label: 'Emails', icon: BsEnvelope, isSub: true },
         ],
       });

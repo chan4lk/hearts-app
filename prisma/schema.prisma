@@ -64,6 +64,12 @@ enum ParticipationStatus {
   DECLINED
 }
 
+enum MealPreference {
+  NONE
+  VEG
+  NON_VEG
+}
+
 // ============================================================
 // USER (extended from existing)
 // ============================================================
@@ -286,11 +292,12 @@ model Event {
 }
 
 model EventParticipation {
-  id       String              @id @default(cuid())
-  tenantId String
-  eventId  String
-  userId   String
-  status   ParticipationStatus @default(PENDING)
+  id             String              @id @default(cuid())
+  tenantId       String
+  eventId        String
+  userId         String
+  status         ParticipationStatus @default(PENDING)
+  mealPreference MealPreference      @default(NONE)
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)

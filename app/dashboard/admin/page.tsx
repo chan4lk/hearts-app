@@ -11,6 +11,7 @@ const adminLinks = [
   { href: '/dashboard/admin/users', label: 'User Management', description: 'Manage roles, managers, and accounts', icon: Users, color: '--color-accent' },
   { href: '/dashboard/admin/values', label: 'Company Values', description: 'Configure Heart value tags', icon: Heart, color: '--color-heart' },
   { href: '/dashboard/admin/templates', label: 'Goal Templates', description: 'Create reusable goal templates', icon: Target, color: '--color-goal-active' },
+  { href: '/dashboard/admin/events', label: 'Events', description: 'Create and manage company events', icon: Calendar, color: '--color-accent' },
   { href: '/dashboard/admin/cycles', label: 'Review Cycles', description: 'Create performance review cycles', icon: Calendar, color: '--color-review' },
   { href: '/dashboard/admin/notifications', label: 'Notifications', description: 'View email notification log', icon: Mail, color: '--color-info' },
 ];
