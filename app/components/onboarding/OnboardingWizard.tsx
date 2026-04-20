@@ -20,7 +20,7 @@ export default function OnboardingWizard({ onComplete }: OnboardingWizardProps) 
 
   useEffect(() => {
     fetch('/api/admin/values').then(r => r.ok ? r.json() : []).then(d => setValues(d.filter((v: any) => v.isActive)));
-    fetch('/api/admin/users').then(r => r.ok ? r.json() : []).then(d => setUsers(d.filter((u: any) => u.id !== session?.user?.id)));
+    fetch('/api/users/colleagues').then(r => r.ok ? r.json() : []).then(setUsers);
   }, [session]);
 
   const sendHeart = async () => {

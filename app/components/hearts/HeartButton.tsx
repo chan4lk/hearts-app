@@ -34,7 +34,7 @@ export default function HeartButton({ onHeartSent }: HeartButtonProps) {
 
   useEffect(() => {
     if (isOpen) {
-      fetch('/api/admin/users').then(r => r.ok ? r.json() : []).then(setUsers);
+      fetch('/api/users/colleagues').then(r => r.ok ? r.json() : []).then(setUsers);
       fetch('/api/admin/values').then(r => r.ok ? r.json() : []).then(data =>
         setValues(data.filter((v: any) => v.isActive))
       );

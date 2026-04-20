@@ -10,14 +10,14 @@ import StatGrid from '@/app/components/shared/StatGrid';
 import Modal from '@/app/components/shared/Modal';
 import { FormActions } from '@/app/components/shared/FormField';
 import FilterBar, { FilterSelect } from '@/app/components/shared/FilterBar';
+import TemplatePicker, { GoalTemplate } from '@/app/components/goals/TemplatePicker';
+
+const todayStr = () => new Date().toISOString().split('T')[0];
+const makeEmptyGoal = () => ({ title: '', description: '', targetDate: todayStr() });
 
 interface TeamMember {
   id: string; name: string; email: string; department: string | null;
   position: string | null; role: string; isActive: boolean;
-}
-
-interface GoalTemplate {
-  id: string; title: string; description: string | null; category: string | null;
 }
 
 export default function TeamPage() {
@@ -31,7 +31,7 @@ export default function TeamPage() {
   const [showAssign, setShowAssign] = useState(false);
   const [templates, setTemplates] = useState<GoalTemplate[]>([]);
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
-  const [bulkGoals, setBulkGoals] = useState<{ title: string; description: string; targetDate: string }[]>([{ title: '', description: '', targetDate: '' }]);
+  const [bulkGoals, setBulkGoals] = useState<{ title: string; description: string; targetDate: string }[]>([makeEmptyGoal()]);
   const [assigning, setAssigning] = useState(false);
   const [assignResult, setAssignResult] = useState('');
 
@@ -62,13 +62,12 @@ export default function TeamPage() {
   const departments = Array.from(new Set(members.map(m => m.department).filter(Boolean))) as string[];
 
   const toggleMember = (id: string) => setSelectedMembers(prev => prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]);
-  const addGoalRow = () => setBulkGoals(prev => [...prev, { title: '', description: '', targetDate: '' }]);
+  const addGoalRow = () => setBulkGoals(prev => [...prev, makeEmptyGoal()]);
   const removeGoalRow = (i: number) => setBulkGoals(prev => prev.filter((_, idx) => idx !== i));
   const updateGoalRow = (i: number, field: string, value: string) => setBulkGoals(prev => prev.map((g, idx) => idx === i ? { ...g, [field]: value } : g));
 
-  const applyTemplate = (i: number, templateId: string) => {
-    const t = templates.find(t => t.id === templateId);
-    if (t) setBulkGoals(prev => prev.map((g, idx) => idx === i ? { ...g, title: t.title, description: t.description || '' } : g));
+  const applyTemplate = (i: number, t: GoalTemplate) => {
+    setBulkGoals(prev => prev.map((g, idx) => idx === i ? { ...g, title: t.title, description: t.description || '' } : g));
   };
 
   const handleAssign = async (e: React.FormEvent) => {
@@ -90,7 +89,7 @@ export default function TeamPage() {
       const data = await res.json();
       setAssignResult(`${data.created} goals assigned successfully!`);
       setShowAssign(false);
-      setBulkGoals([{ title: '', description: '', targetDate: '' }]);
+      setBulkGoals([makeEmptyGoal()]);
       setSelectedMembers([]);
       setTimeout(() => setAssignResult(''), 5000);
     }
@@ -98,7 +97,7 @@ export default function TeamPage() {
   };
 
   const resetAssign = () => {
-    setBulkGoals([{ title: '', description: '', targetDate: '' }]);
+    setBulkGoals([makeEmptyGoal()]);
     setSelectedMembers([]);
     setShowAssign(true);
   };
@@ -231,17 +230,13 @@ export default function TeamPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-2xs text-tertiary font-semibold">Goal {i + 1}</span>
                   {templates.length > 0 && (
-                    <select onChange={(e) => { if (e.target.value) applyTemplate(i, e.target.value); e.target.value = ''; }}
-                      className="text-2xs text-accent bg-transparent border border-theme rounded-lg px-2 py-1 cursor-pointer focus-ring" defaultValue="">
-                      <option value="" disabled>📋 Use template...</option>
-                      {templates.map(t => <option key={t.id} value={t.id}>{t.category ? `[${t.category}] ` : ''}{t.title}</option>)}
-                    </select>
+                    <TemplatePicker templates={templates} onSelect={(t) => applyTemplate(i, t)} />
                   )}
                 </div>
                 <input value={goal.title} onChange={(e) => updateGoalRow(i, 'title', e.target.value)} required className="input-base" placeholder="Goal title" maxLength={200} />
                 <textarea value={goal.description} onChange={(e) => updateGoalRow(i, 'description', e.target.value)} rows={2} className="input-textarea" placeholder="Description (optional)" maxLength={2000} />
                 <input type="date" value={goal.targetDate} onChange={(e) => updateGoalRow(i, 'targetDate', e.target.value)}
-                  min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
+                  min={todayStr()}
                   className="input-base" />
               </div>
             ))}
