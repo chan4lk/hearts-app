@@ -126,7 +126,10 @@ export default function GoalsPage() {
   };
 
   const handleStatusChange = async (goalId: string, s: string) => {
-    const res = await fetch(`/api/goals/${goalId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: s }) });
+    const endpoint = s === 'COMPLETED' ? `/api/goals/${goalId}/complete` : `/api/goals/${goalId}`;
+    const method = s === 'COMPLETED' ? 'POST' : 'PATCH';
+    const body = s === 'COMPLETED' ? '{}' : JSON.stringify({ status: s });
+    const res = await fetch(endpoint, { method, headers: { 'Content-Type': 'application/json' }, body });
     if (res.ok) { flashMsg('success', `Goal moved to ${s.toLowerCase().replace('_', ' ')}`); await fetchGoals(); }
     else { const d = await res.json().catch(() => ({})); flashMsg('error', d.error || 'Failed to update goal'); }
   };

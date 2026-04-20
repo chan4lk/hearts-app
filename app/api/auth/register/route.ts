@@ -1,32 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { z } from 'zod';
 
+const RegisterSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required').max(100),
+  email: z.string().trim().toLowerCase().email('Invalid email'),
+  password: z.string().min(8, 'Password must be at least 8 characters').max(128),
+});
 
+function clientKey(req: NextRequest, email?: string) {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    || req.headers.get('x-real-ip')
+    || 'unknown';
+  return `auth:register:${ip}:${(email || '').toLowerCase()}`;
+}
 
 export async function POST(req: NextRequest) {
-  // Rate limit registration to prevent abuse
-
+  let email: string | undefined;
 
   try {
-    const { name, email, password } = await req.json();
+    const body = await req.json();
+    email = body?.email;
 
-    // Validate input
-    if (!name || !email || !password) {
+    const limited = checkRateLimit(clientKey(req, email), 3, 60 * 60 * 1000);
+    if (limited) return limited;
+
+    const parsed = RegisterSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { message: 'Name, email, and password are required' },
+        { message: 'Invalid input', details: parsed.error.flatten() },
         { status: 400 }
       );
     }
 
-    // Check if user already exists (case-insensitive)
+    const { name, email: normalizedEmail, password } = parsed.data;
+
     const existingUser = await prisma.user.findFirst({
-      where: {
-        email: {
-          equals: email.trim(),
-          mode: 'insensitive',
-        },
-      },
+      where: { email: { equals: normalizedEmail, mode: 'insensitive' } },
     });
 
     if (existingUser) {
@@ -36,35 +48,30 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Hash password
     const hashedPassword = await hash(password, 12);
 
-    // Create user with original email casing
     const user = await prisma.user.create({
       data: {
-        tenantId: 'bistec-global', // Phase 1: single tenant
+        tenantId: 'bistec-global',
         name,
-        email: email.trim(),
+        email: normalizedEmail,
         password: hashedPassword,
         role: 'EMPLOYEE',
       },
     });
 
-    // Remove password from response
-    const { password: _, ...userWithoutPassword } = user;
+    const { password: _pw, ...userWithoutPassword } = user;
 
     return NextResponse.json(
-      { 
-        message: 'User created successfully',
-        user: userWithoutPassword 
-      },
+      { message: 'User created successfully', user: userWithoutPassword },
       { status: 201 }
     );
   } catch (error) {
-
-    return NextResponse.json(
-      { message: 'Error creating user' },
-      { status: 500 }
-    );
+    console.error('[auth/register] error', {
+      email: email?.toLowerCase(),
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    return NextResponse.json({ message: 'Error creating user' }, { status: 500 });
   }
-} 
+}

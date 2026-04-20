@@ -1,20 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { compare } from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
+import { checkRateLimit } from '@/lib/rateLimit';
 
-
+function clientKey(req: NextRequest, email?: string) {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    || req.headers.get('x-real-ip')
+    || 'unknown';
+  return `auth:login:${ip}:${(email || '').toLowerCase()}`;
+}
 
 export async function POST(req: NextRequest) {
-
-
-
+  let email: string | undefined;
+  let password: string | undefined;
 
   try {
-    const { email, password } = await req.json();
+    const body = await req.json();
+    email = body?.email;
+    password = body?.password;
 
     if (!email || !password) {
       return NextResponse.json({ message: 'Email and password are required' }, { status: 400 });
     }
+
+    const limited = checkRateLimit(clientKey(req, email), 5, 15 * 60 * 1000);
+    if (limited) return limited;
 
     const user = await prisma.user.findFirst({
       where: { email: { equals: email.trim(), mode: 'insensitive' } },
@@ -44,7 +54,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Invalid email or password' }, { status: 401 });
     }
 
-    // Reset failed login attempts and update last login
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -54,15 +63,18 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // NextAuth handles session/token — no separate JWT needed
-    const { password: _, ...userWithoutPassword } = user;
+    const { password: _pw, ...userWithoutPassword } = user;
 
     return NextResponse.json({
       message: 'Login successful',
-      user: userWithoutPassword
+      user: userWithoutPassword,
     });
   } catch (error) {
-
+    console.error('[auth/login] error', {
+      email: email?.toLowerCase(),
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return NextResponse.json({ message: 'Error during login' }, { status: 500 });
   }
 }

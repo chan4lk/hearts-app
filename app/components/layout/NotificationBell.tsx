@@ -132,7 +132,7 @@ export default function NotificationBell() {
         <Bell className="w-5 h-5" />
         {badge && (
           <span
-            className="absolute top-0 right-0 min-w-[18px] h-[18px] px-1 rounded-full bg-[rgb(var(--color-error))] text-[rgb(var(--color-text-inverse))] text-[10px] font-bold flex items-center justify-center shadow-sm"
+            className="absolute top-0 right-0 min-w-[18px] h-[18px] px-1 rounded-full bg-[rgb(var(--color-error))] text-[rgb(var(--color-text-inverse))] text-2xs font-bold flex items-center justify-center shadow-sm"
             aria-hidden="true"
           >
             {badge}

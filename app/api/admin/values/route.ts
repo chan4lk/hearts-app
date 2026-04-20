@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getTenantContext } from '@/lib/tenantScope';
 import { requireMinRole } from '@/lib/rbac';
 import { logAudit, AuditAction } from '@/lib/auditLog';
+import { sanitizeInput } from '@/lib/securityUtils';
 import { z } from 'zod';
 
 // GET — list all company values (all authenticated users can read)
@@ -20,7 +21,8 @@ export async function GET() {
 }
 
 const CreateValueSchema = z.object({
-  name: z.string().min(1).max(50).trim(),
+  name: z.string().min(1).max(50).transform(sanitizeInput)
+    .refine((s) => s.length > 0, 'Name cannot be empty'),
 });
 
 // POST — create company value (admin only)

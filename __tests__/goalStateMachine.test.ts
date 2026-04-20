@@ -43,8 +43,8 @@ describe('Goal State Machine', () => {
       expect(getValidTransitions('DRAFT')).toEqual(['PENDING', 'CLOSED']);
     });
 
-    it('ACTIVE can go to COMPLETED or CLOSED', () => {
-      expect(getValidTransitions('ACTIVE')).toEqual(['COMPLETED', 'CLOSED']);
+    it('ACTIVE can go to COMPLETED, ON_HOLD, BLOCKED, or CLOSED', () => {
+      expect(getValidTransitions('ACTIVE')).toEqual(['COMPLETED', 'ON_HOLD', 'BLOCKED', 'CLOSED']);
     });
 
     it('CLOSED has no valid transitions', () => {

@@ -4,6 +4,7 @@ import { getTenantContext } from '@/lib/tenantScope';
 import { hasMinRole } from '@/lib/rbac';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { logAudit, AuditAction } from '@/lib/auditLog';
+import { sanitizeInput, sanitizeInputPreserveNewlines } from '@/lib/securityUtils';
 import { GoalStatus } from '@prisma/client';
 import { z } from 'zod';
 
@@ -65,8 +66,9 @@ export async function GET(req: NextRequest) {
 }
 
 const CreateGoalSchema = z.object({
-  title: z.string().min(1).max(200),
-  description: z.string().max(2000).optional(),
+  title: z.string().min(1).max(200).transform(sanitizeInput)
+    .refine((s) => s.length > 0, 'Title cannot be empty'),
+  description: z.string().max(2000).transform(sanitizeInputPreserveNewlines).optional(),
   targetDate: z.string().optional(),
   ownerId: z.string().optional(), // For manager-assigned goals
 });

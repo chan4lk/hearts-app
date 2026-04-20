@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { getTenantContext } from '@/lib/tenantScope';
 import { requireMinRole } from '@/lib/rbac';
 import { sendEmail } from '@/lib/email';
+import { checkRateLimit } from '@/lib/rateLimit';
+
+const MAX_INVITES_PER_REQUEST = 100;
 
 // POST — send login invite to user(s) who haven't logged in yet
 export async function POST(req: NextRequest) {
@@ -10,11 +13,20 @@ export async function POST(req: NextRequest) {
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
   requireMinRole(ctx, 'ADMIN');
 
+  const limited = checkRateLimit(`admin:invite:${ctx.userId}`, 10, 60 * 60 * 1000);
+  if (limited) return limited;
+
   const body = await req.json();
   const { userId, userIds } = body;
 
-  const ids = userIds || (userId ? [userId] : []);
+  const ids: string[] = Array.isArray(userIds) ? userIds : (userId ? [userId] : []);
   if (ids.length === 0) return NextResponse.json({ error: 'No users specified', code: 'VALIDATION_ERROR' }, { status: 400 });
+  if (ids.length > MAX_INVITES_PER_REQUEST) {
+    return NextResponse.json(
+      { error: `Cannot invite more than ${MAX_INVITES_PER_REQUEST} users per request`, code: 'VALIDATION_ERROR' },
+      { status: 400 }
+    );
+  }
 
   let sent = 0;
   for (const id of ids) {

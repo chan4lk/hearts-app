@@ -4,6 +4,7 @@ import { getTenantContext } from '@/lib/tenantScope';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { z } from 'zod';
 import { notifyHeartReceived } from '@/lib/email';
+import { sanitizeInputPreserveNewlines } from '@/lib/securityUtils';
 
 // GET — Hearts feed (paginated, recent first)
 export async function GET(req: NextRequest) {
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest) {
 const GiveHeartSchema = z.object({
   receiverId: z.string().min(1),
   valueTagId: z.string().min(1),
-  message: z.string().max(500).optional(),
+  message: z.string().max(500).transform(sanitizeInputPreserveNewlines).optional(),
 });
 
 // POST — Give a Heart

@@ -129,7 +129,12 @@ export default function GoalDetailPage() {
   };
 
   const handleStatusChange = async (status: string) => {
-    const res = await fetch(`/api/goals/${goalId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+    const endpoint = status === 'COMPLETED'
+      ? `/api/goals/${goalId}/complete`
+      : `/api/goals/${goalId}`;
+    const method = status === 'COMPLETED' ? 'POST' : 'PATCH';
+    const body = status === 'COMPLETED' ? '{}' : JSON.stringify({ status });
+    const res = await fetch(endpoint, { method, headers: { 'Content-Type': 'application/json' }, body });
     if (res.ok) { flashMsg('success', `Goal moved to ${status.toLowerCase().replace('_', ' ')}`); await fetchGoal(); }
     else {
       const d = await res.json().catch(() => ({}));

@@ -89,7 +89,7 @@ model User {
   managerId           String?
 
   // Self-referential manager relationship
-  manager   User?  @relation("ManagerEmployee", fields: [managerId], references: [id])
+  manager   User?  @relation("ManagerEmployee", fields: [managerId], references: [id], onDelete: SetNull)
   employees User[] @relation("ManagerEmployee")
 
   // Hearts relations
@@ -147,9 +147,9 @@ model Heart {
   message    String?
   createdAt  DateTime @default(now())
 
-  sender   User         @relation("HeartSender", fields: [senderId], references: [id])
-  receiver User         @relation("HeartReceiver", fields: [receiverId], references: [id])
-  valueTag CompanyValue @relation(fields: [valueTagId], references: [id])
+  sender   User         @relation("HeartSender", fields: [senderId], references: [id], onDelete: Restrict)
+  receiver User         @relation("HeartReceiver", fields: [receiverId], references: [id], onDelete: Restrict)
+  valueTag CompanyValue @relation(fields: [valueTagId], references: [id], onDelete: Restrict)
 
   @@index([tenantId, createdAt])
   @@index([tenantId, receiverId])
@@ -193,9 +193,9 @@ model Goal {
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
-  owner       User         @relation("GoalOwner", fields: [ownerId], references: [id])
-  assigner    User?        @relation("GoalAssigner", fields: [assignerId], references: [id])
-  reviewCycle ReviewCycle? @relation(fields: [reviewCycleId], references: [id])
+  owner       User          @relation("GoalOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  assigner    User?         @relation("GoalAssigner", fields: [assignerId], references: [id], onDelete: SetNull)
+  reviewCycle ReviewCycle?  @relation(fields: [reviewCycleId], references: [id], onDelete: SetNull)
   comments    GoalComment[]
 
   @@index([tenantId, ownerId, status])
@@ -212,9 +212,10 @@ model GoalComment {
   type      CommentType @default(COMMENT)
   createdAt DateTime    @default(now())
 
-  goal Goal @relation(fields: [goalId], references: [id])
+  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, goalId])
+  @@index([tenantId, authorId])
 }
 
 // ============================================================
@@ -254,9 +255,9 @@ model Review {
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
-  reviewCycle ReviewCycle @relation(fields: [reviewCycleId], references: [id])
-  employee    User        @relation("ReviewEmployee", fields: [employeeId], references: [id])
-  manager     User        @relation("ReviewManager", fields: [managerId], references: [id])
+  reviewCycle ReviewCycle @relation(fields: [reviewCycleId], references: [id], onDelete: Restrict)
+  employee    User        @relation("ReviewEmployee", fields: [employeeId], references: [id], onDelete: Restrict)
+  manager     User        @relation("ReviewManager", fields: [managerId], references: [id], onDelete: Restrict)
 
   @@unique([tenantId, reviewCycleId, employeeId])
   @@index([tenantId, reviewCycleId])

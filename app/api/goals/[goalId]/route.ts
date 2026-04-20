@@ -5,6 +5,7 @@ import { logAudit, AuditAction } from '@/lib/auditLog';
 import { canTransition } from '@/app/utils/goalStateMachine';
 import { hasMinRole } from '@/lib/rbac';
 import { GoalStatus } from '@prisma/client';
+import { sanitizeInput, sanitizeInputPreserveNewlines } from '@/lib/securityUtils';
 import { z } from 'zod';
 
 export async function GET(_req: NextRequest, { params }: { params: { goalId: string } }) {
@@ -28,8 +29,9 @@ export async function GET(_req: NextRequest, { params }: { params: { goalId: str
 }
 
 const UpdateGoalSchema = z.object({
-  title: z.string().min(1).max(200).optional(),
-  description: z.string().max(2000).nullable().optional(),
+  title: z.string().min(1).max(200).transform(sanitizeInput)
+    .refine((s) => s.length > 0, 'Title cannot be empty').optional(),
+  description: z.string().max(2000).transform(sanitizeInputPreserveNewlines).nullable().optional(),
   targetDate: z.string().nullable().optional(),
   progress: z.number().min(0).max(100).optional(),
   status: z.nativeEnum(GoalStatus).optional(),

@@ -18,7 +18,7 @@ export default function StatusBadge({ status }: { status: string }) {
       className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"
       style={{ backgroundColor: config.bg, color: config.text }}
     >
-      <span className="text-[0.6rem] leading-none">{config.icon}</span>
+      <span className="text-2xs leading-none">{config.icon}</span>
       {config.label}
     </span>
   );
