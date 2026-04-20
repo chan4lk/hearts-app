@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getTenantContext } from '@/lib/tenantScope';
 import { requireMinRole } from '@/lib/rbac';
 import { logAudit, AuditAction } from '@/lib/auditLog';
+import { logger } from '@/lib/logger';
 
 /**
  * POST — Import users from CSV data
@@ -105,7 +106,15 @@ export async function POST(req: NextRequest) {
         if (user && manager && user.id !== manager.id) {
           await prisma.user.update({ where: { id: user.id }, data: { managerId: manager.id } });
         }
-      } catch { /* skip manager resolution errors */ }
+      } catch (err) {
+        logger.warn('admin.users.import.manager_resolution_failed', {
+          tenantId: ctx.tenantId,
+          userEmail: row.Email,
+          managerEmail: row.ManagerEmail,
+          managerName: row.ManagerName,
+          error: err instanceof Error ? err : new Error(String(err)),
+        });
+      }
     }
 
     await logAudit(ctx, {
@@ -117,6 +126,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(results);
   } catch (error: any) {
+    logger.error('admin.users.import.failed', {
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
     return NextResponse.json({ error: 'Import failed: ' + error.message, code: 'INTERNAL_ERROR' }, { status: 500 });
   }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { logger } from '@/lib/logger';
 import { z } from 'zod';
 
 const RegisterSchema = z.object({
@@ -67,10 +68,9 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('[auth/register] error', {
+    logger.error('auth.register.failed', {
       email: email?.toLowerCase(),
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
+      error: error instanceof Error ? error : new Error(String(error)),
     });
     return NextResponse.json({ message: 'Error creating user' }, { status: 500 });
   }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -19,8 +20,8 @@ export async function GET() {
       { headers: { 'Cache-Control': 'no-store' } }
     );
   } catch (error) {
-    console.error('[health] db check failed', {
-      message: error instanceof Error ? error.message : String(error),
+    logger.error('health.db_check.failed', {
+      error: error instanceof Error ? error : new Error(String(error)),
     });
     return NextResponse.json(
       {

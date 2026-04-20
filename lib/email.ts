@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import { EmailClient } from '@azure/communication-email';
 import { prisma } from './prisma';
+import { logger } from './logger';
 
 /**
  * Email service for AspireHub notifications.
@@ -170,7 +171,12 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
       }
     }
   } catch (error) {
-    console.error('[Email] Failed:', error);
+    logger.error('email.send.failed', {
+      tenantId: params.tenantId,
+      recipientId: params.recipientId,
+      template: params.template,
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
   }
 }
 

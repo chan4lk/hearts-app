@@ -1,5 +1,6 @@
 import { prisma } from './prisma';
 import { TenantContext } from './tenantScope';
+import { logger } from './logger';
 
 /**
  * Standard audit actions used across the application.
@@ -99,6 +100,13 @@ export async function logAudit(
     });
   } catch (error) {
     // Audit logging should never break the main operation
-    console.error('Failed to write audit log:', error);
+    logger.error('audit.write.failed', {
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      action: params.action,
+      entity: params.entity,
+      entityId: params.entityId,
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
   }
 }

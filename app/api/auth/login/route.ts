@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { compare } from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { checkRateLimit } from '@/lib/rateLimit';
+import { logger } from '@/lib/logger';
 
 function clientKey(req: NextRequest, email?: string) {
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
@@ -70,10 +71,9 @@ export async function POST(req: NextRequest) {
       user: userWithoutPassword,
     });
   } catch (error) {
-    console.error('[auth/login] error', {
+    logger.error('auth.login.failed', {
       email: email?.toLowerCase(),
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
+      error: error instanceof Error ? error : new Error(String(error)),
     });
     return NextResponse.json({ message: 'Error during login' }, { status: 500 });
   }
