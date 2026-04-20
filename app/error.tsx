@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { BsExclamationTriangle, BsArrowCounterclockwise } from 'react-icons/bs';
+import { BsExclamationTriangle, BsArrowCounterclockwise, BsHouseDoor } from 'react-icons/bs';
 
 export default function Error({
   error,
@@ -11,10 +11,19 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log error to monitoring (logger is server-only, so just track digest)
-    if (error.digest) {
-      // Production: error digest is safe to log client-side
-    }
+    // Grep-friendly JSON line in the browser console — matches our server
+    // logger.ts format so bug reports look consistent across tiers.
+    // eslint-disable-next-line no-console
+    console.error(
+      JSON.stringify({
+        level: 'error',
+        message: 'route-error',
+        timestamp: new Date().toISOString(),
+        digest: error?.digest,
+        errorMessage: error?.message,
+        stack: error?.stack,
+      })
+    );
   }, [error]);
 
   return (
@@ -26,22 +35,33 @@ export default function Error({
 
         <h2 className="text-xl font-bold text-primary mb-2">Something went wrong</h2>
         <p className="text-sm text-secondary mb-6 leading-relaxed">
-          An unexpected error occurred. Please try again or contact support if the problem persists.
+          An unexpected error occurred on this page. Try again — if it keeps happening, let the
+          admin know and share the error ID below.
         </p>
 
         {error.digest && (
-          <p className="text-2xs text-tertiary mb-4 font-mono">
+          <p className="text-2xs text-tertiary mb-6 font-mono break-all">
             Error ID: {error.digest}
           </p>
         )}
 
-        <button
-          onClick={reset}
-          className="inline-flex items-center gap-2 h-10 px-6 text-sm font-semibold rounded-lg bg-accent text-[rgb(var(--color-text-inverse))] hover:opacity-90 transition-all duration-150 cursor-pointer focus-ring"
-        >
-          <BsArrowCounterclockwise className="w-4 h-4" />
-          Try Again
-        </button>
+        <div className="flex flex-col sm:flex-row gap-2 justify-center">
+          <button
+            type="button"
+            onClick={reset}
+            className="inline-flex items-center justify-center gap-2 h-10 px-5 text-sm font-semibold rounded-lg bg-accent text-[rgb(var(--color-text-inverse))] hover:opacity-90 transition-all duration-150 cursor-pointer focus-ring"
+          >
+            <BsArrowCounterclockwise className="w-4 h-4" />
+            Try Again
+          </button>
+          <a
+            href="/dashboard/feed"
+            className="inline-flex items-center justify-center gap-2 h-10 px-5 text-sm font-semibold rounded-lg bg-surface-secondary text-primary hover:bg-surface-tertiary transition-all duration-150 cursor-pointer focus-ring"
+          >
+            <BsHouseDoor className="w-4 h-4" />
+            Back to Feed
+          </a>
+        </div>
       </div>
     </div>
   );
