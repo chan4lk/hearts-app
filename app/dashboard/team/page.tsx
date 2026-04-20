@@ -75,8 +75,14 @@ export default function TeamPage() {
   const updateGoalRow = (i: number, field: string, value: string) => setBulkGoals(prev => prev.map((g, idx) => idx === i ? { ...g, [field]: value } : g));
 
   const applyTemplate = (i: number, t: GoalTemplate) => {
-    setBulkGoals(prev => prev.map((g, idx) => idx === i ? { ...g, title: t.title, description: t.description || '' } : g));
+    setBulkGoals(prev => prev.map((g, idx) => idx === i
+      ? { ...g, title: t.title, description: t.description || '', category: t.category || g.category }
+      : g));
   };
+
+  const templateCategories = Array.from(new Set(
+    templates.map(t => t.category).filter(Boolean) as string[]
+  )).sort();
 
   const handleAssign = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,7 +94,12 @@ export default function TeamPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        goals: validGoals.map(g => ({ title: g.title, description: g.description || undefined, targetDate: g.targetDate || undefined })),
+        goals: validGoals.map(g => ({
+          title: g.title,
+          description: g.description || undefined,
+          category: g.category || undefined,
+          targetDate: g.targetDate || undefined,
+        })),
         assignToUserIds: selectedMembers,
       }),
     });
@@ -119,6 +130,11 @@ export default function TeamPage() {
   return (
     <DashboardLayout type="manager">
       <div className="max-w-7xl mx-auto space-y-6">
+        <datalist id="goal-category-options">
+          {templateCategories.map((c) => (
+            <option key={c} value={c} />
+          ))}
+        </datalist>
         <datalist id="team-dept-options">
           {departments.map(d => (
             <option key={d} value={d} />
@@ -301,9 +317,26 @@ export default function TeamPage() {
                 </div>
                 <input value={goal.title} onChange={(e) => updateGoalRow(i, 'title', e.target.value)} required className="input-base" placeholder="Goal title" maxLength={200} />
                 <textarea value={goal.description} onChange={(e) => updateGoalRow(i, 'description', e.target.value)} rows={2} className="input-textarea" placeholder="Description (optional)" maxLength={2000} />
-                <input type="date" value={goal.targetDate} onChange={(e) => updateGoalRow(i, 'targetDate', e.target.value)}
-                  min={todayStr()}
-                  className="input-base" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <input
+                    value={goal.category}
+                    onChange={(e) => updateGoalRow(i, 'category', e.target.value)}
+                    className="input-base"
+                    maxLength={50}
+                    placeholder="Category (optional)"
+                    list="goal-category-options"
+                    autoComplete="off"
+                    aria-label={`Category for goal ${i + 1}`}
+                  />
+                  <input
+                    type="date"
+                    value={goal.targetDate}
+                    onChange={(e) => updateGoalRow(i, 'targetDate', e.target.value)}
+                    min={todayStr()}
+                    className="input-base"
+                    aria-label={`Target date for goal ${i + 1}`}
+                  />
+                </div>
               </div>
             ))}
 
