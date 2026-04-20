@@ -7,7 +7,7 @@ import StatGrid from '@/app/components/shared/StatGrid';
 import Modal from '@/app/components/shared/Modal';
 import { Select, Input } from '@/app/components/shared/FormField';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
-import { Users, Shield, UserCheck, X, Upload, Download, UserX, Mail, Calendar, Search } from 'lucide-react';
+import { Users, Shield, UserCheck, X, Upload, Download, UserX, Calendar, Search } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface User {
@@ -31,9 +31,7 @@ export default function AdminUsersPage() {
   const [showImport, setShowImport] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ created: number; updated: number; errors: string[] } | null>(null);
-  const [showNotLoggedIn, setShowNotLoggedIn] = useState(false);
-  const [sendingInvite, setSendingInvite] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'all' | 'login' | 'review'>('all');
+  const [viewMode, setViewMode] = useState<'all' | 'review'>('all');
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -128,19 +126,7 @@ export default function AdminUsersPage() {
     return d.toLocaleString('en', { month: 'long' });
   };
 
-  // Send login invite email
-  const handleSendInvite = async (userId: string) => {
-    setSendingInvite(userId);
-    await fetch('/api/admin/users/invite', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId }),
-    });
-    setSendingInvite(null);
-  };
-
   const managers = users.filter(u => u.role === 'MANAGER' || u.role === 'ADMIN');
-  const notLoggedInUsers = users.filter(u => !u.lastLoginAt && u.isActive);
   const hasActiveFilters = !!(roleFilter || search || !showInactive);
 
   return (
@@ -181,7 +167,7 @@ export default function AdminUsersPage() {
           <StatGrid stats={[
             { label: 'Total Users', value: users.length, icon: Users, color: '--color-accent' },
             { label: 'Logged In', value: users.filter(u => u.lastLoginAt).length, icon: UserCheck, color: '--color-goal-completed' },
-            { label: 'Not Logged In', value: notLoggedInUsers.length, icon: UserX, color: '--color-error' },
+            { label: 'Inactive', value: users.filter(u => !u.isActive).length, icon: UserX, color: '--color-warning' },
             { label: 'Managers', value: users.filter(u => u.role === 'MANAGER').length, icon: Shield, color: '--color-warning' },
           ]} />
         )}
@@ -235,8 +221,7 @@ export default function AdminUsersPage() {
           {!loading && (
             <div className="flex gap-1 ml-auto">
               {([
-                { key: 'all', label: `All (${users.length})` },
-                { key: 'login', label: `Not Logged In (${notLoggedInUsers.length})` },
+                { key: 'all', label: `All Users (${users.length})` },
                 { key: 'review', label: 'Review Schedule' },
               ] as const).map(t => (
                 <button
@@ -278,55 +263,6 @@ export default function AdminUsersPage() {
 
         {loading ? (
           <PageSkeleton type="table" count={6} />
-        ) : viewMode === 'login' ? (
-          /* ── Not Logged In View ── */
-          <div className="space-y-4">
-            {notLoggedInUsers.length > 0 && (
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-secondary">{notLoggedInUsers.length} user(s) haven&apos;t logged in yet</p>
-                <button onClick={async () => { setSendingInvite('all'); await fetch('/api/admin/users/invite', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userIds: notLoggedInUsers.map(u => u.id) }) }); setSendingInvite(null); }}
-                  disabled={sendingInvite === 'all'} className="btn-primary inline-flex items-center gap-2 text-xs">
-                  <Mail className="w-3.5 h-3.5" /> {sendingInvite === 'all' ? 'Sending...' : `Invite All (${notLoggedInUsers.length})`}
-                </button>
-              </div>
-            )}
-            <div className="card-section overflow-y-auto scrollbar-hide max-h-[calc(100vh-22rem)]">
-              <table className="w-full">
-                <thead className="sticky top-0 z-10 bg-surface-secondary">
-                  <tr className="border-b border-theme">
-                    <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Name</th>
-                    <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Email</th>
-                    <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider hidden md:table-cell">Department</th>
-                    <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Created</th>
-                    <th className="text-right px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {notLoggedInUsers.length === 0 ? (
-                    <tr><td colSpan={5} className="px-4 py-12 text-center text-success">All users have logged in!</td></tr>
-                  ) : notLoggedInUsers.map(u => (
-                    <tr key={u.id} className="hover:bg-surface-secondary transition-colors">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="avatar-sm bg-error-muted text-error">{u.name.split(' ').map(n => n[0]).join('').slice(0, 2)}</div>
-                          <span className="text-sm font-medium text-primary">{u.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-secondary">{u.email}</td>
-                      <td className="px-4 py-3 hidden md:table-cell text-sm text-secondary">{u.department || '—'}</td>
-                      <td className="px-4 py-3 text-xs text-tertiary">{formatDistanceToNow(new Date(u.createdAt), { addSuffix: true })}</td>
-                      <td className="px-4 py-3 text-right">
-                        <button onClick={() => handleSendInvite(u.id)} disabled={sendingInvite === u.id}
-                          className="text-xs font-medium text-accent focus-ring rounded px-2 py-1 inline-flex items-center gap-1">
-                          <Mail className="w-3 h-3" /> {sendingInvite === u.id ? 'Sent!' : 'Invite'}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
         ) : viewMode === 'review' ? (
           /* ── Review Schedule View ── */
           <div className="card-section overflow-y-auto scrollbar-hide max-h-[calc(100vh-22rem)]">

@@ -3,13 +3,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import HeartButton from '@/app/components/hearts/HeartButton';
-import { Users, Target, Heart, ClipboardCheck, Plus, Search, X } from 'lucide-react';
+import { Users, Target, Heart, ClipboardCheck, Search, X, Building2 } from 'lucide-react';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
 import PageTitle from '@/app/components/shared/PageTitle';
 import StatGrid from '@/app/components/shared/StatGrid';
 import Modal from '@/app/components/shared/Modal';
 import { FormActions } from '@/app/components/shared/FormField';
-import FilterBar, { FilterSelect } from '@/app/components/shared/FilterBar';
 import TemplatePicker, { GoalTemplate } from '@/app/components/goals/TemplatePicker';
 
 const todayStr = () => new Date().toISOString().split('T')[0];
@@ -54,10 +53,19 @@ export default function TeamPage() {
     }
   }, [showAssign]);
 
-  const filteredMembers = members.filter(m =>
-    (m.name.toLowerCase().includes(search.toLowerCase()) || m.email.toLowerCase().includes(search.toLowerCase())) &&
-    (!deptFilter || m.department === deptFilter)
-  );
+  const filteredMembers = members.filter(m => {
+    const q = search.trim().toLowerCase();
+    const d = deptFilter.trim().toLowerCase();
+    if (q) {
+      const hay = `${m.name} ${m.email} ${m.department ?? ''} ${m.position ?? ''}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    if (d) {
+      const dept = (m.department ?? '').toLowerCase();
+      if (!dept.includes(d)) return false;
+    }
+    return true;
+  });
 
   const departments = Array.from(new Set(members.map(m => m.department).filter(Boolean))) as string[];
 
@@ -111,20 +119,17 @@ export default function TeamPage() {
   return (
     <DashboardLayout type="manager">
       <div className="max-w-7xl mx-auto space-y-6">
+        <datalist id="team-dept-options">
+          {departments.map(d => (
+            <option key={d} value={d} />
+          ))}
+        </datalist>
+
         <PageTitle title="My Team" subtitle="Manage your team's goals and performance" icon={Users} iconColor="--color-accent"
           actions={
-            <div className="flex items-center gap-3">
-              <FilterBar search={search} onSearchChange={setSearch} searchPlaceholder="Search team member..."
-                hasActiveFilters={hasActiveFilters} onClearAll={() => { setSearch(''); setDeptFilter(''); }}>
-                {departments.length > 0 && (
-                  <FilterSelect value={deptFilter} onChange={setDeptFilter} placeholder="All Departments"
-                    options={departments.map(d => ({ value: d, label: d }))} />
-                )}
-              </FilterBar>
-              <button onClick={resetAssign} className="btn-primary inline-flex items-center gap-2">
-                <Target className="w-4 h-4" /> Assign Goals
-              </button>
-            </div>
+            <button onClick={resetAssign} className="btn-primary inline-flex items-center gap-2">
+              <Target className="w-4 h-4" /> Assign Goals
+            </button>
           }
         />
 
@@ -143,8 +148,65 @@ export default function TeamPage() {
               ]} />
             )}
 
-            {/* Team table — same design as admin users */}
-            <div className="card-section overflow-y-auto" style={{ maxHeight: '65vh' }}>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search by name, email, department, position..."
+                  className="input-base pl-9"
+                  aria-label="Search team"
+                />
+              </div>
+              <div className="relative sm:w-56">
+                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
+                <input
+                  type="text"
+                  value={deptFilter}
+                  onChange={(e) => setDeptFilter(e.target.value)}
+                  placeholder="All departments"
+                  className="input-base pl-9 pr-8"
+                  list="team-dept-options"
+                  autoComplete="off"
+                  aria-label="Filter by department (type to search)"
+                />
+                {deptFilter && (
+                  <button
+                    type="button"
+                    onClick={() => setDeptFilter('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-tertiary hover:text-primary focus-ring rounded p-0.5"
+                    aria-label="Clear department filter"
+                    title="Clear"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <p className="text-xs text-tertiary -mt-2">
+              Showing {filteredMembers.length} of {members.length} team member
+              {members.length === 1 ? '' : 's'}
+              {hasActiveFilters && (
+                <>
+                  {' · '}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearch('');
+                      setDeptFilter('');
+                    }}
+                    className="text-accent hover:underline focus-ring rounded"
+                  >
+                    Clear filters
+                  </button>
+                </>
+              )}
+            </p>
+
+            <div className="card-section overflow-y-auto scrollbar-hide max-h-[calc(100vh-22rem)]">
               <table className="w-full">
                 <thead className="sticky top-0 z-10 bg-surface-secondary">
                   <tr className="border-b border-theme">
@@ -155,7 +217,7 @@ export default function TeamPage() {
                     <th className="text-right px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider w-[15%]">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[rgb(var(--color-border-theme))]">
+                <tbody>
                     {filteredMembers.length === 0 ? (
                       <tr><td colSpan={5} className="px-4 py-12 text-center text-secondary">No team members found</td></tr>
                     ) : filteredMembers.map(m => (

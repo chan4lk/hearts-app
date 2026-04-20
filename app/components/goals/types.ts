@@ -2,6 +2,7 @@ export interface Goal {
   id: string;
   title: string;
   description: string | null;
+  category: string | null;
   status: string;
   progress: number;
   targetDate: string | null;

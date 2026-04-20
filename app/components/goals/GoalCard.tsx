@@ -73,6 +73,11 @@ export default function GoalCard({
               {goal.title}
             </span>
             <StatusBadge status={goal.status} />
+            {goal.category && (
+              <span className="badge-base bg-surface-secondary text-secondary">
+                {goal.category}
+              </span>
+            )}
             <ChevronRight className="w-4 h-4 text-tertiary opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
           {goal.description && (

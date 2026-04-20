@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Target, X } from 'lucide-react';
 import Modal from '@/app/components/shared/Modal';
 import TemplatePicker, { GoalTemplate } from '@/app/components/goals/TemplatePicker';
 import type { FlashFn } from './types';
 
 const todayStr = () => new Date().toISOString().split('T')[0];
-const makeEmptyGoal = () => ({ title: '', description: '', targetDate: todayStr() });
+const makeEmptyGoal = () => ({ title: '', description: '', category: '', targetDate: todayStr() });
 
 interface Template {
   id: string;
@@ -25,9 +25,15 @@ interface Props {
 }
 
 export default function GoalCreateModal({ open, isManager, onClose, onCreated, flash }: Props) {
-  const [bulkGoals, setBulkGoals] = useState<{ title: string; description: string; targetDate: string }[]>([makeEmptyGoal()]);
+  const [bulkGoals, setBulkGoals] = useState<{ title: string; description: string; category: string; targetDate: string }[]>([makeEmptyGoal()]);
   const [creating, setCreating] = useState(false);
   const [templates, setTemplates] = useState<Template[]>([]);
+
+  const categoryOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const t of templates) if (t.category) set.add(t.category);
+    return Array.from(set).sort();
+  }, [templates]);
 
   useEffect(() => {
     if (!open) return;
@@ -41,12 +47,21 @@ export default function GoalCreateModal({ open, isManager, onClose, onCreated, f
 
   const addGoalRow = () => setBulkGoals((prev) => [...prev, makeEmptyGoal()]);
   const removeGoalRow = (i: number) => setBulkGoals((prev) => prev.filter((_, idx) => idx !== i));
-  const updateGoalRow = (i: number, field: 'title' | 'description' | 'targetDate', value: string) =>
+  const updateGoalRow = (i: number, field: 'title' | 'description' | 'category' | 'targetDate', value: string) =>
     setBulkGoals((prev) => prev.map((g, idx) => (idx === i ? { ...g, [field]: value } : g)));
 
   const applyTemplate = (i: number, t: GoalTemplate) => {
     setBulkGoals((prev) =>
-      prev.map((g, idx) => (idx === i ? { ...g, title: t.title, description: t.description || '' } : g))
+      prev.map((g, idx) =>
+        idx === i
+          ? {
+              ...g,
+              title: t.title,
+              description: t.description || '',
+              category: t.category || g.category,
+            }
+          : g
+      )
     );
   };
 
@@ -60,6 +75,7 @@ export default function GoalCreateModal({ open, isManager, onClose, onCreated, f
       goals: validGoals.map((g) => ({
         title: g.title,
         description: g.description || undefined,
+        category: g.category || undefined,
         targetDate: g.targetDate || undefined,
       })),
     };
@@ -127,15 +143,34 @@ export default function GoalCreateModal({ open, isManager, onClose, onCreated, f
               className="input-textarea"
               placeholder="Description (optional)"
             />
-            <input
-              type="date"
-              value={goal.targetDate}
-              onChange={(e) => updateGoalRow(i, 'targetDate', e.target.value)}
-              min={todayStr()}
-              className="input-base"
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input
+                value={goal.category}
+                onChange={(e) => updateGoalRow(i, 'category', e.target.value)}
+                className="input-base"
+                maxLength={50}
+                placeholder="Category (optional)"
+                list="goal-category-options"
+                autoComplete="off"
+                aria-label={`Category for goal ${i + 1}`}
+              />
+              <input
+                type="date"
+                value={goal.targetDate}
+                onChange={(e) => updateGoalRow(i, 'targetDate', e.target.value)}
+                min={todayStr()}
+                className="input-base"
+                aria-label={`Target date for goal ${i + 1}`}
+              />
+            </div>
           </div>
         ))}
+
+        <datalist id="goal-category-options">
+          {categoryOptions.map((c) => (
+            <option key={c} value={c} />
+          ))}
+        </datalist>
 
         <button
           type="button"

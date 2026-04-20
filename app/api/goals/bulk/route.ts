@@ -4,11 +4,14 @@ import { getTenantContext } from '@/lib/tenantScope';
 import { hasMinRole } from '@/lib/rbac';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { logAudit, AuditAction } from '@/lib/auditLog';
+import { sanitizeInput, sanitizeInputPreserveNewlines } from '@/lib/securityUtils';
 import { z } from 'zod';
 
 const BulkGoalItem = z.object({
-  title: z.string().min(1).max(200),
-  description: z.string().max(2000).optional(),
+  title: z.string().min(1).max(200).transform(sanitizeInput)
+    .refine((s) => s.length > 0, 'Title cannot be empty'),
+  description: z.string().max(2000).transform(sanitizeInputPreserveNewlines).optional(),
+  category: z.string().max(50).transform(sanitizeInput).optional(),
   targetDate: z.string().optional(),
 });
 
@@ -54,6 +57,7 @@ export async function POST(req: NextRequest) {
           tenantId: ctx.tenantId,
           title: goal.title,
           description: goal.description || null,
+          category: goal.category || null,
           targetDate: goal.targetDate ? new Date(goal.targetDate) : null,
           status: 'PENDING' as const,
           ownerId: userId,
@@ -64,6 +68,7 @@ export async function POST(req: NextRequest) {
         tenantId: ctx.tenantId,
         title: goal.title,
         description: goal.description || null,
+        category: goal.category || null,
         targetDate: goal.targetDate ? new Date(goal.targetDate) : null,
         status: 'DRAFT' as const,
         ownerId: ctx.userId,

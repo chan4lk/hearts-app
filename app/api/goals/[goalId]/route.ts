@@ -32,6 +32,7 @@ const UpdateGoalSchema = z.object({
   title: z.string().min(1).max(200).transform(sanitizeInput)
     .refine((s) => s.length > 0, 'Title cannot be empty').optional(),
   description: z.string().max(2000).transform(sanitizeInputPreserveNewlines).nullable().optional(),
+  category: z.string().max(50).transform(sanitizeInput).nullable().optional(),
   targetDate: z.string().nullable().optional(),
   progress: z.number().min(0).max(100).optional(),
   status: z.nativeEnum(GoalStatus).optional(),
@@ -121,6 +122,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { goalId: st
     data: {
       ...(parsed.data.title !== undefined && { title: parsed.data.title }),
       ...(parsed.data.description !== undefined && { description: parsed.data.description }),
+      ...(parsed.data.category !== undefined && { category: parsed.data.category || null }),
       ...(parsed.data.targetDate !== undefined && { targetDate: parsed.data.targetDate ? new Date(parsed.data.targetDate) : null }),
       ...(parsed.data.progress !== undefined && { progress: parsed.data.progress }),
       ...(parsed.data.status !== undefined && { status: parsed.data.status }),

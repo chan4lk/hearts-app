@@ -69,6 +69,7 @@ const CreateGoalSchema = z.object({
   title: z.string().min(1).max(200).transform(sanitizeInput)
     .refine((s) => s.length > 0, 'Title cannot be empty'),
   description: z.string().max(2000).transform(sanitizeInputPreserveNewlines).optional(),
+  category: z.string().max(50).transform(sanitizeInput).optional(),
   targetDate: z.string().optional(),
   ownerId: z.string().optional(), // For manager-assigned goals
 });
@@ -87,7 +88,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid input', code: 'VALIDATION_ERROR', details: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { title, description, targetDate, ownerId } = parsed.data;
+  const { title, description, category, targetDate, ownerId } = parsed.data;
   const isManagerAssigned = ownerId && ownerId !== ctx.userId;
 
   // If manager-assigned, verify manager relationship
@@ -108,6 +109,7 @@ export async function POST(req: NextRequest) {
       tenantId: ctx.tenantId,
       title,
       description: description || null,
+      category: category || null,
       targetDate: targetDate ? new Date(targetDate) : null,
       status: isManagerAssigned ? 'PENDING' : 'DRAFT',
       ownerId: ownerId || ctx.userId,

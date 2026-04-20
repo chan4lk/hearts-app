@@ -8,8 +8,16 @@ import { logger } from '@/lib/logger';
 /**
  * POST — Import users from CSV data
  *
- * Expected CSV columns (header row required):
- * Name, Email, Department, Position, JobCategory, AppointmentDate, ReviewMonth, ManagerEmail
+ * Expected CSV columns (header row required). Aliases accepted per column:
+ *   Name                                               — Name | name
+ *   Email (required)                                   — Email | email
+ *   Department                                         — Department | department
+ *   Position / Designation                             — Position | Designation | position
+ *   JobCategory                                        — JobCategory | "Job Category" | jobCategory
+ *   AppointmentDate                                    — AppointmentDate | "Date of Appointment" | appointmentDate
+ *   ReviewMonth (Adjusted Review Month wins if both)   — "Adjusted Review Month" | ReviewMonth | "Review Month" | reviewMonth
+ *   Manager (by email first, else by name)             — ManagerEmail | "Reporting Person Email" | managerEmail |
+ *                                                        ManagerName  | "Reporting Person"       | managerName
  *
  * - If user exists (by email) → update fields
  * - If user doesn't exist → create with EMPLOYEE role
@@ -50,7 +58,8 @@ export async function POST(req: NextRequest) {
           department: (row.Department || row.department || null)?.trim() || null,
           position: (row.Position || row.Designation || row.position || null)?.trim() || null,
           jobCategory: (row.JobCategory || row['Job Category'] || row.jobCategory || null)?.trim() || null,
-          reviewMonth: (row.ReviewMonth || row['Review Month'] || row.reviewMonth || null)?.trim() || null,
+          reviewMonth:
+            (row['Adjusted Review Month'] || row.AdjustedReviewMonth || row.ReviewMonth || row['Review Month'] || row.reviewMonth || null)?.toString().trim() || null,
         };
 
         // Parse appointment date

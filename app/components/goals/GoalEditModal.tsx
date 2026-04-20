@@ -16,6 +16,7 @@ interface Props {
 export default function GoalEditModal({ goal, onClose, onSaved, flash }: Props) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
   const [targetDate, setTargetDate] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -24,6 +25,7 @@ export default function GoalEditModal({ goal, onClose, onSaved, flash }: Props) 
     if (!goal) return;
     setTitle(goal.title);
     setDescription(goal.description || '');
+    setCategory(goal.category || '');
     setTargetDate(goal.targetDate ? new Date(goal.targetDate).toISOString().split('T')[0] : '');
     setError('');
     setBusy(false);
@@ -40,6 +42,7 @@ export default function GoalEditModal({ goal, onClose, onSaved, flash }: Props) 
       body: JSON.stringify({
         title: title.trim(),
         description: description.trim() ? description.trim() : null,
+        category: category.trim() ? category.trim() : null,
         targetDate: targetDate || null,
       }),
     });
@@ -84,14 +87,28 @@ export default function GoalEditModal({ goal, onClose, onSaved, flash }: Props) 
             placeholder="Optional"
           />
         </div>
-        <div>
-          <label className="input-label">Target Date</label>
-          <input
-            type="date"
-            value={targetDate}
-            onChange={(e) => setTargetDate(e.target.value)}
-            className="input-base"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="input-label">Category</label>
+            <input
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="input-base"
+              maxLength={50}
+              placeholder="Optional"
+              list="goal-category-options"
+              autoComplete="off"
+            />
+          </div>
+          <div>
+            <label className="input-label">Target Date</label>
+            <input
+              type="date"
+              value={targetDate}
+              onChange={(e) => setTargetDate(e.target.value)}
+              className="input-base"
+            />
+          </div>
         </div>
         {error && <p className="text-xs text-error">{error}</p>}
         <FormActions

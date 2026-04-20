@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { Plus, Target } from 'lucide-react';
+import { Plus, Target, Search, User, X, Building2, Tag } from 'lucide-react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import HeartButton from '@/app/components/hearts/HeartButton';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
+import PageTitle from '@/app/components/shared/PageTitle';
 import EmptyState2 from '@/app/components/shared/EmptyState2';
 import GoalCard from '@/app/components/goals/GoalCard';
 import GoalCreateModal from '@/app/components/goals/GoalCreateModal';
@@ -26,6 +27,10 @@ export default function GoalsPage() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('ALL');
+  const [search, setSearch] = useState('');
+  const [ownerFilter, setOwnerFilter] = useState('');
+  const [deptFilter, setDeptFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
 
   const [showCreate, setShowCreate] = useState(false);
   const [editGoal, setEditGoal] = useState<Goal | null>(null);
@@ -52,6 +57,49 @@ export default function GoalsPage() {
 
   const isManager = session?.user?.role === 'MANAGER' || session?.user?.role === 'ADMIN';
   const isAdmin = session?.user?.role === 'ADMIN';
+
+  const owners = useMemo(() => {
+    const set = new Map<string, string>();
+    for (const g of goals) set.set(g.owner.id, g.owner.name);
+    return Array.from(set.values()).sort();
+  }, [goals]);
+
+  const departments = useMemo(() => {
+    const set = new Set<string>();
+    for (const g of goals) if (g.owner.department) set.add(g.owner.department);
+    return Array.from(set).sort();
+  }, [goals]);
+
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    for (const g of goals) if (g.category) set.add(g.category);
+    return Array.from(set).sort();
+  }, [goals]);
+
+  const visibleGoals = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const o = ownerFilter.trim().toLowerCase();
+    const d = deptFilter.trim().toLowerCase();
+    const c = categoryFilter.trim().toLowerCase();
+    return goals.filter((g) => {
+      if (o && !g.owner.name.toLowerCase().includes(o)) return false;
+      if (d) {
+        const dept = (g.owner.department ?? '').toLowerCase();
+        if (!dept.includes(d)) return false;
+      }
+      if (c) {
+        const cat = (g.category ?? '').toLowerCase();
+        if (!cat.includes(c)) return false;
+      }
+      if (q) {
+        const hay = `${g.title} ${g.description ?? ''} ${g.owner.name} ${g.owner.department ?? ''} ${g.category ?? ''}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [goals, search, ownerFilter, deptFilter, categoryFilter]);
+
+  const hasFilters = !!(search || ownerFilter || deptFilter || categoryFilter || activeTab !== 'ALL');
 
   const handleStatusChange = async (goalId: string, s: string) => {
     const endpoint = s === 'COMPLETED' ? `/api/goals/${goalId}/complete` : `/api/goals/${goalId}`;
@@ -99,17 +147,21 @@ export default function GoalsPage() {
   return (
     <DashboardLayout type="employee">
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
-              <Target className="w-6 h-6" style={{ color: 'rgb(var(--color-goal-active))' }} /> Goals
-            </h1>
-            <p className="text-sm text-secondary mt-0.5">Track and manage your objectives</p>
-          </div>
-          <button onClick={() => setShowCreate(true)} className="btn-primary inline-flex items-center gap-2">
-            <Plus className="w-4 h-4" /> New Goal
-          </button>
-        </div>
+        <PageTitle
+          title="Goals"
+          subtitle="Track and manage your objectives"
+          icon={Target}
+          iconColor="--color-goal-active"
+          actions={
+            <button
+              type="button"
+              onClick={() => setShowCreate(true)}
+              className="btn-primary inline-flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" /> New Goal
+            </button>
+          }
+        />
 
         {flash && (
           <div
@@ -139,6 +191,141 @@ export default function GoalsPage() {
           ))}
         </div>
 
+        {!loading && goals.length > 0 && (
+          <>
+            <datalist id="goal-owner-options">
+              {owners.map((n) => (
+                <option key={n} value={n} />
+              ))}
+            </datalist>
+            <datalist id="goal-dept-options">
+              {departments.map((d) => (
+                <option key={d} value={d} />
+              ))}
+            </datalist>
+            <datalist id="goal-category-filter-options">
+              {categories.map((c) => (
+                <option key={c} value={c} />
+              ))}
+            </datalist>
+
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search by title, description, owner, department..."
+                  className="input-base pl-9"
+                  aria-label="Search goals"
+                />
+              </div>
+              {isManager && owners.length > 1 && (
+                <div className="relative sm:w-48">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
+                  <input
+                    type="text"
+                    value={ownerFilter}
+                    onChange={(e) => setOwnerFilter(e.target.value)}
+                    placeholder="All owners"
+                    className="input-base pl-9 pr-8"
+                    list="goal-owner-options"
+                    autoComplete="off"
+                    aria-label="Filter by owner (type to search)"
+                  />
+                  {ownerFilter && (
+                    <button
+                      type="button"
+                      onClick={() => setOwnerFilter('')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-tertiary hover:text-primary focus-ring rounded p-0.5"
+                      aria-label="Clear owner filter"
+                      title="Clear"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              )}
+              {departments.length > 1 && (
+                <div className="relative sm:w-48">
+                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
+                  <input
+                    type="text"
+                    value={deptFilter}
+                    onChange={(e) => setDeptFilter(e.target.value)}
+                    placeholder="All departments"
+                    className="input-base pl-9 pr-8"
+                    list="goal-dept-options"
+                    autoComplete="off"
+                    aria-label="Filter by department (type to search)"
+                  />
+                  {deptFilter && (
+                    <button
+                      type="button"
+                      onClick={() => setDeptFilter('')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-tertiary hover:text-primary focus-ring rounded p-0.5"
+                      aria-label="Clear department filter"
+                      title="Clear"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              )}
+              {categories.length > 0 && (
+                <div className="relative sm:w-48">
+                  <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
+                  <input
+                    type="text"
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    placeholder="All categories"
+                    className="input-base pl-9 pr-8"
+                    list="goal-category-filter-options"
+                    autoComplete="off"
+                    aria-label="Filter by category (type to search)"
+                  />
+                  {categoryFilter && (
+                    <button
+                      type="button"
+                      onClick={() => setCategoryFilter('')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-tertiary hover:text-primary focus-ring rounded p-0.5"
+                      aria-label="Clear category filter"
+                      title="Clear"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <p className="text-xs text-tertiary -mt-2">
+              Showing {visibleGoals.length} of {goals.length} goal{goals.length === 1 ? '' : 's'}
+              {activeTab !== 'ALL' && ` · status: ${TAB_LABELS[activeTab]}`}
+              {hasFilters && (
+                <>
+                  {' · '}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearch('');
+                      setOwnerFilter('');
+                      setDeptFilter('');
+                      setCategoryFilter('');
+                      setActiveTab('ALL');
+                    }}
+                    className="text-accent hover:underline focus-ring rounded"
+                  >
+                    Clear filters
+                  </button>
+                </>
+              )}
+            </p>
+          </>
+        )}
+
         {loading ? (
           <PageSkeleton type="cards" count={3} />
         ) : goals.length === 0 ? (
@@ -148,9 +335,20 @@ export default function GoalsPage() {
             description="Set your first goal to start tracking progress"
             color="--color-goal-active"
           />
+        ) : visibleGoals.length === 0 ? (
+          <div className="empty-container">
+            <div
+              className="empty-icon-ring"
+              style={{ backgroundColor: 'rgba(var(--color-goal-active),0.1)' }}
+            >
+              <Target className="w-10 h-10" style={{ color: 'rgb(var(--color-goal-active))' }} />
+            </div>
+            <p className="empty-title">No goals match your search</p>
+            <p className="empty-description">Try a different search term or clear the search.</p>
+          </div>
         ) : (
-          <div className="space-y-3">
-            {goals.map((goal, i) => (
+          <div className="space-y-3 max-h-[calc(100vh-20rem)] overflow-y-auto scrollbar-hide pr-1 -mr-1">
+            {visibleGoals.map((goal, i) => (
               <GoalCard
                 key={goal.id}
                 goal={goal}
