@@ -217,7 +217,7 @@ export default function AdminUsersPage() {
                 </button>
               </div>
             )}
-            <div className="card-section overflow-y-auto" style={{ maxHeight: '60vh' }}>
+            <div className="card-section overflow-y-auto scrollbar-hide max-h-[calc(100vh-22rem)]">
               <table className="w-full">
                 <thead className="sticky top-0 z-10 bg-surface-secondary">
                   <tr className="border-b border-theme">
@@ -228,7 +228,7 @@ export default function AdminUsersPage() {
                     <th className="text-right px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[rgb(var(--color-border-theme))]">
+                <tbody>
                   {notLoggedInUsers.length === 0 ? (
                     <tr><td colSpan={5} className="px-4 py-12 text-center text-success">All users have logged in!</td></tr>
                   ) : notLoggedInUsers.map(u => (
@@ -256,7 +256,7 @@ export default function AdminUsersPage() {
           </div>
         ) : viewMode === 'review' ? (
           /* ── Review Schedule View ── */
-          <div className="card-section overflow-y-auto" style={{ maxHeight: '65vh' }}>
+          <div className="card-section overflow-y-auto scrollbar-hide max-h-[calc(100vh-22rem)]">
             <table className="w-full">
               <thead className="sticky top-0 z-10 bg-surface-secondary">
                 <tr className="border-b border-theme">
@@ -269,7 +269,7 @@ export default function AdminUsersPage() {
                   <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider hidden lg:table-cell">Reporting To</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[rgb(var(--color-border-theme))]">
+              <tbody>
                 {filteredUsers.filter(u => u.isActive).map(user => {
                   const sixMonthDate = getReviewDate(user.appointmentDate);
                   const autoMonth = getReviewMonthFromDate(user.appointmentDate);
@@ -301,7 +301,7 @@ export default function AdminUsersPage() {
           </div>
         ) : (
           /* ── All Users (default) ── */
-          <div className="card-section overflow-y-auto" style={{ maxHeight: '65vh' }}>
+          <div className="card-section overflow-y-auto scrollbar-hide max-h-[calc(100vh-22rem)]">
             <table className="w-full">
               <thead className="sticky top-0 z-10 bg-surface-secondary">
                 <tr className="border-b border-theme">
@@ -314,7 +314,7 @@ export default function AdminUsersPage() {
                   <th className="text-right px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[rgb(var(--color-border-theme))]">
+              <tbody>
                 {filteredUsers.length === 0 ? (
                   <tr><td colSpan={7} className="px-4 py-12 text-center text-secondary">No users found</td></tr>
                 ) : filteredUsers.map(user => (
