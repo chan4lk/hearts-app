@@ -154,6 +154,7 @@ model Heart {
   @@index([tenantId, createdAt])
   @@index([tenantId, receiverId])
   @@index([tenantId, senderId])
+  @@index([tenantId, receiverId, createdAt])
 }
 
 // ============================================================

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getTenantContext } from '@/lib/tenantScope';
 import { requireMinRole } from '@/lib/rbac';
+import { checkRateLimit } from '@/lib/rateLimit';
 import { logAudit, AuditAction } from '@/lib/auditLog';
 import { z } from 'zod';
 
@@ -31,6 +32,9 @@ export async function POST(req: NextRequest) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
   requireMinRole(ctx, 'ADMIN');
+
+  const limited = checkRateLimit(`cycles:create:${ctx.userId}`, 5, 60 * 60 * 1000);
+  if (limited) return limited;
 
   const body = await req.json();
   const parsed = CreateCycleSchema.safeParse(body);

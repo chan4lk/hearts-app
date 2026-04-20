@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getTenantContext } from '@/lib/tenantScope';
+import { logAudit, AuditAction } from '@/lib/auditLog';
+import { hasMinRole } from '@/lib/rbac';
 import { z } from 'zod';
 
-// GET — review detail with evidence (goals, hearts)
-export async function GET(req: NextRequest, { params }: { params: { reviewId: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: { reviewId: string } }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
 
@@ -19,13 +20,25 @@ export async function GET(req: NextRequest, { params }: { params: { reviewId: st
 
   if (!review) return NextResponse.json({ error: 'Review not found', code: 'NOT_FOUND' }, { status: 404 });
 
-  // Get employee's goals for this review period
+  const isOwner = review.employeeId === ctx.userId;
+  const isManager = review.managerId === ctx.userId;
+  const isAdmin = hasMinRole(ctx, 'ADMIN');
+  if (!isOwner && !isManager && !isAdmin) {
+    return NextResponse.json({ error: 'Forbidden', code: 'FORBIDDEN' }, { status: 403 });
+  }
+
   const goals = await prisma.goal.findMany({
-    where: { tenantId: ctx.tenantId, ownerId: review.employeeId },
+    where: {
+      tenantId: ctx.tenantId,
+      ownerId: review.employeeId,
+      updatedAt: {
+        gte: review.reviewCycle.startDate,
+        lte: review.reviewCycle.endDate,
+      },
+    },
     orderBy: { updatedAt: 'desc' },
   });
 
-  // Get hearts received during review period
   const hearts = await prisma.heart.findMany({
     where: {
       tenantId: ctx.tenantId,
@@ -49,7 +62,6 @@ const UpdateReviewSchema = z.object({
   managerRating: z.number().min(1).max(5).optional(),
 });
 
-// PATCH — update review (self-review or manager review)
 export async function PATCH(req: NextRequest, { params }: { params: { reviewId: string } }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
@@ -58,20 +70,75 @@ export async function PATCH(req: NextRequest, { params }: { params: { reviewId: 
     where: { id: params.reviewId, tenantId: ctx.tenantId },
   });
   if (!review) return NextResponse.json({ error: 'Review not found', code: 'NOT_FOUND' }, { status: 404 });
-  if (review.isFinalized) return NextResponse.json({ error: 'Review is finalized and cannot be edited', code: 'IMMUTABLE' }, { status: 422 });
+  if (review.isFinalized) {
+    return NextResponse.json({ error: 'Review is finalized and cannot be edited', code: 'IMMUTABLE' }, { status: 422 });
+  }
 
   const body = await req.json();
   const parsed = UpdateReviewSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: 'Invalid input', code: 'VALIDATION_ERROR' }, { status: 400 });
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: 'Invalid input', code: 'VALIDATION_ERROR', details: parsed.error.flatten() },
+      { status: 400 }
+    );
+  }
+
+  const isOwner = review.employeeId === ctx.userId;
+  const isManager = review.managerId === ctx.userId;
+  const isAdmin = hasMinRole(ctx, 'ADMIN');
+
+  const touchingSelf = parsed.data.selfComments !== undefined || parsed.data.selfRating !== undefined;
+  const touchingManager = parsed.data.managerComments !== undefined || parsed.data.managerRating !== undefined;
+
+  if (touchingSelf && !isOwner && !isAdmin) {
+    return NextResponse.json(
+      { error: 'Only the employee can edit the self-review.', code: 'FORBIDDEN' },
+      { status: 403 }
+    );
+  }
+  if (touchingManager && !isManager && !isAdmin) {
+    return NextResponse.json(
+      { error: 'Only the assigned manager can edit the manager review.', code: 'FORBIDDEN' },
+      { status: 403 }
+    );
+  }
+  if (!touchingSelf && !touchingManager) {
+    return NextResponse.json({ error: 'No fields to update', code: 'VALIDATION_ERROR' }, { status: 400 });
+  }
 
   const data: any = {};
-  // Employee submitting self-review
-  if (parsed.data.selfComments !== undefined) { data.selfComments = parsed.data.selfComments; data.selfSubmittedAt = new Date(); }
+  const selfFirstSubmit = touchingSelf && !review.selfSubmittedAt;
+  const managerFirstSubmit = touchingManager && !review.managerSubmittedAt;
+
+  if (parsed.data.selfComments !== undefined) {
+    data.selfComments = parsed.data.selfComments;
+    if (selfFirstSubmit) data.selfSubmittedAt = new Date();
+  }
   if (parsed.data.selfRating !== undefined) data.selfRating = parsed.data.selfRating;
-  // Manager submitting review
-  if (parsed.data.managerComments !== undefined) { data.managerComments = parsed.data.managerComments; data.managerSubmittedAt = new Date(); }
+  if (parsed.data.managerComments !== undefined) {
+    data.managerComments = parsed.data.managerComments;
+    if (managerFirstSubmit) data.managerSubmittedAt = new Date();
+  }
   if (parsed.data.managerRating !== undefined) data.managerRating = parsed.data.managerRating;
 
   const updated = await prisma.review.update({ where: { id: params.reviewId }, data });
+
+  if (selfFirstSubmit) {
+    await logAudit(ctx, {
+      action: AuditAction.SELF_REVIEW_SUBMITTED,
+      entity: 'Review',
+      entityId: review.id,
+      details: { rating: updated.selfRating, cycleId: review.reviewCycleId },
+    });
+  }
+  if (managerFirstSubmit) {
+    await logAudit(ctx, {
+      action: AuditAction.MANAGER_REVIEW_SUBMITTED,
+      entity: 'Review',
+      entityId: review.id,
+      details: { rating: updated.managerRating, cycleId: review.reviewCycleId, employeeId: review.employeeId },
+    });
+  }
+
   return NextResponse.json(updated);
 }

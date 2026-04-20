@@ -63,14 +63,26 @@ export default function FeedPage() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchHearts(); }, [fetchHearts]);
   useEffect(() => {
-    fetch('/api/analytics/dashboard').then(r => r.ok ? r.json() : null).then(setStats);
+    let cancelled = false;
+    Promise.all([
+      fetch('/api/hearts?limit=20').then(r => r.ok ? r.json() : null),
+      fetch('/api/analytics/dashboard').then(r => r.ok ? r.json() : null),
+    ]).then(([heartsData, statsData]) => {
+      if (cancelled) return;
+      if (heartsData) {
+        setHearts(heartsData.items);
+        setNextCursor(heartsData.nextCursor);
+        setHasMore(heartsData.hasMore);
+      }
+      if (statsData) setStats(statsData);
+      setLoading(false);
+    });
+    return () => { cancelled = true; };
   }, []);
 
-  // Poll every 30s
   useEffect(() => {
-    const interval = setInterval(() => fetchHearts(), 30000);
+    const interval = setInterval(() => fetchHearts(), 120000);
     return () => clearInterval(interval);
   }, [fetchHearts]);
 

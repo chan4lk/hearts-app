@@ -51,6 +51,11 @@ export default function CycleDetailPage() {
   const [saving, setSaving] = useState(false);
   const [evidence, setEvidence] = useState<{ goals: any[]; hearts: any[] } | null>(null);
   const [confirmFinalizeId, setConfirmFinalizeId] = useState<string | null>(null);
+  const [flash, setFlash] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+  const flashMsg = (type: 'success' | 'error', msg: string) => {
+    setFlash({ type, msg });
+    setTimeout(() => setFlash(null), 3500);
+  };
 
   useEffect(() => {
     fetch(`/api/reviews/cycles/${cycleId}`).then(r => r.ok ? r.json() : null).then(data => {
@@ -85,38 +90,55 @@ export default function CycleDetailPage() {
   const saveSelfReview = async () => {
     if (!activeReview) return;
     setSaving(true);
-    await fetch(`/api/reviews/${activeReview.id}`, {
+    const res = await fetch(`/api/reviews/${activeReview.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ selfComments, selfRating }),
     });
     setSaving(false);
-    setActiveReview(null);
-    // Refresh
-    const res = await fetch(`/api/reviews/cycles/${cycleId}`);
-    if (res.ok) setCycle(await res.json());
+    if (res.ok) {
+      setActiveReview(null);
+      flashMsg('success', 'Self-review submitted');
+      const c = await fetch(`/api/reviews/cycles/${cycleId}`);
+      if (c.ok) setCycle(await c.json());
+    } else {
+      const d = await res.json().catch(() => ({}));
+      flashMsg('error', d.error || 'Failed to save self-review');
+    }
   };
 
   const saveManagerReview = async () => {
     if (!activeReview) return;
     setSaving(true);
-    await fetch(`/api/reviews/${activeReview.id}`, {
+    const res = await fetch(`/api/reviews/${activeReview.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ managerComments, managerRating }),
     });
     setSaving(false);
-    setActiveReview(null);
-    const res = await fetch(`/api/reviews/cycles/${cycleId}`);
-    if (res.ok) setCycle(await res.json());
+    if (res.ok) {
+      setActiveReview(null);
+      flashMsg('success', 'Manager review submitted');
+      const c = await fetch(`/api/reviews/cycles/${cycleId}`);
+      if (c.ok) setCycle(await c.json());
+    } else {
+      const d = await res.json().catch(() => ({}));
+      flashMsg('error', d.error || 'Failed to save manager review');
+    }
   };
 
   const finalizeReview = async () => {
     if (!confirmFinalizeId) return;
-    await fetch(`/api/reviews/${confirmFinalizeId}/finalize`, { method: 'POST' });
-    setConfirmFinalizeId(null);
-    const res = await fetch(`/api/reviews/cycles/${cycleId}`);
-    if (res.ok) setCycle(await res.json());
+    const res = await fetch(`/api/reviews/${confirmFinalizeId}/finalize`, { method: 'POST' });
+    if (res.ok) {
+      setConfirmFinalizeId(null);
+      flashMsg('success', 'Review finalized and delivered to employee');
+      const c = await fetch(`/api/reviews/cycles/${cycleId}`);
+      if (c.ok) setCycle(await c.json());
+    } else {
+      const d = await res.json().catch(() => ({}));
+      flashMsg('error', d.error || 'Failed to finalize review');
+    }
   };
 
   if (loading) return <DashboardLayout type="employee"><div className="max-w-4xl mx-auto pt-4"><PageSkeleton type="detail" /></div></DashboardLayout>;
@@ -136,6 +158,14 @@ export default function CycleDetailPage() {
             <p className="text-xs text-tertiary">{new Date(cycle.startDate).toLocaleDateString()} – {new Date(cycle.endDate).toLocaleDateString()} · {cycle.type.replace('_', ' ')}</p>
           </div>
         </div>
+
+        {flash && (
+          <div className={`px-4 py-2 rounded-xl text-sm border ${
+            flash.type === 'success' ? 'bg-success-muted text-success border-theme' : 'bg-error-muted text-error border-theme'
+          }`}>
+            {flash.msg}
+          </div>
+        )}
 
         {/* Progress stats */}
         <div className="card-stat">

@@ -17,8 +17,13 @@ const adminLinks = [
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashStats | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => { fetch('/api/analytics/dashboard').then(r => r.ok ? r.json() : null).then(setStats); }, []);
+  useEffect(() => {
+    fetch('/api/analytics/dashboard')
+      .then(r => r.ok ? r.json() : null)
+      .then((data) => { setStats(data); setLoading(false); });
+  }, []);
 
   return (
     <DashboardLayout type="admin">
@@ -31,7 +36,21 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats Grid */}
-        {stats && (
+        {loading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="card-stat">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-surface-secondary animate-pulse" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-5 w-12 bg-surface-secondary rounded animate-pulse" />
+                    <div className="h-3 w-16 bg-surface-secondary rounded animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : stats && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
               { label: 'Total Users', value: stats.totalUsers || 0, icon: Users, color: '--color-accent' },

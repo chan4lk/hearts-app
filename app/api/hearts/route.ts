@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getTenantContext } from '@/lib/tenantScope';
+import { checkRateLimit } from '@/lib/rateLimit';
 import { z } from 'zod';
 import { notifyHeartReceived } from '@/lib/email';
 
@@ -42,6 +43,9 @@ const GiveHeartSchema = z.object({
 export async function POST(req: NextRequest) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
+
+  const limited = checkRateLimit(`hearts:${ctx.userId}`, 30, 60 * 60 * 1000);
+  if (limited) return limited;
 
   const body = await req.json();
   const parsed = GiveHeartSchema.safeParse(body);

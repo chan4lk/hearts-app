@@ -1,72 +1,81 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getTenantContext } from '@/lib/tenantScope';
 import { requireMinRole } from '@/lib/rbac';
 
-// GET — Hearts analytics (admin only)
 export async function GET() {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
   requireMinRole(ctx, 'ADMIN');
 
   const tenantId = ctx.tenantId;
-
-  // Top recognized employees
-  const topReceived = await prisma.heart.groupBy({
-    by: ['receiverId'],
-    where: { tenantId },
-    _count: { id: true },
-    orderBy: { _count: { id: 'desc' } },
-    take: 10,
-  });
-
-  const topReceivedWithNames = await Promise.all(
-    topReceived.map(async (item) => {
-      const user = await prisma.user.findUnique({ where: { id: item.receiverId }, select: { name: true, department: true } });
-      return { name: user?.name || 'Unknown', department: user?.department, count: item._count.id };
-    })
-  );
-
-  // Most active values
-  const valueStats = await prisma.heart.groupBy({
-    by: ['valueTagId'],
-    where: { tenantId },
-    _count: { id: true },
-    orderBy: { _count: { id: 'desc' } },
-  });
-
-  const valuesWithNames = await Promise.all(
-    valueStats.map(async (item) => {
-      const value = await prisma.companyValue.findUnique({ where: { id: item.valueTagId }, select: { name: true } });
-      return { name: value?.name || 'Unknown', count: item._count.id };
-    })
-  );
-
-  // Hearts trend (last 30 days, grouped by day)
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  const recentHearts = await prisma.heart.findMany({
-    where: { tenantId, createdAt: { gte: thirtyDaysAgo } },
-    select: { createdAt: true },
-    orderBy: { createdAt: 'asc' },
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+  const [topReceived, valueStats, recentHearts, totalHearts, totalThisMonth] = await Promise.all([
+    prisma.heart.groupBy({
+      by: ['receiverId'],
+      where: { tenantId },
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
+      take: 10,
+    }),
+    prisma.heart.groupBy({
+      by: ['valueTagId'],
+      where: { tenantId },
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
+    }),
+    prisma.heart.findMany({
+      where: { tenantId, createdAt: { gte: thirtyDaysAgo } },
+      select: { createdAt: true },
+      orderBy: { createdAt: 'asc' },
+    }),
+    prisma.heart.count({ where: { tenantId } }),
+    prisma.heart.count({ where: { tenantId, createdAt: { gte: monthStart } } }),
+  ]);
+
+  const receiverIds = topReceived.map((t) => t.receiverId);
+  const valueIds = valueStats.map((v) => v.valueTagId);
+
+  const [receivers, values] = await Promise.all([
+    receiverIds.length
+      ? prisma.user.findMany({
+          where: { id: { in: receiverIds } },
+          select: { id: true, name: true, department: true },
+        })
+      : Promise.resolve([]),
+    valueIds.length
+      ? prisma.companyValue.findMany({
+          where: { id: { in: valueIds } },
+          select: { id: true, name: true },
+        })
+      : Promise.resolve([]),
+  ]);
+
+  const receiverById = new Map(receivers.map((u) => [u.id, u]));
+  const valueById = new Map(values.map((v) => [v.id, v]));
+
+  const topRecognized = topReceived.map((item) => {
+    const u = receiverById.get(item.receiverId);
+    return { name: u?.name || 'Unknown', department: u?.department ?? null, count: item._count.id };
+  });
+
+  const valueBreakdown = valueStats.map((item) => {
+    const v = valueById.get(item.valueTagId);
+    return { name: v?.name || 'Unknown', count: item._count.id };
   });
 
   const dailyCounts: Record<string, number> = {};
-  recentHearts.forEach(h => {
+  for (const h of recentHearts) {
     const day = h.createdAt.toISOString().split('T')[0];
     dailyCounts[day] = (dailyCounts[day] || 0) + 1;
-  });
-
+  }
   const trend = Object.entries(dailyCounts).map(([date, count]) => ({ date, count }));
 
-  // Total stats
-  const totalHearts = await prisma.heart.count({ where: { tenantId } });
-  const totalThisMonth = await prisma.heart.count({
-    where: { tenantId, createdAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) } },
-  });
-
   return NextResponse.json({
-    topRecognized: topReceivedWithNames,
-    valueBreakdown: valuesWithNames,
+    topRecognized,
+    valueBreakdown,
     trend,
     totalHearts,
     totalThisMonth,

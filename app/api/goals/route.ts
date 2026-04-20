@@ -2,8 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getTenantContext } from '@/lib/tenantScope';
 import { hasMinRole } from '@/lib/rbac';
+import { checkRateLimit } from '@/lib/rateLimit';
 import { logAudit, AuditAction } from '@/lib/auditLog';
+import { GoalStatus } from '@prisma/client';
 import { z } from 'zod';
+
+const ListGoalsQuerySchema = z.object({
+  status: z.nativeEnum(GoalStatus).optional(),
+  ownerId: z.string().optional(),
+});
 
 // GET — list goals (scoped by role)
 export async function GET(req: NextRequest) {
@@ -11,8 +18,17 @@ export async function GET(req: NextRequest) {
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
-  const status = searchParams.get('status');
-  const ownerId = searchParams.get('ownerId');
+  const parsed = ListGoalsQuerySchema.safeParse({
+    status: searchParams.get('status') || undefined,
+    ownerId: searchParams.get('ownerId') || undefined,
+  });
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: 'Invalid query parameters', code: 'VALIDATION_ERROR', details: parsed.error.flatten() },
+      { status: 400 }
+    );
+  }
+  const { status, ownerId } = parsed.data;
 
   const where: any = { tenantId: ctx.tenantId };
 
@@ -59,6 +75,9 @@ const CreateGoalSchema = z.object({
 export async function POST(req: NextRequest) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
+
+  const limited = checkRateLimit(`goals:create:${ctx.userId}`, 30, 60 * 60 * 1000);
+  if (limited) return limited;
 
   const body = await req.json();
   const parsed = CreateGoalSchema.safeParse(body);

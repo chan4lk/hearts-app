@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getTenantContext } from '@/lib/tenantScope';
 import { hasMinRole } from '@/lib/rbac';
+import { checkRateLimit } from '@/lib/rateLimit';
 import { logAudit, AuditAction } from '@/lib/auditLog';
 import { z } from 'zod';
 
@@ -21,6 +22,9 @@ const BulkCreateSchema = z.object({
 export async function POST(req: NextRequest) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
+
+  const limited = checkRateLimit(`goals:bulk:${ctx.userId}`, 10, 60 * 60 * 1000);
+  if (limited) return limited;
 
   const body = await req.json();
   const parsed = BulkCreateSchema.safeParse(body);
@@ -44,54 +48,37 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const created: any[] = [];
-
-  if (isManagerAssign) {
-    // Manager assigns each goal to each selected employee
-    for (const goal of goals) {
-      for (const userId of assignToUserIds!) {
-        const g = await prisma.goal.create({
-          data: {
-            tenantId: ctx.tenantId,
-            title: goal.title,
-            description: goal.description || null,
-            targetDate: goal.targetDate ? new Date(goal.targetDate) : null,
-            status: 'PENDING',
-            ownerId: userId,
-            assignerId: ctx.userId,
-          },
-        });
-        created.push(g);
-      }
-    }
-    await logAudit(ctx, {
-      action: AuditAction.GOAL_ASSIGNED,
-      entity: 'Goal',
-      entityId: 'bulk',
-      details: { goalCount: goals.length, employeeCount: assignToUserIds!.length, totalCreated: created.length },
-    });
-  } else {
-    // Employee creates multiple goals for themselves
-    for (const goal of goals) {
-      const g = await prisma.goal.create({
-        data: {
+  const rows = isManagerAssign
+    ? goals.flatMap((goal) =>
+        assignToUserIds!.map((userId) => ({
           tenantId: ctx.tenantId,
           title: goal.title,
           description: goal.description || null,
           targetDate: goal.targetDate ? new Date(goal.targetDate) : null,
-          status: 'DRAFT',
-          ownerId: ctx.userId,
-        },
-      });
-      created.push(g);
-    }
-    await logAudit(ctx, {
-      action: AuditAction.GOAL_CREATED,
-      entity: 'Goal',
-      entityId: 'bulk',
-      details: { goalCount: created.length },
-    });
-  }
+          status: 'PENDING' as const,
+          ownerId: userId,
+          assignerId: ctx.userId,
+        }))
+      )
+    : goals.map((goal) => ({
+        tenantId: ctx.tenantId,
+        title: goal.title,
+        description: goal.description || null,
+        targetDate: goal.targetDate ? new Date(goal.targetDate) : null,
+        status: 'DRAFT' as const,
+        ownerId: ctx.userId,
+      }));
 
-  return NextResponse.json({ created: created.length, goals: created }, { status: 201 });
+  const { count } = await prisma.goal.createMany({ data: rows });
+
+  await logAudit(ctx, {
+    action: isManagerAssign ? AuditAction.GOAL_ASSIGNED : AuditAction.GOAL_CREATED,
+    entity: 'Goal',
+    entityId: 'bulk',
+    details: isManagerAssign
+      ? { goalCount: goals.length, employeeCount: assignToUserIds!.length, totalCreated: count }
+      : { goalCount: count },
+  });
+
+  return NextResponse.json({ created: count }, { status: 201 });
 }

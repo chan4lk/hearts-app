@@ -92,6 +92,10 @@ export default function TeamPage() {
       setBulkGoals([makeEmptyGoal()]);
       setSelectedMembers([]);
       setTimeout(() => setAssignResult(''), 5000);
+    } else {
+      const d = await res.json().catch(() => ({}));
+      setAssignResult(`Failed to assign: ${d.error || 'unknown error'}`);
+      setTimeout(() => setAssignResult(''), 6000);
     }
     setAssigning(false);
   };

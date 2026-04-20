@@ -12,12 +12,20 @@ export async function GET(req: NextRequest) {
   const department = searchParams.get('department');
   const role = searchParams.get('role');
   const status = searchParams.get('status');
+  const search = searchParams.get('search')?.trim();
+  const limit = Math.min(parseInt(searchParams.get('limit') || '200', 10), 500);
 
   const where: any = { tenantId: ctx.tenantId };
   if (department) where.department = department;
   if (role) where.role = role;
   if (status === 'active') where.isActive = true;
   if (status === 'inactive') where.isActive = false;
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: 'insensitive' } },
+      { email: { contains: search, mode: 'insensitive' } },
+    ];
+  }
 
   const users = await prisma.user.findMany({
     where,
@@ -38,6 +46,7 @@ export async function GET(req: NextRequest) {
       lastLoginAt: true,
     },
     orderBy: { name: 'asc' },
+    take: limit,
   });
 
   return NextResponse.json(users);

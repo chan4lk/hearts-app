@@ -104,11 +104,16 @@ export default function GoalsPage() {
 
     const res = await fetch('/api/goals/bulk', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     if (res.ok) {
+      const data = await res.json().catch(() => ({ created: validGoals.length }));
       setShowCreate(false);
       setBulkGoals([makeEmptyGoal()]);
       setSelectedMembers([]);
       setBulkMode('self');
       await fetchGoals();
+      flashMsg('success', `Created ${data.created} goal${data.created === 1 ? '' : 's'}`);
+    } else {
+      const d = await res.json().catch(() => ({}));
+      flashMsg('error', d.error || 'Failed to create goals');
     }
     setCreating(false);
   };
@@ -120,14 +125,31 @@ export default function GoalsPage() {
     setShowCreate(true);
   };
 
-  const handleStatusChange = async (goalId: string, s: string) => { await fetch(`/api/goals/${goalId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: s }) }); await fetchGoals(); };
-  const handleProgressChange = async (goalId: string, p: number) => { await fetch(`/api/goals/${goalId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ progress: p }) }); };
-  const handleApprove = async (goalId: string) => { await fetch(`/api/goals/${goalId}/approve`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }); await fetchGoals(); };
+  const handleStatusChange = async (goalId: string, s: string) => {
+    const res = await fetch(`/api/goals/${goalId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: s }) });
+    if (res.ok) { flashMsg('success', `Goal moved to ${s.toLowerCase().replace('_', ' ')}`); await fetchGoals(); }
+    else { const d = await res.json().catch(() => ({})); flashMsg('error', d.error || 'Failed to update goal'); }
+  };
+  const handleProgressChange = async (goalId: string, p: number) => {
+    const res = await fetch(`/api/goals/${goalId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ progress: p }) });
+    if (!res.ok) { const d = await res.json().catch(() => ({})); flashMsg('error', d.error || 'Failed to save progress'); }
+  };
+  const handleApprove = async (goalId: string) => {
+    const res = await fetch(`/api/goals/${goalId}/approve`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    if (res.ok) { flashMsg('success', 'Goal approved'); await fetchGoals(); }
+    else { const d = await res.json().catch(() => ({})); flashMsg('error', d.error || 'Failed to approve'); }
+  };
   const handleRevise = async () => {
     if (!reviseGoalId || !reviseComment.trim()) return;
-    await fetch(`/api/goals/${reviseGoalId}/revise`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment: reviseComment }) });
-    setReviseGoalId(null); setReviseComment('');
-    await fetchGoals();
+    const res = await fetch(`/api/goals/${reviseGoalId}/revise`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment: reviseComment }) });
+    if (res.ok) {
+      setReviseGoalId(null); setReviseComment('');
+      flashMsg('success', 'Revision requested');
+      await fetchGoals();
+    } else {
+      const d = await res.json().catch(() => ({}));
+      flashMsg('error', d.error || 'Failed to request revision');
+    }
   };
 
   const openEdit = (goal: Goal) => {
