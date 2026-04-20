@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import StatusBadge from '@/app/components/goals/StatusBadge';
 import HeartButton from '@/app/components/hearts/HeartButton';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Target, X, ChevronRight } from 'lucide-react';
+import { Plus, Target, X, ChevronRight, Pencil, Trash2, AlertTriangle } from 'lucide-react';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
 import EmptyState2 from '@/app/components/shared/EmptyState2';
 import Modal from '@/app/components/shared/Modal';
@@ -30,6 +30,7 @@ const TAB_LABELS: Record<string, string> = { ALL: 'All', DRAFT: 'Draft', PENDING
 
 export default function GoalsPage() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('ALL');
@@ -42,6 +43,23 @@ export default function GoalsPage() {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [reviseGoalId, setReviseGoalId] = useState<string | null>(null);
   const [reviseComment, setReviseComment] = useState('');
+
+  const [editGoal, setEditGoal] = useState<Goal | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editTargetDate, setEditTargetDate] = useState('');
+  const [editBusy, setEditBusy] = useState(false);
+  const [editError, setEditError] = useState('');
+
+  const [deleteGoal, setDeleteGoal] = useState<Goal | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  const [flash, setFlash] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
+  const flashMsg = (type: 'success' | 'error', msg: string) => {
+    setFlash({ type, msg });
+    setTimeout(() => setFlash(null), 3500);
+  };
 
   const fetchGoals = useCallback(async () => {
     const params = new URLSearchParams();
@@ -112,7 +130,63 @@ export default function GoalsPage() {
     await fetchGoals();
   };
 
+  const openEdit = (goal: Goal) => {
+    setEditGoal(goal);
+    setEditTitle(goal.title);
+    setEditDescription(goal.description || '');
+    setEditTargetDate(goal.targetDate ? new Date(goal.targetDate).toISOString().split('T')[0] : '');
+    setEditError('');
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editGoal || !editTitle.trim()) return;
+    setEditBusy(true); setEditError('');
+    const res = await fetch(`/api/goals/${editGoal.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: editTitle.trim(),
+        description: editDescription.trim() ? editDescription.trim() : null,
+        targetDate: editTargetDate || null,
+      }),
+    });
+    if (res.ok) {
+      setEditGoal(null);
+      flashMsg('success', 'Goal updated');
+      await fetchGoals();
+    } else {
+      const d = await res.json().catch(() => ({}));
+      setEditError(d.error || 'Failed to save changes');
+    }
+    setEditBusy(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteGoal) return;
+    setDeleteBusy(true); setDeleteError('');
+    const res = await fetch(`/api/goals/${deleteGoal.id}`, { method: 'DELETE' });
+    if (res.ok) {
+      setDeleteGoal(null);
+      flashMsg('success', 'Goal deleted');
+      await fetchGoals();
+    } else {
+      const d = await res.json().catch(() => ({}));
+      setDeleteError(d.error || 'Failed to delete goal');
+    }
+    setDeleteBusy(false);
+  };
+
   const isManager = session?.user?.role === 'MANAGER' || session?.user?.role === 'ADMIN';
+  const isAdmin = session?.user?.role === 'ADMIN';
+
+  const stop = (fn: () => void) => (e: React.MouseEvent | React.TouchEvent) => {
+    e.stopPropagation();
+    fn();
+  };
+
+  const canEditGoal = (g: Goal) => isAdmin || (g.ownerId === session?.user?.id && (g.status === 'DRAFT' || g.status === 'NEEDS_REVISION'));
+  const canDeleteGoal = (g: Goal) => isAdmin || (g.ownerId === session?.user?.id && g.status === 'DRAFT');
 
   return (
     <DashboardLayout type="employee">
@@ -128,6 +202,14 @@ export default function GoalsPage() {
             <Plus className="w-4 h-4" /> New Goal
           </button>
         </div>
+
+        {flash && (
+          <div className={`px-4 py-2 rounded-xl text-sm border ${
+            flash.type === 'success' ? 'bg-success-muted text-success border-theme' : 'bg-error-muted text-error border-theme'
+          }`}>
+            {flash.msg}
+          </div>
+        )}
 
         <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
           {STATUS_TABS.map((tab) => (
@@ -147,14 +229,29 @@ export default function GoalsPage() {
         ) : (
           <div className="space-y-3">
             {goals.map((goal, i) => (
-              <motion.div key={goal.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-                className="card-interactive p-5 group">
+              <motion.div
+                key={goal.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.04 }}
+                role="button"
+                tabIndex={0}
+                onClick={() => router.push(`/dashboard/goals/${goal.id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    router.push(`/dashboard/goals/${goal.id}`);
+                  }
+                }}
+                className="card-interactive p-5 group cursor-pointer focus-ring"
+                aria-label={`Open goal ${goal.title}`}
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <Link href={`/dashboard/goals/${goal.id}`} className="text-sm font-semibold text-primary truncate hover:text-accent transition-colors">{goal.title}</Link>
+                      <span className="text-sm font-semibold text-primary truncate group-hover:text-accent transition-colors">{goal.title}</span>
                       <StatusBadge status={goal.status} />
-                      <Link href={`/dashboard/goals/${goal.id}`} className="opacity-0 group-hover:opacity-100 transition-opacity"><ChevronRight className="w-4 h-4 text-tertiary" /></Link>
+                      <ChevronRight className="w-4 h-4 text-tertiary opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                     {goal.description && <p className="text-xs text-secondary line-clamp-2 mb-2">{goal.description}</p>}
                     <div className="flex items-center gap-3 text-2xs text-tertiary">
@@ -164,20 +261,43 @@ export default function GoalsPage() {
                       {goal._count.comments > 0 && <span>💬 {goal._count.comments}</span>}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                     {goal.status === 'DRAFT' && goal.ownerId === session?.user?.id && (
-                      <button onClick={() => handleStatusChange(goal.id, 'PENDING')} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[rgba(var(--color-goal-pending),0.1)] text-[rgb(var(--color-goal-pending))] hover:bg-[rgba(var(--color-goal-pending),0.2)] focus-ring">Submit</button>)}
+                      <button onClick={stop(() => handleStatusChange(goal.id, 'PENDING'))} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[rgba(var(--color-goal-pending),0.1)] text-[rgb(var(--color-goal-pending))] hover:bg-[rgba(var(--color-goal-pending),0.2)] focus-ring">Submit</button>)}
                     {goal.status === 'NEEDS_REVISION' && goal.ownerId === session?.user?.id && (
-                      <button onClick={() => handleStatusChange(goal.id, 'PENDING')} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[rgba(var(--color-goal-revision),0.1)] text-[rgb(var(--color-goal-revision))] hover:bg-[rgba(var(--color-goal-revision),0.2)] focus-ring">Resubmit</button>)}
+                      <button onClick={stop(() => handleStatusChange(goal.id, 'PENDING'))} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[rgba(var(--color-goal-revision),0.1)] text-[rgb(var(--color-goal-revision))] hover:bg-[rgba(var(--color-goal-revision),0.2)] focus-ring">Resubmit</button>)}
                     {goal.status === 'PENDING' && isManager && (<>
-                      <button onClick={() => handleApprove(goal.id)} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[rgba(var(--color-goal-completed),0.1)] text-[rgb(var(--color-goal-completed))] hover:bg-[rgba(var(--color-goal-completed),0.2)] focus-ring">Approve</button>
-                      <button onClick={() => { setReviseGoalId(goal.id); setReviseComment(''); }} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[rgba(var(--color-goal-revision),0.1)] text-[rgb(var(--color-goal-revision))] hover:bg-[rgba(var(--color-goal-revision),0.2)] focus-ring">Revise</button></>)}
+                      <button onClick={stop(() => handleApprove(goal.id))} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[rgba(var(--color-goal-completed),0.1)] text-[rgb(var(--color-goal-completed))] hover:bg-[rgba(var(--color-goal-completed),0.2)] focus-ring">Approve</button>
+                      <button onClick={stop(() => { setReviseGoalId(goal.id); setReviseComment(''); })} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[rgba(var(--color-goal-revision),0.1)] text-[rgb(var(--color-goal-revision))] hover:bg-[rgba(var(--color-goal-revision),0.2)] focus-ring">Revise</button></>)}
                     {goal.status === 'ACTIVE' && goal.ownerId === session?.user?.id && (
-                      <button onClick={() => handleStatusChange(goal.id, 'COMPLETED')} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[rgba(var(--color-goal-completed),0.1)] text-[rgb(var(--color-goal-completed))] hover:bg-[rgba(var(--color-goal-completed),0.2)] focus-ring">Complete</button>)}
+                      <button onClick={stop(() => handleStatusChange(goal.id, 'COMPLETED'))} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[rgba(var(--color-goal-completed),0.1)] text-[rgb(var(--color-goal-completed))] hover:bg-[rgba(var(--color-goal-completed),0.2)] focus-ring">Complete</button>)}
+                    {canEditGoal(goal) && (
+                      <button
+                        onClick={stop(() => openEdit(goal))}
+                        className="focus-ring rounded-lg p-2 text-tertiary hover:text-accent hover:bg-accent-muted transition-colors"
+                        aria-label={`Edit ${goal.title}`}
+                        title="Edit"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                    )}
+                    {canDeleteGoal(goal) && (
+                      <button
+                        onClick={stop(() => { setDeleteGoal(goal); setDeleteError(''); })}
+                        className="focus-ring rounded-lg p-2 text-tertiary hover:text-error hover:bg-error-muted transition-colors"
+                        aria-label={`Delete ${goal.title}`}
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
                 {goal.status === 'ACTIVE' && (
-                  <div className="mt-3 flex items-center gap-3">
+                  <div
+                    className="mt-3 flex items-center gap-3"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <div className="flex-1 h-2 bg-surface-secondary rounded-full overflow-hidden">
                       <div className="h-full rounded-full transition-all duration-300" style={{ width: `${goal.progress}%`, backgroundColor: 'rgb(var(--color-goal-active))' }} />
                     </div>
@@ -281,6 +401,86 @@ export default function GoalsPage() {
             disabled={!reviseComment.trim()}
           />
         </form>
+      </Modal>
+
+      <Modal
+        open={!!editGoal}
+        onClose={() => !editBusy && setEditGoal(null)}
+        title="Edit Goal"
+        icon={<Pencil className="w-5 h-5 text-accent" />}
+      >
+        <form onSubmit={handleSaveEdit} className="space-y-4">
+          <div>
+            <label className="input-label">Title</label>
+            <input
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              className="input-base"
+              maxLength={200}
+              required
+              autoFocus
+            />
+          </div>
+          <div>
+            <label className="input-label">Description</label>
+            <textarea
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              rows={4}
+              maxLength={2000}
+              className="input-textarea"
+              placeholder="Optional"
+            />
+          </div>
+          <div>
+            <label className="input-label">Target Date</label>
+            <input
+              type="date"
+              value={editTargetDate}
+              onChange={(e) => setEditTargetDate(e.target.value)}
+              className="input-base"
+            />
+          </div>
+          {editError && <p className="text-xs text-error">{editError}</p>}
+          <FormActions
+            onCancel={() => setEditGoal(null)}
+            submitLabel="Save Changes"
+            loading={editBusy}
+            disabled={!editTitle.trim()}
+          />
+        </form>
+      </Modal>
+
+      <Modal
+        open={!!deleteGoal}
+        onClose={() => !deleteBusy && setDeleteGoal(null)}
+        title="Delete Goal"
+        icon={<AlertTriangle className="w-5 h-5 text-error" />}
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-secondary">
+            Are you sure you want to delete <strong className="text-primary">{deleteGoal?.title}</strong>?
+            This permanently removes the goal and all its comments. This cannot be undone.
+          </p>
+          {deleteGoal && !isAdmin && deleteGoal.status !== 'DRAFT' && (
+            <p className="text-xs text-warning bg-warning-muted p-3 rounded-lg">
+              You can only delete DRAFT goals. Close the goal instead to keep its history.
+            </p>
+          )}
+          {deleteError && <p className="text-xs text-error">{deleteError}</p>}
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={() => setDeleteGoal(null)} disabled={deleteBusy} className="btn-secondary flex-1">Cancel</button>
+            <button
+              type="button"
+              onClick={handleConfirmDelete}
+              disabled={deleteBusy}
+              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[rgb(var(--color-error))] text-[rgb(var(--color-text-inverse))] rounded-xl text-sm font-medium hover:opacity-90 focus-ring shadow-sm transition-all disabled:opacity-60"
+            >
+              <Trash2 className="w-4 h-4" />
+              {deleteBusy ? 'Deleting...' : 'Delete'}
+            </button>
+          </div>
+        </div>
       </Modal>
     </DashboardLayout>
   );
