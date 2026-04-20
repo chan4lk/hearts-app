@@ -25,8 +25,8 @@ interface Goal {
   _count: { comments: number }; updatedAt: string;
 }
 
-const STATUS_TABS = ['ALL', 'DRAFT', 'PENDING', 'ACTIVE', 'NEEDS_REVISION', 'COMPLETED', 'CLOSED'];
-const TAB_LABELS: Record<string, string> = { ALL: 'All', DRAFT: 'Draft', PENDING: 'Pending', ACTIVE: 'Active', NEEDS_REVISION: 'Revision', COMPLETED: 'Done', CLOSED: 'Closed' };
+const STATUS_TABS = ['ALL', 'DRAFT', 'PENDING', 'ACTIVE', 'NEEDS_REVISION', 'ON_HOLD', 'BLOCKED', 'COMPLETED', 'CLOSED'];
+const TAB_LABELS: Record<string, string> = { ALL: 'All', DRAFT: 'Draft', PENDING: 'Pending', ACTIVE: 'Active', NEEDS_REVISION: 'Revision', ON_HOLD: 'On Hold', BLOCKED: 'Blocked', COMPLETED: 'Done', CLOSED: 'Closed' };
 
 export default function GoalsPage() {
   const { data: session } = useSession();

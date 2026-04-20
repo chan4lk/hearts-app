@@ -5,6 +5,8 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; i
   PENDING: { label: 'Pending', bg: 'rgba(var(--color-goal-pending),0.12)', text: 'rgb(var(--color-goal-pending))', icon: '◷' },
   ACTIVE: { label: 'Active', bg: 'rgba(var(--color-goal-active),0.12)', text: 'rgb(var(--color-goal-active))', icon: '▶' },
   NEEDS_REVISION: { label: 'Needs Revision', bg: 'rgba(var(--color-goal-revision),0.12)', text: 'rgb(var(--color-goal-revision))', icon: '↩' },
+  ON_HOLD: { label: 'On Hold', bg: 'rgba(var(--color-goal-hold),0.12)', text: 'rgb(var(--color-goal-hold))', icon: '⏸' },
+  BLOCKED: { label: 'Blocked', bg: 'rgba(var(--color-goal-blocked),0.12)', text: 'rgb(var(--color-goal-blocked))', icon: '⛔' },
   COMPLETED: { label: 'Completed', bg: 'rgba(var(--color-goal-completed),0.12)', text: 'rgb(var(--color-goal-completed))', icon: '✓' },
   CLOSED: { label: 'Closed', bg: 'rgba(var(--color-goal-closed),0.12)', text: 'rgb(var(--color-goal-closed))', icon: '—' },
 };

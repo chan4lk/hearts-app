@@ -1,18 +1,22 @@
 import { GoalStatus } from '@prisma/client';
 
 /**
- * Goal state machine: valid transitions
- * DRAFT → PENDING (submit for review)
- * PENDING → ACTIVE (approved) | NEEDS_REVISION (sent back)
- * NEEDS_REVISION → PENDING (resubmitted)
- * ACTIVE → COMPLETED | CLOSED
- * Any → CLOSED (admin/manager can close from any state)
+ * DRAFT → PENDING (submit) | CLOSED
+ * PENDING → ACTIVE (approve) | NEEDS_REVISION (revise) | CLOSED
+ * NEEDS_REVISION → PENDING (resubmit) | CLOSED
+ * ACTIVE → COMPLETED | ON_HOLD | BLOCKED | CLOSED
+ * ON_HOLD → ACTIVE (resume) | CLOSED
+ * BLOCKED → ACTIVE (resume) | CLOSED
+ * COMPLETED → CLOSED
+ * CLOSED → (terminal)
  */
 const VALID_TRANSITIONS: Record<GoalStatus, GoalStatus[]> = {
   DRAFT: ['PENDING', 'CLOSED'],
   PENDING: ['ACTIVE', 'NEEDS_REVISION', 'CLOSED'],
   NEEDS_REVISION: ['PENDING', 'CLOSED'],
-  ACTIVE: ['COMPLETED', 'CLOSED'],
+  ACTIVE: ['COMPLETED', 'ON_HOLD', 'BLOCKED', 'CLOSED'],
+  ON_HOLD: ['ACTIVE', 'CLOSED'],
+  BLOCKED: ['ACTIVE', 'CLOSED'],
   COMPLETED: ['CLOSED'],
   CLOSED: [],
 };

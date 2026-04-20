@@ -118,6 +118,10 @@
   --color-goal-completed-muted: 220 252 231;/* green-100 */
   --color-goal-closed: 107 114 128;       /* gray-500 */
   --color-goal-closed-muted: 243 244 246; /* gray-100 */
+  --color-goal-hold: 168 85 247;          /* purple-500 */
+  --color-goal-hold-muted: 243 232 255;   /* purple-100 */
+  --color-goal-blocked: 220 38 38;        /* red-600 */
+  --color-goal-blocked-muted: 254 226 226;/* red-100 */
 
   /* ── Review Cycle ── */
   --color-review: 139 92 246;             /* violet-500 */
@@ -180,6 +184,10 @@
   --color-goal-completed-muted: 5 46 22;
   --color-goal-closed: 107 114 128;
   --color-goal-closed-muted: 31 41 55;
+  --color-goal-hold: 192 132 252;
+  --color-goal-hold-muted: 55 20 95;
+  --color-goal-blocked: 248 113 113;
+  --color-goal-blocked-muted: 80 20 20;
 
   /* ── Review (dark) ── */
   --color-review: 167 139 250;

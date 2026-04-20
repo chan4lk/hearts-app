@@ -24,6 +24,8 @@ enum GoalStatus {
   PENDING
   ACTIVE
   NEEDS_REVISION
+  ON_HOLD
+  BLOCKED
   COMPLETED
   CLOSED
 }
@@ -33,6 +35,8 @@ enum CommentType {
   APPROVAL
   REVISION_REQUEST
   DISCUSSION_REQUEST
+  HOLD_REASON
+  BLOCK_REASON
 }
 
 enum CycleType {
