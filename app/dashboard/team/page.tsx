@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import HeartButton from '@/app/components/hearts/HeartButton';
-import { Users, Target, Heart, ClipboardCheck, Search, X, Building2 } from 'lucide-react';
+import { Users, Target, Heart, ClipboardCheck, Search, X, Building2, Mail, Briefcase } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
 import PageTitle from '@/app/components/shared/PageTitle';
 import StatGrid from '@/app/components/shared/StatGrid';
@@ -35,11 +36,12 @@ export default function TeamPage() {
   const [assignResult, setAssignResult] = useState('');
 
   const fetchData = useCallback(async () => {
+    // /api/team scope=own → manager sees direct reports; admin sees all employees
     const [users, s] = await Promise.all([
-      fetch('/api/admin/users').then(r => r.ok ? r.json() : []),
+      fetch('/api/team?scope=own').then(r => r.ok ? r.json() : []),
       fetch('/api/analytics/dashboard').then(r => r.ok ? r.json() : null),
     ]);
-    setMembers(users.filter((u: any) => u.role === 'EMPLOYEE'));
+    setMembers(users);
     setStats(s);
     setLoading(false);
   }, []);
@@ -222,47 +224,81 @@ export default function TeamPage() {
               )}
             </p>
 
-            <div className="card-section overflow-y-auto scrollbar-hide max-h-[calc(100vh-22rem)]">
-              <table className="w-full">
-                <thead className="sticky top-0 z-10 bg-surface-secondary">
-                  <tr className="border-b border-theme">
-                    <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider w-[30%]">Name</th>
-                    <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider hidden md:table-cell w-[20%]">Department</th>
-                    <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider hidden md:table-cell w-[20%]">Position</th>
-                    <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider w-[12%]">Status</th>
-                    <th className="text-right px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider w-[15%]">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                    {filteredMembers.length === 0 ? (
-                      <tr><td colSpan={5} className="px-4 py-12 text-center text-secondary">No team members found</td></tr>
-                    ) : filteredMembers.map(m => (
-                      <tr key={m.id} className="hover:bg-surface-secondary transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            <div className="avatar-sm avatar-gradient">{m.name.split(' ').map(n => n[0]).join('').slice(0, 2)}</div>
-                            <div>
-                              <p className="text-sm font-medium text-primary">{m.name}</p>
-                              <p className="text-2xs text-tertiary">{m.email}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 hidden md:table-cell text-sm text-secondary">{m.department || '—'}</td>
-                        <td className="px-4 py-3 hidden md:table-cell text-sm text-secondary">{m.position || '—'}</td>
-                        <td className="px-4 py-3">
-                          <span className="flex items-center gap-1 text-xs font-medium text-success">
-                            <span className="w-1.5 h-1.5 rounded-full bg-success" /> Active
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <button onClick={() => { setSelectedMembers([m.id]); resetAssign(); setSelectedMembers([m.id]); }}
-                            className="text-xs text-accent font-medium focus-ring rounded px-2 py-1">Assign Goal</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-              </table>
-            </div>
+            {filteredMembers.length === 0 ? (
+              <div className="empty-container">
+                <div
+                  className="empty-icon-ring"
+                  style={{ backgroundColor: 'rgba(var(--color-accent),0.1)' }}
+                >
+                  <Users className="w-10 h-10 text-accent" />
+                </div>
+                <p className="empty-title">No team members match the current filters</p>
+                <p className="empty-description">Try a different search term or clear the department filter.</p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-[calc(100vh-22rem)] overflow-y-auto scrollbar-hide pr-1 -mr-1">
+                <AnimatePresence initial={false}>
+                  {filteredMembers.map((m, i) => (
+                    <motion.div
+                      key={m.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.96 }}
+                      transition={{ delay: i * 0.02 }}
+                      className="flex items-start justify-between gap-3 p-4 card-interactive"
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="avatar-md avatar-gradient flex-shrink-0">
+                          {m.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-primary truncate">{m.name}</p>
+                          <p className="text-xs text-tertiary flex items-center gap-3 flex-wrap mt-0.5">
+                            <span className="inline-flex items-center gap-1">
+                              <Mail className="w-3 h-3" />
+                              {m.email}
+                            </span>
+                            {m.department && (
+                              <span className="inline-flex items-center gap-1">
+                                <Building2 className="w-3 h-3" />
+                                {m.department}
+                              </span>
+                            )}
+                            {m.position && (
+                              <span className="inline-flex items-center gap-1">
+                                <Briefcase className="w-3 h-3" />
+                                {m.position}
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-semibold bg-success-muted text-success border border-theme">
+                          <span
+                            className="w-1.5 h-1.5 rounded-full"
+                            style={{ backgroundColor: 'rgb(var(--color-success))' }}
+                          />
+                          Active
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setBulkGoals([makeEmptyGoal()]);
+                            setSelectedMembers([m.id]);
+                            setShowAssign(true);
+                          }}
+                          className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-[rgba(var(--color-goal-active),0.1)] text-[rgb(var(--color-goal-active))] hover:bg-[rgba(var(--color-goal-active),0.2)] focus-ring inline-flex items-center gap-1"
+                        >
+                          <Target className="w-3.5 h-3.5" /> Assign Goal
+                        </button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            )}
           </>
         )}
 

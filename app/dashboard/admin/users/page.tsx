@@ -27,6 +27,11 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState('');
   const [showInactive, setShowInactive] = useState(true);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editRole, setEditRole] = useState<string>('EMPLOYEE');
+  const [editManagerId, setEditManagerId] = useState<string>('');
+  const [editJobCategory, setEditJobCategory] = useState<string>('');
+  const [editAppointmentDate, setEditAppointmentDate] = useState<string>('');
+  const [editReviewMonth, setEditReviewMonth] = useState<string>('');
   const [saving, setSaving] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -41,6 +46,19 @@ export default function AdminUsersPage() {
   }, []);
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
+  useEffect(() => {
+    if (!editingUser) return;
+    setEditRole(editingUser.role);
+    setEditManagerId(editingUser.managerId || '');
+    setEditJobCategory(editingUser.jobCategory || '');
+    setEditAppointmentDate(
+      editingUser.appointmentDate
+        ? new Date(editingUser.appointmentDate).toISOString().split('T')[0]
+        : ''
+    );
+    setEditReviewMonth(editingUser.reviewMonth || '');
+  }, [editingUser]);
 
   const filteredUsers = users.filter(u => {
     if (!showInactive && !u.isActive) return false;
@@ -365,37 +383,89 @@ export default function AdminUsersPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <Select label="Role" id="edit-role" defaultValue={editingUser.role}
-                  options={[{ value: 'EMPLOYEE', label: 'Employee' }, { value: 'MANAGER', label: 'Manager' }, { value: 'ADMIN', label: 'Admin' }]} />
-                <Select label="Job Category" id="edit-jobCategory" defaultValue={editingUser.jobCategory || ''} placeholder="Select..."
-                  options={[{ value: 'Executive', label: 'Executive' }, { value: 'Senior Executive', label: 'Senior Executive' }, { value: 'Associate', label: 'Associate' }, { value: 'Lead', label: 'Lead' }, { value: 'Manager', label: 'Manager' }]} />
+                <Select
+                  label="Role"
+                  value={editRole}
+                  onChange={(e) => setEditRole(e.target.value)}
+                  options={[
+                    { value: 'EMPLOYEE', label: 'Employee' },
+                    { value: 'MANAGER', label: 'Manager' },
+                    { value: 'ADMIN', label: 'Admin' },
+                  ]}
+                />
+                <Select
+                  label="Job Category"
+                  value={editJobCategory}
+                  onChange={(e) => setEditJobCategory(e.target.value)}
+                  placeholder="Select..."
+                  options={[
+                    { value: 'Executive', label: 'Executive' },
+                    { value: 'Senior Executive', label: 'Senior Executive' },
+                    { value: 'Associate', label: 'Associate' },
+                    { value: 'Lead', label: 'Lead' },
+                    { value: 'Manager', label: 'Manager' },
+                  ]}
+                />
               </div>
 
-              <Select label="Manager (Reporting Person)" id="edit-manager" defaultValue={editingUser.managerId || ''} placeholder="No Manager"
-                options={managers.filter(m => m.id !== editingUser.id).map(m => ({ value: m.id, label: `${m.name} (${m.role})` }))} />
+              <Select
+                label="Manager (Reporting Person)"
+                value={editManagerId}
+                onChange={(e) => setEditManagerId(e.target.value)}
+                placeholder="No Manager"
+                options={managers
+                  .filter((m) => m.id !== editingUser.id)
+                  .map((m) => ({ value: m.id, label: `${m.name} (${m.role})` }))}
+              />
 
               <div className="grid grid-cols-2 gap-3">
-                <Input label="Appointment Date" id="edit-appointmentDate" type="date"
-                  defaultValue={editingUser.appointmentDate ? new Date(editingUser.appointmentDate).toISOString().split('T')[0] : ''} />
-                <Select label="Review Month" id="edit-reviewMonth" defaultValue={editingUser.reviewMonth || ''} placeholder="Auto-calculate"
-                  options={['January','February','March','April','May','June','July','August','September','October','November','December'].map(m => ({ value: m, label: m }))} />
+                <Input
+                  label="Appointment Date"
+                  type="date"
+                  value={editAppointmentDate}
+                  onChange={(e) => setEditAppointmentDate(e.target.value)}
+                />
+                <Select
+                  label="Review Month"
+                  value={editReviewMonth}
+                  onChange={(e) => setEditReviewMonth(e.target.value)}
+                  placeholder="Auto-calculate"
+                  options={[
+                    'January','February','March','April','May','June',
+                    'July','August','September','October','November','December',
+                  ].map((m) => ({ value: m, label: m }))}
+                />
               </div>
 
               <div className="flex justify-between items-center pt-2">
-                <button onClick={() => handleUpdate(editingUser.id, { isActive: !editingUser.isActive })} disabled={saving}
-                  className={`text-xs font-medium px-3 py-1.5 rounded-lg focus-ring ${editingUser.isActive ? 'bg-error-muted text-error' : 'bg-success-muted text-success'}`}>
+                <button
+                  type="button"
+                  onClick={() => handleUpdate(editingUser.id, { isActive: !editingUser.isActive })}
+                  disabled={saving}
+                  className={`text-xs font-medium px-3 py-1.5 rounded-lg focus-ring ${editingUser.isActive ? 'bg-error-muted text-error' : 'bg-success-muted text-success'}`}
+                >
                   {editingUser.isActive ? 'Deactivate' : 'Reactivate'}
                 </button>
                 <div className="flex gap-2">
-                  <button onClick={() => setEditingUser(null)} className="btn-secondary px-4 py-2">Cancel</button>
-                  <button onClick={() => {
-                    const role = (document.getElementById('edit-role') as HTMLSelectElement).value;
-                    const managerId = (document.getElementById('edit-manager') as HTMLSelectElement).value || null;
-                    const jobCategory = (document.getElementById('edit-jobCategory') as HTMLSelectElement).value || null;
-                    const appointmentDate = (document.getElementById('edit-appointmentDate') as HTMLInputElement).value || null;
-                    const reviewMonth = (document.getElementById('edit-reviewMonth') as HTMLSelectElement).value || null;
-                    handleUpdate(editingUser.id, { role, managerId, jobCategory, appointmentDate, reviewMonth });
-                  }} disabled={saving} className="btn-primary px-4 py-2">{saving ? 'Saving...' : 'Save'}</button>
+                  <button type="button" onClick={() => setEditingUser(null)} className="btn-secondary px-4 py-2">
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleUpdate(editingUser.id, {
+                        role: editRole,
+                        managerId: editManagerId || null,
+                        jobCategory: editJobCategory || null,
+                        appointmentDate: editAppointmentDate || null,
+                        reviewMonth: editReviewMonth || null,
+                      })
+                    }
+                    disabled={saving}
+                    className="btn-primary px-4 py-2"
+                  >
+                    {saving ? 'Saving...' : 'Save'}
+                  </button>
                 </div>
               </div>
             </div>

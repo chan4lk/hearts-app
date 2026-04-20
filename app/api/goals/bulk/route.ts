@@ -36,18 +36,29 @@ export async function POST(req: NextRequest) {
   const { goals, assignToUserIds } = parsed.data;
   const isManagerAssign = assignToUserIds && assignToUserIds.length > 0;
 
-  // Manager bulk assign: verify role and employees exist
+  // Bulk assign: caller must be MANAGER or ADMIN AND every target must be
+  // one of their direct reports (same rule for admin — no bypass).
   if (isManagerAssign) {
     if (!hasMinRole(ctx, 'MANAGER')) {
       return NextResponse.json({ error: 'Only managers can bulk assign goals', code: 'FORBIDDEN' }, { status: 403 });
     }
-    // Verify all target users exist in tenant
     const users = await prisma.user.findMany({
       where: { id: { in: assignToUserIds }, tenantId: ctx.tenantId, isActive: true },
-      select: { id: true },
+      select: { id: true, managerId: true },
     });
-    if (users.length !== assignToUserIds.length) {
+    if (users.length !== assignToUserIds!.length) {
       return NextResponse.json({ error: 'Some employees not found', code: 'NOT_FOUND' }, { status: 404 });
+    }
+    const outside = users.filter((u) => u.managerId !== ctx.userId);
+    if (outside.length > 0) {
+      return NextResponse.json(
+        {
+          error: 'You can only assign goals to users who report to you. Assign yourself as their manager first (Admin → Users) to proceed.',
+          code: 'FORBIDDEN',
+          details: { outsideIds: outside.map((u) => u.id) },
+        },
+        { status: 403 }
+      );
     }
   }
 

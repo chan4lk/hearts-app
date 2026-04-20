@@ -91,16 +91,25 @@ export async function POST(req: NextRequest) {
   const { title, description, category, targetDate, ownerId } = parsed.data;
   const isManagerAssigned = ownerId && ownerId !== ctx.userId;
 
-  // If manager-assigned, verify manager relationship
+  // Assigning a goal to someone else = they must be a direct report of the
+  // caller (same rule for admin — admin assigns themselves as the user's
+  // manager via /dashboard/admin/users when they need to intervene).
   if (isManagerAssigned) {
     if (!hasMinRole(ctx, 'MANAGER')) {
       return NextResponse.json({ error: 'Only managers can assign goals', code: 'FORBIDDEN' }, { status: 403 });
     }
     const employee = await prisma.user.findFirst({
       where: { id: ownerId, tenantId: ctx.tenantId },
+      select: { id: true, managerId: true, isActive: true },
     });
-    if (!employee) {
+    if (!employee || !employee.isActive) {
       return NextResponse.json({ error: 'Employee not found', code: 'NOT_FOUND' }, { status: 404 });
+    }
+    if (employee.managerId !== ctx.userId) {
+      return NextResponse.json(
+        { error: 'You can only assign goals to users who report to you.', code: 'FORBIDDEN' },
+        { status: 403 }
+      );
     }
   }
 
