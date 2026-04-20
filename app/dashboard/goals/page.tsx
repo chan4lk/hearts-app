@@ -234,6 +234,7 @@ export default function GoalsPage() {
                       <textarea value={goal.description} onChange={(e) => updateGoalRow(i, 'description', e.target.value)}
                         rows={2} maxLength={2000} className="input-textarea" placeholder="Description (optional)" />
                       <input type="date" value={goal.targetDate} onChange={(e) => updateGoalRow(i, 'targetDate', e.target.value)}
+                        min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
                         className="input-base" />
                     </div>
                   ))}

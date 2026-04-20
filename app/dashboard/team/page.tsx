@@ -240,7 +240,9 @@ export default function TeamPage() {
                 </div>
                 <input value={goal.title} onChange={(e) => updateGoalRow(i, 'title', e.target.value)} required className="input-base" placeholder="Goal title" maxLength={200} />
                 <textarea value={goal.description} onChange={(e) => updateGoalRow(i, 'description', e.target.value)} rows={2} className="input-textarea" placeholder="Description (optional)" maxLength={2000} />
-                <input type="date" value={goal.targetDate} onChange={(e) => updateGoalRow(i, 'targetDate', e.target.value)} className="input-base" />
+                <input type="date" value={goal.targetDate} onChange={(e) => updateGoalRow(i, 'targetDate', e.target.value)}
+                  min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
+                  className="input-base" />
               </div>
             ))}
 
