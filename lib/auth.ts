@@ -2,6 +2,7 @@ import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import AzureADProvider from 'next-auth/providers/azure-ad';
 import { prisma } from './prisma';
+import { logger } from './logger';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 import { verify } from 'jsonwebtoken';
@@ -97,16 +98,14 @@ export const authOptions: NextAuthOptions = {
             (profile as any).upn ||
             null;
 
-          if (process.env.NODE_ENV === 'development') {
-            console.log('Azure AD processing profile', 'Information', {
-              hasEmail: !!profile.email,
-              hasPreferredUsername: !!(profile as any).preferred_username,
-              hasUpn: !!(profile as any).upn,
-              resolvedEmail: email,
-              hasName: !!profile.name,
-              hasTokens: !!tokens
-            });
-          }
+          logger.info('auth.azure.profile_processing', {
+            hasEmail: !!profile.email,
+            hasPreferredUsername: !!(profile as any).preferred_username,
+            hasUpn: !!(profile as any).upn,
+            resolvedEmail: email,
+            hasName: !!profile.name,
+            hasTokens: !!tokens,
+          });
 
           // Validate required profile data
           if (!email) {
@@ -116,8 +115,8 @@ export const authOptions: NextAuthOptions = {
           // Normalize the profile so the rest of this callback uses `email`
           profile.email = email;
 
-          if (!profile.name && process.env.NODE_ENV === 'development') {
-            console.log('Azure AD: No name found, using email as fallback', 'Warning');
+          if (!profile.name) {
+            logger.warn('auth.azure.no_name', { email: profile.email });
           }
 
           // Normalize email to lowercase for case-insensitive lookup
@@ -133,9 +132,7 @@ export const authOptions: NextAuthOptions = {
 
           // If user exists, don't automatically update their role
           if (existingUser) {
-            if (process.env.NODE_ENV === 'development') {
-              console.log('Azure AD: Existing user found', 'Information');
-            }
+            logger.info('auth.azure.existing_user_found', { userId: existingUser.id });
             return {
               id: existingUser.id,
               name: existingUser.name,
@@ -144,7 +141,9 @@ export const authOptions: NextAuthOptions = {
             };
           }
         } catch (error) {
-          console.error(error);
+          logger.error('auth.azure.callback_failed', {
+            error: error instanceof Error ? error : new Error(String(error)),
+          });
           throw error;
         }
 
@@ -155,9 +154,7 @@ export const authOptions: NextAuthOptions = {
         // Normalize email for database
         const normalizedEmail = profile.email.toLowerCase().trim();
 
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Azure AD: Creating new user with EMPLOYEE role', 'Information');
-        }
+        logger.info('auth.azure.creating_user', { email: normalizedEmail, role });
 
         try {
           // Create new user with determined role
@@ -171,9 +168,7 @@ export const authOptions: NextAuthOptions = {
             },
           });
 
-          if (process.env.NODE_ENV === 'development') {
-            console.log('Azure AD: New user created', 'Information');
-          }
+          logger.info('auth.azure.user_created', { userId: user.id, role: user.role });
 
           return {
             id: user.id,
@@ -182,18 +177,18 @@ export const authOptions: NextAuthOptions = {
             role: user.role
           };
         } catch (dbError: any) {
-          console.error('[Azure AD] Database error creating user:', {
-            error: dbError,
+          logger.error('auth.azure.user_create_failed', {
+            error: dbError instanceof Error ? dbError : new Error(String(dbError)),
             errorCode: dbError?.code,
-            errorMessage: dbError?.message,
             userEmail: profile.email,
-            normalizedEmail: profile.email.trim().toLowerCase(),
-            timestamp: new Date().toISOString()
           });
 
           // Check if it's a unique constraint violation (P2002)
           if (dbError?.code === 'P2002') {
-            console.error('[Azure AD] Unique constraint violation - user may already exist with different casing');
+            logger.warn('auth.azure.unique_conflict', {
+              userEmail: profile.email,
+              hint: 'user may already exist with different casing',
+            });
             // Try to find the existing user again with more detailed logging
             const existingUserRetry = await prisma.user.findFirst({
               where: {
@@ -327,7 +322,9 @@ export const authOptions: NextAuthOptions = {
             role: user.role,
           };
         } catch (error) {
-          console.error(error);
+          logger.error('auth.azure.callback_failed', {
+            error: error instanceof Error ? error : new Error(String(error)),
+          });
           throw error;
         }
       },
@@ -351,9 +348,7 @@ export const authOptions: NextAuthOptions = {
 
           // If user doesn't exist, try to create them (fallback in case profile callback failed)
           if (!dbUser) {
-            if (process.env.NODE_ENV === 'development') {
-              console.log('SignIn: User not found, attempting to create', 'Warning');
-            }
+            logger.warn('auth.signin.user_not_found_attempting_create', { email: user.email });
 
             try {
               // Always assign EMPLOYEE role for new users
@@ -370,13 +365,12 @@ export const authOptions: NextAuthOptions = {
                 },
               });
 
-              if (process.env.NODE_ENV === 'development') {
-                console.log('SignIn: User created successfully', 'Information');
-              }
+              logger.info('auth.signin.user_created', { email: user.email });
             } catch (createError) {
-              console.error(
-                createError instanceof Error ? createError : new Error(String(createError))
-              );
+              logger.error('auth.signin.user_create_failed', {
+                error: createError instanceof Error ? createError : new Error(String(createError)),
+                email: user.email,
+              });
               // Return false to show access denied error
               // This triggers NextAuth to redirect to /error?error=AccessDenied
               return false;
@@ -388,16 +382,14 @@ export const authOptions: NextAuthOptions = {
           user.role = dbUser.role;
           user.email = dbUser.email; // Use the email from database (preserves original casing)
 
-          if (process.env.NODE_ENV === 'development') {
-            console.log('SignIn: User logged in successfully', 'Information');
-          }
+          logger.info('auth.signin.success', { provider: account?.provider, email: user.email });
         }
         return true;
       } catch (error) {
-        console.error(
-          error instanceof Error ? error : new Error(String(error)),
-          { provider: account?.provider }
-        );
+        logger.error('auth.signin.failed', {
+          error: error instanceof Error ? error : new Error(String(error)),
+          provider: account?.provider,
+        });
         // Return false to show access denied error
         // This triggers NextAuth to redirect to /error?error=AccessDenied
         return false;
@@ -427,7 +419,10 @@ export const authOptions: NextAuthOptions = {
               // Don't log role updates - security risk
             }
           } catch (error) {
-            console.error('[jwt] Error fetching user role from database:', error);
+            logger.error('auth.jwt.role_fetch_failed', {
+              error: error instanceof Error ? error : new Error(String(error)),
+              userId: token.id,
+            });
           }
         }
       }
@@ -452,15 +447,17 @@ export const authOptions: NextAuthOptions = {
           }
 
           if (!dbUser.isActive) {
-            console.warn(`Session: Inactive user attempted access - ${sessionUser.email}`);
+            logger.warn('auth.session.inactive_user_blocked', { email: sessionUser.email });
             throw new Error('User account is inactive');
           }
 
           sessionUser.id = dbUser.id;
           sessionUser.role = dbUser.role;
         } catch (error) {
-          const errorMsg = error instanceof Error ? error.message : String(error);
-          console.error(error);
+          logger.error('auth.session.callback_failed', {
+            error: error instanceof Error ? error : new Error(String(error)),
+            userId: sessionUser.id,
+          });
           throw error;
         }
       }
@@ -541,7 +538,7 @@ export async function getAuthUser(): Promise<AuthUser | null> {
     return decoded;
   } catch (error) {
     if (error instanceof Error && error.message.includes('FATAL')) {
-      console.error(error.message);
+      logger.error('auth.jwt.fatal_verify_failure', { error });
       throw error;
     }
     return null;
