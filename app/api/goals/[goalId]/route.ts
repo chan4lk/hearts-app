@@ -6,6 +6,7 @@ import { canTransition } from '@/app/utils/goalStateMachine';
 import { hasMinRole } from '@/lib/rbac';
 import { GoalStatus } from '@prisma/client';
 import { sanitizeInput, sanitizeInputPreserveNewlines } from '@/lib/securityUtils';
+import { checkAndAwardBadges } from '@/lib/badges';
 import { z } from 'zod';
 
 export async function GET(_req: NextRequest, { params }: { params: { goalId: string } }) {
@@ -142,6 +143,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { goalId: st
     const action = actionMap[parsed.data.status];
     if (action) {
       await logAudit(ctx, { action, entity: 'Goal', entityId: goal.id, details: { from: goal.status, to: parsed.data.status } });
+    }
+    if (parsed.data.status === 'COMPLETED' && goal.status !== 'COMPLETED') {
+      checkAndAwardBadges(goal.ownerId, ctx.tenantId, 'GOAL_COMPLETED').catch(() => {});
     }
   }
 

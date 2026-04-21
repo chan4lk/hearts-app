@@ -7,6 +7,7 @@ import HeartButton from '@/app/components/hearts/HeartButton';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
 import PageTitle from '@/app/components/shared/PageTitle';
 import EmptyState2 from '@/app/components/shared/EmptyState2';
+import BadgeWall from '@/app/components/badges/BadgeWall';
 import {
   BarChart3,
   Target,
@@ -219,6 +220,11 @@ export default function ReportsPage() {
                   </p>
                 </div>
               </div>
+            )}
+
+            {/* Badge wall (only on self view) */}
+            {scope === 'self' && session?.user?.id && (
+              <BadgeWall userId={session.user.id} />
             )}
 
             {/* KPI strip */}

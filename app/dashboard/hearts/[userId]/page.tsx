@@ -9,6 +9,7 @@ import HeartButton from '@/app/components/hearts/HeartButton';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
 import { motion } from 'framer-motion';
 import { Heart, ArrowLeft, Mail, Building2, Calendar } from 'lucide-react';
+import BadgeWall from '@/app/components/badges/BadgeWall';
 import { formatDistanceToNow } from 'date-fns';
 
 interface HeartItem {
@@ -171,6 +172,8 @@ export default function HeartsProfilePage() {
             </p>
           </div>
         </div>
+
+        <BadgeWall userId={user.id} />
 
         {valueEntries.length > 0 && (
           <div className="card-section p-5">

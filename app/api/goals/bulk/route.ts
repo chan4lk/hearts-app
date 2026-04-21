@@ -5,6 +5,7 @@ import { hasMinRole } from '@/lib/rbac';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { logAudit, AuditAction } from '@/lib/auditLog';
 import { sanitizeInput, sanitizeInputPreserveNewlines } from '@/lib/securityUtils';
+import { checkAndAwardBadges } from '@/lib/badges';
 import { z } from 'zod';
 
 const BulkGoalItem = z.object({
@@ -95,6 +96,10 @@ export async function POST(req: NextRequest) {
       ? { goalCount: goals.length, employeeCount: assignToUserIds!.length, totalCreated: count }
       : { goalCount: count },
   });
+
+  if (isManagerAssign) {
+    checkAndAwardBadges(ctx.userId, ctx.tenantId, 'GOAL_ASSIGNED').catch(() => {});
+  }
 
   return NextResponse.json({ created: count }, { status: 201 });
 }

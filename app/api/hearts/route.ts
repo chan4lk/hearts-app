@@ -5,6 +5,7 @@ import { checkRateLimit } from '@/lib/rateLimit';
 import { z } from 'zod';
 import { notifyHeartReceived } from '@/lib/email';
 import { sanitizeInputPreserveNewlines } from '@/lib/securityUtils';
+import { checkAndAwardBadges } from '@/lib/badges';
 
 // GET — Hearts feed (paginated, recent first)
 export async function GET(req: NextRequest) {
@@ -109,6 +110,10 @@ export async function POST(req: NextRequest) {
 
   // Queue email + in-app notification
   notifyHeartReceived(ctx.tenantId, receiverId, heart.sender.name, heart.valueTag.name, message, heart.id).catch(() => {});
+
+  // Award badges (both sides, fire-and-forget)
+  checkAndAwardBadges(receiverId, ctx.tenantId, 'HEART_RECEIVED').catch(() => {});
+  checkAndAwardBadges(ctx.userId, ctx.tenantId, 'HEART_GIVEN').catch(() => {});
 
   return NextResponse.json(heart, { status: 201 });
 }

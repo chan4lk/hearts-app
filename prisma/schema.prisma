@@ -70,6 +70,22 @@ enum MealPreference {
   NON_VEG
 }
 
+enum BadgeKind {
+  FIRST_GOAL_DONE
+  FIVE_GOALS_DONE
+  TWENTY_FIVE_GOALS_DONE
+  HUNDRED_GOALS_DONE
+  ON_TIME_STREAK_10
+  FIRST_HEART
+  TEN_HEARTS
+  FIFTY_HEARTS
+  HUNDRED_HEARTS
+  VALUE_CHAMPION
+  KIND_SOUL_50
+  CATEGORY_EXPLORER_5
+  MENTOR_3
+}
+
 // ============================================================
 // USER (extended from existing)
 // ============================================================
@@ -118,6 +134,9 @@ model User {
 
   // In-app notifications
   notifications Notification[]
+
+  // Earned achievement badges
+  badges UserBadge[]
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -357,4 +376,18 @@ model Notification {
 
   @@index([tenantId, userId, readAt])
   @@index([tenantId, userId, createdAt])
+}
+
+model UserBadge {
+  id       String    @id @default(cuid())
+  tenantId String
+  userId   String
+  kind     BadgeKind
+  earnedAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId, kind])
+  @@index([tenantId, userId])
+  @@index([tenantId, earnedAt])
 }

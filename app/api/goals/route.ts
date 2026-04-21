@@ -5,6 +5,7 @@ import { hasMinRole } from '@/lib/rbac';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { logAudit, AuditAction } from '@/lib/auditLog';
 import { sanitizeInput, sanitizeInputPreserveNewlines } from '@/lib/securityUtils';
+import { checkAndAwardBadges } from '@/lib/badges';
 import { GoalStatus } from '@prisma/client';
 import { z } from 'zod';
 
@@ -136,6 +137,10 @@ export async function POST(req: NextRequest) {
     entityId: goal.id,
     details: { title, ownerId: goal.ownerId, status: goal.status },
   });
+
+  if (isManagerAssigned) {
+    checkAndAwardBadges(ctx.userId, ctx.tenantId, 'GOAL_ASSIGNED').catch(() => {});
+  }
 
   return NextResponse.json(goal, { status: 201 });
 }

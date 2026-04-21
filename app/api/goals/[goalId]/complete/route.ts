@@ -5,6 +5,7 @@ import { logAudit, AuditAction } from '@/lib/auditLog';
 import { canTransition } from '@/app/utils/goalStateMachine';
 import { hasMinRole } from '@/lib/rbac';
 import { notifyGoalStatus } from '@/lib/email';
+import { checkAndAwardBadges } from '@/lib/badges';
 import { z } from 'zod';
 
 const CompleteSchema = z.object({
@@ -74,6 +75,9 @@ export async function POST(req: NextRequest, { params }: { params: { goalId: str
   });
 
   notifyGoalStatus(ctx.tenantId, goal.ownerId, goal.title, 'COMPLETED', parsed.data.note || undefined, goal.id).catch(() => {});
+
+  // Award any newly-unlocked badges (fire-and-forget; never blocks the response)
+  checkAndAwardBadges(goal.ownerId, ctx.tenantId, 'GOAL_COMPLETED').catch(() => {});
 
   return NextResponse.json(updated);
 }

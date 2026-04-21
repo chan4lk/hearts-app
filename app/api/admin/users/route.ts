@@ -44,10 +44,17 @@ export async function GET(req: NextRequest) {
       manager: { select: { id: true, name: true } },
       createdAt: true,
       lastLoginAt: true,
+      badges: { select: { kind: true } },
     },
     orderBy: { name: 'asc' },
     take: limit,
   });
 
-  return NextResponse.json(users);
+  // Flatten badges into a simple string[] per user for easy client-side filtering
+  const mapped = users.map((u) => ({
+    ...u,
+    badges: u.badges.map((b) => b.kind),
+  }));
+
+  return NextResponse.json(mapped);
 }
