@@ -201,7 +201,7 @@ export default function GoalsPage() {
           </div>
         )}
 
-        <div className="inline-flex gap-1 p-1 rounded-xl bg-surface-secondary w-fit">
+        <div className="inline-flex flex-wrap gap-1 p-1 rounded-xl bg-surface-secondary w-full sm:w-fit max-w-full">
           {(
             [
               { key: 'self', label: 'Self-Created' },

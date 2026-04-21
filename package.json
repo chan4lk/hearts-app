@@ -11,6 +11,9 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:install": "playwright install chromium",
     "postinstall": "npx prisma generate",
     "prisma:generate": "npx prisma generate",
     "prisma:migrate": "npx prisma migrate dev",
@@ -51,7 +54,6 @@
     "lucide-react": "^0.487.0",
     "next": "^14.2.21",
     "next-auth": "^4.24.11",
-    "openai": "^4.96.0",
     "postcss": "^8.4.35",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -71,6 +73,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@types/xlsx": "^0.0.36",
     "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^8.56.0",

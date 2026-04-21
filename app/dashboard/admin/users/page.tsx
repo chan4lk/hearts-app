@@ -226,7 +226,7 @@ export default function AdminUsersPage() {
               aria-label="Search users"
             />
           </div>
-          <div className="relative w-40">
+          <div className="relative w-full sm:w-40">
             <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
             <input
               type="text"
@@ -250,7 +250,7 @@ export default function AdminUsersPage() {
               </button>
             )}
           </div>
-          <div className="relative w-48">
+          <div className="relative w-full sm:w-48">
             <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
             <input
               type="text"
@@ -274,7 +274,7 @@ export default function AdminUsersPage() {
               </button>
             )}
           </div>
-          <div className="relative w-52">
+          <div className="relative w-full sm:w-52">
             <Trophy className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none z-10" />
             <select
               value={badgeFilter}

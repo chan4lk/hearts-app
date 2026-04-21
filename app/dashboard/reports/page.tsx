@@ -19,6 +19,8 @@ import {
   Award,
   Trophy,
   Sparkles,
+  Download,
+  FileText,
 } from 'lucide-react';
 import {
   BarChart,
@@ -120,6 +122,143 @@ export default function ReportsPage() {
 
   useEffect(() => { fetchSummary(); }, [fetchSummary]);
 
+  const exportCsv = useCallback(() => {
+    if (!summary) return;
+    const rows: string[][] = [];
+    rows.push(['Bistec AspireHub — Report', new Date().toLocaleString()]);
+    rows.push(['Scope', scope]);
+    rows.push([]);
+    rows.push(['Summary']);
+    rows.push(['Total goals', String(summary.totalGoals)]);
+    rows.push(['Completed', String(summary.completedGoals)]);
+    rows.push(['Completion rate (%)', String(summary.completionRate)]);
+    rows.push(['Average progress (%)', String(summary.avgProgress)]);
+    rows.push(['Hearts received', String(summary.heartsReceived)]);
+    rows.push(['Hearts given', String(summary.heartsGiven)]);
+    if (scope === 'self') {
+      rows.push(['Score', String(summary.score.total)]);
+      rows.push(['Tier', summary.score.tier]);
+    }
+    rows.push([]);
+    rows.push(['Goals by status']);
+    rows.push(['Status', 'Count']);
+    Object.entries(summary.byStatus).forEach(([s, n]) => {
+      rows.push([STATUS_LABEL[s] || s, String(n)]);
+    });
+    rows.push([]);
+    rows.push(['Goals by category']);
+    rows.push(['Category', 'Count']);
+    summary.byCategory.forEach((c) => rows.push([c.category, String(c.count)]));
+    if (scope !== 'self' && summary.perUser.length > 0) {
+      rows.push([]);
+      rows.push(['Per-user breakdown']);
+      rows.push(['Name', 'Department', 'Position', 'Goals', 'Completed', 'Rate (%)', 'Hearts', 'Score', 'Tier']);
+      summary.perUser
+        .slice()
+        .sort((a, b) => b.score - a.score)
+        .forEach((u) => {
+          rows.push([
+            u.name,
+            u.department || '',
+            u.position || '',
+            String(u.goalsTotal),
+            String(u.goalsCompleted),
+            String(u.completionRate),
+            String(u.heartsReceived),
+            String(u.score),
+            u.tier,
+          ]);
+        });
+    }
+    const csv = rows
+      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(','))
+      .join('\r\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `aspirehub-report-${scope}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [summary, scope]);
+
+  const exportPdf = useCallback(async () => {
+    if (!summary) return;
+    const { default: jsPDF } = await import('jspdf');
+    const autoTable = (await import('jspdf-autotable')).default;
+    const doc = new jsPDF();
+    const scopeLabel = scope === 'self' ? 'My Report' : scope === 'team' ? 'Team Report' : 'Company Report';
+    doc.setFontSize(16);
+    doc.text('Bistec AspireHub — ' + scopeLabel, 14, 18);
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text(new Date().toLocaleString(), 14, 24);
+    doc.setTextColor(0);
+
+    autoTable(doc, {
+      startY: 32,
+      head: [['Metric', 'Value']],
+      body: [
+        ['Total goals', String(summary.totalGoals)],
+        ['Completed', String(summary.completedGoals)],
+        ['Completion rate', `${summary.completionRate}%`],
+        ['Average progress (ACTIVE)', `${summary.avgProgress}%`],
+        ['Hearts received', String(summary.heartsReceived)],
+        ['Hearts given', String(summary.heartsGiven)],
+        ...(scope === 'self'
+          ? [
+              ['Score', String(summary.score.total)] as [string, string],
+              ['Tier', summary.score.tier] as [string, string],
+            ]
+          : []),
+        ...(scope !== 'self' ? [['Users in scope', String(summary.userCount)] as [string, string]] : []),
+      ],
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [79, 70, 229] },
+    });
+
+    if (Object.keys(summary.byStatus).length) {
+      autoTable(doc, {
+        head: [['Status', 'Count']],
+        body: Object.entries(summary.byStatus).map(([s, n]) => [STATUS_LABEL[s] || s, String(n)]),
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [79, 70, 229] },
+      });
+    }
+
+    if (summary.byCategory.length) {
+      autoTable(doc, {
+        head: [['Category', 'Count']],
+        body: summary.byCategory.map((c) => [c.category, String(c.count)]),
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [79, 70, 229] },
+      });
+    }
+
+    if (scope !== 'self' && summary.perUser.length) {
+      autoTable(doc, {
+        head: [['Name', 'Dept', 'Goals', 'Done', 'Rate', 'Hearts', 'Score', 'Tier']],
+        body: summary.perUser
+          .slice()
+          .sort((a, b) => b.score - a.score)
+          .map((u) => [
+            u.name,
+            u.department || '—',
+            String(u.goalsTotal),
+            String(u.goalsCompleted),
+            `${u.completionRate}%`,
+            String(u.heartsReceived),
+            String(u.score),
+            u.tier,
+          ]),
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [79, 70, 229] },
+      });
+    }
+
+    doc.save(`aspirehub-report-${scope}-${new Date().toISOString().slice(0, 10)}.pdf`);
+  }, [summary, scope]);
+
   const statusData = useMemo(() => {
     if (!summary) return [];
     return Object.entries(summary.byStatus)
@@ -137,27 +276,52 @@ export default function ReportsPage() {
           iconColor="--color-accent"
         />
 
-        <div className="inline-flex gap-1 p-1 rounded-xl bg-surface-secondary w-fit">
-          {(
-            [
-              { key: 'self', label: 'My Report' },
-              ...(isManager ? ([{ key: 'team', label: 'Team Report' }] as const) : []),
-              ...(isAdmin ? ([{ key: 'all', label: 'Company Report' }] as const) : []),
-            ] as const
-          ).map((t) => (
-            <button
-              key={t.key}
-              type="button"
-              onClick={() => setScope(t.key)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-semibold focus-ring transition-all ${
-                scope === t.key
-                  ? 'bg-surface-elevated text-primary shadow-theme-sm'
-                  : 'text-secondary hover:text-primary'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="inline-flex gap-1 p-1 rounded-xl bg-surface-secondary w-fit">
+            {(
+              [
+                { key: 'self', label: 'My Report' },
+                ...(isManager ? ([{ key: 'team', label: 'Team Report' }] as const) : []),
+                ...(isAdmin ? ([{ key: 'all', label: 'Company Report' }] as const) : []),
+              ] as const
+            ).map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => setScope(t.key)}
+                className={`px-4 py-1.5 rounded-lg text-xs font-semibold focus-ring transition-all ${
+                  scope === t.key
+                    ? 'bg-surface-elevated text-primary shadow-theme-sm'
+                    : 'text-secondary hover:text-primary'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {summary && summary.totalGoals > 0 && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={exportCsv}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-theme bg-surface-primary hover:bg-surface-secondary text-primary focus-ring transition-colors"
+                aria-label="Export report as CSV"
+                title="Export report as CSV"
+              >
+                <Download className="w-3.5 h-3.5" /> CSV
+              </button>
+              <button
+                type="button"
+                onClick={exportPdf}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-theme bg-surface-primary hover:bg-surface-secondary text-primary focus-ring transition-colors"
+                aria-label="Export report as PDF"
+                title="Export report as PDF"
+              >
+                <FileText className="w-3.5 h-3.5" /> PDF
+              </button>
+            </div>
+          )}
         </div>
 
         {loading ? (

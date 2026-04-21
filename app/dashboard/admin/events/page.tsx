@@ -858,17 +858,17 @@ export default function AdminEventsPage() {
           <p className="text-sm text-secondary py-4">Loading participants...</p>
         ) : detail ? (
           <div className="space-y-4">
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               <div className="card-stat text-center py-3">
-                <p className="text-2xl font-bold text-success">{detail.stats.confirmed}</p>
+                <p className="text-xl sm:text-2xl font-bold text-success">{detail.stats.confirmed}</p>
                 <p className="text-2xs text-tertiary">Confirmed</p>
               </div>
               <div className="card-stat text-center py-3">
-                <p className="text-2xl font-bold text-warning">{detail.stats.pending}</p>
+                <p className="text-xl sm:text-2xl font-bold text-warning">{detail.stats.pending}</p>
                 <p className="text-2xs text-tertiary">Pending</p>
               </div>
               <div className="card-stat text-center py-3">
-                <p className="text-2xl font-bold text-error">{detail.stats.declined}</p>
+                <p className="text-xl sm:text-2xl font-bold text-error">{detail.stats.declined}</p>
                 <p className="text-2xs text-tertiary">Declined</p>
               </div>
             </div>

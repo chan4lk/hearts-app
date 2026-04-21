@@ -269,7 +269,7 @@ export default function AdminCyclesPage() {
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="modal-backdrop" onClick={() => setShowCreate(false)} />
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-                className="modal-panel max-w-md">
+                className="modal-panel w-full max-w-[95vw] sm:max-w-md">
                 <div className="flex justify-between items-center mb-5">
                   <h2 className="text-lg font-bold text-primary flex items-center gap-2">
                     <Calendar className="w-5 h-5" style={{ color: 'rgb(var(--color-review))' }} /> New Review Cycle

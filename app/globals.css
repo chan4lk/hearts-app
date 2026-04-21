@@ -36,14 +36,16 @@
   --color-accent-muted: 238 242 255;     /* indigo-50 */
   --color-accent-subtle: 224 231 255;    /* indigo-100 */
 
-  /* ── Semantic Status ── */
-  --color-success: 5 150 105;            /* emerald-600 */
+  /* ── Semantic Status ──
+     Foregrounds use the -700 shades so text on *-muted backgrounds passes
+     WCAG AA 4.5:1 (verified by __tests__/contrast.test.ts). */
+  --color-success: 4 120 87;             /* emerald-700 */
   --color-success-muted: 209 250 229;    /* emerald-100 */
-  --color-warning: 217 119 6;            /* amber-600 */
+  --color-warning: 180 83 9;             /* amber-700 */
   --color-warning-muted: 254 243 199;    /* amber-100 */
-  --color-error: 220 38 38;              /* red-600 */
+  --color-error: 185 28 28;              /* red-700 */
   --color-error-muted: 254 226 226;      /* red-100 */
-  --color-info: 37 99 235;              /* blue-600 */
+  --color-info: 29 78 216;               /* blue-700 */
   --color-info-muted: 219 234 254;       /* blue-100 */
 
   /* ── Shadows (enhanced depth) ── */
