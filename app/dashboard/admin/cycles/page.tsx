@@ -6,7 +6,7 @@ import PageSkeleton from '@/app/components/shared/PageSkeleton';
 import Modal from '@/app/components/shared/Modal';
 import { FormActions } from '@/app/components/shared/FormField';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Calendar, X, Pencil, Trash2, AlertTriangle } from 'lucide-react';
+import { Plus, Calendar, CalendarRange, X, Pencil, Trash2, AlertTriangle } from 'lucide-react';
 
 interface Cycle {
   id: string;
@@ -171,7 +171,7 @@ export default function AdminCyclesPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
             <h1 className="page-title">
-              <Calendar className="w-6 h-6" style={{ color: 'rgb(var(--color-review))' }} />
+              <CalendarRange className="w-6 h-6" style={{ color: 'rgb(var(--color-review))' }} />
               Review Cycles
             </h1>
             <p className="page-subtitle">Create and manage performance review cycles</p>

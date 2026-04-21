@@ -18,6 +18,7 @@ import {
   Search,
   Tag,
   X,
+  LayoutTemplate,
 } from 'lucide-react';
 
 interface GoalTemplate {
@@ -209,7 +210,7 @@ export default function AdminTemplatesPage() {
         <PageTitle
           title="Goal Templates"
           subtitle="Create reusable templates for quick goal creation"
-          icon={Target}
+          icon={LayoutTemplate}
           iconColor="--color-goal-active"
           actions={
             <button

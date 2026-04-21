@@ -9,6 +9,7 @@ import { FormActions } from '@/app/components/shared/FormField';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Calendar,
+  CalendarDays,
   Plus,
   ToggleLeft,
   ToggleRight,
@@ -292,7 +293,7 @@ export default function AdminEventsPage() {
         <PageTitle
           title="Events"
           subtitle="Create and manage company events"
-          icon={Calendar}
+          icon={CalendarDays}
           iconColor="--color-accent"
           actions={
             <button

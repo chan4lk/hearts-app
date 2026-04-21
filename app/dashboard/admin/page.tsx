@@ -3,17 +3,29 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/app/components/layout/DashboardLayout';
 import Link from 'next/link';
-import { Users, Heart, Calendar, Shield, Target, ClipboardCheck, TrendingUp, Mail } from 'lucide-react';
+import {
+  Users,
+  UserCog,
+  Heart,
+  Shield,
+  Target,
+  ClipboardCheck,
+  TrendingUp,
+  Bell,
+  LayoutTemplate,
+  CalendarDays,
+  CalendarRange,
+} from 'lucide-react';
 
 interface DashStats { totalUsers?: number; heartsThisMonth?: number; activeGoals?: number; activeCycles?: number; goalCompletionRate?: number; totalGoals?: number; completedGoals?: number; [key: string]: any; }
 
 const adminLinks = [
-  { href: '/dashboard/admin/users', label: 'User Management', description: 'Manage roles, managers, and accounts', icon: Users, color: '--color-accent' },
+  { href: '/dashboard/admin/users', label: 'User Management', description: 'Manage roles, managers, and accounts', icon: UserCog, color: '--color-accent' },
   { href: '/dashboard/admin/values', label: 'Company Values', description: 'Configure Heart value tags', icon: Heart, color: '--color-heart' },
-  { href: '/dashboard/admin/templates', label: 'Goal Templates', description: 'Create reusable goal templates', icon: Target, color: '--color-goal-active' },
-  { href: '/dashboard/admin/events', label: 'Events', description: 'Create and manage company events', icon: Calendar, color: '--color-accent' },
-  { href: '/dashboard/admin/cycles', label: 'Review Cycles', description: 'Create performance review cycles', icon: Calendar, color: '--color-review' },
-  { href: '/dashboard/admin/notifications', label: 'Notifications', description: 'View email notification log', icon: Mail, color: '--color-info' },
+  { href: '/dashboard/admin/templates', label: 'Goal Templates', description: 'Create reusable goal templates', icon: LayoutTemplate, color: '--color-goal-active' },
+  { href: '/dashboard/admin/events', label: 'Events', description: 'Create and manage company events', icon: CalendarDays, color: '--color-accent' },
+  { href: '/dashboard/admin/cycles', label: 'Review Cycles', description: 'Create performance review cycles', icon: CalendarRange, color: '--color-review' },
+  { href: '/dashboard/admin/notifications', label: 'Email Log', description: 'View sent, pending, and failed email notifications', icon: Bell, color: '--color-info' },
 ];
 
 export default function AdminDashboard() {

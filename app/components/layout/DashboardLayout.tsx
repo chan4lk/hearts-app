@@ -16,7 +16,8 @@ import {
   BsCalendarCheck, BsCalendarEvent as BsCalendar,
   BsCheckCircle as BsCheckEvent,
   BsChevronLeft, BsChevronRight,
-  BsHeart, BsJournalCheck, BsEnvelope
+  BsHeart, BsJournalCheck, BsEnvelope,
+  BsFileEarmarkText, BsCalendarRange, BsGearFill,
 } from 'react-icons/bs';
 import { useSettings } from '@/app/providers';
 import ThemeToggle from '@/app/components/ui/ThemeToggle';
@@ -222,11 +223,11 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
         defaultOpen: false,
         items: [
           { href: '/dashboard/admin', label: 'Dashboard', icon: BsShield },
-          { href: '/dashboard/admin/users', label: 'Users', icon: BsPeople, isSub: true },
+          { href: '/dashboard/admin/users', label: 'Users', icon: BsGearFill, isSub: true },
           { href: '/dashboard/admin/values', label: 'Values', icon: BsHeart, isSub: true },
-          { href: '/dashboard/admin/templates', label: 'Templates', icon: BsBullseye, isSub: true },
-          { href: '/dashboard/admin/events', label: 'Events', icon: BsCalendarCheck, isSub: true },
-          { href: '/dashboard/admin/cycles', label: 'Cycles', icon: BsCalendar, isSub: true },
+          { href: '/dashboard/admin/templates', label: 'Templates', icon: BsFileEarmarkText, isSub: true },
+          { href: '/dashboard/admin/events', label: 'Events', icon: BsCalendar, isSub: true },
+          { href: '/dashboard/admin/cycles', label: 'Cycles', icon: BsCalendarRange, isSub: true },
           { href: '/dashboard/admin/notifications', label: 'Emails', icon: BsEnvelope, isSub: true },
         ],
       });
