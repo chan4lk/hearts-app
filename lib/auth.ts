@@ -89,19 +89,32 @@ export const authOptions: NextAuthOptions = {
       },
       profile: async (profile, tokens) => {
         try {
-          // Only log in development - never log sensitive profile data in production
+          // Azure AD work/school accounts often don't populate `email`.
+          // Fall back to `preferred_username` or `upn` (User Principal Name).
+          const email =
+            profile.email ||
+            (profile as any).preferred_username ||
+            (profile as any).upn ||
+            null;
+
           if (process.env.NODE_ENV === 'development') {
             console.log('Azure AD processing profile', 'Information', {
               hasEmail: !!profile.email,
+              hasPreferredUsername: !!(profile as any).preferred_username,
+              hasUpn: !!(profile as any).upn,
+              resolvedEmail: email,
               hasName: !!profile.name,
               hasTokens: !!tokens
             });
           }
 
           // Validate required profile data
-          if (!profile.email) {
-            throw new Error('No email found in Azure AD profile');
+          if (!email) {
+            throw new Error('No email / preferred_username / upn found in Azure AD profile');
           }
+
+          // Normalize the profile so the rest of this callback uses `email`
+          profile.email = email;
 
           if (!profile.name && process.env.NODE_ENV === 'development') {
             console.log('Azure AD: No name found, using email as fallback', 'Warning');
@@ -205,6 +218,11 @@ export const authOptions: NextAuthOptions = {
         }
       }
     }),
+    // Email/password login is for LOCAL DEVELOPMENT ONLY.
+    // In production, only Azure AD is allowed unless ALLOW_PASSWORD_LOGIN=true is
+    // explicitly set in the environment (e.g., break-glass admin account).
+    ...(process.env.NODE_ENV !== 'production' || process.env.ALLOW_PASSWORD_LOGIN === 'true'
+      ? [
     CredentialsProvider({
       name: 'credentials',
       credentials: {
@@ -314,6 +332,8 @@ export const authOptions: NextAuthOptions = {
         }
       },
     }),
+      ]
+      : []),
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
