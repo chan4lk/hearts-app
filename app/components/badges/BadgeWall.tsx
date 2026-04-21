@@ -2,17 +2,22 @@
 
 import { useEffect, useState } from 'react';
 import {
-  Flag,
-  CheckCircle2,
-  Trophy,
+  Rocket,
+  Target,
+  Medal,
   Crown,
-  Clock,
+  Zap,
+  Map,
+  ThumbsUp,
   Heart,
-  Award,
-  Sparkles,
-  Compass,
-  Users,
+  HeartHandshake,
+  Gem,
+  Shield,
+  HandHeart,
+  GraduationCap,
+  Trophy,
   Lock,
+  Star,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -39,22 +44,34 @@ interface BadgesResponse {
 }
 
 const ICONS: Record<string, LucideIcon> = {
-  Flag,
-  CheckCircle2,
-  Trophy,
+  Rocket,
+  Target,
+  Medal,
   Crown,
-  Clock,
+  Zap,
+  Map,
+  ThumbsUp,
   Heart,
-  Award,
-  Sparkles,
-  Compass,
-  Users,
+  HeartHandshake,
+  Gem,
+  Shield,
+  HandHeart,
+  GraduationCap,
+  Trophy,
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
   goals: 'Goals',
   recognition: 'Recognition',
   leadership: 'Leadership',
+};
+
+// Tier = number of stars overlaid on earned badges (bronze 1 → platinum 4)
+const TIER_STARS: Record<string, number> = {
+  bronze: 1,
+  silver: 2,
+  gold: 3,
+  platinum: 4,
 };
 
 export default function BadgeWall({ userId, id }: { userId: string; id?: string }) {
@@ -125,22 +142,40 @@ export default function BadgeWall({ userId, id }: { userId: string; id?: string 
                 >
                   <div className="flex items-start gap-2 mb-1.5">
                     <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                      className={`relative w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                        b.earned ? 'shadow-theme-sm' : ''
+                      }`}
                       style={{
                         backgroundColor: b.earned
                           ? `rgba(var(${b.color}),0.15)`
                           : 'rgba(var(--color-surface-tertiary),0.5)',
+                        boxShadow: b.earned
+                          ? `inset 0 0 0 2px rgba(var(${b.color}),0.4)`
+                          : undefined,
                       }}
                     >
                       {b.earned ? (
-                        <Icon className="w-4 h-4" style={{ color: `rgb(var(${b.color}))` }} />
+                        <Icon className="w-5 h-5" style={{ color: `rgb(var(${b.color}))` }} strokeWidth={2.2} />
                       ) : (
                         <Lock className="w-4 h-4 text-tertiary" />
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-bold text-primary truncate">{b.title}</p>
-                      <p className="text-2xs text-tertiary capitalize">{b.tier}</p>
+                      <div className="flex items-center gap-0.5 mt-0.5">
+                        {Array.from({ length: TIER_STARS[b.tier] ?? 1 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className="w-2.5 h-2.5"
+                            fill={b.earned ? `rgb(var(${b.color}))` : 'currentColor'}
+                            style={{
+                              color: b.earned ? `rgb(var(${b.color}))` : 'rgb(var(--color-text-tertiary))',
+                              opacity: b.earned ? 1 : 0.4,
+                            }}
+                          />
+                        ))}
+                        <span className="text-2xs text-tertiary capitalize ml-1">{b.tier}</span>
+                      </div>
                     </div>
                   </div>
                   <p className="text-2xs text-secondary line-clamp-2 mb-1.5">{b.description}</p>

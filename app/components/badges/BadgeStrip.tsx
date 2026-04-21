@@ -2,16 +2,20 @@
 
 import { useEffect, useState } from 'react';
 import {
-  Flag,
-  CheckCircle2,
-  Trophy,
+  Rocket,
+  Target,
+  Medal,
   Crown,
-  Clock,
+  Zap,
+  Map,
+  ThumbsUp,
   Heart,
-  Award,
-  Sparkles,
-  Compass,
-  Users,
+  HeartHandshake,
+  Gem,
+  Shield,
+  HandHeart,
+  GraduationCap,
+  Trophy,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -27,7 +31,15 @@ interface EarnedBadge {
 }
 
 const ICONS: Record<string, LucideIcon> = {
-  Flag, CheckCircle2, Trophy, Crown, Clock, Heart, Award, Sparkles, Compass, Users,
+  Rocket, Target, Medal, Crown, Zap, Map, ThumbsUp,
+  Heart, HeartHandshake, Gem, Shield, HandHeart, GraduationCap, Trophy,
+};
+
+const TIER_RING: Record<string, string> = {
+  bronze: 'ring-2',
+  silver: 'ring-2',
+  gold: 'ring-[3px]',
+  platinum: 'ring-[3px] ring-offset-1 ring-offset-[rgb(var(--color-surface-primary))]',
 };
 
 // Sort by tier (rarest first), then by earned date (newest first)
@@ -94,14 +106,18 @@ export default function BadgeStrip({ userId, maxVisible = 6, scrollToId }: Props
       <div className="flex -space-x-1.5">
         {visible.map((b) => {
           const Icon = ICONS[b.icon] || Trophy;
+          const ringSize = TIER_RING[b.tier] ?? 'ring-2';
           return (
             <div
               key={b.kind}
-              className="w-7 h-7 rounded-full flex items-center justify-center ring-2 ring-[rgb(var(--color-surface-primary))]"
-              style={{ backgroundColor: `rgba(var(${b.color}),0.18)` }}
-              title={`${b.title}${b.earnedAt ? ` · ${new Date(b.earnedAt).toLocaleDateString()}` : ''} — ${b.description}`}
+              className={`w-8 h-8 rounded-full flex items-center justify-center shadow-theme-sm ${ringSize}`}
+              style={{
+                backgroundColor: `rgba(var(${b.color}),0.2)`,
+                boxShadow: `0 0 0 2px rgb(var(${b.color})), 0 0 0 4px rgb(var(--color-surface-primary))`,
+              }}
+              title={`${b.title} · ${b.tier} tier${b.earnedAt ? ` · earned ${new Date(b.earnedAt).toLocaleDateString()}` : ''} — ${b.description}`}
             >
-              <Icon className="w-3.5 h-3.5" style={{ color: `rgb(var(${b.color}))` }} />
+              <Icon className="w-4 h-4" style={{ color: `rgb(var(${b.color}))` }} strokeWidth={2.3} />
             </div>
           );
         })}

@@ -38,12 +38,13 @@ export interface BadgeDef {
 }
 
 export const BADGE_CATALOG: Record<BadgeKind, BadgeDef> = {
+  // ─── Goals progression ──────────────────────────────────────────
   FIRST_GOAL_DONE: {
     kind: 'FIRST_GOAL_DONE',
     title: 'First Step',
     description: 'Completed your first goal',
     tier: 'bronze',
-    icon: 'Flag',
+    icon: 'Rocket',                  // taking off — fits "first" narrative
     color: '--color-goal-completed',
     target: 1,
     category: 'goals',
@@ -53,7 +54,7 @@ export const BADGE_CATALOG: Record<BadgeKind, BadgeDef> = {
     title: 'Finisher',
     description: 'Completed 5 goals',
     tier: 'silver',
-    icon: 'CheckCircle2',
+    icon: 'Target',                  // hitting the target, multiple bullseyes
     color: '--color-accent',
     target: 5,
     category: 'goals',
@@ -63,7 +64,7 @@ export const BADGE_CATALOG: Record<BadgeKind, BadgeDef> = {
     title: 'Achiever',
     description: 'Completed 25 goals',
     tier: 'gold',
-    icon: 'Trophy',
+    icon: 'Medal',                   // earned distinction
     color: '--color-warning',
     target: 25,
     category: 'goals',
@@ -73,7 +74,7 @@ export const BADGE_CATALOG: Record<BadgeKind, BadgeDef> = {
     title: 'Legend',
     description: 'Completed 100 goals',
     tier: 'platinum',
-    icon: 'Crown',
+    icon: 'Crown',                   // royalty — top tier
     color: '--color-cat-kpi',
     target: 100,
     category: 'goals',
@@ -83,17 +84,28 @@ export const BADGE_CATALOG: Record<BadgeKind, BadgeDef> = {
     title: 'On the Clock',
     description: 'Completed 10 goals on or before the deadline',
     tier: 'gold',
-    icon: 'Clock',
+    icon: 'Zap',                     // speed + punctuality
     color: '--color-goal-active',
     target: 10,
     category: 'goals',
   },
+  CATEGORY_EXPLORER_5: {
+    kind: 'CATEGORY_EXPLORER_5',
+    title: 'Explorer',
+    description: 'Completed goals across 5 different categories',
+    tier: 'gold',
+    icon: 'Map',                     // exploring the map
+    color: '--color-accent',
+    target: 5,
+    category: 'goals',
+  },
+  // ─── Recognition — distinct icons per tier so Heart family doesn't repeat ─
   FIRST_HEART: {
     kind: 'FIRST_HEART',
     title: 'Appreciated',
     description: 'Received your first Heart',
     tier: 'bronze',
-    icon: 'Heart',
+    icon: 'ThumbsUp',                // first positive signal
     color: '--color-heart',
     target: 1,
     category: 'recognition',
@@ -103,7 +115,7 @@ export const BADGE_CATALOG: Record<BadgeKind, BadgeDef> = {
     title: 'Team Favorite',
     description: 'Received 10 Hearts',
     tier: 'silver',
-    icon: 'Heart',
+    icon: 'Heart',                   // classic heart
     color: '--color-heart',
     target: 10,
     category: 'recognition',
@@ -113,7 +125,7 @@ export const BADGE_CATALOG: Record<BadgeKind, BadgeDef> = {
     title: 'Beloved',
     description: 'Received 50 Hearts',
     tier: 'gold',
-    icon: 'Heart',
+    icon: 'HeartHandshake',          // relationship + recognition
     color: '--color-heart',
     target: 50,
     category: 'recognition',
@@ -123,7 +135,7 @@ export const BADGE_CATALOG: Record<BadgeKind, BadgeDef> = {
     title: 'Hearts Legend',
     description: 'Received 100 Hearts',
     tier: 'platinum',
-    icon: 'Heart',
+    icon: 'Gem',                     // rare, precious, top tier
     color: '--color-heart',
     target: 100,
     category: 'recognition',
@@ -133,7 +145,7 @@ export const BADGE_CATALOG: Record<BadgeKind, BadgeDef> = {
     title: 'Value Champion',
     description: 'Received 5 Hearts for the same company value',
     tier: 'gold',
-    icon: 'Award',
+    icon: 'Shield',                  // champion, guardian of a value
     color: '--color-warning',
     target: 5,
     category: 'recognition',
@@ -143,27 +155,18 @@ export const BADGE_CATALOG: Record<BadgeKind, BadgeDef> = {
     title: 'Kind Soul',
     description: 'Gave 50 Hearts to teammates',
     tier: 'gold',
-    icon: 'Sparkles',
+    icon: 'HandHeart',               // giving — hand holding heart
     color: '--color-heart',
     target: 50,
     category: 'recognition',
   },
-  CATEGORY_EXPLORER_5: {
-    kind: 'CATEGORY_EXPLORER_5',
-    title: 'Explorer',
-    description: 'Completed goals across 5 different categories',
-    tier: 'gold',
-    icon: 'Compass',
-    color: '--color-accent',
-    target: 5,
-    category: 'goals',
-  },
+  // ─── Leadership ────────────────────────────────────────────────
   MENTOR_3: {
     kind: 'MENTOR_3',
     title: 'Mentor',
     description: 'Assigned goals to 3 different people',
     tier: 'silver',
-    icon: 'Users',
+    icon: 'GraduationCap',           // teaching / mentorship
     color: '--color-info',
     target: 3,
     category: 'leadership',
