@@ -342,24 +342,47 @@ export default function GoalsPage() {
 
         {loading ? (
           <PageSkeleton type="cards" count={3} />
-        ) : goals.length === 0 ? (
-          <EmptyState2
-            icon={Target}
-            title="No goals yet"
-            description="Set your first goal to start tracking progress"
-            color="--color-goal-active"
-          />
         ) : visibleGoals.length === 0 ? (
-          <div className="empty-container">
-            <div
-              className="empty-icon-ring"
-              style={{ backgroundColor: 'rgba(var(--color-goal-active),0.1)' }}
-            >
-              <Target className="w-10 h-10" style={{ color: 'rgb(var(--color-goal-active))' }} />
-            </div>
-            <p className="empty-title">No goals match your search</p>
-            <p className="empty-description">Try a different search term or clear the search.</p>
-          </div>
+          (() => {
+            const rawEmpty = goals.length === 0;
+            // If filters are trimming results but data exists, say so.
+            if (!rawEmpty && hasFilters) {
+              return (
+                <div className="empty-container">
+                  <div className="empty-icon-ring" style={{ backgroundColor: 'rgba(var(--color-goal-active),0.1)' }}>
+                    <Target className="w-10 h-10" style={{ color: 'rgb(var(--color-goal-active))' }} />
+                  </div>
+                  <p className="empty-title">No goals match the current filters</p>
+                  <p className="empty-description">Try a different search term, or clear filters to see all goals in this tab.</p>
+                </div>
+              );
+            }
+            // Tab-specific "nothing here yet" messages.
+            let title = 'No goals yet';
+            let description = 'Set your first goal to start tracking progress';
+            if (viewMode === 'self') {
+              title = 'No self-created goals yet';
+              description = 'Click "New Goal" above to set a personal goal.';
+            } else if (viewMode === 'assigned') {
+              title = 'No goals assigned to you yet';
+              description = isManager
+                ? 'Nobody has pushed goals down to you. Use "Self-Created" to set your own.'
+                : 'Your manager will assign goals here. Check back or create your own under "Self-Created".';
+            } else if (viewMode === 'team') {
+              title = isAdmin ? 'No goals in the system yet' : 'No team goals yet';
+              description = isAdmin
+                ? 'Once managers or employees create goals, they appear here.'
+                : 'Assign goals to your direct reports from the Team page.';
+            }
+            return (
+              <EmptyState2
+                icon={Target}
+                title={title}
+                description={description}
+                color="--color-goal-active"
+              />
+            );
+          })()
         ) : (
           <div className="space-y-3 max-h-[calc(100vh-20rem)] overflow-y-auto scrollbar-hide pr-1 -mr-1">
             {visibleGoals.map((goal, i) => (
