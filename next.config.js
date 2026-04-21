@@ -38,6 +38,17 @@ const nextConfig = {
       new webpack.IgnorePlugin({ resourceRegExp: /^@azure\/functions-core$/ })
     );
 
+    // Silence noisy "Critical dependency" warnings from applicationinsights /
+    // OpenTelemetry instrumentation packages (they use dynamic require() on purpose).
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings || []),
+      { module: /node_modules[\\/]@opentelemetry[\\/]instrumentation/ },
+      { module: /node_modules[\\/]@azure[\\/]opentelemetry-instrumentation-azure-sdk/ },
+      { module: /node_modules[\\/]require-in-the-middle/ },
+      { message: /Critical dependency: the request of a dependency is an expression/ },
+      { message: /Critical dependency: require function is used in a way/ },
+    ];
+
     // For non-server builds (client + middleware), ignore applicationinsights completely
     if (!isServer) {
       // Ignore applicationinsights and Azure packages
