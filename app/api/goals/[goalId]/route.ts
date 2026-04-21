@@ -109,6 +109,23 @@ export async function PATCH(req: NextRequest, { params }: { params: { goalId: st
     return NextResponse.json({ error: permission.reason, code: 'FORBIDDEN' }, { status: 403 });
   }
 
+  // ── Admin self-goal auto-approval ────────────────────────────────
+  // If the caller is an admin with no manager above them (top of the
+  // hierarchy), and they're submitting their OWN draft goal for approval,
+  // there's nobody to approve it — so skip PENDING and activate directly.
+  // A dedicated GOAL_SELF_APPROVED audit entry preserves the paper trail.
+  let autoApproved = false;
+  if (
+    parsed.data.status === 'PENDING' &&
+    goal.status === 'DRAFT' &&
+    goal.ownerId === ctx.userId &&
+    ctx.userRole === 'ADMIN' &&
+    !goal.owner?.managerId
+  ) {
+    parsed.data.status = 'ACTIVE';
+    autoApproved = true;
+  }
+
   if (parsed.data.status && !canTransition(goal.status, parsed.data.status)) {
     return NextResponse.json(
       { error: `Cannot transition from ${goal.status} to ${parsed.data.status}`, code: 'CONFLICT' },
@@ -135,14 +152,25 @@ export async function PATCH(req: NextRequest, { params }: { params: { goalId: st
   });
 
   if (parsed.data.status) {
-    const actionMap: Partial<Record<GoalStatus, string>> = {
-      PENDING: AuditAction.GOAL_SUBMITTED,
-      COMPLETED: AuditAction.GOAL_COMPLETED,
-      CLOSED: AuditAction.GOAL_CLOSED,
-    };
-    const action = actionMap[parsed.data.status];
-    if (action) {
-      await logAudit(ctx, { action, entity: 'Goal', entityId: goal.id, details: { from: goal.status, to: parsed.data.status } });
+    if (autoApproved) {
+      // Dedicated audit trail for the admin self-approval exception so
+      // another admin can retroactively see what was auto-activated.
+      await logAudit(ctx, {
+        action: AuditAction.GOAL_SELF_APPROVED,
+        entity: 'Goal',
+        entityId: goal.id,
+        details: { from: 'DRAFT', to: 'ACTIVE', reason: 'admin_no_manager' },
+      });
+    } else {
+      const actionMap: Partial<Record<GoalStatus, string>> = {
+        PENDING: AuditAction.GOAL_SUBMITTED,
+        COMPLETED: AuditAction.GOAL_COMPLETED,
+        CLOSED: AuditAction.GOAL_CLOSED,
+      };
+      const action = actionMap[parsed.data.status];
+      if (action) {
+        await logAudit(ctx, { action, entity: 'Goal', entityId: goal.id, details: { from: goal.status, to: parsed.data.status } });
+      }
     }
     if (parsed.data.status === 'COMPLETED' && goal.status !== 'COMPLETED') {
       checkAndAwardBadges(goal.ownerId, ctx.tenantId, 'GOAL_COMPLETED').catch(() => {});

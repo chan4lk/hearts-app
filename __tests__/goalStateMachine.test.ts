@@ -6,7 +6,9 @@ describe('Goal State Machine', () => {
     // DRAFT transitions
     it('DRAFT → PENDING (submit)', () => expect(canTransition('DRAFT', 'PENDING')).toBe(true));
     it('DRAFT → CLOSED (abandon)', () => expect(canTransition('DRAFT', 'CLOSED')).toBe(true));
-    it('DRAFT → ACTIVE (invalid)', () => expect(canTransition('DRAFT', 'ACTIVE')).toBe(false));
+    // Admin self-approve exception — valid at the state-machine level;
+    // authorization is enforced in the PATCH route handler.
+    it('DRAFT → ACTIVE (admin self-approve)', () => expect(canTransition('DRAFT', 'ACTIVE')).toBe(true));
     it('DRAFT → COMPLETED (invalid)', () => expect(canTransition('DRAFT', 'COMPLETED')).toBe(false));
 
     // PENDING transitions
@@ -39,8 +41,8 @@ describe('Goal State Machine', () => {
   });
 
   describe('getValidTransitions', () => {
-    it('DRAFT can go to PENDING or CLOSED', () => {
-      expect(getValidTransitions('DRAFT')).toEqual(['PENDING', 'CLOSED']);
+    it('DRAFT can go to PENDING, ACTIVE (admin self-approve), or CLOSED', () => {
+      expect(getValidTransitions('DRAFT')).toEqual(['PENDING', 'ACTIVE', 'CLOSED']);
     });
 
     it('ACTIVE can go to COMPLETED, ON_HOLD, BLOCKED, or CLOSED', () => {
