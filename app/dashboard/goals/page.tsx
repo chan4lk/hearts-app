@@ -27,6 +27,7 @@ export default function GoalsPage() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('ALL');
+  const [viewMode, setViewMode] = useState<'my' | 'team'>('my');
   const [search, setSearch] = useState('');
   const [ownerFilter, setOwnerFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
@@ -43,13 +44,20 @@ export default function GoalsPage() {
     setTimeout(() => setFlash(null), 3500);
   }, []);
 
+  const currentUserId = session?.user?.id;
+
   const fetchGoals = useCallback(async () => {
     const params = new URLSearchParams();
     if (activeTab !== 'ALL') params.set('status', activeTab);
+    // "My Goals" tab: narrow to own goals via ownerId
+    // "Team Goals" tab: default API behavior (manager: own+reports; admin: all)
+    if (viewMode === 'my' && currentUserId) {
+      params.set('ownerId', currentUserId);
+    }
     const res = await fetch(`/api/goals?${params}`);
     if (res.ok) setGoals(await res.json());
     setLoading(false);
-  }, [activeTab]);
+  }, [activeTab, viewMode, currentUserId]);
 
   useEffect(() => {
     fetchGoals();
@@ -87,6 +95,9 @@ export default function GoalsPage() {
     const o = ownerFilter.trim().toLowerCase();
     const c = categoryFilter.trim().toLowerCase();
     return goals.filter((g) => {
+      // Team tab for managers: API returns own + reports; drop own rows.
+      // Admin in Team mode keeps all goals (no client-side filter).
+      if (viewMode === 'team' && !isAdmin && g.ownerId === currentUserId) return false;
       if (o && !g.owner.name.toLowerCase().includes(o)) return false;
       if (c) {
         const cat = (g.category ?? '').toLowerCase();
@@ -98,7 +109,7 @@ export default function GoalsPage() {
       }
       return true;
     });
-  }, [goals, search, ownerFilter, categoryFilter]);
+  }, [goals, search, ownerFilter, categoryFilter, viewMode, isAdmin, currentUserId]);
 
   const hasFilters = !!(search || ownerFilter || categoryFilter || activeTab !== 'ALL');
 
@@ -182,6 +193,33 @@ export default function GoalsPage() {
           </div>
         )}
 
+        {isManager && (
+          <div className="inline-flex gap-1 p-1 rounded-xl bg-surface-secondary w-fit">
+            {(
+              [
+                { key: 'my', label: 'My Goals' },
+                { key: 'team', label: isAdmin ? 'All Goals' : 'Team Goals' },
+              ] as const
+            ).map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => {
+                  setViewMode(t.key);
+                  setOwnerFilter('');
+                }}
+                className={`px-4 py-1.5 rounded-lg text-xs font-semibold focus-ring transition-all ${
+                  viewMode === t.key
+                    ? 'bg-surface-elevated text-primary shadow-theme-sm'
+                    : 'text-secondary hover:text-primary'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
           {STATUS_TABS.map((tab) => (
             <button
@@ -218,7 +256,7 @@ export default function GoalsPage() {
                   aria-label="Search goals"
                 />
               </div>
-              {isManager && owners.length > 1 && (
+              {isManager && viewMode === 'team' && owners.length > 1 && (
                 <div className="relative sm:w-48">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
                   <input
