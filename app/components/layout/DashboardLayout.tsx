@@ -200,6 +200,7 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
         { href: '/dashboard/goals', label: 'Goals', icon: BsBullseye },
         { href: '/dashboard/reviews', label: 'Reviews', icon: BsJournalCheck },
         { href: '/dashboard/events', label: 'Events', icon: BsCalendar },
+        { href: '/dashboard/reports', label: 'Reports', icon: BsGraphUp },
       ],
     });
 
