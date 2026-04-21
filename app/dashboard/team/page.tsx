@@ -645,14 +645,6 @@ export default function TeamPage() {
               + Add Another Goal
             </button>
 
-            {/* Summary */}
-            {selectedMembers.length > 0 && bulkGoals.some(g => g.title.trim()) && (
-              <div className="card-stat p-3">
-                <p className="text-xs text-primary font-medium">
-                  {bulkGoals.filter(g => g.title.trim()).length} goal(s) × {selectedMembers.length} employee(s) = <strong className="text-accent">{bulkGoals.filter(g => g.title.trim()).length * selectedMembers.length} goals</strong> will be created
-                </p>
-              </div>
-            )}
 
             <FormActions onCancel={() => setShowAssign(false)}
               submitLabel={assigning ? 'Assigning...' : `Assign ${bulkGoals.filter(g => g.title.trim()).length} Goal(s)`}

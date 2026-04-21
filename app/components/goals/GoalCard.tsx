@@ -44,7 +44,12 @@ export default function GoalCard({
 }: Props) {
   const router = useRouter();
   const isOwner = goal.ownerId === currentUserId;
-  const canEdit = isAdmin || (isOwner && (goal.status === 'DRAFT' || goal.status === 'NEEDS_REVISION'));
+  const isManagerOfOwner =
+    !!currentUserId && isManager && !isAdmin && goal.owner.managerId === currentUserId;
+  const canEdit =
+    isAdmin ||
+    isManagerOfOwner ||
+    (isOwner && (goal.status === 'DRAFT' || goal.status === 'NEEDS_REVISION'));
   const canDelete = isAdmin || (isOwner && goal.status === 'DRAFT');
 
   const openDetail = () => router.push(`/dashboard/goals/${goal.id}`);

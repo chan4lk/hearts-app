@@ -27,7 +27,7 @@ export default function GoalsPage() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('ALL');
-  const [viewMode, setViewMode] = useState<'self' | 'assigned' | 'team'>('self');
+  const [viewMode, setViewMode] = useState<'self' | 'assigned' | 'team' | 'all'>('self');
   const [search, setSearch] = useState('');
   const [ownerFilter, setOwnerFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
@@ -95,13 +95,16 @@ export default function GoalsPage() {
     const o = ownerFilter.trim().toLowerCase();
     const c = categoryFilter.trim().toLowerCase();
     return goals.filter((g) => {
-      // Tab scoping: self / assigned split by assignerId; team excludes own (manager).
+      // Tab scoping.
       if (viewMode === 'self') {
         if (g.assignerId && g.assignerId !== g.ownerId) return false;
       } else if (viewMode === 'assigned') {
         if (!g.assignerId || g.assignerId === g.ownerId) return false;
       } else if (viewMode === 'team') {
-        if (!isAdmin && g.ownerId === currentUserId) return false;
+        // Everyone (incl. admin) only sees goals where they are the owner's assigned manager.
+        if (g.owner.managerId !== currentUserId) return false;
+      } else if (viewMode === 'all') {
+        // Admin-only: every goal passes.
       }
       if (o && !g.owner.name.toLowerCase().includes(o)) return false;
       if (c) {
@@ -203,9 +206,8 @@ export default function GoalsPage() {
             [
               { key: 'self', label: 'Self-Created' },
               { key: 'assigned', label: 'Assigned to Me' },
-              ...(isManager
-                ? ([{ key: 'team', label: isAdmin ? 'All Goals' : 'Team Goals' }] as const)
-                : []),
+              ...(isManager ? ([{ key: 'team', label: 'Team Goals' }] as const) : []),
+              ...(isAdmin ? ([{ key: 'all', label: 'All Goals' }] as const) : []),
             ] as const
           ).map((t) => (
             <button
@@ -262,7 +264,7 @@ export default function GoalsPage() {
                   aria-label="Search goals"
                 />
               </div>
-              {isManager && viewMode === 'team' && owners.length > 1 && (
+              {isManager && (viewMode === 'team' || viewMode === 'all') && owners.length > 1 && (
                 <div className="relative sm:w-48">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none" />
                   <input
@@ -369,10 +371,13 @@ export default function GoalsPage() {
                 ? 'Nobody has pushed goals down to you. Use "Self-Created" to set your own.'
                 : 'Your manager will assign goals here. Check back or create your own under "Self-Created".';
             } else if (viewMode === 'team') {
-              title = isAdmin ? 'No goals in the system yet' : 'No team goals yet';
+              title = 'No team goals yet';
               description = isAdmin
-                ? 'Once managers or employees create goals, they appear here.'
+                ? 'No one reports to you yet. Set yourself as a user\'s manager under Admin → Users to populate this tab.'
                 : 'Assign goals to your direct reports from the Team page.';
+            } else if (viewMode === 'all') {
+              title = 'No goals in the system yet';
+              description = 'Once managers or employees create goals, they appear here.';
             }
             return (
               <EmptyState2

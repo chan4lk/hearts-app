@@ -8,7 +8,7 @@ export interface Goal {
   targetDate: string | null;
   ownerId: string;
   assignerId: string | null;
-  owner: { id: string; name: string; department: string | null };
+  owner: { id: string; name: string; department: string | null; managerId?: string | null };
   assigner: { id: string; name: string } | null;
   _count: { comments: number };
   updatedAt: string;

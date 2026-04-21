@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
     where,
     orderBy: { updatedAt: 'desc' },
     include: {
-      owner: { select: { id: true, name: true, department: true } },
+      owner: { select: { id: true, name: true, department: true, managerId: true } },
       assigner: { select: { id: true, name: true } },
       _count: { select: { comments: true } },
     },
