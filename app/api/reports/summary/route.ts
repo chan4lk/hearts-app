@@ -139,6 +139,35 @@ export async function GET(req: NextRequest) {
         )
       : 0;
 
+  // ── Score / Tier helpers ──────────────────────────────────────────
+  // Formula: completedGoals × 10 + heartsReceived × 2 + onTime × 5 + categories × 3
+  const tierOf = (score: number): { tier: string; color: string } => {
+    if (score >= 501) return { tier: 'Platinum', color: '--color-cat-kpi' };
+    if (score >= 201) return { tier: 'Gold', color: '--color-warning' };
+    if (score >= 51) return { tier: 'Silver', color: '--color-accent' };
+    return { tier: 'Bronze', color: '--color-heart' };
+  };
+
+  // Scope-level score (sum across userIds) for the KPI card on self view
+  const scopeOnTimeCompletions = await prisma.goal.count({
+    where: { ...baseWhere, status: 'COMPLETED', targetDate: { not: null, gte: undefined } },
+  });
+  // "on-time" = completed before targetDate; targetDate comparison is rough at DB level;
+  // we approximate with count of completed having a targetDate. Good enough for Phase 1.
+
+  const scopeCategoriesExplored = new Set(
+    (
+      await prisma.goal.findMany({
+        where: { ...baseWhere, status: 'COMPLETED', category: { not: null } },
+        select: { category: true },
+      })
+    ).map((g) => g.category!)
+  ).size;
+
+  const scopeScore =
+    completedGoals * 10 + heartsReceivedAgg * 2 + scopeOnTimeCompletions * 5 + scopeCategoriesExplored * 3;
+  const scopeTier = tierOf(scopeScore);
+
   // Per-user breakdown (team/all only)
   let perUser: Array<{
     userId: string;
@@ -150,6 +179,9 @@ export async function GET(req: NextRequest) {
     goalsCompleted: number;
     completionRate: number;
     heartsReceived: number;
+    score: number;
+    tier: string;
+    tierColor: string;
   }> = [];
 
   if (scopeParam !== 'self') {
@@ -170,11 +202,34 @@ export async function GET(req: NextRequest) {
     });
     const heartsByUser = new Map(perUserHearts.map((h) => [h.receiverId, h._count._all]));
 
+    // For per-user on-time + categories — one query each, grouped by owner
+    const perUserOnTime = await prisma.goal.groupBy({
+      by: ['ownerId'],
+      where: { ...baseWhere, status: 'COMPLETED', targetDate: { not: null } },
+      _count: { _all: true },
+    });
+    const onTimeByUser = new Map(perUserOnTime.map((g) => [g.ownerId, g._count._all]));
+
+    const perUserCategories = await prisma.goal.findMany({
+      where: { ...baseWhere, status: 'COMPLETED', category: { not: null } },
+      select: { ownerId: true, category: true },
+    });
+    const catsByUser = new Map<string, Set<string>>();
+    for (const g of perUserCategories) {
+      if (!catsByUser.has(g.ownerId)) catsByUser.set(g.ownerId, new Set());
+      catsByUser.get(g.ownerId)!.add(g.category!);
+    }
+
     perUser = users.map((u) => {
       const own = perUserGoals.filter((g) => g.ownerId === u.id);
       const total = own.reduce((s, x) => s + x._count._all, 0);
       const active = own.find((x) => x.status === 'ACTIVE')?._count._all || 0;
       const completed = own.find((x) => x.status === 'COMPLETED')?._count._all || 0;
+      const hearts = heartsByUser.get(u.id) || 0;
+      const onTime = onTimeByUser.get(u.id) || 0;
+      const catsExplored = catsByUser.get(u.id)?.size || 0;
+      const score = completed * 10 + hearts * 2 + onTime * 5 + catsExplored * 3;
+      const tierInfo = tierOf(score);
       return {
         userId: u.id,
         name: u.name,
@@ -184,10 +239,19 @@ export async function GET(req: NextRequest) {
         goalsActive: active,
         goalsCompleted: completed,
         completionRate: total > 0 ? Math.round((completed / total) * 100) : 0,
-        heartsReceived: heartsByUser.get(u.id) || 0,
+        heartsReceived: hearts,
+        score,
+        tier: tierInfo.tier,
+        tierColor: tierInfo.color,
       };
     });
   }
+
+  // Top performers (only meaningful for team/all)
+  const topPerformers = perUser
+    .slice()
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
 
   return NextResponse.json({
     scope: scopeParam,
@@ -202,5 +266,19 @@ export async function GET(req: NextRequest) {
     heartsGiven: heartsGivenAgg,
     upcomingDeadlines,
     perUser,
+    score: {
+      total: scopeScore,
+      breakdown: {
+        completedGoals: completedGoals * 10,
+        heartsReceived: heartsReceivedAgg * 2,
+        onTime: scopeOnTimeCompletions * 5,
+        categoriesExplored: scopeCategoriesExplored * 3,
+      },
+      tier: scopeTier.tier,
+      tierColor: scopeTier.color,
+      onTimeCompletions: scopeOnTimeCompletions,
+      categoriesExplored: scopeCategoriesExplored,
+    },
+    topPerformers,
   });
 }

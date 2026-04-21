@@ -16,6 +16,8 @@ import {
   Calendar,
   Users,
   Award,
+  Trophy,
+  Sparkles,
 } from 'lucide-react';
 import {
   BarChart,
@@ -50,17 +52,36 @@ interface Summary {
     progress: number;
     owner: { id: string; name: string };
   }>;
-  perUser: Array<{
-    userId: string;
-    name: string;
-    department: string | null;
-    position: string | null;
-    goalsTotal: number;
-    goalsActive: number;
-    goalsCompleted: number;
-    completionRate: number;
-    heartsReceived: number;
-  }>;
+  perUser: Array<PerUser>;
+  score: {
+    total: number;
+    breakdown: {
+      completedGoals: number;
+      heartsReceived: number;
+      onTime: number;
+      categoriesExplored: number;
+    };
+    tier: string;
+    tierColor: string;
+    onTimeCompletions: number;
+    categoriesExplored: number;
+  };
+  topPerformers: PerUser[];
+}
+
+interface PerUser {
+  userId: string;
+  name: string;
+  department: string | null;
+  position: string | null;
+  goalsTotal: number;
+  goalsActive: number;
+  goalsCompleted: number;
+  completionRate: number;
+  heartsReceived: number;
+  score: number;
+  tier: string;
+  tierColor: string;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -161,6 +182,45 @@ export default function ReportsPage() {
           />
         ) : (
           <>
+            {/* Score + tier banner (Self scope = the user themselves) */}
+            {scope === 'self' && (
+              <div
+                className="rounded-2xl border border-theme p-5 flex items-center gap-5"
+                style={{
+                  background: `linear-gradient(135deg, rgba(var(${summary.score.tierColor}),0.12), rgba(var(${summary.score.tierColor}),0.04))`,
+                }}
+              >
+                <div
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: `rgba(var(${summary.score.tierColor}),0.2)` }}
+                >
+                  <Trophy className="w-8 h-8" style={{ color: `rgb(var(${summary.score.tierColor}))` }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-2xs uppercase tracking-widest font-bold text-tertiary mb-0.5">
+                    Your Score
+                  </p>
+                  <div className="flex items-baseline gap-3 flex-wrap">
+                    <p className="text-3xl font-bold text-primary">{summary.score.total}</p>
+                    <span
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold"
+                      style={{
+                        backgroundColor: `rgba(var(${summary.score.tierColor}),0.15)`,
+                        color: `rgb(var(${summary.score.tierColor}))`,
+                      }}
+                    >
+                      <Sparkles className="w-3 h-3" /> {summary.score.tier} Tier
+                    </span>
+                  </div>
+                  <p className="text-2xs text-tertiary mt-1">
+                    {summary.completedGoals}×10 (goals) + {summary.heartsReceived}×2 (hearts) +{' '}
+                    {summary.score.onTimeCompletions}×5 (on-time) +{' '}
+                    {summary.score.categoriesExplored}×3 (categories)
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* KPI strip */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <KpiCard
@@ -293,6 +353,58 @@ export default function ReportsPage() {
               </div>
             )}
 
+            {/* Top performers leaderboard (team/all) */}
+            {scope !== 'self' && summary.topPerformers.length > 0 && (
+              <div className="card-stat">
+                <h3 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-[rgb(var(--color-warning))]" /> Top performers
+                </h3>
+                <div className="space-y-2">
+                  {summary.topPerformers.slice(0, 5).map((u, i) => (
+                    <div
+                      key={u.userId}
+                      className="flex items-center gap-3 p-3 rounded-xl border border-theme bg-surface-primary"
+                    >
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                          i === 0
+                            ? 'bg-[rgba(var(--color-warning),0.15)] text-[rgb(var(--color-warning))]'
+                            : i === 1
+                            ? 'bg-[rgba(var(--color-accent),0.15)] text-accent'
+                            : i === 2
+                            ? 'bg-[rgba(var(--color-heart),0.15)] text-[rgb(var(--color-heart))]'
+                            : 'bg-surface-secondary text-tertiary'
+                        }`}
+                      >
+                        {i + 1}
+                      </div>
+                      <div className="avatar-sm avatar-gradient flex-shrink-0">
+                        {u.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-primary truncate">{u.name}</p>
+                        <p className="text-2xs text-tertiary truncate">
+                          {u.goalsCompleted} completed · {u.heartsReceived} hearts
+                        </p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-lg font-bold text-primary">{u.score}</p>
+                        <span
+                          className="inline-block px-2 py-0.5 rounded-full text-2xs font-bold"
+                          style={{
+                            backgroundColor: `rgba(var(${u.tierColor}),0.15)`,
+                            color: `rgb(var(${u.tierColor}))`,
+                          }}
+                        >
+                          {u.tier}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Per-user table (team/all) */}
             {scope !== 'self' && summary.perUser.length > 0 && (
               <div className="card-stat">
@@ -306,15 +418,17 @@ export default function ReportsPage() {
                         <th className="px-2 py-2">Name</th>
                         <th className="px-2 py-2 hidden sm:table-cell">Dept</th>
                         <th className="px-2 py-2 text-right">Goals</th>
-                        <th className="px-2 py-2 text-right">Active</th>
                         <th className="px-2 py-2 text-right">Done</th>
                         <th className="px-2 py-2 text-right">Rate</th>
                         <th className="px-2 py-2 text-right">♥</th>
+                        <th className="px-2 py-2 text-right">Score</th>
+                        <th className="px-2 py-2 text-right">Tier</th>
                       </tr>
                     </thead>
                     <tbody>
                       {summary.perUser
-                        .sort((a, b) => b.completionRate - a.completionRate)
+                        .slice()
+                        .sort((a, b) => b.score - a.score)
                         .map((u) => (
                           <tr key={u.userId} className="border-t border-theme">
                             <td className="px-2 py-2">
@@ -336,9 +450,6 @@ export default function ReportsPage() {
                             <td className="px-2 py-2 text-right text-primary font-medium">
                               {u.goalsTotal}
                             </td>
-                            <td className="px-2 py-2 text-right text-secondary">
-                              {u.goalsActive}
-                            </td>
                             <td className="px-2 py-2 text-right text-success font-medium">
                               {u.goalsCompleted}
                             </td>
@@ -358,6 +469,20 @@ export default function ReportsPage() {
                             </td>
                             <td className="px-2 py-2 text-right text-[rgb(var(--color-heart))] font-medium">
                               {u.heartsReceived}
+                            </td>
+                            <td className="px-2 py-2 text-right text-primary font-bold">
+                              {u.score}
+                            </td>
+                            <td className="px-2 py-2 text-right">
+                              <span
+                                className="inline-block px-2 py-0.5 rounded-full text-2xs font-bold"
+                                style={{
+                                  backgroundColor: `rgba(var(${u.tierColor}),0.15)`,
+                                  color: `rgb(var(${u.tierColor}))`,
+                                }}
+                              >
+                                {u.tier}
+                              </span>
                             </td>
                           </tr>
                         ))}
