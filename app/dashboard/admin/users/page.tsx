@@ -7,7 +7,8 @@ import StatGrid from '@/app/components/shared/StatGrid';
 import Modal from '@/app/components/shared/Modal';
 import { Select, Input } from '@/app/components/shared/FormField';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
-import { Users, Shield, UserCheck, X, Upload, Download, UserX, Calendar, Search, Building2 } from 'lucide-react';
+import { Users, Shield, UserCheck, X, Upload, Download, UserX, Calendar, Search, Building2, Trophy } from 'lucide-react';
+import { BADGE_LIST } from '@/lib/badges';
 import { formatDistanceToNow } from 'date-fns';
 
 interface User {
@@ -16,6 +17,7 @@ interface User {
   department: string | null; position: string | null; isActive: boolean;
   managerId: string | null; manager: { id: string; name: string } | null;
   lastLoginAt: string | null; createdAt: string;
+  badges?: string[];
 }
 
 const ROLE_STYLES = { ADMIN: 'bg-error-muted text-error', MANAGER: 'bg-warning-muted text-warning', EMPLOYEE: 'bg-info-muted text-info' };
@@ -26,6 +28,7 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [deptFilter, setDeptFilter] = useState('');
+  const [badgeFilter, setBadgeFilter] = useState('');
   const [showInactive, setShowInactive] = useState(true);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editRole, setEditRole] = useState<string>('EMPLOYEE');
@@ -75,6 +78,10 @@ export default function AdminUsersPage() {
       const d = deptFilter.toLowerCase();
       const dept = (u.department ?? '').toLowerCase();
       if (!dept.includes(d)) return false;
+    }
+    if (badgeFilter) {
+      const badges = u.badges || [];
+      if (!badges.includes(badgeFilter)) return false;
     }
     if (search) {
       const q = search.toLowerCase();
@@ -157,7 +164,7 @@ export default function AdminUsersPage() {
   };
 
   const managers = users.filter(u => u.role === 'MANAGER' || u.role === 'ADMIN');
-  const hasActiveFilters = !!(roleFilter || deptFilter || search || !showInactive);
+  const hasActiveFilters = !!(roleFilter || deptFilter || badgeFilter || search || !showInactive);
 
   return (
     <DashboardLayout type="admin">
@@ -267,6 +274,33 @@ export default function AdminUsersPage() {
               </button>
             )}
           </div>
+          <div className="relative w-52">
+            <Trophy className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-tertiary pointer-events-none z-10" />
+            <select
+              value={badgeFilter}
+              onChange={(e) => setBadgeFilter(e.target.value)}
+              className="input-base pl-9 pr-8 appearance-none"
+              aria-label="Filter users by earned badge"
+            >
+              <option value="">All badges</option>
+              {BADGE_LIST.map((b) => (
+                <option key={b.kind} value={b.kind}>
+                  {b.title}
+                </option>
+              ))}
+            </select>
+            {badgeFilter && (
+              <button
+                type="button"
+                onClick={() => setBadgeFilter('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-tertiary hover:text-primary focus-ring rounded p-0.5"
+                aria-label="Clear badge filter"
+                title="Clear"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
           <label className="inline-flex items-center gap-2 text-xs text-secondary cursor-pointer select-none flex-shrink-0">
             <input
               type="checkbox"
@@ -311,6 +345,7 @@ export default function AdminUsersPage() {
                   setSearch('');
                   setRoleFilter('');
                   setDeptFilter('');
+                  setBadgeFilter('');
                   setShowInactive(true);
                 }}
                 className="text-accent hover:underline focus-ring rounded"
@@ -394,7 +429,20 @@ export default function AdminUsersPage() {
                         <div><p className="text-sm font-medium text-primary">{user.name}</p><p className="text-2xs text-tertiary">{user.email}</p></div>
                       </div>
                     </td>
-                    <td className="px-4 py-3"><span className={`badge-base ${ROLE_STYLES[user.role]}`}>{user.role}</span></td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <span className={`badge-base ${ROLE_STYLES[user.role]}`}>{user.role}</span>
+                        {user.badges && user.badges.length > 0 && (
+                          <span
+                            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-2xs font-bold bg-[rgba(var(--color-warning),0.15)] text-[rgb(var(--color-warning))]"
+                            title={`${user.badges.length} badge${user.badges.length === 1 ? '' : 's'} earned`}
+                          >
+                            <Trophy className="w-2.5 h-2.5" />
+                            {user.badges.length}
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-4 py-3 hidden md:table-cell text-sm text-secondary">{user.department || '—'}</td>
                     <td className="px-4 py-3 hidden lg:table-cell text-sm text-secondary">{user.manager?.name || '—'}</td>
                     <td className="px-4 py-3">
