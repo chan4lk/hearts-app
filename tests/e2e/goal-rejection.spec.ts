@@ -36,7 +36,7 @@ test.describe('Goal rejection loop — revise then approve', () => {
       (r) => r.url().includes('/api/goals/bulk') && r.request().method() === 'POST',
       { timeout: 15_000 }
     );
-    await page.getByRole('button', { name: /^create \d+ goal/i }).click();
+    await page.getByRole('button', { name: /^create(?: \d+)? goals?$/i }).click();
     const res = await bulkResp;
     expect(res.ok()).toBe(true);
 

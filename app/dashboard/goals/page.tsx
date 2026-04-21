@@ -54,9 +54,21 @@ export default function GoalsPage() {
     if (viewMode !== 'team' && currentUserId) {
       params.set('ownerId', currentUserId);
     }
-    const res = await fetch(`/api/goals?${params}`);
-    if (res.ok) setGoals(await res.json());
-    setLoading(false);
+    try {
+      const res = await fetch(`/api/goals?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setGoals(Array.isArray(data) ? data : []);
+      } else {
+        setGoals([]);
+      }
+    } catch {
+      // Don't let a transient network error leave the page stuck in the
+      // skeleton state — fall through to the empty state instead.
+      setGoals([]);
+    } finally {
+      setLoading(false);
+    }
   }, [activeTab, viewMode, currentUserId]);
 
   useEffect(() => {

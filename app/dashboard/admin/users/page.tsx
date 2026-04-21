@@ -8,7 +8,7 @@ import Modal from '@/app/components/shared/Modal';
 import { Select, Input } from '@/app/components/shared/FormField';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
 import { Users, Shield, UserCheck, X, Upload, Download, UserX, Calendar, Search, Building2, Trophy } from 'lucide-react';
-import { BADGE_LIST } from '@/lib/badges';
+import { BADGE_LIST } from '@/lib/badgeCatalog';
 import { formatDistanceToNow } from 'date-fns';
 
 interface User {
@@ -46,9 +46,21 @@ export default function AdminUsersPage() {
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
-    const res = await fetch('/api/admin/users');
-    if (res.ok) setUsers(await res.json());
-    setLoading(false);
+    try {
+      const res = await fetch('/api/admin/users');
+      if (res.ok) {
+        const data = await res.json();
+        setUsers(Array.isArray(data) ? data : []);
+      } else {
+        setUsers([]);
+      }
+    } catch {
+      // Don't let a transient network error trap the page in its skeleton
+      // state — show the empty list instead so users can retry with filters.
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);

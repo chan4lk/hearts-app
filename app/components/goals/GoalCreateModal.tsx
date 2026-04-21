@@ -98,7 +98,7 @@ export default function GoalCreateModal({ open, isManager, onClose, onCreated, f
     <Modal
       open={open}
       onClose={() => !creating && onClose()}
-      title="Create Goals"
+      title={bulkGoals.length > 1 ? 'Create Goals' : 'New Goal'}
       icon={<Target className="w-5 h-5" style={{ color: 'rgb(var(--color-goal-active))' }} />}
       maxWidth="max-w-lg"
     >
@@ -178,7 +178,13 @@ export default function GoalCreateModal({ open, isManager, onClose, onCreated, f
             Cancel
           </button>
           <button type="submit" disabled={creating || submittable === 0} className="btn-primary flex-1">
-            {creating ? 'Creating...' : `Create ${submittable} Goal(s)`}
+            {creating
+              ? 'Creating…'
+              : submittable === 0
+                ? 'Create Goal'
+                : submittable === 1
+                  ? 'Create Goal'
+                  : `Create ${submittable} Goals`}
           </button>
         </div>
       </form>

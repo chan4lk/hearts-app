@@ -23,6 +23,7 @@ interface HeartButtonProps {
 export default function HeartButton({ onHeartSent }: HeartButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
   const [values, setValues] = useState<CompanyValue[]>([]);
   const [search, setSearch] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -33,12 +34,33 @@ export default function HeartButton({ onHeartSent }: HeartButtonProps) {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (isOpen) {
-      fetch('/api/users/colleagues').then(r => r.ok ? r.json() : []).then(setUsers);
-      fetch('/api/admin/values').then(r => r.ok ? r.json() : []).then(data =>
-        setValues(data.filter((v: any) => v.isActive))
-      );
-    }
+    if (!isOpen) return;
+    let cancelled = false;
+    setLoadingUsers(true);
+    fetch('/api/users/colleagues')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((d) => {
+        if (cancelled) return;
+        setUsers(Array.isArray(d) ? d : []);
+        setLoadingUsers(false);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setUsers([]);
+          setLoadingUsers(false);
+        }
+      });
+    fetch('/api/admin/values')
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => {
+        if (!cancelled) setValues((data || []).filter((v: any) => v.isActive));
+      })
+      .catch(() => {
+        if (!cancelled) setValues([]);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [isOpen]);
 
   const filteredUsers = users.filter(
@@ -179,7 +201,13 @@ export default function HeartButton({ onHeartSent }: HeartButtonProps) {
                           </button>
                         ))}
                         {filteredUsers.length === 0 && (
-                          <p className="text-center text-sm text-tertiary py-4">No colleagues found</p>
+                          <p className="text-center text-sm text-tertiary py-4">
+                            {loadingUsers
+                              ? 'Loading colleagues…'
+                              : search
+                                ? 'No colleagues match your search'
+                                : 'No colleagues found'}
+                          </p>
                         )}
                       </div>
                     </>

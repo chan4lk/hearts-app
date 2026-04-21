@@ -79,18 +79,34 @@ export default function BadgeWall({ userId, id }: { userId: string; id?: string 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // No userId yet (session still hydrating) — don't hold the UI in
+    // "Loading badges…" forever.
+    if (!userId) {
+      setLoading(false);
+      setData(null);
+      return;
+    }
+
     let cancelled = false;
     setLoading(true);
     fetch(`/api/users/${encodeURIComponent(userId)}/badges`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (!cancelled) {
+        if (cancelled) return;
+        // Only accept well-shaped responses. A null/404 or malformed body
+        // falls through to an empty state instead of hanging forever.
+        if (d && Array.isArray(d.badges)) {
           setData(d);
-          setLoading(false);
+        } else {
+          setData(null);
         }
+        setLoading(false);
       })
       .catch(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setData(null);
+          setLoading(false);
+        }
       });
     return () => {
       cancelled = true;
@@ -105,7 +121,18 @@ export default function BadgeWall({ userId, id }: { userId: string; id?: string 
       </div>
     );
   }
-  if (!data) return null;
+  if (!data) {
+    // Hit when the fetch failed or returned an unexpected shape. Show an
+    // unobtrusive empty state instead of silently hiding the section.
+    return (
+      <div className="card-stat">
+        <h3 className="text-sm font-semibold text-primary mb-3">Achievements</h3>
+        <p className="text-xs text-tertiary">
+          No badges yet — complete goals and receive hearts to start earning.
+        </p>
+      </div>
+    );
+  }
 
   const grouped = data.badges.reduce<Record<string, BadgeRow[]>>((acc, b) => {
     if (!acc[b.category]) acc[b.category] = [];

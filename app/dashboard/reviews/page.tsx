@@ -43,12 +43,26 @@ export default function ReviewsPage() {
   const [statusFilter, setStatusFilter] = useState('');
 
   useEffect(() => {
-    fetch('/api/reviews/cycles')
-      .then((r) => (r.ok ? r.json() : []))
-      .then((d) => {
-        setCycles(d);
-        setLoading(false);
-      });
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/reviews/cycles');
+        if (cancelled) return;
+        if (res.ok) {
+          const d = await res.json();
+          setCycles(Array.isArray(d) ? d : []);
+        } else {
+          setCycles([]);
+        }
+      } catch {
+        if (!cancelled) setCycles([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const visibleCycles = useMemo(() => {

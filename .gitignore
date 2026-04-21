@@ -39,6 +39,11 @@ next-env.d.ts
 .idea/
 .vscode/
 
+# Playwright artefacts + UI audit screenshots
+/test-results/
+/playwright-report/
+/ui-audit/
+
 # Database
 /prisma/*.db
 /prisma/migrations/

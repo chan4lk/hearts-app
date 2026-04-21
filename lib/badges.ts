@@ -1,179 +1,27 @@
 /**
- * Achievement badges — static catalog + incremental awarding.
+ * Server-side badge awarding — uses Prisma and is NOT safe to import from
+ * client components. For client-safe constants/types see `lib/badgeCatalog.ts`.
  *
- * Call `checkAndAwardBadges(userId, tenantId, trigger)` after an action
- * that might unlock a badge (goal complete, heart given/received, etc.).
- * Only the criteria relevant to the trigger are re-evaluated for
- * efficiency, and existing badges are short-circuited.
+ * Call `checkAndAwardBadges(userId, tenantId, trigger)` after an action that
+ * might unlock a badge (goal complete, heart given/received, etc.). Only the
+ * criteria relevant to the trigger are re-evaluated, and existing badges are
+ * short-circuited.
  *
  * Adding a new badge:
  *   1. Add a value to the BadgeKind enum in schema.prisma
  *   2. Run the migration
- *   3. Add an entry to BADGE_CATALOG below with icon + threshold
- *   4. Add the detection rule inside the matching trigger branch of
- *      checkAndAwardBadges()
+ *   3. Add an entry to BADGE_CATALOG in lib/badgeCatalog.ts
+ *   4. Add the detection rule in the matching trigger branch below
  */
 import { BadgeKind } from '@prisma/client';
 import { prisma } from './prisma';
 import { logger } from './logger';
+import { BADGE_CATALOG, type BadgeTrigger } from './badgeCatalog';
 
-export type BadgeTrigger =
-  | 'GOAL_COMPLETED'
-  | 'HEART_RECEIVED'
-  | 'HEART_GIVEN'
-  | 'GOAL_ASSIGNED';
-
-export interface BadgeDef {
-  kind: BadgeKind;
-  title: string;
-  description: string;
-  tier: 'bronze' | 'silver' | 'gold' | 'platinum';
-  // Lucide icon name (drawn client-side)
-  icon: string;
-  // CSS variable name for color (without "rgb(var(" wrapper)
-  color: string;
-  // Short formula for the progress bar — "current/target"
-  target: number;
-  category: 'goals' | 'recognition' | 'leadership';
-}
-
-export const BADGE_CATALOG: Record<BadgeKind, BadgeDef> = {
-  // ─── Goals progression ──────────────────────────────────────────
-  FIRST_GOAL_DONE: {
-    kind: 'FIRST_GOAL_DONE',
-    title: 'First Step',
-    description: 'Completed your first goal',
-    tier: 'bronze',
-    icon: 'Rocket',                  // taking off — fits "first" narrative
-    color: '--color-goal-completed',
-    target: 1,
-    category: 'goals',
-  },
-  FIVE_GOALS_DONE: {
-    kind: 'FIVE_GOALS_DONE',
-    title: 'Finisher',
-    description: 'Completed 5 goals',
-    tier: 'silver',
-    icon: 'Target',                  // hitting the target, multiple bullseyes
-    color: '--color-accent',
-    target: 5,
-    category: 'goals',
-  },
-  TWENTY_FIVE_GOALS_DONE: {
-    kind: 'TWENTY_FIVE_GOALS_DONE',
-    title: 'Achiever',
-    description: 'Completed 25 goals',
-    tier: 'gold',
-    icon: 'Medal',                   // earned distinction
-    color: '--color-warning',
-    target: 25,
-    category: 'goals',
-  },
-  HUNDRED_GOALS_DONE: {
-    kind: 'HUNDRED_GOALS_DONE',
-    title: 'Legend',
-    description: 'Completed 100 goals',
-    tier: 'platinum',
-    icon: 'Crown',                   // royalty — top tier
-    color: '--color-cat-kpi',
-    target: 100,
-    category: 'goals',
-  },
-  ON_TIME_STREAK_10: {
-    kind: 'ON_TIME_STREAK_10',
-    title: 'On the Clock',
-    description: 'Completed 10 goals on or before the deadline',
-    tier: 'gold',
-    icon: 'Zap',                     // speed + punctuality
-    color: '--color-goal-active',
-    target: 10,
-    category: 'goals',
-  },
-  CATEGORY_EXPLORER_5: {
-    kind: 'CATEGORY_EXPLORER_5',
-    title: 'Explorer',
-    description: 'Completed goals across 5 different categories',
-    tier: 'gold',
-    icon: 'Map',                     // exploring the map
-    color: '--color-accent',
-    target: 5,
-    category: 'goals',
-  },
-  // ─── Recognition — distinct icons per tier so Heart family doesn't repeat ─
-  FIRST_HEART: {
-    kind: 'FIRST_HEART',
-    title: 'Appreciated',
-    description: 'Received your first Heart',
-    tier: 'bronze',
-    icon: 'ThumbsUp',                // first positive signal
-    color: '--color-heart',
-    target: 1,
-    category: 'recognition',
-  },
-  TEN_HEARTS: {
-    kind: 'TEN_HEARTS',
-    title: 'Team Favorite',
-    description: 'Received 10 Hearts',
-    tier: 'silver',
-    icon: 'Heart',                   // classic heart
-    color: '--color-heart',
-    target: 10,
-    category: 'recognition',
-  },
-  FIFTY_HEARTS: {
-    kind: 'FIFTY_HEARTS',
-    title: 'Beloved',
-    description: 'Received 50 Hearts',
-    tier: 'gold',
-    icon: 'HeartHandshake',          // relationship + recognition
-    color: '--color-heart',
-    target: 50,
-    category: 'recognition',
-  },
-  HUNDRED_HEARTS: {
-    kind: 'HUNDRED_HEARTS',
-    title: 'Hearts Legend',
-    description: 'Received 100 Hearts',
-    tier: 'platinum',
-    icon: 'Gem',                     // rare, precious, top tier
-    color: '--color-heart',
-    target: 100,
-    category: 'recognition',
-  },
-  VALUE_CHAMPION: {
-    kind: 'VALUE_CHAMPION',
-    title: 'Value Champion',
-    description: 'Received 5 Hearts for the same company value',
-    tier: 'gold',
-    icon: 'Shield',                  // champion, guardian of a value
-    color: '--color-warning',
-    target: 5,
-    category: 'recognition',
-  },
-  KIND_SOUL_50: {
-    kind: 'KIND_SOUL_50',
-    title: 'Kind Soul',
-    description: 'Gave 50 Hearts to teammates',
-    tier: 'gold',
-    icon: 'HandHeart',               // giving — hand holding heart
-    color: '--color-heart',
-    target: 50,
-    category: 'recognition',
-  },
-  // ─── Leadership ────────────────────────────────────────────────
-  MENTOR_3: {
-    kind: 'MENTOR_3',
-    title: 'Mentor',
-    description: 'Assigned goals to 3 different people',
-    tier: 'silver',
-    icon: 'GraduationCap',           // teaching / mentorship
-    color: '--color-info',
-    target: 3,
-    category: 'leadership',
-  },
-};
-
-export const BADGE_LIST: BadgeDef[] = Object.values(BADGE_CATALOG);
+// Re-export the client-safe catalog for backwards compatibility with server
+// code that used to import everything from this file. New client code should
+// import from `@/lib/badgeCatalog` directly.
+export { BADGE_CATALOG, BADGE_LIST, type BadgeDef, type BadgeTrigger } from './badgeCatalog';
 
 /** Idempotently check the user's progress and persist any newly-earned badges. */
 export async function checkAndAwardBadges(

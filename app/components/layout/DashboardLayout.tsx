@@ -471,8 +471,22 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
             <button onClick={() => setIsMobileMenuOpen(true)} className="text-secondary hover:text-primary md:hidden focus-ring rounded-lg p-1.5" aria-label="Open menu">
               <BsList className="w-5 h-5" />
             </button>
-            <div className="flex items-center gap-2 md:hidden">
-              <Image src="/logo.png" alt="Logo" width={80} height={28} className="h-7 w-auto object-contain" />
+            <div className="flex items-center gap-2 md:hidden min-w-0">
+              <Image src="/logo.png" alt="Logo" width={80} height={28} className="h-7 w-auto object-contain flex-shrink-0" />
+              {(() => {
+                const activeItem = navItems.find(navItem => isPathActive(navItem.href, navItem.isSub));
+                if (!activeItem) return null;
+                const label =
+                  activeItem.href === '/dashboard/admin' ? 'Admin Dashboard' : activeItem.label;
+                return (
+                  <div className="flex flex-col leading-tight min-w-0">
+                    <span className="text-xs font-semibold text-primary truncate">{label}</span>
+                    <span className="text-[10px] uppercase tracking-wider font-semibold text-tertiary truncate">
+                      {portalLabel} Portal
+                    </span>
+                  </div>
+                );
+              })()}
             </div>
             <div className="hidden md:flex items-center gap-2.5">
               {(() => {
@@ -496,7 +510,9 @@ export default function DashboardLayout({ children, type }: DashboardLayoutProps
                       </div>
                     )}
                     <div>
-                      <h1 className="text-sm font-semibold text-primary leading-tight">{activeItem.label}</h1>
+                      <h1 className="text-sm font-semibold text-primary leading-tight">
+                        {activeItem.href === '/dashboard/admin' ? 'Admin Dashboard' : activeItem.label}
+                      </h1>
                       <p className="text-2xs text-tertiary leading-tight">AspireHub</p>
                     </div>
                   </div>

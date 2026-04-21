@@ -95,7 +95,11 @@ export default function FeedPage() {
         {/* Welcome header */}
         <div>
           <h1 className="text-2xl font-bold text-primary">Hey {firstName}! 👋</h1>
-          <p className="text-sm text-secondary mt-1">See how your team is recognizing great work</p>
+          <p className="text-sm text-secondary mt-1">
+            {session?.user?.role === 'ADMIN'
+              ? 'See how AspireHub is recognizing great work'
+              : 'See how your team is recognizing great work'}
+          </p>
         </div>
 
         {/* Quick Stats */}

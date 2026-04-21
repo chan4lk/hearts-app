@@ -87,15 +87,17 @@ interface PerUser {
   tierColor: string;
 }
 
+// Bare CSS var tokens (without the `var()` wrapper) — `rgb(var(…))` is used
+// at render time so Recharts' `fill` gets a valid CSS color string.
 const STATUS_COLORS: Record<string, string> = {
-  DRAFT: 'var(--color-goal-draft)',
-  PENDING: 'var(--color-goal-pending)',
-  ACTIVE: 'var(--color-goal-active)',
-  NEEDS_REVISION: 'var(--color-goal-revision)',
-  ON_HOLD: 'var(--color-goal-hold)',
-  BLOCKED: 'var(--color-goal-blocked)',
-  COMPLETED: 'var(--color-goal-completed)',
-  CLOSED: 'var(--color-goal-closed)',
+  DRAFT: '--color-goal-draft',
+  PENDING: '--color-goal-pending',
+  ACTIVE: '--color-goal-active',
+  NEEDS_REVISION: '--color-goal-revision',
+  ON_HOLD: '--color-goal-hold',
+  BLOCKED: '--color-goal-blocked',
+  COMPLETED: '--color-goal-completed',
+  CLOSED: '--color-goal-closed',
 };
 const STATUS_LABEL: Record<string, string> = {
   DRAFT: 'Draft', PENDING: 'Pending', ACTIVE: 'Active',
@@ -377,11 +379,23 @@ export default function ReportsPage() {
                       <Sparkles className="w-3 h-3" /> {summary.score.tier} Tier
                     </span>
                   </div>
-                  <p className="text-2xs text-tertiary mt-1">
-                    {summary.completedGoals}×10 (goals) + {summary.heartsReceived}×2 (hearts) +{' '}
-                    {summary.score.onTimeCompletions}×5 (on-time) +{' '}
-                    {summary.score.categoriesExplored}×3 (categories)
-                  </p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {[
+                      { label: 'Goals completed', n: summary.completedGoals, weight: 10 },
+                      { label: 'Hearts received', n: summary.heartsReceived, weight: 2 },
+                      { label: 'On-time', n: summary.score.onTimeCompletions, weight: 5 },
+                      { label: 'Categories', n: summary.score.categoriesExplored, weight: 3 },
+                    ].map((b) => (
+                      <span
+                        key={b.label}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-medium bg-surface-elevated border border-theme text-secondary"
+                      >
+                        <span className="text-primary font-semibold">{b.n}</span>
+                        <span>×{b.weight}</span>
+                        <span className="text-tertiary">{b.label}</span>
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -450,7 +464,7 @@ export default function ReportsPage() {
                           {statusData.map((entry) => (
                             <Cell
                               key={entry.status}
-                              fill={`rgb(${STATUS_COLORS[entry.status]?.replace('var(', '').replace(')', '') ?? '--color-accent'})`}
+                              fill={`rgb(var(${STATUS_COLORS[entry.status] ?? '--color-accent'}))`}
                             />
                           ))}
                         </Pie>

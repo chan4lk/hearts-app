@@ -22,7 +22,8 @@ async function submitGoalCreate(page: Page) {
     (r) => r.url().includes('/api/goals/bulk') && r.request().method() === 'POST',
     { timeout: 15_000 }
   );
-  await page.getByRole('button', { name: /^create \d+ goal/i }).click();
+  // Button text is "Create Goal" (1 row) or "Create N Goals" (>1 row)
+  await page.getByRole('button', { name: /^create(?: \d+)? goals?$/i }).click();
   const res = await pending;
   if (!res.ok()) {
     throw new Error(`/api/goals/bulk returned ${res.status()} — ${await res.text()}`);
