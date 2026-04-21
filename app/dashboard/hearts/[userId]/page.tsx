@@ -10,6 +10,7 @@ import PageSkeleton from '@/app/components/shared/PageSkeleton';
 import { motion } from 'framer-motion';
 import { Heart, ArrowLeft, Mail, Building2, Calendar } from 'lucide-react';
 import BadgeWall from '@/app/components/badges/BadgeWall';
+import BadgeStrip from '@/app/components/badges/BadgeStrip';
 import { formatDistanceToNow } from 'date-fns';
 
 interface HeartItem {
@@ -152,6 +153,9 @@ export default function HeartsProfilePage() {
                   {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
                 </span>
               </div>
+              <div className="mt-3">
+                <BadgeStrip userId={user.id} scrollToId="badge-wall" />
+              </div>
             </div>
           </div>
         </motion.div>
@@ -173,7 +177,7 @@ export default function HeartsProfilePage() {
           </div>
         </div>
 
-        <BadgeWall userId={user.id} />
+        <BadgeWall userId={user.id} id="badge-wall" />
 
         {valueEntries.length > 0 && (
           <div className="card-section p-5">

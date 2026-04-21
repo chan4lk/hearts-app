@@ -57,7 +57,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   leadership: 'Leadership',
 };
 
-export default function BadgeWall({ userId }: { userId: string }) {
+export default function BadgeWall({ userId, id }: { userId: string; id?: string }) {
   const [data, setData] = useState<BadgesResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -97,7 +97,7 @@ export default function BadgeWall({ userId }: { userId: string }) {
   }, {});
 
   return (
-    <div className="card-stat">
+    <div id={id} className="card-stat scroll-mt-20">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
           <Trophy className="w-4 h-4 text-[rgb(var(--color-warning))]" /> Achievements
