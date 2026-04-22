@@ -1350,6 +1350,10 @@ function ReviewSchedule({
   const [bucket, setBucket] = useState<ReviewBucket>('all');
   const [busyId, setBusyId] = useState<string | null>(null);
   const [flash, setFlashMsg] = useState<{ kind: 'success' | 'error'; msg: string } | null>(null);
+  // Adjust-date modal state — per-user, opens from the 📅 icon
+  const [adjustModal, setAdjustModal] = useState<{ user: User; initial: string } | null>(null);
+  const [adjustDateValue, setAdjustDateValue] = useState('');
+  const [adjustError, setAdjustError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!flash) return;
@@ -1436,30 +1440,40 @@ function ReviewSchedule({
     }
   };
 
-  const adjustDate = async (userId: string, currentDate: Date | null) => {
-    const input = window.prompt(
-      'Set the next review date (YYYY-MM-DD):',
-      currentDate ? currentDate.toISOString().slice(0, 10) : ''
-    );
-    if (!input) return;
-    const parsed = new Date(input);
-    if (Number.isNaN(parsed.getTime())) {
-      setFlashMsg({ kind: 'error', msg: 'Invalid date format (expected YYYY-MM-DD)' });
+  const openAdjustModal = (user: User, currentDate: Date | null) => {
+    const iso = currentDate ? currentDate.toISOString().slice(0, 10) : '';
+    setAdjustModal({ user, initial: iso });
+    setAdjustDateValue(iso);
+    setAdjustError(null);
+  };
+
+  const submitAdjustDate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adjustModal) return;
+    if (!adjustDateValue) {
+      setAdjustError('Please pick a date');
       return;
     }
-    setBusyId(userId);
+    const parsed = new Date(adjustDateValue);
+    if (Number.isNaN(parsed.getTime())) {
+      setAdjustError('Invalid date');
+      return;
+    }
+    setBusyId(adjustModal.user.id);
+    setAdjustError(null);
     try {
-      const res = await fetch(`/api/admin/users/${userId}`, {
+      const res = await fetch(`/api/admin/users/${adjustModal.user.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nextReviewDate: parsed.toISOString() }),
       });
       if (res.ok) {
-        setFlashMsg({ kind: 'success', msg: 'Review date updated' });
+        setFlashMsg({ kind: 'success', msg: `Review date updated for ${adjustModal.user.name}` });
+        setAdjustModal(null);
         onReload();
       } else {
         const d = await res.json().catch(() => ({}));
-        setFlashMsg({ kind: 'error', msg: d.error || 'Failed to update date' });
+        setAdjustError(d.error || 'Failed to update date');
       }
     } finally {
       setBusyId(null);
@@ -1649,7 +1663,7 @@ function ReviewSchedule({
                         </button>
                         <button
                           type="button"
-                          onClick={() => adjustDate(user.id, nextDate)}
+                          onClick={() => openAdjustModal(user, nextDate)}
                           disabled={busy}
                           className="p-1.5 rounded-lg text-secondary hover:text-warning hover:bg-warning-muted focus-ring disabled:opacity-40 transition-colors"
                           aria-label={`Adjust review date for ${user.name}`}
@@ -1676,6 +1690,66 @@ function ReviewSchedule({
           </tbody>
         </table>
       </div>
+
+      {/* Adjust review date — app-styled modal with a proper date picker */}
+      <Modal
+        open={!!adjustModal}
+        onClose={() => !busyId && setAdjustModal(null)}
+        title="Adjust review date"
+        icon={<Calendar className="w-5 h-5 text-warning" />}
+        maxWidth="max-w-md"
+      >
+        {adjustModal && (
+          <form onSubmit={submitAdjustDate} className="space-y-4">
+            <div className="text-sm text-secondary">
+              Set the next review date for <span className="font-semibold text-primary">{adjustModal.user.name}</span>.
+              The reminder email (if any) will be re-sent on the new schedule.
+            </div>
+
+            <div>
+              <label className="input-label">
+                Next review date <span className="text-error">*</span>
+              </label>
+              <input
+                type="date"
+                value={adjustDateValue}
+                onChange={(e) => setAdjustDateValue(e.target.value)}
+                className="input-base"
+                autoFocus
+                required
+              />
+              {adjustModal.initial && adjustDateValue && adjustModal.initial !== adjustDateValue && (
+                <p className="text-2xs text-tertiary mt-1">
+                  Was: {new Date(adjustModal.initial).toLocaleDateString()} → changing to {new Date(adjustDateValue).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+
+            {adjustError && (
+              <p className="text-sm text-error bg-error-muted rounded-lg px-3 py-2">{adjustError}</p>
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setAdjustModal(null)}
+                disabled={!!busyId}
+                className="btn-secondary px-4 py-2"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={!!busyId || !adjustDateValue}
+                className="btn-primary px-4 py-2 inline-flex items-center gap-2"
+              >
+                <Calendar className="w-4 h-4" />
+                {busyId ? 'Saving…' : 'Save date'}
+              </button>
+            </div>
+          </form>
+        )}
+      </Modal>
     </div>
   );
 }
