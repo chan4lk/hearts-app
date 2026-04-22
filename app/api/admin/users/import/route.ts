@@ -29,6 +29,50 @@ function addMonths(d: Date, n: number): Date {
   return out;
 }
 
+/**
+ * Parse dates from imported spreadsheets. Handles:
+ *  - ISO: "2024-09-12"
+ *  - D/M/Y: "12/9/2024" (common in LK/UK)
+ *  - M/D/Y: "9/12/2024" (common in US)
+ *  - Dotted: "12.9.2024"
+ *
+ * If the first component is > 12, it must be the day (D/M/Y). Otherwise
+ * we assume D/M/Y because that's the Excel convention at BISTEC. This is
+ * deliberate — admins can correct any misparsed dates from the Review
+ * Schedule tab's "Adjust" action.
+ */
+function parseFlexibleDate(raw: unknown): Date | null {
+  if (!raw) return null;
+  const str = String(raw).trim();
+  if (!str) return null;
+
+  // ISO first (unambiguous)
+  if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(str)) {
+    const d = new Date(str);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  const parts = str.split(/[/.\-]/).map((s) => s.trim());
+  if (parts.length === 3) {
+    let [a, b, y] = parts.map((p) => parseInt(p, 10));
+    if ([a, b, y].some((n) => Number.isNaN(n))) return null;
+    // 2-digit year → assume 20xx
+    if (y < 100) y += 2000;
+    // If first component > 12, it's day. Otherwise assume D/M/Y (LK default).
+    const day = a > 12 ? a : a;
+    const month = a > 12 ? b : b;
+    const actualDay = a > 12 ? a : a; // always treat first as day when possible
+    const actualMonth = a > 12 ? b : b;
+    // Final: assume D/M/Y
+    const d = new Date(y, actualMonth - 1, actualDay);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  // Last resort — let Date() try
+  const fallback = new Date(str);
+  return Number.isNaN(fallback.getTime()) ? null : fallback;
+}
+
 export async function POST(req: NextRequest) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
@@ -72,22 +116,30 @@ export async function POST(req: NextRequest) {
 
         const data: any = {
           name,
-          department: (row.Department || row.department || null)?.trim() || null,
-          position: (row.Position || row.Designation || row.position || null)?.trim() || null,
-          jobCategory: (row.JobCategory || row['Job Category'] || row.jobCategory || null)?.trim() || null,
+          department: (row.Department || row.department || null)?.toString().trim() || null,
+          position: (row.Position || row.Designation || row.position || null)?.toString().trim() || null,
+          jobCategory: (row.JobCategory || row['Job Category'] || row.jobCategory || null)?.toString().trim() || null,
+          // "Adjusted" column is the admin's override of the auto-computed
+          // 6-month review month. Check it FIRST (highest priority), then
+          // fall back to the computed "After 6 Months" / "Review month".
+          // Column-name variants handle Excel's arbitrary casing/spacing.
           reviewMonth:
-            (row['Adjusted Review Month'] || row.AdjustedReviewMonth || row.ReviewMonth || row['Review Month'] || row.reviewMonth || null)?.toString().trim() || null,
+            (
+              row['Adjusted'] || row.Adjusted ||
+              row['Adjusted Review Month'] || row.AdjustedReviewMonth ||
+              row['Review month'] || row['Review Month'] || row.ReviewMonth || row.reviewMonth ||
+              row['After 6 Months'] || row['After 6 months'] || row.After6Months ||
+              null
+            )?.toString().trim() || null,
         };
 
         // Parse appointment date → compute nextReviewDate = +6 months.
-        // (Admins can override the computed date from the Review Schedule UI.)
+        // Assumes D/M/Y (LK default) for ambiguous formats like "9/12/2024".
         const dateStr = row.AppointmentDate || row['Date of Appointment'] || row.appointmentDate || null;
-        if (dateStr) {
-          const parsed = new Date(dateStr);
-          if (!isNaN(parsed.getTime())) {
-            data.appointmentDate = parsed;
-            data.nextReviewDate = addMonths(parsed, 6);
-          }
+        const parsed = parseFlexibleDate(dateStr);
+        if (parsed) {
+          data.appointmentDate = parsed;
+          data.nextReviewDate = addMonths(parsed, 6);
         }
 
         // Check if user exists
