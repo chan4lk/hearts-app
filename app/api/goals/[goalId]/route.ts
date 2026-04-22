@@ -9,12 +9,12 @@ import { sanitizeInput, sanitizeInputPreserveNewlines } from '@/lib/securityUtil
 import { checkAndAwardBadges } from '@/lib/badges';
 import { z } from 'zod';
 
-export async function GET(_req: NextRequest, { params }: { params: { goalId: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ goalId: string }> }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
 
   const goal = await prisma.goal.findFirst({
-    where: { id: params.goalId, tenantId: ctx.tenantId },
+    where: { id: (await params).goalId, tenantId: ctx.tenantId },
     include: {
       owner: { select: { id: true, name: true, email: true, department: true, managerId: true } },
       assigner: { select: { id: true, name: true } },
@@ -85,7 +85,7 @@ function canEdit(ctx: { userId: string; userRole: string }, goal: { ownerId: str
   return { ok: true };
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { goalId: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ goalId: string }> }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
 
@@ -99,7 +99,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { goalId: st
   }
 
   const goal = await prisma.goal.findFirst({
-    where: { id: params.goalId, tenantId: ctx.tenantId },
+    where: { id: (await params).goalId, tenantId: ctx.tenantId },
     include: { owner: { select: { managerId: true } } },
   });
   if (!goal) return NextResponse.json({ error: 'Goal not found', code: 'NOT_FOUND' }, { status: 404 });
@@ -136,7 +136,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { goalId: st
   const before = { title: goal.title, description: goal.description, targetDate: goal.targetDate, progress: goal.progress, status: goal.status };
 
   const updated = await prisma.goal.update({
-    where: { id: params.goalId },
+    where: { id: (await params).goalId },
     data: {
       ...(parsed.data.title !== undefined && { title: parsed.data.title }),
       ...(parsed.data.description !== undefined && { description: parsed.data.description }),
@@ -196,12 +196,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { goalId: st
   return NextResponse.json(updated);
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { goalId: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ goalId: string }> }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
 
   const goal = await prisma.goal.findFirst({
-    where: { id: params.goalId, tenantId: ctx.tenantId },
+    where: { id: (await params).goalId, tenantId: ctx.tenantId },
   });
   if (!goal) return NextResponse.json({ error: 'Goal not found', code: 'NOT_FOUND' }, { status: 404 });
 

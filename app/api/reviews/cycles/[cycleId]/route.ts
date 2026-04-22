@@ -6,12 +6,12 @@ import { logAudit, AuditAction } from '@/lib/auditLog';
 import { CycleStatus, CycleType } from '@prisma/client';
 import { z } from 'zod';
 
-export async function GET(_req: NextRequest, { params }: { params: { cycleId: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ cycleId: string }> }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
 
   const cycle = await prisma.reviewCycle.findFirst({
-    where: { id: params.cycleId, tenantId: ctx.tenantId },
+    where: { id: (await params).cycleId, tenantId: ctx.tenantId },
     include: {
       reviews: {
         include: {
@@ -43,7 +43,7 @@ const UpdateCycleSchema = z.object({
   status: z.nativeEnum(CycleStatus).optional(),
 });
 
-export async function PATCH(req: NextRequest, { params }: { params: { cycleId: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ cycleId: string }> }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
   requireMinRole(ctx, 'ADMIN');
@@ -58,7 +58,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { cycleId: s
   }
 
   const cycle = await prisma.reviewCycle.findFirst({
-    where: { id: params.cycleId, tenantId: ctx.tenantId },
+    where: { id: (await params).cycleId, tenantId: ctx.tenantId },
   });
   if (!cycle) return NextResponse.json({ error: 'Cycle not found', code: 'NOT_FOUND' }, { status: 404 });
 
@@ -102,13 +102,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { cycleId: s
   return NextResponse.json(updated);
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { cycleId: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ cycleId: string }> }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
   requireMinRole(ctx, 'ADMIN');
 
   const cycle = await prisma.reviewCycle.findFirst({
-    where: { id: params.cycleId, tenantId: ctx.tenantId },
+    where: { id: (await params).cycleId, tenantId: ctx.tenantId },
     include: {
       reviews: {
         select: { id: true, selfSubmittedAt: true, managerSubmittedAt: true, isFinalized: true },

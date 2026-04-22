@@ -7,13 +7,16 @@ import StatGrid from '@/app/components/shared/StatGrid';
 import Modal from '@/app/components/shared/Modal';
 import { Select, Input } from '@/app/components/shared/FormField';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
-import { Users, Shield, UserCheck, X, Upload, Download, UserX, Calendar, Search, Building2, Trophy } from 'lucide-react';
+import { Users, Shield, UserCheck, X, Upload, Download, UserX, Calendar, Search, Building2, Trophy, Bell, Check, Mail } from 'lucide-react';
 import { BADGE_LIST } from '@/lib/badgeCatalog';
 import { formatDistanceToNow } from 'date-fns';
 
 interface User {
   id: string; name: string; email: string; role: 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
   jobCategory: string | null; appointmentDate: string | null; reviewMonth: string | null;
+  nextReviewDate: string | null;
+  lastReviewCompletedAt: string | null;
+  reviewReminderSentAt: string | null;
   department: string | null; position: string | null; isActive: boolean;
   managerId: string | null; manager: { id: string; name: string } | null;
   lastLoginAt: string | null; createdAt: string;
@@ -42,6 +45,19 @@ export default function AdminUsersPage() {
   const [showImport, setShowImport] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ created: number; updated: number; errors: string[] } | null>(null);
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const [inviteResult, setInviteResult] = useState<{ sent: number; skipped: number; errors: string[] } | null>(null);
+  const [importPreview, setImportPreview] = useState<
+    | {
+        created: number;
+        updated: number;
+        skipped: number;
+        errors: string[];
+        preview: Array<{ email: string; name: string; action: 'create' | 'update' | 'skip'; reason?: string }>;
+        rows: any[];
+      }
+    | null
+  >(null);
   const [viewMode, setViewMode] = useState<'all' | 'review'>('all');
 
   const fetchUsers = useCallback(async () => {
@@ -116,7 +132,9 @@ export default function AdminUsersPage() {
   const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setImporting(true); setImportResult(null);
+    setImporting(true);
+    setImportResult(null);
+    setImportPreview(null);
 
     const text = await file.text();
     const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
@@ -130,17 +148,56 @@ export default function AdminUsersPage() {
       return row;
     });
 
-    const res = await fetch('/api/admin/users/import', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rows }),
+    // Step 1 — preview (no writes)
+    const previewRes = await fetch('/api/admin/users/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rows, mode: 'preview' }),
     });
-
-    if (res.ok) {
-      const result = await res.json();
-      setImportResult(result);
-      await fetchUsers();
+    if (previewRes.ok) {
+      const preview = await previewRes.json();
+      setImportPreview({ ...preview, rows });
     }
     setImporting(false);
     e.target.value = ''; // reset file input
+  };
+
+  const handleSendLoginInvitations = async () => {
+    const eligible = users.filter((u) => u.isActive && !u.lastLoginAt);
+    if (eligible.length === 0) return;
+    if (!window.confirm(`Send a login invitation email to ${eligible.length} user(s) who have never logged in?`)) return;
+    setInviteBusy(true);
+    setInviteResult(null);
+    try {
+      const res = await fetch('/api/admin/users/send-login-invitations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ all: true }),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        setInviteResult(d);
+      }
+    } finally {
+      setInviteBusy(false);
+    }
+  };
+
+  const confirmImport = async () => {
+    if (!importPreview) return;
+    setImporting(true);
+    const res = await fetch('/api/admin/users/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rows: importPreview.rows, mode: 'commit' }),
+    });
+    if (res.ok) {
+      const result = await res.json();
+      setImportResult(result);
+      setImportPreview(null);
+      await fetchUsers();
+    }
+    setImporting(false);
   };
 
   // CSV Export
@@ -195,6 +252,17 @@ export default function AdminUsersPage() {
         <PageTitle title="User Management" subtitle="Manage employee roles, managers, and account status" icon={Users} iconColor="--color-accent"
           actions={
             <div className="flex items-center gap-2">
+              <button
+                onClick={handleSendLoginInvitations}
+                disabled={inviteBusy || users.filter((u) => u.isActive && !u.lastLoginAt).length === 0}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-surface-elevated border border-theme rounded-xl text-xs font-medium text-secondary hover:text-primary focus-ring transition-all disabled:opacity-50"
+                title="Email all active users who have never logged in"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                {inviteBusy
+                  ? 'Sending…'
+                  : `Invite ${users.filter((u) => u.isActive && !u.lastLoginAt).length}`}
+              </button>
               <label className="inline-flex items-center gap-1.5 px-3 py-2 bg-surface-elevated border border-theme rounded-xl text-xs font-medium text-secondary hover:text-primary cursor-pointer focus-ring transition-all">
                 <Upload className="w-3.5 h-3.5" /> Import
                 <input type="file" accept=".csv" onChange={handleFileImport} className="hidden" disabled={importing} />
@@ -213,8 +281,119 @@ export default function AdminUsersPage() {
             <button onClick={() => setImportResult(null)} className="text-xs hover:opacity-70 focus-ring rounded">✕</button>
           </div>
         )}
+        {inviteResult && (
+          <div className={`rounded-xl px-4 py-3 text-sm font-medium flex items-center justify-between ${inviteResult.skipped > 0 ? 'bg-warning-muted text-warning' : 'bg-success-muted text-success'}`}>
+            <span>
+              Login invitations sent: {inviteResult.sent}
+              {inviteResult.skipped > 0 ? `, ${inviteResult.skipped} skipped` : ''}
+            </span>
+            <button onClick={() => setInviteResult(null)} className="text-xs hover:opacity-70 focus-ring rounded">✕</button>
+          </div>
+        )}
         {importing && (
-          <div className="bg-accent-muted text-accent rounded-xl px-4 py-3 text-sm font-medium">Importing users...</div>
+          <div className="bg-accent-muted text-accent rounded-xl px-4 py-3 text-sm font-medium">
+            {importPreview ? 'Committing import…' : 'Parsing CSV…'}
+          </div>
+        )}
+
+        {/* Import preview modal */}
+        {importPreview && !importing && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-surface-elevated border border-theme rounded-2xl shadow-theme-xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-theme">
+                <div>
+                  <h2 className="text-base font-bold text-primary">Review import</h2>
+                  <p className="text-xs text-tertiary">No changes have been made yet.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setImportPreview(null)}
+                  className="text-secondary hover:text-primary focus-ring rounded p-1"
+                  aria-label="Close preview"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="px-5 py-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="card-stat text-center py-2">
+                  <p className="text-xl font-bold text-success">{importPreview.created}</p>
+                  <p className="text-2xs text-tertiary">To create</p>
+                </div>
+                <div className="card-stat text-center py-2">
+                  <p className="text-xl font-bold text-info">{importPreview.updated}</p>
+                  <p className="text-2xs text-tertiary">To update</p>
+                </div>
+                <div className="card-stat text-center py-2">
+                  <p className="text-xl font-bold text-warning">{importPreview.skipped}</p>
+                  <p className="text-2xs text-tertiary">Skipped</p>
+                </div>
+                <div className="card-stat text-center py-2">
+                  <p className="text-xl font-bold text-error">{importPreview.errors.length}</p>
+                  <p className="text-2xs text-tertiary">Errors</p>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto px-5 pb-2">
+                <table className="w-full text-xs">
+                  <thead className="sticky top-0 bg-surface-elevated">
+                    <tr className="text-tertiary uppercase tracking-wider text-2xs border-b border-theme">
+                      <th className="text-left py-2 pr-3">Action</th>
+                      <th className="text-left py-2 pr-3">Name</th>
+                      <th className="text-left py-2 pr-3">Email</th>
+                      <th className="text-left py-2">Reason</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {importPreview.preview.slice(0, 50).map((r, i) => (
+                      <tr key={i} className="border-b border-theme/50">
+                        <td className="py-1.5 pr-3">
+                          <span
+                            className={`badge-base ${
+                              r.action === 'create'
+                                ? 'bg-success-muted text-success'
+                                : r.action === 'update'
+                                  ? 'bg-info-muted text-info'
+                                  : 'bg-warning-muted text-warning'
+                            }`}
+                          >
+                            {r.action}
+                          </span>
+                        </td>
+                        <td className="py-1.5 pr-3 text-primary">{r.name}</td>
+                        <td className="py-1.5 pr-3 text-secondary">{r.email}</td>
+                        <td className="py-1.5 text-tertiary">{r.reason || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {importPreview.preview.length > 50 && (
+                  <p className="text-2xs text-tertiary text-center py-2">
+                    Showing first 50 of {importPreview.preview.length} rows.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-theme">
+                <button
+                  type="button"
+                  onClick={() => setImportPreview(null)}
+                  className="btn-secondary px-4 py-2"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmImport}
+                  disabled={importPreview.created + importPreview.updated === 0}
+                  className="btn-primary px-4 py-2 disabled:opacity-50"
+                >
+                  Confirm &amp; import {importPreview.created + importPreview.updated} row
+                  {importPreview.created + importPreview.updated === 1 ? '' : 's'}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         {!loading && (
@@ -371,50 +550,7 @@ export default function AdminUsersPage() {
         {loading ? (
           <PageSkeleton type="table" count={6} />
         ) : viewMode === 'review' ? (
-          /* ── Review Schedule View ── */
-          <div className="card-section overflow-y-auto scrollbar-hide max-h-[calc(100vh-22rem)]">
-            <table className="w-full">
-              <thead className="sticky top-0 z-10 bg-surface-secondary">
-                <tr className="border-b border-theme">
-                  <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Name</th>
-                  <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider hidden md:table-cell">Job Category</th>
-                  <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Designation</th>
-                  <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Appointment</th>
-                  <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">After 6 Months</th>
-                  <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Review Month</th>
-                  <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider hidden lg:table-cell">Reporting To</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.filter(u => u.isActive).map(user => {
-                  const sixMonthDate = getReviewDate(user.appointmentDate);
-                  const autoMonth = getReviewMonthFromDate(user.appointmentDate);
-                  const displayMonth = user.reviewMonth || autoMonth;
-                  const isPastDue = sixMonthDate && new Date(sixMonthDate) < new Date();
-                  return (
-                    <tr key={user.id} className="hover:bg-surface-secondary transition-colors">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2.5">
-                          <div className="avatar-sm avatar-gradient">{user.name.split(' ').map(n => n[0]).join('').slice(0, 2)}</div>
-                          <p className="text-sm font-medium text-primary">{user.name}</p>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 hidden md:table-cell text-sm text-secondary">{user.jobCategory || '—'}</td>
-                      <td className="px-4 py-3 text-sm text-secondary">{user.position || '—'}</td>
-                      <td className="px-4 py-3 text-sm text-secondary">{user.appointmentDate ? new Date(user.appointmentDate).toLocaleDateString() : '—'}</td>
-                      <td className="px-4 py-3">
-                        {sixMonthDate ? <span className={`text-sm font-medium ${isPastDue ? 'text-success' : 'text-warning'}`}>{new Date(sixMonthDate).toLocaleDateString()}</span> : <span className="text-tertiary">—</span>}
-                      </td>
-                      <td className="px-4 py-3">
-                        {displayMonth ? <span className="badge-base bg-[rgba(var(--color-review),0.12)] text-[rgb(var(--color-review))]"><Calendar className="w-3 h-3" /> {displayMonth}</span> : <span className="text-tertiary">—</span>}
-                      </td>
-                      <td className="px-4 py-3 hidden lg:table-cell text-sm text-secondary">{user.manager?.name || '—'}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <ReviewSchedule users={filteredUsers.filter(u => u.isActive)} onReload={fetchUsers} />
         ) : (
           /* ── All Users (default) ── */
           <div className="card-section overflow-y-auto scrollbar-hide max-h-[calc(100vh-22rem)]">
@@ -604,5 +740,289 @@ export default function AdminUsersPage() {
         </Modal>
       </div>
     </DashboardLayout>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Review Schedule panel — filter chips, sort by nextReviewDate, per-row
+// actions (Send reminder, Mark complete, Adjust date). Backed by the
+// User.nextReviewDate column (backfilled from appointmentDate + 6 months).
+// ─────────────────────────────────────────────────────────────────────────
+
+type ReviewBucket = 'all' | 'overdue' | 'soon' | 'month' | 'later' | 'done';
+
+function daysBetween(target: Date, from = new Date()): number {
+  const oneDay = 24 * 60 * 60 * 1000;
+  return Math.floor((target.getTime() - from.getTime()) / oneDay);
+}
+
+function ReviewSchedule({ users, onReload }: { users: User[]; onReload: () => void }) {
+  const [bucket, setBucket] = useState<ReviewBucket>('all');
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [flash, setFlashMsg] = useState<{ kind: 'success' | 'error'; msg: string } | null>(null);
+
+  useEffect(() => {
+    if (!flash) return;
+    const t = setTimeout(() => setFlashMsg(null), 4000);
+    return () => clearTimeout(t);
+  }, [flash]);
+
+  // Enrich each user with a computed nextReviewDate (DB value, falling back
+  // to appointmentDate + 6 months if not backfilled yet) and daysUntil.
+  const rows = users
+    .map((u) => {
+      let nextDate: Date | null = null;
+      if (u.nextReviewDate) nextDate = new Date(u.nextReviewDate);
+      else if (u.appointmentDate) {
+        const d = new Date(u.appointmentDate);
+        d.setMonth(d.getMonth() + 6);
+        nextDate = d;
+      }
+      const daysUntil = nextDate ? daysBetween(nextDate) : null;
+      const completedRecently =
+        u.lastReviewCompletedAt &&
+        daysBetween(new Date(u.lastReviewCompletedAt)) > -30; // within last 30d
+      return { user: u, nextDate, daysUntil, completedRecently };
+    })
+    .sort((a, b) => {
+      if (!a.nextDate) return 1;
+      if (!b.nextDate) return -1;
+      return a.nextDate.getTime() - b.nextDate.getTime();
+    });
+
+  const visible = rows.filter(({ daysUntil, completedRecently }) => {
+    if (bucket === 'done') return !!completedRecently;
+    if (completedRecently) return false;
+    if (daysUntil == null) return bucket === 'all' || bucket === 'later';
+    if (bucket === 'overdue') return daysUntil < 0;
+    if (bucket === 'soon') return daysUntil >= 0 && daysUntil <= 7;
+    if (bucket === 'month') return daysUntil > 7 && daysUntil <= 30;
+    if (bucket === 'later') return daysUntil > 30;
+    return true;
+  });
+
+  const counts = {
+    all: rows.filter((r) => !r.completedRecently).length,
+    overdue: rows.filter((r) => !r.completedRecently && r.daysUntil != null && r.daysUntil < 0).length,
+    soon: rows.filter((r) => !r.completedRecently && r.daysUntil != null && r.daysUntil >= 0 && r.daysUntil <= 7).length,
+    month: rows.filter((r) => !r.completedRecently && r.daysUntil != null && r.daysUntil > 7 && r.daysUntil <= 30).length,
+    later: rows.filter((r) => !r.completedRecently && (r.daysUntil == null || r.daysUntil > 30)).length,
+    done: rows.filter((r) => r.completedRecently).length,
+  };
+
+  const sendReminder = async (userId: string) => {
+    setBusyId(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/send-review-reminder`, { method: 'POST' });
+      if (res.ok) {
+        setFlashMsg({ kind: 'success', msg: 'Reminder sent' });
+        onReload();
+      } else {
+        const d = await res.json().catch(() => ({}));
+        setFlashMsg({ kind: 'error', msg: d.error || 'Failed to send reminder' });
+      }
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const markComplete = async (userId: string) => {
+    setBusyId(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ markReviewComplete: true }),
+      });
+      if (res.ok) {
+        setFlashMsg({ kind: 'success', msg: 'Review marked complete' });
+        onReload();
+      } else {
+        const d = await res.json().catch(() => ({}));
+        setFlashMsg({ kind: 'error', msg: d.error || 'Failed to mark complete' });
+      }
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const adjustDate = async (userId: string, currentDate: Date | null) => {
+    const input = window.prompt(
+      'Set the next review date (YYYY-MM-DD):',
+      currentDate ? currentDate.toISOString().slice(0, 10) : ''
+    );
+    if (!input) return;
+    const parsed = new Date(input);
+    if (Number.isNaN(parsed.getTime())) {
+      setFlashMsg({ kind: 'error', msg: 'Invalid date format (expected YYYY-MM-DD)' });
+      return;
+    }
+    setBusyId(userId);
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nextReviewDate: parsed.toISOString() }),
+      });
+      if (res.ok) {
+        setFlashMsg({ kind: 'success', msg: 'Review date updated' });
+        onReload();
+      } else {
+        const d = await res.json().catch(() => ({}));
+        setFlashMsg({ kind: 'error', msg: d.error || 'Failed to update date' });
+      }
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const chip = (key: ReviewBucket, label: string, count: number) => (
+    <button
+      key={key}
+      type="button"
+      onClick={() => setBucket(key)}
+      className={`px-3 py-1.5 rounded-lg text-xs font-semibold focus-ring transition-colors ${
+        bucket === key
+          ? 'bg-accent text-[rgb(var(--color-text-inverse))]'
+          : 'bg-surface-elevated border border-theme text-secondary hover:text-primary'
+      }`}
+    >
+      {label}
+      <span className={`ml-1.5 text-2xs ${bucket === key ? 'opacity-80' : 'text-tertiary'}`}>{count}</span>
+    </button>
+  );
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        {chip('all', 'All', counts.all)}
+        {chip('overdue', 'Overdue', counts.overdue)}
+        {chip('soon', 'Next 7 days', counts.soon)}
+        {chip('month', 'Next 30 days', counts.month)}
+        {chip('later', 'Later', counts.later)}
+        {chip('done', 'Done (30d)', counts.done)}
+      </div>
+
+      {flash && (
+        <div
+          role="status"
+          className={`rounded-xl px-4 py-2 text-sm font-medium ${
+            flash.kind === 'success' ? 'bg-success-muted text-success' : 'bg-error-muted text-error'
+          }`}
+        >
+          {flash.msg}
+        </div>
+      )}
+
+      <div className="card-section overflow-y-auto scrollbar-hide max-h-[calc(100vh-24rem)]">
+        <table className="w-full">
+          <thead className="sticky top-0 z-10 bg-surface-secondary">
+            <tr className="border-b border-theme">
+              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Employee</th>
+              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider hidden lg:table-cell">Reporting to</th>
+              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider hidden md:table-cell">Appointment</th>
+              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Next review</th>
+              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Status</th>
+              <th className="text-right px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {visible.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-4 py-12 text-center text-tertiary text-sm">
+                  No reviews in this bucket.
+                </td>
+              </tr>
+            ) : (
+              visible.map(({ user, nextDate, daysUntil, completedRecently }) => {
+                const busy = busyId === user.id;
+                return (
+                  <tr key={user.id} className="hover:bg-surface-secondary transition-colors border-t border-theme">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="avatar-sm avatar-gradient">
+                          {user.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-primary truncate">{user.name}</p>
+                          <p className="text-2xs text-tertiary truncate">{user.position || user.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 hidden lg:table-cell text-sm text-secondary">{user.manager?.name || '—'}</td>
+                    <td className="px-4 py-3 hidden md:table-cell text-sm text-secondary">
+                      {user.appointmentDate ? new Date(user.appointmentDate).toLocaleDateString() : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-primary font-medium">
+                      {nextDate ? nextDate.toLocaleDateString() : <span className="text-tertiary">—</span>}
+                    </td>
+                    <td className="px-4 py-3">
+                      {completedRecently ? (
+                        <span className="badge-base bg-success-muted text-success">
+                          <Check className="w-3 h-3" /> Done
+                        </span>
+                      ) : daysUntil == null ? (
+                        <span className="badge-base bg-surface-secondary text-tertiary">No date</span>
+                      ) : daysUntil < 0 ? (
+                        <span className="badge-base bg-error-muted text-error">
+                          {Math.abs(daysUntil)}d overdue
+                        </span>
+                      ) : daysUntil <= 7 ? (
+                        <span className="badge-base bg-warning-muted text-warning">
+                          Due in {daysUntil}d
+                        </span>
+                      ) : daysUntil <= 30 ? (
+                        <span className="badge-base bg-info-muted text-info">In {daysUntil}d</span>
+                      ) : (
+                        <span className="badge-base bg-surface-secondary text-secondary">In {daysUntil}d</span>
+                      )}
+                      {user.reviewReminderSentAt && !completedRecently && (
+                        <span
+                          className="ml-1.5 text-2xs text-tertiary"
+                          title={`Reminder sent ${formatDistanceToNow(new Date(user.reviewReminderSentAt), { addSuffix: true })}`}
+                        >
+                          <Mail className="inline w-3 h-3" />
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          type="button"
+                          onClick={() => sendReminder(user.id)}
+                          disabled={busy || !nextDate}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-2xs font-semibold text-secondary hover:text-primary hover:bg-surface-secondary focus-ring disabled:opacity-40"
+                          title="Send reminder email to employee + reporting person"
+                        >
+                          <Bell className="w-3 h-3" /> Remind
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => adjustDate(user.id, nextDate)}
+                          disabled={busy}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-2xs font-semibold text-secondary hover:text-primary hover:bg-surface-secondary focus-ring disabled:opacity-40"
+                          title="Adjust the next review date"
+                        >
+                          <Calendar className="w-3 h-3" /> Adjust
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => markComplete(user.id)}
+                          disabled={busy || !nextDate || !!completedRecently}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-2xs font-semibold text-success hover:bg-success-muted focus-ring disabled:opacity-40"
+                          title="Mark review complete (rolls next review +12 months)"
+                        >
+                          <Check className="w-3 h-3" /> Done
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }

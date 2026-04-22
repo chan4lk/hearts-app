@@ -1,8 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['avatars.githubusercontent.com'],
+    // Next.js 16: `images.domains` is removed in favor of `remotePatterns`
+    remotePatterns: [
+      { protocol: 'https', hostname: 'avatars.githubusercontent.com' },
+    ],
   },
+  // Next.js 16 defaults to Turbopack; we keep custom webpack plugins
+  // (IgnorePlugin, NormalModuleReplacement, chunk splitting). An empty
+  // `turbopack` key silences the "webpack config without turbopack config"
+  // error while still letting the `webpack` key below take effect.
+  turbopack: {},
   webpack: (config, { isServer, webpack }) => {
     config.resolve.alias = {
       ...config.resolve.alias,
@@ -108,10 +116,19 @@ const nextConfig = {
     return config;
   },
   output: 'standalone',
-  eslint: {
-    // Pre-existing lint issues in vendor/infra files — don't block builds
-    ignoreDuringBuilds: true,
-  },
+  // Next.js 15+: don't bundle these — require() them at runtime on the
+  // server. applicationinsights transitively depends on optional DB
+  // adapters (mysql, mongodb, …) via diagnostic-channel-publishers that
+  // the bundler can't resolve statically.
+  serverExternalPackages: [
+    'applicationinsights',
+    '@azure/monitor-opentelemetry',
+    '@azure/monitor-opentelemetry-exporter',
+    'diagnostic-channel',
+    'diagnostic-channel-publishers',
+  ],
+  // Next.js 16 removed the top-level `eslint` config key; lint is now handled
+  // by `next lint` separately. We intentionally don't block builds on lint.
   async headers() {
     return [
       {

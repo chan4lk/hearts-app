@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getTenantContext } from '@/lib/tenantScope';
 
-export async function GET(_req: NextRequest, { params }: { params: { userId: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
 
-  const { userId } = params;
+  const { userId } = await params;
 
   const user = await prisma.user.findFirst({
     where: { id: userId, tenantId: ctx.tenantId },

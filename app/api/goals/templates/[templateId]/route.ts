@@ -12,7 +12,7 @@ const UpdateTemplateSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-export async function PATCH(req: NextRequest, { params }: { params: { templateId: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ templateId: string }> }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
   requireMinRole(ctx, 'ADMIN');
@@ -27,7 +27,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { templateId
   }
 
   const template = await prisma.goalTemplate.findFirst({
-    where: { id: params.templateId, tenantId: ctx.tenantId },
+    where: { id: (await params).templateId, tenantId: ctx.tenantId },
   });
   if (!template) {
     return NextResponse.json({ error: 'Template not found', code: 'NOT_FOUND' }, { status: 404 });
@@ -46,7 +46,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { templateId
   }
 
   const updated = await prisma.goalTemplate.update({
-    where: { id: params.templateId },
+    where: { id: (await params).templateId },
     data: parsed.data,
   });
 
@@ -67,13 +67,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { templateId
   return NextResponse.json(updated);
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { templateId: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ templateId: string }> }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
   requireMinRole(ctx, 'ADMIN');
 
   const template = await prisma.goalTemplate.findFirst({
-    where: { id: params.templateId, tenantId: ctx.tenantId },
+    where: { id: (await params).templateId, tenantId: ctx.tenantId },
   });
   if (!template) {
     return NextResponse.json({ error: 'Template not found', code: 'NOT_FOUND' }, { status: 404 });

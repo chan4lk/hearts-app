@@ -12,7 +12,7 @@ const UpdateValueSchema = z.object({
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { valueId: string } }
+  { params }: { params: Promise<{ valueId: string }> }
 ) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
@@ -27,7 +27,7 @@ export async function PATCH(
     );
   }
 
-  const { valueId } = params;
+  const { valueId } = await params;
 
   const value = await prisma.companyValue.findFirst({
     where: { id: valueId, tenantId: ctx.tenantId },
@@ -72,13 +72,13 @@ export async function PATCH(
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { valueId: string } }
+  { params }: { params: Promise<{ valueId: string }> }
 ) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
   requireMinRole(ctx, 'ADMIN');
 
-  const { valueId } = params;
+  const { valueId } = await params;
 
   const value = await prisma.companyValue.findFirst({
     where: { id: valueId, tenantId: ctx.tenantId },

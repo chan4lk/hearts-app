@@ -290,3 +290,60 @@ export async function notifyReviewDue(tenantId: string, recipientId: string, cyc
     body: `You have ${pendingCount} review(s) pending for ${cycleName}.\n\nDeadline: ${dueDate}\n\nPlease complete your reviews before the deadline.`,
   });
 }
+
+/**
+ * Per-employee review-schedule reminder. Sends one email each to the
+ * employee and their reporting person (if set). `audience` tailors the
+ * copy — employees get a prep-focused message, reporting persons get a
+ * "please schedule" nudge.
+ */
+export async function notifyReviewScheduleDue(params: {
+  tenantId: string;
+  recipientId: string;
+  audience: 'employee' | 'manager';
+  employeeName: string;
+  reportingPersonName: string | null;
+  reviewDate: string;
+  daysUntil: number; // negative = overdue
+}) {
+  const { tenantId, recipientId, audience, employeeName, reportingPersonName, reviewDate, daysUntil } = params;
+  const overdue = daysUntil < 0;
+  const when = overdue ? `${Math.abs(daysUntil)} day${Math.abs(daysUntil) === 1 ? '' : 's'} overdue` : `in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`;
+
+  const subject = audience === 'employee'
+    ? overdue
+      ? `Your performance review is ${when}`
+      : `Your performance review is coming up ${when}`
+    : overdue
+      ? `Review for ${employeeName} is ${when}`
+      : `Review for ${employeeName} scheduled ${when}`;
+
+  const body = audience === 'employee'
+    ? [
+        `Hi ${employeeName.split(' ')[0]},`,
+        ``,
+        `Your next performance review is scheduled for ${reviewDate} (${when}).`,
+        reportingPersonName ? `Your reporting person ${reportingPersonName} will conduct the review.` : `Please coordinate the review with your reporting person.`,
+        ``,
+        `Please prepare by reviewing your goals, achievements, and any blockers you'd like to discuss.`,
+        ``,
+        `— AspireHub`,
+      ].join('\n')
+    : [
+        `Hi${reportingPersonName ? ' ' + reportingPersonName.split(' ')[0] : ''},`,
+        ``,
+        `The performance review for ${employeeName} is scheduled for ${reviewDate} (${when}).`,
+        ``,
+        `Please coordinate a time with them, review their goals and hearts in AspireHub, and conduct the review. Mark it complete in Admin → Users → Review Schedule when done.`,
+        ``,
+        `— AspireHub`,
+      ].join('\n');
+
+  await sendEmail({
+    tenantId,
+    recipientId,
+    template: 'REVIEW_DUE',
+    subject,
+    body,
+  });
+}

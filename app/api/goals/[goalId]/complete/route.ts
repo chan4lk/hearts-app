@@ -12,7 +12,7 @@ const CompleteSchema = z.object({
   note: z.string().max(1000).optional(),
 });
 
-export async function POST(req: NextRequest, { params }: { params: { goalId: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ goalId: string }> }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
 
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest, { params }: { params: { goalId: str
   }
 
   const goal = await prisma.goal.findFirst({
-    where: { id: params.goalId, tenantId: ctx.tenantId },
+    where: { id: (await params).goalId, tenantId: ctx.tenantId },
     include: { owner: { select: { managerId: true } } },
   });
   if (!goal) return NextResponse.json({ error: 'Goal not found', code: 'NOT_FOUND' }, { status: 404 });

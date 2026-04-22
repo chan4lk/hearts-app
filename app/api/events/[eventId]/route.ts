@@ -7,12 +7,12 @@ import { sanitizeInput, sanitizeInputPreserveNewlines } from '@/lib/securityUtil
 import { z } from 'zod';
 
 // GET — event detail with attendance
-export async function GET(req: NextRequest, { params }: { params: { eventId: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ eventId: string }> }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
 
   const event = await prisma.event.findFirst({
-    where: { id: params.eventId, tenantId: ctx.tenantId },
+    where: { id: (await params).eventId, tenantId: ctx.tenantId },
     include: {
       participations: {
         include: { user: { select: { id: true, name: true, email: true, department: true } } },
@@ -49,7 +49,7 @@ const UpdateEventSchema = z.object({
 });
 
 // PATCH — edit event (admin only)
-export async function PATCH(req: NextRequest, { params }: { params: { eventId: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ eventId: string }> }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
   requireMinRole(ctx, 'ADMIN');
@@ -63,11 +63,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { eventId: s
     );
   }
 
-  const event = await prisma.event.findFirst({ where: { id: params.eventId, tenantId: ctx.tenantId } });
+  const event = await prisma.event.findFirst({ where: { id: (await params).eventId, tenantId: ctx.tenantId } });
   if (!event) return NextResponse.json({ error: 'Event not found', code: 'NOT_FOUND' }, { status: 404 });
 
   const updated = await prisma.event.update({
-    where: { id: params.eventId },
+    where: { id: (await params).eventId },
     data: {
       ...(parsed.data.title !== undefined && { title: parsed.data.title }),
       ...(parsed.data.description !== undefined && { description: parsed.data.description }),
@@ -89,14 +89,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { eventId: s
     await logAudit(ctx, {
       action,
       entity: 'Event',
-      entityId: params.eventId,
+      entityId: (await params).eventId,
       details: { from: event.status, to: parsed.data.status, title: event.title },
     });
   } else {
     await logAudit(ctx, {
       action: AuditAction.EVENT_UPDATED,
       entity: 'Event',
-      entityId: params.eventId,
+      entityId: (await params).eventId,
       details: { title: updated.title },
     });
   }
@@ -105,22 +105,22 @@ export async function PATCH(req: NextRequest, { params }: { params: { eventId: s
 }
 
 // DELETE — permanently delete event + all participations (admin only)
-export async function DELETE(req: NextRequest, { params }: { params: { eventId: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ eventId: string }> }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
   requireMinRole(ctx, 'ADMIN');
 
-  const event = await prisma.event.findFirst({ where: { id: params.eventId, tenantId: ctx.tenantId } });
+  const event = await prisma.event.findFirst({ where: { id: (await params).eventId, tenantId: ctx.tenantId } });
   if (!event) return NextResponse.json({ error: 'Event not found', code: 'NOT_FOUND' }, { status: 404 });
 
   // Hard delete — EventParticipation rows cascade via the
   // 20260420185636_add_cascade_rules migration.
-  await prisma.event.delete({ where: { id: params.eventId } });
+  await prisma.event.delete({ where: { id: (await params).eventId } });
 
   await logAudit(ctx, {
     action: AuditAction.EVENT_DELETED,
     entity: 'Event',
-    entityId: params.eventId,
+    entityId: (await params).eventId,
     details: { title: event.title, status: event.status },
   });
 

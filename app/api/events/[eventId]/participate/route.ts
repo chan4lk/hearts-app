@@ -10,7 +10,7 @@ const ParticipateSchema = z.object({
 });
 
 // POST — employee updates their own participation (status and/or meal preference)
-export async function POST(req: NextRequest, { params }: { params: { eventId: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ eventId: string }> }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
 
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest, { params }: { params: { eventId: st
 
   // Make sure the event exists and is in this tenant; block RSVPs to cancelled events
   const event = await prisma.event.findFirst({
-    where: { id: params.eventId, tenantId: ctx.tenantId },
+    where: { id: (await params).eventId, tenantId: ctx.tenantId },
     select: { status: true },
   });
   if (!event) return NextResponse.json({ error: 'Event not found', code: 'NOT_FOUND' }, { status: 404 });
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest, { params }: { params: { eventId: st
     where: {
       tenantId_eventId_userId: {
         tenantId: ctx.tenantId,
-        eventId: params.eventId,
+        eventId: (await params).eventId,
         userId: ctx.userId,
       },
     },
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest, { params }: { params: { eventId: st
     },
     create: {
       tenantId: ctx.tenantId,
-      eventId: params.eventId,
+      eventId: (await params).eventId,
       userId: ctx.userId,
       status: parsed.data.status ?? 'PENDING',
       mealPreference: parsed.data.mealPreference ?? 'NONE',
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest, { params }: { params: { eventId: st
     entity: 'EventParticipation',
     entityId: participation.id,
     details: {
-      eventId: params.eventId,
+      eventId: (await params).eventId,
       status: participation.status,
       mealPreference: participation.mealPreference,
     },

@@ -6,7 +6,7 @@ import { logAudit, AuditAction } from '@/lib/auditLog';
 import { notifyGoalStatus } from '@/lib/email';
 
 // POST — approve a pending goal
-export async function POST(req: NextRequest, { params }: { params: { goalId: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ goalId: string }> }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
   requireMinRole(ctx, 'MANAGER');
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest, { params }: { params: { goalId: str
   const feedback = body.feedback || null;
 
   const goal = await prisma.goal.findFirst({
-    where: { id: params.goalId, tenantId: ctx.tenantId },
+    where: { id: (await params).goalId, tenantId: ctx.tenantId },
     include: { owner: { select: { managerId: true } } },
   });
 
@@ -24,9 +24,9 @@ export async function POST(req: NextRequest, { params }: { params: { goalId: str
   if (!isManagerOf(ctx, goal.owner.managerId)) return NextResponse.json({ error: 'Not the assigned manager', code: 'FORBIDDEN' }, { status: 403 });
 
   const [updated] = await prisma.$transaction([
-    prisma.goal.update({ where: { id: params.goalId }, data: { status: 'ACTIVE' } }),
+    prisma.goal.update({ where: { id: (await params).goalId }, data: { status: 'ACTIVE' } }),
     ...(feedback ? [prisma.goalComment.create({
-      data: { tenantId: ctx.tenantId, goalId: params.goalId, authorId: ctx.userId, content: feedback, type: 'APPROVAL' },
+      data: { tenantId: ctx.tenantId, goalId: (await params).goalId, authorId: ctx.userId, content: feedback, type: 'APPROVAL' },
     })] : []),
   ]);
 

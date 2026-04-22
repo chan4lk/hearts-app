@@ -5,12 +5,12 @@ import { logAudit, AuditAction } from '@/lib/auditLog';
 import { hasMinRole } from '@/lib/rbac';
 import { z } from 'zod';
 
-export async function GET(_req: NextRequest, { params }: { params: { reviewId: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ reviewId: string }> }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
 
   const review = await prisma.review.findFirst({
-    where: { id: params.reviewId, tenantId: ctx.tenantId },
+    where: { id: (await params).reviewId, tenantId: ctx.tenantId },
     include: {
       employee: { select: { id: true, name: true, email: true, department: true } },
       manager: { select: { id: true, name: true } },
@@ -62,12 +62,12 @@ const UpdateReviewSchema = z.object({
   managerRating: z.number().min(1).max(5).optional(),
 });
 
-export async function PATCH(req: NextRequest, { params }: { params: { reviewId: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ reviewId: string }> }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
 
   const review = await prisma.review.findFirst({
-    where: { id: params.reviewId, tenantId: ctx.tenantId },
+    where: { id: (await params).reviewId, tenantId: ctx.tenantId },
   });
   if (!review) return NextResponse.json({ error: 'Review not found', code: 'NOT_FOUND' }, { status: 404 });
   if (review.isFinalized) {
@@ -121,7 +121,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { reviewId: 
   }
   if (parsed.data.managerRating !== undefined) data.managerRating = parsed.data.managerRating;
 
-  const updated = await prisma.review.update({ where: { id: params.reviewId }, data });
+  const updated = await prisma.review.update({ where: { id: (await params).reviewId }, data });
 
   if (selfFirstSubmit) {
     await logAudit(ctx, {

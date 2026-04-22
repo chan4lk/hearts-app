@@ -14,11 +14,14 @@ const UpdateUserSchema = z.object({
   jobCategory: z.string().nullable().optional(),
   appointmentDate: z.string().nullable().optional(),
   reviewMonth: z.string().nullable().optional(),
+  // Review-schedule fields
+  nextReviewDate: z.string().nullable().optional(),
+  markReviewComplete: z.boolean().optional(),
 });
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
@@ -30,7 +33,7 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid input', code: 'VALIDATION_ERROR', details: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { userId } = params;
+  const { userId } = await params;
   const data = parsed.data;
 
   // Verify user belongs to same tenant
@@ -62,6 +65,22 @@ export async function PATCH(
     }
   }
 
+  // When marking review complete: stamp lastReviewCompletedAt now, roll
+  // nextReviewDate +12 months, and clear the reminder timestamp so the
+  // next cycle can re-send.
+  let reviewCompleteUpdate: Record<string, unknown> = {};
+  if (data.markReviewComplete) {
+    const now = new Date();
+    const prev = user.nextReviewDate ?? now;
+    const next = new Date(prev);
+    next.setMonth(next.getMonth() + 12);
+    reviewCompleteUpdate = {
+      lastReviewCompletedAt: now,
+      nextReviewDate: next,
+      reviewReminderSentAt: null,
+    };
+  }
+
   const updated = await prisma.user.update({
     where: { id: userId },
     data: {
@@ -73,6 +92,12 @@ export async function PATCH(
       ...(data.jobCategory !== undefined && { jobCategory: data.jobCategory }),
       ...(data.appointmentDate !== undefined && { appointmentDate: data.appointmentDate ? new Date(data.appointmentDate) : null }),
       ...(data.reviewMonth !== undefined && { reviewMonth: data.reviewMonth }),
+      ...(data.nextReviewDate !== undefined && {
+        nextReviewDate: data.nextReviewDate ? new Date(data.nextReviewDate) : null,
+        // Admin-override of the date resets any outstanding reminder stamp.
+        reviewReminderSentAt: null,
+      }),
+      ...reviewCompleteUpdate,
     },
     select: {
       id: true,

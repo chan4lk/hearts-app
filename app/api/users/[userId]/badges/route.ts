@@ -13,12 +13,12 @@ import { BadgeKind } from '@prisma/client';
  *
  * Visible to the user themselves, their manager, or any admin.
  */
-export async function GET(_req: NextRequest, { params }: { params: { userId: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
 
   const targetUser = await prisma.user.findFirst({
-    where: { id: params.userId, tenantId: ctx.tenantId },
+    where: { id: (await params).userId, tenantId: ctx.tenantId },
     select: { id: true, name: true, managerId: true, department: true, position: true },
   });
   if (!targetUser) return NextResponse.json({ error: 'User not found', code: 'NOT_FOUND' }, { status: 404 });
@@ -31,7 +31,7 @@ export async function GET(_req: NextRequest, { params }: { params: { userId: str
   }
 
   const earnedRows = await prisma.userBadge.findMany({
-    where: { tenantId: ctx.tenantId, userId: params.userId },
+    where: { tenantId: ctx.tenantId, userId: (await params).userId },
     orderBy: { earnedAt: 'desc' },
   });
   const earnedMap = new Map(earnedRows.map((b) => [b.kind, b.earnedAt]));
@@ -39,24 +39,24 @@ export async function GET(_req: NextRequest, { params }: { params: { userId: str
   // Progress counts for unearned badges (best-effort)
   const [completedGoals, heartsReceived, heartsGiven, onTimeCompleted, categoriesDistinct, valueGroups, mentorTargets] =
     await Promise.all([
-      prisma.goal.count({ where: { tenantId: ctx.tenantId, ownerId: params.userId, status: 'COMPLETED' } }),
-      prisma.heart.count({ where: { tenantId: ctx.tenantId, receiverId: params.userId } }),
-      prisma.heart.count({ where: { tenantId: ctx.tenantId, senderId: params.userId } }),
+      prisma.goal.count({ where: { tenantId: ctx.tenantId, ownerId: (await params).userId, status: 'COMPLETED' } }),
+      prisma.heart.count({ where: { tenantId: ctx.tenantId, receiverId: (await params).userId } }),
+      prisma.heart.count({ where: { tenantId: ctx.tenantId, senderId: (await params).userId } }),
       prisma.goal.count({
-        where: { tenantId: ctx.tenantId, ownerId: params.userId, status: 'COMPLETED', targetDate: { not: null } },
+        where: { tenantId: ctx.tenantId, ownerId: (await params).userId, status: 'COMPLETED', targetDate: { not: null } },
       }),
       prisma.goal.findMany({
-        where: { tenantId: ctx.tenantId, ownerId: params.userId, status: 'COMPLETED', category: { not: null } },
+        where: { tenantId: ctx.tenantId, ownerId: (await params).userId, status: 'COMPLETED', category: { not: null } },
         select: { category: true },
         distinct: ['category'],
       }),
       prisma.heart.groupBy({
         by: ['valueTagId'],
-        where: { tenantId: ctx.tenantId, receiverId: params.userId },
+        where: { tenantId: ctx.tenantId, receiverId: (await params).userId },
         _count: { _all: true },
       }),
       prisma.goal.findMany({
-        where: { tenantId: ctx.tenantId, assignerId: params.userId, ownerId: { not: params.userId } },
+        where: { tenantId: ctx.tenantId, assignerId: (await params).userId, ownerId: { not: (await params).userId } },
         select: { ownerId: true },
         distinct: ['ownerId'],
       }),

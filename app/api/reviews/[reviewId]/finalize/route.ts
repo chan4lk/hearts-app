@@ -6,13 +6,13 @@ import { logAudit, AuditAction } from '@/lib/auditLog';
 import { notifyReviewReady } from '@/lib/email';
 
 // POST — finalize review (immutable)
-export async function POST(req: NextRequest, { params }: { params: { reviewId: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ reviewId: string }> }) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
   requireMinRole(ctx, 'MANAGER');
 
   const review = await prisma.review.findFirst({
-    where: { id: params.reviewId, tenantId: ctx.tenantId },
+    where: { id: (await params).reviewId, tenantId: ctx.tenantId },
   });
 
   if (!review) return NextResponse.json({ error: 'Review not found', code: 'NOT_FOUND' }, { status: 404 });
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest, { params }: { params: { reviewId: s
   }
 
   const updated = await prisma.review.update({
-    where: { id: params.reviewId },
+    where: { id: (await params).reviewId },
     data: { isFinalized: true, finalizedAt: new Date() },
   });
 

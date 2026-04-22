@@ -525,7 +525,7 @@ function getJWTSecret(): string {
 }
 
 export async function getAuthUser(): Promise<AuthUser | null> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get('token')?.value;
 
   if (!token) {
@@ -556,6 +556,6 @@ export async function hasRole(role: string): Promise<boolean> {
 }
 
 export async function logout() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   cookieStore.delete('token');
-} 
+}

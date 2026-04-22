@@ -23,6 +23,12 @@ import { logger } from '@/lib/logger';
  * - If user doesn't exist → create with EMPLOYEE role
  * - ManagerEmail is resolved to managerId after all users are created
  */
+function addMonths(d: Date, n: number): Date {
+  const out = new Date(d);
+  out.setMonth(out.getMonth() + n);
+  return out;
+}
+
 export async function POST(req: NextRequest) {
   const ctx = await getTenantContext();
   if (!ctx) return NextResponse.json({ error: 'Unauthorized', code: 'UNAUTHORIZED' }, { status: 401 });
@@ -30,7 +36,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { rows } = body as { rows: any[] };
+    const { rows, mode } = body as { rows: any[]; mode?: 'preview' | 'commit' };
+    const isPreview = mode === 'preview';
 
     if (!rows || !Array.isArray(rows) || rows.length === 0) {
       return NextResponse.json({ error: 'No data provided', code: 'VALIDATION_ERROR' }, { status: 400 });
@@ -40,7 +47,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Maximum 500 rows allowed', code: 'VALIDATION_ERROR' }, { status: 400 });
     }
 
-    const results = { created: 0, updated: 0, errors: [] as string[] };
+    const results = {
+      created: 0,
+      updated: 0,
+      skipped: 0,
+      errors: [] as string[],
+      preview: isPreview ? ([] as Array<{ email: string; name: string; action: 'create' | 'update' | 'skip'; reason?: string }>) : undefined,
+    };
 
     // Phase 1: Create/update all users
     for (const row of rows) {
@@ -50,6 +63,10 @@ export async function POST(req: NextRequest) {
 
         if (!email || !name) {
           results.errors.push(`Skipped row: missing name or email`);
+          results.skipped++;
+          if (isPreview) {
+            results.preview!.push({ email: email || '(blank)', name: name || '(blank)', action: 'skip', reason: 'missing name or email' });
+          }
           continue;
         }
 
@@ -62,11 +79,15 @@ export async function POST(req: NextRequest) {
             (row['Adjusted Review Month'] || row.AdjustedReviewMonth || row.ReviewMonth || row['Review Month'] || row.reviewMonth || null)?.toString().trim() || null,
         };
 
-        // Parse appointment date
+        // Parse appointment date → compute nextReviewDate = +6 months.
+        // (Admins can override the computed date from the Review Schedule UI.)
         const dateStr = row.AppointmentDate || row['Date of Appointment'] || row.appointmentDate || null;
         if (dateStr) {
           const parsed = new Date(dateStr);
-          if (!isNaN(parsed.getTime())) data.appointmentDate = parsed;
+          if (!isNaN(parsed.getTime())) {
+            data.appointmentDate = parsed;
+            data.nextReviewDate = addMonths(parsed, 6);
+          }
         }
 
         // Check if user exists
@@ -75,17 +96,31 @@ export async function POST(req: NextRequest) {
         });
 
         if (existing) {
-          await prisma.user.update({ where: { id: existing.id }, data });
+          // Preserve an admin-adjusted nextReviewDate: only overwrite if the
+          // current row brings a new appointment date that differs.
+          if (existing.nextReviewDate && existing.appointmentDate?.toISOString() === data.appointmentDate?.toISOString()) {
+            delete data.nextReviewDate;
+          }
+          if (!isPreview) await prisma.user.update({ where: { id: existing.id }, data });
           results.updated++;
+          if (isPreview) results.preview!.push({ email, name, action: 'update' });
         } else {
-          await prisma.user.create({
-            data: { tenantId: ctx.tenantId, email, role: 'EMPLOYEE', ...data },
-          });
+          if (!isPreview) {
+            await prisma.user.create({
+              data: { tenantId: ctx.tenantId, email, role: 'EMPLOYEE', ...data },
+            });
+          }
           results.created++;
+          if (isPreview) results.preview!.push({ email, name, action: 'create' });
         }
       } catch (rowError: any) {
         results.errors.push(`Error for ${row.Email || 'unknown'}: ${rowError.message}`);
+        results.skipped++;
       }
+    }
+
+    if (isPreview) {
+      return NextResponse.json(results);
     }
 
     // Phase 2: Resolve manager relationships

@@ -108,6 +108,15 @@ model User {
   jobCategory         String? // Job level: "Executive", "Senior Executive", "Manager"
   appointmentDate     DateTime? // Date of appointment / hire date
   reviewMonth         String? // Calculated or manual review month: "April", "October"
+  // Review schedule tracking
+  // nextReviewDate defaults to appointmentDate + 6 months but admins can
+  // override it (the "Adjusted" column in imported Excel).
+  nextReviewDate         DateTime?
+  lastReviewCompletedAt  DateTime?
+  // Timestamp of the latest auto/manual review-due reminder; prevents the
+  // cron from re-sending within the same window. Cleared when a review is
+  // marked complete.
+  reviewReminderSentAt   DateTime?
   managerId           String?
 
   // Self-referential manager relationship
