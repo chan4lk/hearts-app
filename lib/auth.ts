@@ -382,6 +382,19 @@ export const authOptions: NextAuthOptions = {
           user.role = dbUser.role;
           user.email = dbUser.email; // Use the email from database (preserves original casing)
 
+          // Stamp lastLoginAt so the admin "Never logged in" filter and the
+          // "Invite unlogged-in" action work for Azure AD users too.
+          // Fire-and-forget — login success must not block on this write.
+          prisma.user.update({
+            where: { id: dbUser.id },
+            data: { lastLoginAt: new Date() },
+          }).catch((err) => {
+            logger.warn('auth.signin.last_login_update_failed', {
+              userId: dbUser!.id,
+              error: err instanceof Error ? err : new Error(String(err)),
+            });
+          });
+
           logger.info('auth.signin.success', { provider: account?.provider, email: user.email });
         }
         return true;

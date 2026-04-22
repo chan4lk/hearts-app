@@ -47,6 +47,8 @@ export default function AdminUsersPage() {
   const [importResult, setImportResult] = useState<{ created: number; updated: number; errors: string[] } | null>(null);
   const [inviteBusy, setInviteBusy] = useState(false);
   const [inviteResult, setInviteResult] = useState<{ sent: number; skipped: number; errors: string[] } | null>(null);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteSelectedIds, setInviteSelectedIds] = useState<Set<string>>(new Set());
   const [importPreview, setImportPreview] = useState<
     | {
         created: number;
@@ -162,21 +164,31 @@ export default function AdminUsersPage() {
     e.target.value = ''; // reset file input
   };
 
-  const handleSendLoginInvitations = async () => {
+  const openInviteModal = () => {
     const eligible = users.filter((u) => u.isActive && !u.lastLoginAt);
     if (eligible.length === 0) return;
-    if (!window.confirm(`Send a login invitation email to ${eligible.length} user(s) who have never logged in?`)) return;
+    // Pre-select all eligible users by default — admin can uncheck any.
+    setInviteSelectedIds(new Set(eligible.map((u) => u.id)));
+    setInviteResult(null);
+    setShowInviteModal(true);
+  };
+
+  const confirmSendInvitations = async () => {
+    if (inviteSelectedIds.size === 0) return;
     setInviteBusy(true);
     setInviteResult(null);
     try {
       const res = await fetch('/api/admin/users/send-login-invitations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ all: true }),
+        body: JSON.stringify({ userIds: Array.from(inviteSelectedIds) }),
       });
       if (res.ok) {
         const d = await res.json();
         setInviteResult(d);
+        setShowInviteModal(false);
+        // Refresh so newly-stamped lastLoginAt users drop out of the "Invite" count.
+        await fetchUsers();
       }
     } finally {
       setInviteBusy(false);
@@ -253,15 +265,13 @@ export default function AdminUsersPage() {
           actions={
             <div className="flex items-center gap-2">
               <button
-                onClick={handleSendLoginInvitations}
+                onClick={openInviteModal}
                 disabled={inviteBusy || users.filter((u) => u.isActive && !u.lastLoginAt).length === 0}
                 className="inline-flex items-center gap-1.5 px-3 py-2 bg-surface-elevated border border-theme rounded-xl text-xs font-medium text-secondary hover:text-primary focus-ring transition-all disabled:opacity-50"
-                title="Email all active users who have never logged in"
+                title="Send a login invitation email to users who haven't logged in"
               >
                 <Mail className="w-3.5 h-3.5" />
-                {inviteBusy
-                  ? 'Sending…'
-                  : `Invite ${users.filter((u) => u.isActive && !u.lastLoginAt).length}`}
+                Invite {users.filter((u) => u.isActive && !u.lastLoginAt).length}
               </button>
               <label className="inline-flex items-center gap-1.5 px-3 py-2 bg-surface-elevated border border-theme rounded-xl text-xs font-medium text-secondary hover:text-primary cursor-pointer focus-ring transition-all">
                 <Upload className="w-3.5 h-3.5" /> Import
@@ -737,6 +747,113 @@ export default function AdminUsersPage() {
               </div>
             </div>
           )}
+        </Modal>
+
+        {/* Invite users modal — select which never-logged-in users to email */}
+        <Modal
+          open={showInviteModal}
+          onClose={() => !inviteBusy && setShowInviteModal(false)}
+          title="Invite Users to Log In"
+          icon={<Mail className="w-5 h-5 text-accent" />}
+          maxWidth="max-w-xl"
+        >
+          {(() => {
+            const eligible = users.filter((u) => u.isActive && !u.lastLoginAt);
+            const allSelected = eligible.length > 0 && eligible.every((u) => inviteSelectedIds.has(u.id));
+            const toggleOne = (id: string) => {
+              setInviteSelectedIds((prev) => {
+                const next = new Set(prev);
+                if (next.has(id)) next.delete(id); else next.add(id);
+                return next;
+              });
+            };
+            const toggleAll = () => {
+              setInviteSelectedIds(allSelected ? new Set() : new Set(eligible.map((u) => u.id)));
+            };
+
+            return (
+              <div className="space-y-4">
+                <div className="text-sm text-secondary">
+                  These users have been imported or created but have never logged in yet. Select who
+                  should receive a login invitation email.
+                </div>
+
+                {eligible.length === 0 ? (
+                  <div className="rounded-xl bg-surface-secondary px-4 py-8 text-center">
+                    <p className="text-sm text-secondary">
+                      Everyone has logged in — no invitations needed right now.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between px-1">
+                      <label className="inline-flex items-center gap-2 text-xs font-medium text-secondary cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={allSelected}
+                          onChange={toggleAll}
+                          className="focus-ring"
+                        />
+                        {allSelected ? 'Deselect all' : 'Select all'} ({eligible.length})
+                      </label>
+                      <span className="text-xs text-tertiary">
+                        {inviteSelectedIds.size} selected
+                      </span>
+                    </div>
+
+                    <div className="max-h-[40vh] overflow-y-auto scrollbar-hide border border-theme rounded-xl divide-y divide-[rgba(var(--color-border-primary),0.5)]">
+                      {eligible.map((u) => {
+                        const checked = inviteSelectedIds.has(u.id);
+                        return (
+                          <label
+                            key={u.id}
+                            className={`flex items-center gap-3 px-3 py-2.5 cursor-pointer hover:bg-surface-secondary transition-colors ${
+                              checked ? 'bg-accent-muted/40' : ''
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => toggleOne(u.id)}
+                              className="focus-ring"
+                            />
+                            <div className="avatar-sm avatar-gradient text-2xs">
+                              {u.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium text-primary truncate">{u.name}</p>
+                              <p className="text-2xs text-tertiary truncate">{u.email}</p>
+                            </div>
+                            <span className={`badge-base ${ROLE_STYLES[u.role]}`}>{u.role}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowInviteModal(false)}
+                    disabled={inviteBusy}
+                    className="btn-secondary px-4 py-2"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={confirmSendInvitations}
+                    disabled={inviteBusy || inviteSelectedIds.size === 0}
+                    className="btn-primary px-4 py-2 inline-flex items-center gap-2"
+                  >
+                    <Mail className="w-4 h-4" />
+                    {inviteBusy ? 'Sending…' : `Send ${inviteSelectedIds.size} Invitation${inviteSelectedIds.size === 1 ? '' : 's'}`}
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
         </Modal>
       </div>
     </DashboardLayout>
