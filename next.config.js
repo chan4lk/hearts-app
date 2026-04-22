@@ -20,78 +20,32 @@ const nextConfig = {
       ...config.resolve.alias,
       '@': __dirname,
     };
-    
-    // Handle node: protocol imports - must be first
-    config.plugins = config.plugins || [];
-    config.plugins.unshift(
-      new webpack.NormalModuleReplacementPlugin(
-        /^node:/,
-        (resource) => {
-          resource.request = resource.request.replace(/^node:/, '');
-        }
-      )
-    );
-    
-    // Custom plugin to handle node: protocol at resolve stage (before webpack processes it)
-    config.plugins.unshift({
-      apply: (compiler) => {
-        compiler.hooks.normalModuleFactory.tap('NodeProtocolPlugin', (nmf) => {
-          nmf.hooks.beforeResolve.tap('NodeProtocolPlugin', (data) => {
-            if (data && data.request && typeof data.request === 'string' && data.request.startsWith('node:')) {
-              data.request = data.request.replace(/^node:/, '');
-            }
-          });
-        });
-      },
-    });
-    
-    // Suppress @azure/functions-core warning (optional peer dep that's never used in Next.js)
-    config.plugins.push(
-      new webpack.IgnorePlugin({ resourceRegExp: /^@azure\/functions-core$/ })
-    );
 
     // Silence noisy "Critical dependency" warnings from applicationinsights /
-    // OpenTelemetry instrumentation packages (they use dynamic require() on purpose).
+    // OpenTelemetry instrumentation packages (they use dynamic require on purpose).
     config.ignoreWarnings = [
       ...(config.ignoreWarnings || []),
       { module: /node_modules[\\/]@opentelemetry[\\/]instrumentation/ },
-      { module: /node_modules[\\/]@azure[\\/]opentelemetry-instrumentation-azure-sdk/ },
       { module: /node_modules[\\/]require-in-the-middle/ },
       { message: /Critical dependency: the request of a dependency is an expression/ },
       { message: /Critical dependency: require function is used in a way/ },
     ];
 
-    // For non-server builds (client + middleware), ignore applicationinsights completely
+    // Keep applicationinsights out of client/middleware bundles. It's
+    // server-only; bundling it breaks the browser build.
     if (!isServer) {
-      // Ignore applicationinsights and Azure packages
+      config.plugins = config.plugins || [];
       config.plugins.push(
         new webpack.IgnorePlugin({
-          resourceRegExp: /^(applicationinsights|@azure\/monitor-opentelemetry|@azure\/monitor-opentelemetry-exporter)$/,
+          resourceRegExp: /^(applicationinsights|@azure\/monitor-opentelemetry|@azure\/monitor-opentelemetry-exporter|@azure\/functions-core)$/,
         })
       );
-      
-      // Externalize Node.js built-in modules
       config.resolve.fallback = {
         ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-        child_process: false,
-        crypto: false,
-        stream: false,
-        url: false,
-        zlib: false,
-        http: false,
-        https: false,
-        assert: false,
-        os: false,
-        path: false,
-        util: false,
-        buffer: false,
-        events: false,
+        fs: false, net: false, tls: false, child_process: false,
       };
     }
-    
+
     // Improve chunk loading
     config.optimization = {
       ...config.optimization,
