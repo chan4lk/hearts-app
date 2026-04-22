@@ -1,6 +1,6 @@
 "use client";
 
-import { signIn, useSession } from 'next-auth/react';
+import { signIn, useSession, getProviders } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
@@ -18,8 +18,20 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  // `credentials` provider is only mounted server-side when
+  // ALLOW_PASSWORD_LOGIN=true (or NODE_ENV=development). Reading the list from
+  // NextAuth tells us whether to render the email/password form at all.
+  const [credentialsEnabled, setCredentialsEnabled] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
+
+  useEffect(() => {
+    getProviders()
+      .then((providers) => {
+        setCredentialsEnabled(!!providers?.credentials);
+      })
+      .catch(() => setCredentialsEnabled(false));
+  }, []);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -126,47 +138,52 @@ function LoginForm() {
             )}
           </button>
 
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-theme" /></div>
-            <div className="relative flex justify-center"><span className="px-3 bg-surface-primary text-xs text-tertiary">or sign in with email</span></div>
-          </div>
-
-          {/* Email/Password form */}
-          <form onSubmit={handleEmailLogin} className="space-y-4">
-            <div>
-              <label htmlFor="email" className="input-label">Email</label>
-              <input
-                id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com" disabled={isLoading} required
-                className="input-base"
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="input-label">Password</label>
-              <div className="relative">
-                <input
-                  id="password" type={showPassword ? "text" : "password"} value={password}
-                  onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password"
-                  disabled={isLoading} required
-                  className="input-base pr-10"
-                />
-                <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-tertiary hover:text-secondary focus-ring rounded" aria-label={showPassword ? 'Hide password' : 'Show password'}>
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+          {/* Email/Password form — only rendered when the credentials provider
+              is mounted (dev mode OR ALLOW_PASSWORD_LOGIN=true). In production,
+              only the Microsoft button is visible. */}
+          {credentialsEnabled && (
+            <>
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-theme" /></div>
+                <div className="relative flex justify-center"><span className="px-3 bg-surface-primary text-xs text-tertiary">or sign in with email</span></div>
               </div>
-            </div>
 
-            {error && (
-              <p className="text-sm text-error bg-error-muted rounded-lg px-3 py-2">{error}</p>
-            )}
+              <form onSubmit={handleEmailLogin} className="space-y-4">
+                <div>
+                  <label htmlFor="email" className="input-label">Email</label>
+                  <input
+                    id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@company.com" disabled={isLoading} required
+                    className="input-base"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="password" className="input-label">Password</label>
+                  <div className="relative">
+                    <input
+                      id="password" type={showPassword ? "text" : "password"} value={password}
+                      onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password"
+                      disabled={isLoading} required
+                      className="input-base pr-10"
+                    />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-tertiary hover:text-secondary focus-ring rounded" aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
 
-            <button type="submit" disabled={isLoading}
-              className="w-full h-12 bg-accent text-[rgb(var(--color-text-inverse))] font-semibold rounded-xl hover:opacity-90 focus-ring transition-all disabled:opacity-50 shadow-sm shadow-[rgba(var(--color-accent),0.2)]">
-              {isLoading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Sign In'}
-            </button>
-          </form>
+                {error && (
+                  <p className="text-sm text-error bg-error-muted rounded-lg px-3 py-2">{error}</p>
+                )}
+
+                <button type="submit" disabled={isLoading}
+                  className="w-full h-12 bg-accent text-[rgb(var(--color-text-inverse))] font-semibold rounded-xl hover:opacity-90 focus-ring transition-all disabled:opacity-50 shadow-sm shadow-[rgba(var(--color-accent),0.2)]">
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Sign In'}
+                </button>
+              </form>
+            </>
+          )}
 
           <p className="text-center text-xs text-tertiary mt-6">
             Powered by BISTEC Global
