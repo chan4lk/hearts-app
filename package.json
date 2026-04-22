@@ -21,6 +21,9 @@
     "db:migrate": "node scripts/run-event-migration.js",
     "prisma:seed": "ts-node --project prisma/tsconfig.json prisma/seed.ts"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "prisma": {
     "seed": "ts-node --project prisma/tsconfig.json prisma/seed.ts"
   },
