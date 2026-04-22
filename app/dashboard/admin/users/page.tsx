@@ -1505,19 +1505,31 @@ function ReviewSchedule({
       )}
 
       <div className="card-section overflow-auto scrollbar-hide max-h-[calc(100vh-24rem)]">
-        <table className="w-full min-w-[1100px]">
+        <table className="w-full min-w-[1200px] table-fixed">
+          <colgroup>
+            <col className="w-[200px]" />   {/* Name/Email */}
+            <col className="w-[140px]" />   {/* Reporting Person */}
+            <col className="w-[110px]" />   {/* Job Category */}
+            <col className="w-[140px]" />   {/* Designation */}
+            <col className="w-[100px]" />   {/* Appointment */}
+            <col className="w-[100px]" />   {/* After 6 Months */}
+            <col className="w-[110px]" />   {/* Review Month */}
+            <col className="w-[90px]" />    {/* Adjusted */}
+            <col className="w-[110px]" />   {/* Status */}
+            <col className="w-[140px]" />   {/* Actions (sticky right) */}
+          </colgroup>
           <thead className="sticky top-0 z-10 bg-surface-secondary">
             <tr className="border-b border-theme">
-              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Name / Email</th>
-              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Reporting Person</th>
-              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Job Category</th>
-              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Designation</th>
-              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Date of Appointment</th>
-              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">After 6 Months</th>
-              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Review Month</th>
-              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Adjusted</th>
-              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Status</th>
-              <th className="text-right px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Actions</th>
+              <th className="text-left px-3 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Name / Email</th>
+              <th className="text-left px-3 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Reporting</th>
+              <th className="text-left px-3 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Category</th>
+              <th className="text-left px-3 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Designation</th>
+              <th className="text-left px-3 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Appointed</th>
+              <th className="text-left px-3 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">After 6M</th>
+              <th className="text-left px-3 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Review</th>
+              <th className="text-left px-3 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Adjusted</th>
+              <th className="text-left px-3 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Status</th>
+              <th className="text-right px-3 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider sticky right-0 z-20 bg-surface-secondary shadow-[-4px_0_6px_-4px_rgba(0,0,0,0.15)]">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -1539,10 +1551,10 @@ function ReviewSchedule({
                 const reviewDate = nextDate ?? after6;
                 const computedMonth = reviewDate ? reviewDate.toLocaleString('en-US', { month: 'long' }) : null;
                 return (
-                  <tr key={user.id} className="hover:bg-surface-secondary transition-colors border-t border-theme">
-                    <td className="px-4 py-3">
+                  <tr key={user.id} className="group hover:bg-surface-secondary transition-colors border-t border-theme">
+                    <td className="px-3 py-3" title={`${user.name} — ${user.email}`}>
                       <div className="flex items-center gap-2.5">
-                        <div className="avatar-sm avatar-gradient">
+                        <div className="avatar-sm avatar-gradient flex-shrink-0">
                           {user.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}
                         </div>
                         <div className="min-w-0">
@@ -1551,34 +1563,40 @@ function ReviewSchedule({
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">{user.manager?.name || '—'}</td>
-                    <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">{user.jobCategory || '—'}</td>
-                    <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">{user.position || '—'}</td>
-                    <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">
+                    <td className="px-3 py-3 text-sm text-secondary truncate" title={user.manager?.name || undefined}>
+                      {user.manager?.name || '—'}
+                    </td>
+                    <td className="px-3 py-3 text-sm text-secondary truncate" title={user.jobCategory || undefined}>
+                      {user.jobCategory || '—'}
+                    </td>
+                    <td className="px-3 py-3 text-sm text-secondary truncate" title={user.position || undefined}>
+                      {user.position || '—'}
+                    </td>
+                    <td className="px-3 py-3 text-sm text-secondary whitespace-nowrap" title={user.appointmentDate ? new Date(user.appointmentDate).toLocaleDateString() : undefined}>
                       {user.appointmentDate ? new Date(user.appointmentDate).toLocaleDateString() : '—'}
                     </td>
-                    <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">
+                    <td className="px-3 py-3 text-sm text-secondary whitespace-nowrap" title={after6 ? `Auto-computed: ${after6.toLocaleDateString()}` : undefined}>
                       {after6 ? after6.toLocaleDateString() : '—'}
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <td className="px-3 py-3 whitespace-nowrap" title={computedMonth ? `Computed from review date: ${computedMonth}` : undefined}>
                       {computedMonth ? (
-                        <span className="badge-base bg-[rgba(var(--color-review),0.12)] text-[rgb(var(--color-review))]">
-                          <Calendar className="w-3 h-3" /> {computedMonth}
+                        <span className="badge-base bg-[rgba(var(--color-review),0.12)] text-[rgb(var(--color-review))] truncate max-w-full">
+                          <Calendar className="w-3 h-3 flex-shrink-0" /> <span className="truncate">{computedMonth}</span>
                         </span>
                       ) : (
                         <span className="text-tertiary text-sm">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <td className="px-3 py-3 whitespace-nowrap" title={user.reviewMonth ? `Admin-adjusted: ${user.reviewMonth}` : undefined}>
                       {user.reviewMonth ? (
-                        <span className="badge-base bg-warning-muted text-warning" title="Admin-adjusted review month">
-                          {user.reviewMonth}
+                        <span className="badge-base bg-warning-muted text-warning truncate max-w-full">
+                          <span className="truncate">{user.reviewMonth}</span>
                         </span>
                       ) : (
                         <span className="text-tertiary text-sm">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-3">
                       {completedRecently ? (
                         <span className="badge-base bg-success-muted text-success">
                           <Check className="w-3 h-3" /> Done
@@ -1607,7 +1625,7 @@ function ReviewSchedule({
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-3 sticky right-0 z-10 bg-surface-primary group-hover:bg-surface-secondary transition-colors shadow-[-4px_0_6px_-4px_rgba(0,0,0,0.15)]">
                       <div className="flex items-center justify-end gap-0.5">
                         <button
                           type="button"
