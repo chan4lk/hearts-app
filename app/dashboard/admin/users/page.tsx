@@ -10,10 +10,9 @@ import PageSkeleton from '@/app/components/shared/PageSkeleton';
 import { Users, Shield, UserCheck, X, Upload, Download, UserX, Calendar, Search, Building2, Trophy, Bell, Check, Mail, UserPlus, Pencil } from 'lucide-react';
 import { BADGE_LIST } from '@/lib/badgeCatalog';
 import { formatDistanceToNow } from 'date-fns';
-// Client-side .xlsx parser. ~50KB gzipped; kept as a static import so
-// Turbopack resolves it reliably at build time (dynamic import caused
-// module-not-found errors with Next.js 16's Turbopack bundler).
-import readXlsxFile from 'read-excel-file';
+// Client-side .xlsx parser. ~50KB gzipped. Must import from the
+// '/browser' subpath — the package's exports field has no default entry.
+import readXlsxFile from 'read-excel-file/browser';
 
 interface User {
   id: string; name: string; email: string; role: 'ADMIN' | 'MANAGER' | 'EMPLOYEE';

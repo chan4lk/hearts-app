@@ -11,10 +11,6 @@ const nextConfig = {
   // `turbopack` key silences the "webpack config without turbopack config"
   // error while still letting the `webpack` key below take effect.
   turbopack: {},
-  // Turbopack can't resolve `read-excel-file` from node_modules directly
-  // (its package.json exports field confuses the resolver). Forcing it
-  // through Next's transpile pipeline fixes the resolution.
-  transpilePackages: ['read-excel-file'],
   webpack: (config, { isServer, webpack }) => {
     config.resolve.alias = {
       ...config.resolve.alias,
