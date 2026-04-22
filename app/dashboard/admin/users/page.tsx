@@ -7,7 +7,7 @@ import StatGrid from '@/app/components/shared/StatGrid';
 import Modal from '@/app/components/shared/Modal';
 import { Select, Input } from '@/app/components/shared/FormField';
 import PageSkeleton from '@/app/components/shared/PageSkeleton';
-import { Users, Shield, UserCheck, X, Upload, Download, UserX, Calendar, Search, Building2, Trophy, Bell, Check, Mail } from 'lucide-react';
+import { Users, Shield, UserCheck, X, Upload, Download, UserX, Calendar, Search, Building2, Trophy, Bell, Check, Mail, UserPlus, Pencil } from 'lucide-react';
 import { BADGE_LIST } from '@/lib/badgeCatalog';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -49,6 +49,18 @@ export default function AdminUsersPage() {
   const [inviteResult, setInviteResult] = useState<{ sent: number; skipped: number; errors: string[] } | null>(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteSelectedIds, setInviteSelectedIds] = useState<Set<string>>(new Set());
+  // "+ New User" modal state
+  const [showNewUserModal, setShowNewUserModal] = useState(false);
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserRole, setNewUserRole] = useState<'ADMIN' | 'MANAGER' | 'EMPLOYEE'>('EMPLOYEE');
+  const [newUserDepartment, setNewUserDepartment] = useState('');
+  const [newUserPosition, setNewUserPosition] = useState('');
+  const [newUserManagerId, setNewUserManagerId] = useState('');
+  const [newUserSendInvite, setNewUserSendInvite] = useState(true);
+  const [newUserBusy, setNewUserBusy] = useState(false);
+  const [newUserError, setNewUserError] = useState<string | null>(null);
+
   const [importPreview, setImportPreview] = useState<
     | {
         created: number;
@@ -164,6 +176,60 @@ export default function AdminUsersPage() {
     e.target.value = ''; // reset file input
   };
 
+  const openNewUserModal = () => {
+    setNewUserName('');
+    setNewUserEmail('');
+    setNewUserRole('EMPLOYEE');
+    setNewUserDepartment('');
+    setNewUserPosition('');
+    setNewUserManagerId('');
+    setNewUserSendInvite(true);
+    setNewUserError(null);
+    setShowNewUserModal(true);
+  };
+
+  const submitNewUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newUserName.trim() || !newUserEmail.trim()) {
+      setNewUserError('Name and email are required');
+      return;
+    }
+    setNewUserBusy(true);
+    setNewUserError(null);
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newUserName.trim(),
+          email: newUserEmail.trim(),
+          role: newUserRole,
+          department: newUserDepartment.trim() || null,
+          position: newUserPosition.trim() || null,
+          managerId: newUserManagerId || null,
+          sendInvitation: newUserSendInvite,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setShowNewUserModal(false);
+        setInviteResult({
+          sent: data.invited ? 1 : 0,
+          skipped: data.invited ? 0 : (newUserSendInvite ? 1 : 0),
+          errors: [],
+        });
+        await fetchUsers();
+      } else {
+        const d = await res.json().catch(() => ({}));
+        setNewUserError(d.error || 'Failed to create user');
+      }
+    } catch {
+      setNewUserError('Network error — please retry');
+    } finally {
+      setNewUserBusy(false);
+    }
+  };
+
   const openInviteModal = () => {
     const eligible = users.filter((u) => u.isActive && !u.lastLoginAt);
     if (eligible.length === 0) return;
@@ -264,6 +330,13 @@ export default function AdminUsersPage() {
         <PageTitle title="User Management" subtitle="Manage employee roles, managers, and account status" icon={Users} iconColor="--color-accent"
           actions={
             <div className="flex items-center gap-2">
+              <button
+                onClick={openNewUserModal}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-accent text-[rgb(var(--color-text-inverse))] rounded-xl text-xs font-semibold hover:opacity-90 focus-ring transition-all shadow-sm shadow-[rgba(var(--color-accent),0.2)]"
+                title="Create a new user and optionally send a login invitation"
+              >
+                <UserPlus className="w-3.5 h-3.5" /> New User
+              </button>
               <button
                 onClick={openInviteModal}
                 disabled={inviteBusy || users.filter((u) => u.isActive && !u.lastLoginAt).length === 0}
@@ -560,7 +633,7 @@ export default function AdminUsersPage() {
         {loading ? (
           <PageSkeleton type="table" count={6} />
         ) : viewMode === 'review' ? (
-          <ReviewSchedule users={filteredUsers.filter(u => u.isActive)} onReload={fetchUsers} />
+          <ReviewSchedule users={filteredUsers.filter(u => u.isActive)} onReload={fetchUsers} onEdit={setEditingUser} />
         ) : (
           /* ── All Users (default) ── */
           <div className="card-section overflow-y-auto scrollbar-hide max-h-[calc(100vh-22rem)]">
@@ -855,6 +928,148 @@ export default function AdminUsersPage() {
             );
           })()}
         </Modal>
+
+        {/* Add single user — name + email + role + optional invite */}
+        <Modal
+          open={showNewUserModal}
+          onClose={() => !newUserBusy && setShowNewUserModal(false)}
+          title="Add New User"
+          icon={<UserPlus className="w-5 h-5 text-accent" />}
+          maxWidth="max-w-md"
+        >
+          <form onSubmit={submitNewUser} className="space-y-4">
+            <div className="text-sm text-secondary">
+              Create a user account. If you tick &ldquo;Send login invitation&rdquo;, they&apos;ll receive an
+              email with instructions to sign in via Azure AD.
+            </div>
+
+            <div>
+              <label className="input-label">
+                Full name <span className="text-error">*</span>
+              </label>
+              <input
+                type="text"
+                value={newUserName}
+                onChange={(e) => setNewUserName(e.target.value)}
+                required
+                maxLength={200}
+                placeholder="e.g. Priya Perera"
+                className="input-base"
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <label className="input-label">
+                Email <span className="text-error">*</span>
+              </label>
+              <input
+                type="email"
+                value={newUserEmail}
+                onChange={(e) => setNewUserEmail(e.target.value)}
+                required
+                maxLength={200}
+                placeholder="priya@bistecglobal.com"
+                className="input-base"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="input-label">Role</label>
+                <select
+                  value={newUserRole}
+                  onChange={(e) => setNewUserRole(e.target.value as 'ADMIN' | 'MANAGER' | 'EMPLOYEE')}
+                  className="input-select w-full"
+                >
+                  <option value="EMPLOYEE">Employee</option>
+                  <option value="MANAGER">Manager</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
+              </div>
+              <div>
+                <label className="input-label">Reporting to</label>
+                <select
+                  value={newUserManagerId}
+                  onChange={(e) => setNewUserManagerId(e.target.value)}
+                  className="input-select w-full"
+                >
+                  <option value="">— none —</option>
+                  {users
+                    .filter((u) => u.isActive && (u.role === 'MANAGER' || u.role === 'ADMIN'))
+                    .map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="input-label">Department</label>
+                <input
+                  type="text"
+                  value={newUserDepartment}
+                  onChange={(e) => setNewUserDepartment(e.target.value)}
+                  maxLength={100}
+                  placeholder="Engineering"
+                  className="input-base"
+                />
+              </div>
+              <div>
+                <label className="input-label">Designation</label>
+                <input
+                  type="text"
+                  value={newUserPosition}
+                  onChange={(e) => setNewUserPosition(e.target.value)}
+                  maxLength={100}
+                  placeholder="QA Engineer"
+                  className="input-base"
+                />
+              </div>
+            </div>
+
+            <label className="flex items-start gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={newUserSendInvite}
+                onChange={(e) => setNewUserSendInvite(e.target.checked)}
+                className="mt-0.5 focus-ring"
+              />
+              <div>
+                <p className="text-sm font-medium text-primary">Send login invitation email</p>
+                <p className="text-xs text-secondary">
+                  The user receives an email with the login link. They sign in with their Azure AD account.
+                </p>
+              </div>
+            </label>
+
+            {newUserError && (
+              <p className="text-sm text-error bg-error-muted rounded-lg px-3 py-2">{newUserError}</p>
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowNewUserModal(false)}
+                disabled={newUserBusy}
+                className="btn-secondary px-4 py-2"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={newUserBusy || !newUserName.trim() || !newUserEmail.trim()}
+                className="btn-primary px-4 py-2 inline-flex items-center gap-2"
+              >
+                <UserPlus className="w-4 h-4" />
+                {newUserBusy ? 'Creating…' : 'Create user'}
+              </button>
+            </div>
+          </form>
+        </Modal>
       </div>
     </DashboardLayout>
   );
@@ -873,7 +1088,15 @@ function daysBetween(target: Date, from = new Date()): number {
   return Math.floor((target.getTime() - from.getTime()) / oneDay);
 }
 
-function ReviewSchedule({ users, onReload }: { users: User[]; onReload: () => void }) {
+function ReviewSchedule({
+  users,
+  onReload,
+  onEdit,
+}: {
+  users: User[];
+  onReload: () => void;
+  onEdit: (user: User) => void;
+}) {
   const [bucket, setBucket] = useState<ReviewBucket>('all');
   const [busyId, setBusyId] = useState<string | null>(null);
   const [flash, setFlashMsg] = useState<{ kind: 'success' | 'error'; msg: string } | null>(null);
@@ -1104,6 +1327,15 @@ function ReviewSchedule({ users, onReload }: { users: User[]; onReload: () => vo
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
+                        <button
+                          type="button"
+                          onClick={() => onEdit(user)}
+                          disabled={busy}
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-2xs font-semibold text-secondary hover:text-primary hover:bg-surface-secondary focus-ring disabled:opacity-40"
+                          title="Edit user details (role, manager, department, appointment date)"
+                        >
+                          <Pencil className="w-3 h-3" /> Edit
+                        </button>
                         <button
                           type="button"
                           onClick={() => sendReminder(user.id)}
