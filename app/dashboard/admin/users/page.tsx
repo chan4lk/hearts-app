@@ -1254,14 +1254,18 @@ function ReviewSchedule({
         </div>
       )}
 
-      <div className="card-section overflow-y-auto scrollbar-hide max-h-[calc(100vh-24rem)]">
-        <table className="w-full">
+      <div className="card-section overflow-auto scrollbar-hide max-h-[calc(100vh-24rem)]">
+        <table className="w-full min-w-[1100px]">
           <thead className="sticky top-0 z-10 bg-surface-secondary">
             <tr className="border-b border-theme">
-              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Employee</th>
-              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider hidden lg:table-cell">Reporting to</th>
-              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider hidden md:table-cell">Appointment</th>
-              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Next review</th>
+              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Name / Email</th>
+              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Reporting Person</th>
+              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Job Category</th>
+              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Designation</th>
+              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Date of Appointment</th>
+              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">After 6 Months</th>
+              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Review Month</th>
+              <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Adjusted</th>
               <th className="text-left px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Status</th>
               <th className="text-right px-4 py-3 text-2xs font-semibold text-secondary uppercase tracking-wider">Actions</th>
             </tr>
@@ -1269,13 +1273,21 @@ function ReviewSchedule({
           <tbody>
             {visible.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-12 text-center text-tertiary text-sm">
+                <td colSpan={10} className="px-4 py-12 text-center text-tertiary text-sm">
                   No reviews in this bucket.
                 </td>
               </tr>
             ) : (
               visible.map(({ user, nextDate, daysUntil, completedRecently }) => {
                 const busy = busyId === user.id;
+                // After-6-months date is what the auto-review date would be,
+                // regardless of any admin adjustment — shows the base.
+                const after6 = user.appointmentDate
+                  ? (() => { const d = new Date(user.appointmentDate); d.setMonth(d.getMonth() + 6); return d; })()
+                  : null;
+                // Computed review month name from nextReviewDate (or after6).
+                const reviewDate = nextDate ?? after6;
+                const computedMonth = reviewDate ? reviewDate.toLocaleString('en-US', { month: 'long' }) : null;
                 return (
                   <tr key={user.id} className="hover:bg-surface-secondary transition-colors border-t border-theme">
                     <td className="px-4 py-3">
@@ -1285,16 +1297,36 @@ function ReviewSchedule({
                         </div>
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-primary truncate">{user.name}</p>
-                          <p className="text-2xs text-tertiary truncate">{user.position || user.email}</p>
+                          <p className="text-2xs text-tertiary truncate">{user.email}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 hidden lg:table-cell text-sm text-secondary">{user.manager?.name || '—'}</td>
-                    <td className="px-4 py-3 hidden md:table-cell text-sm text-secondary">
+                    <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">{user.manager?.name || '—'}</td>
+                    <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">{user.jobCategory || '—'}</td>
+                    <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">{user.position || '—'}</td>
+                    <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">
                       {user.appointmentDate ? new Date(user.appointmentDate).toLocaleDateString() : '—'}
                     </td>
-                    <td className="px-4 py-3 text-sm text-primary font-medium">
-                      {nextDate ? nextDate.toLocaleDateString() : <span className="text-tertiary">—</span>}
+                    <td className="px-4 py-3 text-sm text-secondary whitespace-nowrap">
+                      {after6 ? after6.toLocaleDateString() : '—'}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {computedMonth ? (
+                        <span className="badge-base bg-[rgba(var(--color-review),0.12)] text-[rgb(var(--color-review))]">
+                          <Calendar className="w-3 h-3" /> {computedMonth}
+                        </span>
+                      ) : (
+                        <span className="text-tertiary text-sm">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {user.reviewMonth ? (
+                        <span className="badge-base bg-warning-muted text-warning" title="Admin-adjusted review month">
+                          {user.reviewMonth}
+                        </span>
+                      ) : (
+                        <span className="text-tertiary text-sm">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       {completedRecently ? (
