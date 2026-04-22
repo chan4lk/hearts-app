@@ -169,30 +169,97 @@ export default function AdminUsersPage() {
     setImportResult(null);
     setImportPreview(null);
 
-    const text = await file.text();
-    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-    if (lines.length < 2) { setImporting(false); return; }
+    try {
+      const rows = await parseImportFile(file);
+      if (rows.length === 0) {
+        setImporting(false);
+        e.target.value = '';
+        return;
+      }
 
-    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-    const rows = lines.slice(1).map(line => {
-      const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
-      const row: any = {};
+      // Step 1 — preview (no writes)
+      const previewRes = await fetch('/api/admin/users/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rows, mode: 'preview' }),
+      });
+      if (previewRes.ok) {
+        const preview = await previewRes.json();
+        setImportPreview({ ...preview, rows });
+      }
+    } catch (err) {
+      // Parsing failed — surface so the admin knows what's wrong with the file.
+      setImportResult({
+        created: 0,
+        updated: 0,
+        errors: [err instanceof Error ? err.message : 'Failed to read file'],
+      });
+    } finally {
+      setImporting(false);
+      e.target.value = ''; // reset file input so the same file can be re-picked
+    }
+  };
+
+  /**
+   * Accept .xlsx OR .csv. XLSX is parsed client-side via read-excel-file
+   * (no server-side XLSX libraries = no CVE exposure). CSV uses a simple
+   * quote-aware split. Both produce the same rows shape: array of objects
+   * keyed by header name.
+   */
+  const parseImportFile = async (file: File): Promise<Record<string, string>[]> => {
+    const name = file.name.toLowerCase();
+    const isXlsx = name.endsWith('.xlsx') || file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+    if (isXlsx) {
+      const readXlsxFile = (await import('read-excel-file')).default;
+      const sheet = await readXlsxFile(file);
+      if (sheet.length < 2) return [];
+      const headers = sheet[0].map((h) => String(h ?? '').trim());
+      return sheet.slice(1).map((r) => {
+        const row: Record<string, string> = {};
+        headers.forEach((h, i) => {
+          const v = r[i];
+          // Excel dates come through as Date objects — convert to ISO
+          // so the server's parseFlexibleDate can handle them predictably.
+          row[h] = v instanceof Date
+            ? v.toISOString().slice(0, 10)
+            : v != null ? String(v).trim() : '';
+        });
+        return row;
+      });
+    }
+
+    // CSV fallback — handles quoted cells with commas inside.
+    const text = await file.text();
+    const lines = text.replace(/^﻿/, '').split(/\r?\n/).filter((l) => l.trim().length > 0);
+    if (lines.length < 2) return [];
+
+    const splitCsvLine = (line: string): string[] => {
+      const out: string[] = [];
+      let cur = '';
+      let inQ = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQ && line[i + 1] === '"') { cur += '"'; i++; }
+          else { inQ = !inQ; }
+        } else if (ch === ',' && !inQ) {
+          out.push(cur); cur = '';
+        } else {
+          cur += ch;
+        }
+      }
+      out.push(cur);
+      return out.map((s) => s.trim());
+    };
+
+    const headers = splitCsvLine(lines[0]);
+    return lines.slice(1).map((line) => {
+      const values = splitCsvLine(line);
+      const row: Record<string, string> = {};
       headers.forEach((h, i) => { row[h] = values[i] || ''; });
       return row;
     });
-
-    // Step 1 — preview (no writes)
-    const previewRes = await fetch('/api/admin/users/import', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rows, mode: 'preview' }),
-    });
-    if (previewRes.ok) {
-      const preview = await previewRes.json();
-      setImportPreview({ ...preview, rows });
-    }
-    setImporting(false);
-    e.target.value = ''; // reset file input
   };
 
   const openNewUserModal = () => {
@@ -458,7 +525,7 @@ export default function AdminUsersPage() {
               </button>
               <label className="inline-flex items-center gap-1.5 px-3 py-2 bg-surface-elevated border border-theme rounded-xl text-xs font-medium text-secondary hover:text-primary cursor-pointer focus-ring transition-all">
                 <Upload className="w-3.5 h-3.5" /> Import
-                <input type="file" accept=".csv" onChange={handleFileImport} className="hidden" disabled={importing} />
+                <input type="file" accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={handleFileImport} className="hidden" disabled={importing} />
               </label>
               <button onClick={handleExport} className="inline-flex items-center gap-1.5 px-3 py-2 bg-surface-elevated border border-theme rounded-xl text-xs font-medium text-secondary hover:text-primary focus-ring transition-all">
                 <Download className="w-3.5 h-3.5" /> Export
