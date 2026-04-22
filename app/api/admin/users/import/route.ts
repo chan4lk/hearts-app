@@ -91,55 +91,76 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Maximum 500 rows allowed', code: 'VALIDATION_ERROR' }, { status: 400 });
     }
 
+    interface SkippedRow {
+      email: string;
+      name: string;
+      reason: 'not_in_system' | 'invalid';
+      // Full row data — carried to the client so admin can invite later.
+      reportingPersonEmail: string | null;
+      reportingPersonName: string | null;
+      jobCategory: string | null;
+      position: string | null;
+      department: string | null;
+      appointmentDate: string | null; // ISO string
+      reviewMonth: string | null;
+    }
+
     const results = {
-      created: 0,
+      created: 0,                // always 0 under the new "matches only" rule
       updated: 0,
-      skipped: 0,
+      skipped: 0,                // total of notInSystem + invalid
+      notInSystem: 0,
+      invalid: 0,
       errors: [] as string[],
-      preview: isPreview ? ([] as Array<{ email: string; name: string; action: 'create' | 'update' | 'skip'; reason?: string }>) : undefined,
+      skippedRows: [] as SkippedRow[], // full data for UI invitation flow
+      preview: isPreview ? ([] as Array<{ email: string; name: string; action: 'update' | 'skip'; reason?: string }>) : undefined,
     };
 
-    // Phase 1: Create/update all users
+    // Phase 1: Update existing users. Unmatched rows → skipped (tracked, not created).
     for (const row of rows) {
       try {
-        const email = (row.Email || row.email || '').trim().toLowerCase();
-        const name = (row.Name || row.name || '').trim();
+        const email = (row.Email || row.email || '').toString().trim().toLowerCase();
+        const name = (row.Name || row.name || '').toString().trim();
+        const reportingPersonEmail = (row.ManagerEmail || row['Reporting Person Email'] || row.managerEmail || '').toString().trim().toLowerCase() || null;
+        const reportingPersonName = (row.ManagerName || row['Reporting Person'] || row.managerName || '').toString().trim() || null;
+        const jobCategory = (row.JobCategory || row['Job Category'] || row.jobCategory || null)?.toString().trim() || null;
+        const position = (row.Position || row.Designation || row.position || null)?.toString().trim() || null;
+        const department = (row.Department || row.department || null)?.toString().trim() || null;
+        const reviewMonth = (
+          row['Adjusted'] || row.Adjusted ||
+          row['Adjusted Review Month'] || row.AdjustedReviewMonth ||
+          row['Review month'] || row['Review Month'] || row.ReviewMonth || row.reviewMonth ||
+          row['After 6 Months'] || row['After 6 months'] || row.After6Months ||
+          null
+        )?.toString().trim() || null;
+        const dateStr = row.AppointmentDate || row['Date of Appointment'] || row.appointmentDate || null;
+        const appointmentDateParsed = parseFlexibleDate(dateStr);
 
         if (!email || !name) {
           results.errors.push(`Skipped row: missing name or email`);
+          results.invalid++;
           results.skipped++;
           if (isPreview) {
             results.preview!.push({ email: email || '(blank)', name: name || '(blank)', action: 'skip', reason: 'missing name or email' });
           }
+          results.skippedRows.push({
+            email: email || '', name: name || '', reason: 'invalid',
+            reportingPersonEmail, reportingPersonName, jobCategory, position, department,
+            appointmentDate: appointmentDateParsed?.toISOString() || null, reviewMonth,
+          });
           continue;
         }
 
         const data: any = {
           name,
-          department: (row.Department || row.department || null)?.toString().trim() || null,
-          position: (row.Position || row.Designation || row.position || null)?.toString().trim() || null,
-          jobCategory: (row.JobCategory || row['Job Category'] || row.jobCategory || null)?.toString().trim() || null,
-          // "Adjusted" column is the admin's override of the auto-computed
-          // 6-month review month. Check it FIRST (highest priority), then
-          // fall back to the computed "After 6 Months" / "Review month".
-          // Column-name variants handle Excel's arbitrary casing/spacing.
-          reviewMonth:
-            (
-              row['Adjusted'] || row.Adjusted ||
-              row['Adjusted Review Month'] || row.AdjustedReviewMonth ||
-              row['Review month'] || row['Review Month'] || row.ReviewMonth || row.reviewMonth ||
-              row['After 6 Months'] || row['After 6 months'] || row.After6Months ||
-              null
-            )?.toString().trim() || null,
+          department,
+          position,
+          jobCategory,
+          reviewMonth,
         };
-
-        // Parse appointment date → compute nextReviewDate = +6 months.
-        // Assumes D/M/Y (LK default) for ambiguous formats like "9/12/2024".
-        const dateStr = row.AppointmentDate || row['Date of Appointment'] || row.appointmentDate || null;
-        const parsed = parseFlexibleDate(dateStr);
-        if (parsed) {
-          data.appointmentDate = parsed;
-          data.nextReviewDate = addMonths(parsed, 6);
+        if (appointmentDateParsed) {
+          data.appointmentDate = appointmentDateParsed;
+          data.nextReviewDate = addMonths(appointmentDateParsed, 6);
         }
 
         // Check if user exists
@@ -157,13 +178,20 @@ export async function POST(req: NextRequest) {
           results.updated++;
           if (isPreview) results.preview!.push({ email, name, action: 'update' });
         } else {
-          if (!isPreview) {
-            await prisma.user.create({
-              data: { tenantId: ctx.tenantId, email, role: 'EMPLOYEE', ...data },
-            });
+          // NEW BEHAVIOR: unmatched users are SKIPPED, not created.
+          // Their full row data is returned so the client can invite them.
+          results.notInSystem++;
+          results.skipped++;
+          results.skippedRows.push({
+            email, name, reason: 'not_in_system',
+            reportingPersonEmail, reportingPersonName, jobCategory, position, department,
+            appointmentDate: appointmentDateParsed?.toISOString() || null, reviewMonth,
+          });
+          if (isPreview) {
+            results.preview!.push({ email, name, action: 'skip', reason: 'not in system — invite to create' });
           }
-          results.created++;
-          if (isPreview) results.preview!.push({ email, name, action: 'create' });
+          // No DB writes for skipped rows — client surfaces them in a
+          // "Review import results" modal so admin can bulk-invite.
         }
       } catch (rowError: any) {
         results.errors.push(`Error for ${row.Email || 'unknown'}: ${rowError.message}`);

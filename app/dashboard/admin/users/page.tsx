@@ -61,6 +61,25 @@ export default function AdminUsersPage() {
   const [newUserBusy, setNewUserBusy] = useState(false);
   const [newUserError, setNewUserError] = useState<string | null>(null);
 
+  // Skipped-users modal — opens after an import commits and we have users
+  // that weren't in the system. Admin can bulk-invite or per-row invite.
+  interface SkippedRow {
+    email: string;
+    name: string;
+    reason: 'not_in_system' | 'invalid';
+    reportingPersonEmail: string | null;
+    reportingPersonName: string | null;
+    jobCategory: string | null;
+    position: string | null;
+    department: string | null;
+    appointmentDate: string | null;
+    reviewMonth: string | null;
+  }
+  const [skippedUsers, setSkippedUsers] = useState<SkippedRow[]>([]);
+  const [showSkippedModal, setShowSkippedModal] = useState(false);
+  const [skippedSelectedEmails, setSkippedSelectedEmails] = useState<Set<string>>(new Set());
+  const [skippedBusy, setSkippedBusy] = useState(false);
+
   const [importPreview, setImportPreview] = useState<
     | {
         created: number;
@@ -273,9 +292,100 @@ export default function AdminUsersPage() {
       const result = await res.json();
       setImportResult(result);
       setImportPreview(null);
+      // If the import returned users that weren't in the system, queue them up
+      // for the Skipped Users modal so admin can bulk-invite.
+      if (Array.isArray(result.skippedRows) && result.skippedRows.length > 0) {
+        const notInSystem = result.skippedRows.filter(
+          (r: SkippedRow) => r.reason === 'not_in_system'
+        );
+        setSkippedUsers(notInSystem);
+        setSkippedSelectedEmails(new Set(notInSystem.map((r: SkippedRow) => r.email)));
+      } else {
+        setSkippedUsers([]);
+      }
       await fetchUsers();
     }
     setImporting(false);
+  };
+
+  const toggleSkippedEmail = (email: string) => {
+    setSkippedSelectedEmails((prev) => {
+      const next = new Set(prev);
+      if (next.has(email)) next.delete(email);
+      else next.add(email);
+      return next;
+    });
+  };
+
+  const toggleAllSkipped = () => {
+    setSkippedSelectedEmails((prev) =>
+      prev.size === skippedUsers.length ? new Set() : new Set(skippedUsers.map((r) => r.email))
+    );
+  };
+
+  const exportSkippedCsv = () => {
+    if (skippedUsers.length === 0) return;
+    const headers = ['Name', 'Email', 'Reporting Person', 'Job Category', 'Designation', 'Department', 'Date of Appointment', 'Review Month'];
+    const escape = (v: string | null) => {
+      const s = (v ?? '').toString();
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const rows = skippedUsers.map((r) => [
+      escape(r.name),
+      escape(r.email),
+      escape(r.reportingPersonName || r.reportingPersonEmail),
+      escape(r.jobCategory),
+      escape(r.position),
+      escape(r.department),
+      escape(r.appointmentDate ? new Date(r.appointmentDate).toLocaleDateString() : null),
+      escape(r.reviewMonth),
+    ].join(','));
+    const csv = [headers.join(','), ...rows].join('\r\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `aspirehub-skipped-users-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const inviteSkipped = async (emailsToInvite: string[]) => {
+    const picked = skippedUsers.filter((r) => emailsToInvite.includes(r.email));
+    if (picked.length === 0) return;
+    setSkippedBusy(true);
+    try {
+      const res = await fetch('/api/admin/users/invite-skipped', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          invitations: picked.map((r) => ({
+            email: r.email,
+            name: r.name,
+            department: r.department,
+            position: r.position,
+            jobCategory: r.jobCategory,
+            reviewMonth: r.reviewMonth,
+            appointmentDate: r.appointmentDate,
+            reportingPersonEmail: r.reportingPersonEmail,
+            reportingPersonName: r.reportingPersonName,
+          })),
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setInviteResult({ sent: data.invited, skipped: data.alreadyExists, errors: data.errors || [] });
+        // Drop the just-invited emails from the skipped list
+        setSkippedUsers((prev) => prev.filter((r) => !emailsToInvite.includes(r.email)));
+        setSkippedSelectedEmails(new Set());
+        if (skippedUsers.length === picked.length) {
+          setShowSkippedModal(false);
+        }
+        await fetchUsers();
+      }
+    } finally {
+      setSkippedBusy(false);
+    }
   };
 
   // CSV Export
@@ -376,6 +486,32 @@ export default function AdminUsersPage() {
         {importing && (
           <div className="bg-accent-muted text-accent rounded-xl px-4 py-3 text-sm font-medium">
             {importPreview ? 'Committing import…' : 'Parsing CSV…'}
+          </div>
+        )}
+
+        {/* Skipped-users banner — shown after an import that had unmatched rows */}
+        {skippedUsers.length > 0 && !showSkippedModal && (
+          <div className="rounded-xl px-4 py-3 text-sm font-medium flex items-center justify-between bg-info-muted text-info">
+            <span>
+              <strong>{skippedUsers.length}</strong> user{skippedUsers.length === 1 ? '' : 's'} from your import aren&apos;t in the system yet. Review and invite them?
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowSkippedModal(true)}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-info text-[rgb(var(--color-text-inverse))] hover:opacity-90 focus-ring"
+              >
+                Review &amp; Invite
+              </button>
+              <button
+                type="button"
+                onClick={() => setSkippedUsers([])}
+                className="text-xs hover:opacity-70 focus-ring rounded p-1"
+                title="Dismiss"
+              >
+                ✕
+              </button>
+            </div>
           </div>
         )}
 
@@ -1070,6 +1206,120 @@ export default function AdminUsersPage() {
             </div>
           </form>
         </Modal>
+
+        {/* Skipped Users modal — review not-in-system users from last import */}
+        <Modal
+          open={showSkippedModal}
+          onClose={() => !skippedBusy && setShowSkippedModal(false)}
+          title="Users not in the system"
+          icon={<Mail className="w-5 h-5 text-info" />}
+          maxWidth="max-w-3xl"
+        >
+          {skippedUsers.length === 0 ? (
+            <p className="text-sm text-tertiary py-6 text-center">All skipped users have been invited.</p>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-sm text-secondary">
+                These {skippedUsers.length} user{skippedUsers.length === 1 ? '' : 's'} appeared in your imported Excel but don&apos;t have an AspireHub account yet. Invite them to sign in — an account will be created and a login email sent.
+              </p>
+
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={toggleAllSkipped}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface-elevated border border-theme text-secondary hover:text-primary focus-ring"
+                  >
+                    {skippedSelectedEmails.size === skippedUsers.length ? 'Deselect all' : 'Select all'}
+                  </button>
+                  <span className="text-xs text-tertiary">
+                    {skippedSelectedEmails.size} of {skippedUsers.length} selected
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={exportSkippedCsv}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface-elevated border border-theme text-secondary hover:text-primary focus-ring"
+                  title="Download skipped users as CSV"
+                >
+                  <Download className="w-3.5 h-3.5" /> Export CSV
+                </button>
+              </div>
+
+              <div className="max-h-[50vh] overflow-y-auto scrollbar-hide border border-theme rounded-xl">
+                <table className="w-full text-sm">
+                  <thead className="sticky top-0 bg-surface-secondary">
+                    <tr className="border-b border-theme text-left">
+                      <th className="px-3 py-2 w-8"></th>
+                      <th className="px-3 py-2 text-2xs font-semibold text-secondary uppercase tracking-wider">Name / Email</th>
+                      <th className="px-3 py-2 text-2xs font-semibold text-secondary uppercase tracking-wider hidden md:table-cell">Reporting Person</th>
+                      <th className="px-3 py-2 text-2xs font-semibold text-secondary uppercase tracking-wider hidden lg:table-cell">Job Category</th>
+                      <th className="px-3 py-2 text-2xs font-semibold text-secondary uppercase tracking-wider hidden lg:table-cell">Designation</th>
+                      <th className="px-3 py-2 text-right text-2xs font-semibold text-secondary uppercase tracking-wider">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {skippedUsers.map((r) => (
+                      <tr key={r.email} className="border-t border-theme hover:bg-surface-secondary transition-colors">
+                        <td className="px-3 py-2">
+                          <input
+                            type="checkbox"
+                            checked={skippedSelectedEmails.has(r.email)}
+                            onChange={() => toggleSkippedEmail(r.email)}
+                            disabled={skippedBusy}
+                            className="focus-ring"
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          <p className="font-medium text-primary truncate">{r.name}</p>
+                          <p className="text-2xs text-tertiary truncate">{r.email}</p>
+                        </td>
+                        <td className="px-3 py-2 hidden md:table-cell text-secondary truncate">
+                          {r.reportingPersonName || r.reportingPersonEmail || '—'}
+                        </td>
+                        <td className="px-3 py-2 hidden lg:table-cell text-secondary truncate">{r.jobCategory || '—'}</td>
+                        <td className="px-3 py-2 hidden lg:table-cell text-secondary truncate">{r.position || '—'}</td>
+                        <td className="px-3 py-2 text-right">
+                          <button
+                            type="button"
+                            onClick={() => inviteSkipped([r.email])}
+                            disabled={skippedBusy}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-2xs font-semibold bg-info text-[rgb(var(--color-text-inverse))] hover:opacity-90 focus-ring disabled:opacity-40"
+                            title="Create this user and send a login invitation email"
+                          >
+                            <Mail className="w-3 h-3" /> Invite
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSkippedModal(false)}
+                  disabled={skippedBusy}
+                  className="btn-secondary px-4 py-2"
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => inviteSkipped(Array.from(skippedSelectedEmails))}
+                  disabled={skippedBusy || skippedSelectedEmails.size === 0}
+                  className="btn-primary px-4 py-2 inline-flex items-center gap-2"
+                >
+                  <Mail className="w-4 h-4" />
+                  {skippedBusy
+                    ? 'Sending…'
+                    : `Invite ${skippedSelectedEmails.size} user${skippedSelectedEmails.size === 1 ? '' : 's'}`}
+                </button>
+              </div>
+            </div>
+          )}
+        </Modal>
       </div>
     </DashboardLayout>
   );
@@ -1358,42 +1608,46 @@ function ReviewSchedule({
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center justify-end gap-0.5">
                         <button
                           type="button"
                           onClick={() => onEdit(user)}
                           disabled={busy}
-                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-2xs font-semibold text-secondary hover:text-primary hover:bg-surface-secondary focus-ring disabled:opacity-40"
-                          title="Edit user details (role, manager, department, appointment date)"
+                          className="p-1.5 rounded-lg text-secondary hover:text-accent hover:bg-accent-muted focus-ring disabled:opacity-40 transition-colors"
+                          aria-label={`Edit ${user.name}`}
+                          title="Edit user"
                         >
-                          <Pencil className="w-3 h-3" /> Edit
+                          <Pencil className="w-4 h-4" />
                         </button>
                         <button
                           type="button"
                           onClick={() => sendReminder(user.id)}
                           disabled={busy || !nextDate}
-                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-2xs font-semibold text-secondary hover:text-primary hover:bg-surface-secondary focus-ring disabled:opacity-40"
-                          title="Send reminder email to employee + reporting person"
+                          className="p-1.5 rounded-lg text-secondary hover:text-info hover:bg-info-muted focus-ring disabled:opacity-40 transition-colors"
+                          aria-label={`Send review reminder to ${user.name}`}
+                          title="Send review reminder"
                         >
-                          <Bell className="w-3 h-3" /> Remind
+                          <Bell className="w-4 h-4" />
                         </button>
                         <button
                           type="button"
                           onClick={() => adjustDate(user.id, nextDate)}
                           disabled={busy}
-                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-2xs font-semibold text-secondary hover:text-primary hover:bg-surface-secondary focus-ring disabled:opacity-40"
-                          title="Adjust the next review date"
+                          className="p-1.5 rounded-lg text-secondary hover:text-warning hover:bg-warning-muted focus-ring disabled:opacity-40 transition-colors"
+                          aria-label={`Adjust review date for ${user.name}`}
+                          title="Adjust review date"
                         >
-                          <Calendar className="w-3 h-3" /> Adjust
+                          <Calendar className="w-4 h-4" />
                         </button>
                         <button
                           type="button"
                           onClick={() => markComplete(user.id)}
                           disabled={busy || !nextDate || !!completedRecently}
-                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-2xs font-semibold text-success hover:bg-success-muted focus-ring disabled:opacity-40"
-                          title="Mark review complete (rolls next review +12 months)"
+                          className="p-1.5 rounded-lg text-secondary hover:text-success hover:bg-success-muted focus-ring disabled:opacity-40 transition-colors"
+                          aria-label={`Mark review complete for ${user.name}`}
+                          title="Mark review complete"
                         >
-                          <Check className="w-3 h-3" /> Done
+                          <Check className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
