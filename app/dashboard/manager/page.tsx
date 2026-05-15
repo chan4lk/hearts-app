@@ -237,31 +237,29 @@ export default function ManagerDashboard() {
             selectedStatus={selectedStatus}
             setSelectedStatus={(status) => {
               setSelectedStatus(status);
-              setPage(1); // Reset to first page on filter change
+              setPage(1);
             }}
             selectedEmployee={selectedEmployee}
             setSelectedEmployee={(employee) => {
               setSelectedEmployee(employee);
-              setPage(1); // Reset to first page on filter change
+              setPage(1);
             }}
             selectedPriority={selectedPriority}
             setSelectedPriority={(priority) => {
               setSelectedPriority(priority);
-              setPage(1); // Reset to first page on filter change
+              setPage(1);
             }}
             employees={employees}
+            actions={
+              <button
+                onClick={() => setShowAIInsights(!showAIInsights)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg transition-all shadow-md text-sm font-medium"
+              >
+                <BsStars className="w-4 h-4 flex-shrink-0" />
+                <span>{showAIInsights ? 'Hide' : 'Show'} AI Insights</span>
+              </button>
+            }
           />
-
-          {/* AI Insights Toggle */}
-          <div className="flex justify-end">
-            <button
-              onClick={() => setShowAIInsights(!showAIInsights)}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg transition-all shadow-md"
-            >
-              <BsStars className="w-4 h-4" />
-              <span>{showAIInsights ? 'Hide' : 'Show'} AI Insights</span>
-            </button>
-          </div>
 
           {/* AI Performance Insights for Selected Employee */}
           {showAIInsights && selectedEmployee !== 'all' && (
