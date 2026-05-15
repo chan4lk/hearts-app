@@ -70,24 +70,21 @@ function AllGoalsPageContent() {
     }
   }, [searchParams]);
 
-  // Fetch total stats (all goals, not filtered)
+  // Fetch total stats (all goals, not filtered) — use server-calculated stats, not paginated goals
   const fetchTotalStats = async () => {
     try {
-      // Fetch all goals without filters to get total counts
-      const response = await fetch('/api/goals?view=all&limit=10000&page=1');
+      const response = await fetch('/api/goals?view=all&limit=1&page=1');
       if (!response.ok) return;
-      
       const data = await response.json();
-      const allGoals = data.goals || [];
-      
-      // Calculate stats from all goals
-      setTotalStats({
-        total: allGoals.length,
-        approved: allGoals.filter((g: Goal) => g.status === 'APPROVED').length,
-        rejected: allGoals.filter((g: Goal) => g.status === 'REJECTED').length,
-        draft: allGoals.filter((g: Goal) => g.status === 'DRAFT').length,
-        completed: allGoals.filter((g: Goal) => g.status === 'COMPLETED').length
-      });
+      if (data.stats) {
+        setTotalStats({
+          total: data.stats.total,
+          approved: data.stats.approved,
+          rejected: data.stats.rejected,
+          draft: data.stats.draft,
+          completed: data.stats.completed
+        });
+      }
     } catch (error) {
       console.error('Error fetching total stats:', error);
     }
@@ -282,13 +279,13 @@ function AllGoalsPageContent() {
           >
             <Filters
               selectedUser={selectedUser}
-              onUserChange={setSelectedUser}
+              onUserChange={(v) => { setSelectedUser(v); setPage(1); }}
               selectedStatus={selectedStatus}
-              onStatusChange={setSelectedStatus}
+              onStatusChange={(v) => { setSelectedStatus(v); setPage(1); }}
               selectedPriority={selectedPriority}
-              onPriorityChange={setSelectedPriority}
+              onPriorityChange={(v) => { setSelectedPriority(v); setPage(1); }}
               selectedCategory={selectedCategory}
-              onCategoryChange={setSelectedCategory}
+              onCategoryChange={(v) => { setSelectedCategory(v); setPage(1); }}
               users={users}
             />
           </motion.div>
