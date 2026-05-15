@@ -272,7 +272,6 @@ export default function Filters({
   if (hasAllOptionalFilters) gridCols = 'md:grid-cols-3 lg:grid-cols-4';
 
   const userOptions: SearchableSelectOption[] = users
-    .filter(u => u.role !== 'ADMIN')
     .map(u => ({ value: u.id, label: `${u.name} (${u.role})` }));
 
   return (
