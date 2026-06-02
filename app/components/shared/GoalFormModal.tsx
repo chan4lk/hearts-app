@@ -26,7 +26,7 @@ interface GoalFormModalProps {
     priority: string;
   };
   onFormDataChange: (field: string, value: string) => void;
-  errors: { title?: string; category?: string; employeeId?: string; department?: string; priority?: string };
+  errors: { title?: string; description?: string; category?: string; employeeId?: string; department?: string; priority?: string };
   isEditMode: boolean;
   context: string;
   onContextChange: (value: string) => void;
@@ -227,8 +227,11 @@ export function GoalFormModal({
               value={formData.description}
               onChange={(e) => onFormDataChange('description', e.target.value)}
               placeholder="Describe the goal details..."
-              className="bg-black/20 border-gray-800/50 text-white text-xs min-h-[50px] rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20 resize-none mb-2"
+              className={`bg-black/20 border-gray-800/50 text-white text-xs min-h-[50px] rounded-lg focus:border-amber-500/50 focus:ring-amber-500/20 resize-none mb-1 ${errors.description ? 'border-red-500/70' : ''}`}
             />
+            {errors.description && (
+              <div className="text-red-400 text-[10px] mb-1 font-semibold animate-pulse">{errors.description}</div>
+            )}
             <AIGoalSuggestions
               category={formData.category}
               context={context}

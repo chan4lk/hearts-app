@@ -46,7 +46,7 @@ export default function EmployeeDashboard() {
     department: 'ENGINEERING',
     priority: 'MEDIUM'
   });
-  const [errors, setErrors] = useState<{ title?: string; category?: string; employeeId?: string; department?: string; priority?: string }>({});
+  const [errors, setErrors] = useState<{ title?: string; description?: string; category?: string; employeeId?: string; department?: string; priority?: string }>({});
   
   // Pagination state
   const [page, setPage] = useState(1);
@@ -176,6 +176,7 @@ export default function EmployeeDashboard() {
     const newErrors: typeof errors = {};
     if (!formData.title.trim()) newErrors.title = 'Goal title is required';
     if (!formData.category) newErrors.category = 'Category is required';
+    if (!formData.description.trim()) newErrors.description = 'Description is required';
 
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
@@ -197,7 +198,8 @@ export default function EmployeeDashboard() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create goal');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to create goal');
       }
 
       setShowCreateGoalModal(false);
@@ -207,7 +209,9 @@ export default function EmployeeDashboard() {
       const refreshedGoals = await fetchGoals();
       setGoals(refreshedGoals);
     } catch (error) {
-      // Error toast removed
+      import('react-toastify').then(({ toast }) => {
+        toast.error(error instanceof Error ? error.message : 'Failed to create goal');
+      });
     } finally {
       setFormLoading(false);
     }
@@ -239,6 +243,7 @@ export default function EmployeeDashboard() {
     const newErrors: typeof errors = {};
     if (!formData.title.trim()) newErrors.title = 'Goal title is required';
     if (!formData.category) newErrors.category = 'Category is required';
+    if (!formData.description.trim()) newErrors.description = 'Description is required';
 
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
@@ -260,7 +265,8 @@ export default function EmployeeDashboard() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update goal');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to update goal');
       }
 
       const { goal: updatedGoal } = await response.json();
@@ -293,7 +299,9 @@ export default function EmployeeDashboard() {
       setEditingGoal(null);
       resetForm();
     } catch (error) {
-      // Error toast removed
+      import('react-toastify').then(({ toast }) => {
+        toast.error(error instanceof Error ? error.message : 'Failed to update goal');
+      });
     } finally {
       setFormLoading(false);
     }

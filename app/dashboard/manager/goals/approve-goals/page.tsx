@@ -346,27 +346,25 @@ export default function ApproveGoalsPage() {
           <HeroSection />
 
           <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-xl p-4 border border-white/20 dark:border-gray-700/50 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Goal Approval Dashboard</h2>
-              <Filters
-                selectedEmployee={selectedEmployee}
-                onEmployeeChange={(employee) => {
-                  setSelectedEmployee(employee);
-                  setPage(1); // Reset to first page on filter change
-                }}
-                selectedStatus={selectedStatus}
-                onStatusChange={(status) => {
-                  setSelectedStatus(status);
-                  setPage(1); // Reset to first page on filter change
-                }}
-                selectedPriority={selectedPriority}
-                onPriorityChange={(priority) => {
-                  setSelectedPriority(priority);
-                  setPage(1); // Reset to first page on filter change
-                }}
-                employeeStats={employeeStats}
-              />
-            </div>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Goal Approval Dashboard</h2>
+            <Filters
+              selectedEmployee={selectedEmployee}
+              onEmployeeChange={(employee) => {
+                setSelectedEmployee(employee);
+                setPage(1);
+              }}
+              selectedStatus={selectedStatus}
+              onStatusChange={(status) => {
+                setSelectedStatus(status);
+                setPage(1);
+              }}
+              selectedPriority={selectedPriority}
+              onPriorityChange={(priority) => {
+                setSelectedPriority(priority);
+                setPage(1);
+              }}
+              employeeStats={employeeStats}
+            />
 
             <StatsSection
               goals={goals}
