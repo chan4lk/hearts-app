@@ -23,7 +23,7 @@ import {
 import { Badge } from '@/app/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
 
-type SortColumn = 'title' | 'status' | 'priority' | 'dueDate' | 'employee' | 'manager' | 'category';
+type SortColumn = 'title' | 'status' | 'progressStatus' | 'priority' | 'dueDate' | 'employee' | 'manager' | 'category';
 type SortDirection = 'asc' | 'desc' | null;
 
 interface AdminGoalsTableProps {
@@ -129,6 +129,26 @@ export default function AdminGoalsTable({
     );
   };
 
+  // Employee-reported execution status (`progressStatus`), read-only for admins.
+  const getProgressStatusBadge = (progressStatus: string) => {
+    const configs: Record<string, { bg: string; text: string; icon: any }> = {
+      NOT_STARTED: { bg: 'bg-gray-500/20', text: 'text-gray-400', icon: BsCircle },
+      IN_PROGRESS: { bg: 'bg-blue-500/20', text: 'text-blue-400', icon: BsPlayCircle },
+      ON_HOLD: { bg: 'bg-amber-500/20', text: 'text-amber-400', icon: BsPauseCircle },
+      BLOCKED: { bg: 'bg-red-500/20', text: 'text-red-400', icon: BsFlag },
+      COMPLETED: { bg: 'bg-green-500/20', text: 'text-green-400', icon: BsCheckCircle }
+    };
+    const config = configs[progressStatus] || configs.NOT_STARTED;
+    const Icon = config.icon;
+
+    return (
+      <Badge className={`${config.bg} ${config.text} border-0 text-[10px] px-1.5 py-0.5 flex items-center gap-1 font-medium whitespace-nowrap w-fit`}>
+        <Icon className="w-3 h-3" />
+        <span>{(progressStatus || 'NOT_STARTED').replace('_', ' ')}</span>
+      </Badge>
+    );
+  };
+
   // Get priority badge with colorful styling
   const getPriorityBadge = (priority: string) => {
     const configs: Record<string, { bg: string; text: string }> = {
@@ -180,6 +200,14 @@ export default function AdminGoalsTable({
         case 'status':
           aValue = a.status || '';
           bValue = b.status || '';
+          break;
+        case 'progressStatus':
+          // Sort by execution order rather than alphabetically.
+          const progressOrder: Record<string, number> = {
+            NOT_STARTED: 1, IN_PROGRESS: 2, ON_HOLD: 3, BLOCKED: 4, COMPLETED: 5
+          };
+          aValue = progressOrder[a.progressStatus || 'NOT_STARTED'] || 0;
+          bValue = progressOrder[b.progressStatus || 'NOT_STARTED'] || 0;
           break;
         case 'priority':
           const priorityOrder: Record<string, number> = { URGENT: 4, HIGH: 3, MEDIUM: 2, LOW: 1 };
@@ -299,7 +327,17 @@ export default function AdminGoalsTable({
                     {getSortIcon('status')}
                   </div>
                 </th>
-                <th 
+                <th
+                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+                  style={{ width: '10%' }}
+                  onClick={() => handleSort('progressStatus')}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span>Progress</span>
+                    {getSortIcon('progressStatus')}
+                  </div>
+                </th>
+                <th
                   className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
                   style={{ width: '8%' }}
                   onClick={() => handleSort('priority')}
@@ -360,7 +398,7 @@ export default function AdminGoalsTable({
               {goals.length === 0 ? (
                 <tr>
                   <td 
-                    colSpan={7 + (showEmployee ? 1 : 0) + (showManager ? 1 : 0)} 
+                    colSpan={8 + (showEmployee ? 1 : 0) + (showManager ? 1 : 0)}
                     className="py-12 text-center"
                   >
                     <div className="flex flex-col items-center justify-center">
@@ -406,6 +444,9 @@ export default function AdminGoalsTable({
                       </td>
                       <td className="py-2 px-3">
                         {getStatusBadge(goal.status)}
+                      </td>
+                      <td className="py-2 px-3">
+                        {getProgressStatusBadge(goal.progressStatus || 'NOT_STARTED')}
                       </td>
                       <td className="py-2 px-3">
                         {getPriorityBadge(goal.priority || 'MEDIUM')}

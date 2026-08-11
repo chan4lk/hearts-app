@@ -16,6 +16,7 @@ interface GoalsListProps {
   onRefresh: () => void;
   refreshing?: boolean;
   onPriorityUpdate?: (goalId: string, newPriority: string, updatedGoal: Goal) => void;
+  onProgressStatusUpdate?: (goalId: string, newProgressStatus: string, updatedGoal: Goal) => void;
   pagination?: {
     page: number;
     limit: number;
@@ -39,6 +40,7 @@ export const GoalsList = ({
   onRefresh,
   refreshing = false,
   onPriorityUpdate,
+  onProgressStatusUpdate,
   pagination,
   onPageChange,
   onLimitChange,
@@ -70,6 +72,8 @@ export const GoalsList = ({
             onGoalClick={onViewGoal}
             showActions={false}
             onPriorityUpdate={onPriorityUpdate}
+            showProgressStatus
+            onProgressStatusUpdate={onProgressStatusUpdate}
           />
           
           {/* Pagination */}

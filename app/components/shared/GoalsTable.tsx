@@ -7,7 +7,7 @@ import { Badge } from '@/app/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/app/components/ui/select';
 import { useSession } from 'next-auth/react';
 
-type SortColumn = 'title' | 'status' | 'priority' | 'dueDate' | 'employee' | 'manager' | 'category';
+type SortColumn = 'title' | 'status' | 'progressStatus' | 'priority' | 'dueDate' | 'employee' | 'manager' | 'category';
 type SortDirection = 'asc' | 'desc' | null;
 
 interface GoalsTableProps {
@@ -21,12 +21,14 @@ interface GoalsTableProps {
   onDelete?: (goal: Goal | GoalWithRatingExtended) => void;
   onStatusUpdate?: (goalId: string, newStatus: string, updatedGoal: Goal | GoalWithRatingExtended) => void;
   onPriorityUpdate?: (goalId: string, newPriority: string, updatedGoal: Goal | GoalWithRatingExtended) => void;
+  onProgressStatusUpdate?: (goalId: string, newProgressStatus: string, updatedGoal: Goal | GoalWithRatingExtended) => void;
   onDueDateUpdate?: (goalId: string, newDueDate: string, updatedGoal: Goal | GoalWithRatingExtended) => void;
   onRatingChange?: (goalId: string, rating: number) => void;
   showEmployee?: boolean;
   showManager?: boolean;
   showActions?: boolean;
   showRating?: boolean;
+  showProgressStatus?: boolean;
   disableStatusUpdate?: boolean;
   canEditPriority?: (goal: Goal | GoalWithRatingExtended) => boolean;
   canEditDueDate?: (goal: Goal | GoalWithRatingExtended) => boolean;
@@ -263,6 +265,97 @@ const getStatusBadge = (status: string, goal?: Goal | GoalWithRatingExtended, se
   );
 };
 
+// Employee-owned execution status, stored on `progressStatus`. Kept separate
+// from the approval workflow in `status` so a self-reported update never
+// overwrites the manager's approval record.
+const PROGRESS_STATUS_OPTIONS = [
+  { value: 'NOT_STARTED', label: 'Not Started' },
+  { value: 'IN_PROGRESS', label: 'In Progress' },
+  { value: 'ON_HOLD', label: 'On Hold' },
+  { value: 'BLOCKED', label: 'Blocked' },
+  { value: 'COMPLETED', label: 'Completed' }
+];
+
+const PROGRESS_STATUS_CONFIGS: Record<string, { bg: string; text: string; icon: any }> = {
+  NOT_STARTED: { bg: 'bg-gray-500/20', text: 'text-gray-400', icon: BsCircle },
+  IN_PROGRESS: { bg: 'bg-blue-500/20', text: 'text-blue-400', icon: BsPlayCircle },
+  ON_HOLD: { bg: 'bg-amber-500/20', text: 'text-amber-400', icon: BsPauseCircle },
+  BLOCKED: { bg: 'bg-red-500/20', text: 'text-red-400', icon: BsFlag },
+  COMPLETED: { bg: 'bg-green-500/20', text: 'text-green-400', icon: BsCheckCircle }
+};
+
+// Approval states where self-reporting is meaningless.
+const PROGRESS_LOCKED_STATUSES = ['REJECTED', 'DELETED', 'COMPLETED'];
+
+const getProgressStatusBadge = (
+  progressStatus: string,
+  goal?: Goal | GoalWithRatingExtended,
+  session?: any,
+  onProgressStatusChange?: (goalId: string, newProgressStatus: string) => void,
+  updatingProgressStatus?: string | null
+) => {
+  const config = PROGRESS_STATUS_CONFIGS[progressStatus] || PROGRESS_STATUS_CONFIGS.NOT_STARTED;
+  const Icon = config.icon;
+
+  // Only the goal owner self-reports; managers and admins read it.
+  const isOwner = goal && session && session.user?.id === goal.employeeId;
+  const isLocked = goal ? PROGRESS_LOCKED_STATUSES.includes(goal.status) : false;
+  const canUpdate = isOwner && onProgressStatusChange && !isLocked;
+
+  if (canUpdate && goal) {
+    return (
+      <Select
+        key={`progress-${goal.id}-${progressStatus}`}
+        value={progressStatus}
+        onValueChange={(newProgressStatus) => {
+          if (newProgressStatus && newProgressStatus !== progressStatus) {
+            onProgressStatusChange(goal.id, newProgressStatus);
+          }
+        }}
+        disabled={updatingProgressStatus === goal.id}
+      >
+        <SelectTrigger
+          className={`${config.bg} ${config.text} border border-white/20 text-xs px-3 py-1.5 h-auto hover:opacity-90 hover:border-white/30 transition-all cursor-pointer min-w-[150px] font-medium`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center gap-2">
+            <Icon className="w-3.5 h-3.5" />
+            <SelectValue>{progressStatus.replace('_', ' ')}</SelectValue>
+            <BsChevronDown className="w-3 h-3 ml-auto opacity-50" />
+          </div>
+        </SelectTrigger>
+        <SelectContent className="bg-gray-800 border-gray-700 z-50" onClick={(e) => e.stopPropagation()}>
+          {PROGRESS_STATUS_OPTIONS.map((option) => {
+            const isCurrent = option.value === progressStatus;
+            const optionConfig = PROGRESS_STATUS_CONFIGS[option.value];
+            const OptionIcon = optionConfig.icon;
+            return (
+              <SelectItem
+                key={option.value}
+                value={option.value}
+                className={`hover:bg-gray-700 cursor-pointer ${isCurrent ? 'bg-gray-700/50 font-semibold' : ''}`}
+              >
+                <div className="flex items-center gap-2">
+                  <OptionIcon className={`w-3.5 h-3.5 ${optionConfig.text}`} />
+                  <span>{option.label}</span>
+                  {isCurrent && <span className="ml-auto text-xs opacity-60">(Current)</span>}
+                </div>
+              </SelectItem>
+            );
+          })}
+        </SelectContent>
+      </Select>
+    );
+  }
+
+  return (
+    <Badge className={`${config.bg} ${config.text} border-0 text-xs px-2 py-1 flex items-center gap-1 w-fit`}>
+      <Icon className="w-3 h-3" />
+      {progressStatus.replace('_', ' ')}
+    </Badge>
+  );
+};
+
 const PRIORITY_OPTIONS = [
   { value: 'URGENT', label: 'Urgent' },
   { value: 'HIGH', label: 'High' },
@@ -373,12 +466,14 @@ export default function GoalsTable({
   onDelete,
   onStatusUpdate,
   onPriorityUpdate,
+  onProgressStatusUpdate,
   onDueDateUpdate,
   onRatingChange,
   showEmployee = false,
   showManager = false,
   showActions = false,
   showRating = false,
+  showProgressStatus = false,
   disableStatusUpdate = false,
   submittingRating = null,
   canEditPriority,
@@ -390,6 +485,7 @@ export default function GoalsTable({
   const [localSelectedStatus, setLocalSelectedStatus] = useState(selectedStatus);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [updatingPriority, setUpdatingPriority] = useState<string | null>(null);
+  const [updatingProgressStatus, setUpdatingProgressStatus] = useState<string | null>(null);
   const [updatingDueDate, setUpdatingDueDate] = useState<string | null>(null);
   const [localGoals, setLocalGoals] = useState<(Goal | GoalWithRatingExtended)[]>(goals);
   const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
@@ -610,6 +706,83 @@ export default function GoalsTable({
       // Error toast removed
     } finally {
       setUpdatingPriority(null);
+    }
+  };
+
+  const handleQuickProgressStatusUpdate = async (goalId: string, newProgressStatus: string, e?: any) => {
+    e?.stopPropagation();
+
+    const currentGoal = localGoals.find(g => g.id === goalId);
+    if (!currentGoal) {
+      return;
+    }
+
+    // OPTIMISTIC UPDATE: reflect the change before the request resolves.
+    const optimisticGoal: Goal | GoalWithRatingExtended = {
+      ...currentGoal,
+      progressStatus: newProgressStatus as any,
+      updatedAt: new Date().toISOString()
+    } as Goal | GoalWithRatingExtended;
+
+    setLocalGoals(prevGoals =>
+      prevGoals.map(goal => (goal.id === goalId ? optimisticGoal : goal))
+    );
+
+    onProgressStatusUpdate?.(goalId, newProgressStatus, optimisticGoal);
+
+    setUpdatingProgressStatus(goalId);
+
+    try {
+      const response = await fetch(`/api/goals/${goalId}/progress-status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ progressStatus: newProgressStatus }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update progress status');
+      }
+
+      const data = await response.json();
+      const updatedGoal = data.goal || data;
+
+      // Only progress fields move - `status` stays as the server had it so a
+      // progress change can never rewrite the approval state.
+      const transformedGoal: Goal | GoalWithRatingExtended = {
+        ...currentGoal,
+        ...updatedGoal,
+        status: currentGoal.status,
+        priority: updatedGoal.priority || currentGoal.priority,
+        progressStatus: updatedGoal.progressStatus || newProgressStatus,
+        progress: updatedGoal.progress ?? currentGoal.progress,
+        dueDate: updatedGoal.dueDate ? (typeof updatedGoal.dueDate === 'string' ? updatedGoal.dueDate : updatedGoal.dueDate.toISOString()) : currentGoal.dueDate,
+        createdAt: updatedGoal.createdAt ? (typeof updatedGoal.createdAt === 'string' ? updatedGoal.createdAt : updatedGoal.createdAt.toISOString()) : currentGoal.createdAt,
+        updatedAt: updatedGoal.updatedAt ? (typeof updatedGoal.updatedAt === 'string' ? updatedGoal.updatedAt : updatedGoal.updatedAt.toISOString()) : currentGoal.updatedAt,
+        employee: updatedGoal.employee || currentGoal.employee,
+        manager: updatedGoal.manager || currentGoal.manager,
+        rating: updatedGoal.rating || (currentGoal as any)?.rating,
+        isApprovalProcess: (currentGoal as any)?.isApprovalProcess || false
+      } as Goal | GoalWithRatingExtended;
+
+      setLocalGoals(prevGoals =>
+        prevGoals.map(goal => (goal.id === goalId ? transformedGoal : goal))
+      );
+
+      onProgressStatusUpdate?.(goalId, newProgressStatus, transformedGoal);
+    } catch (error) {
+      // REVERT optimistic update on error
+      setLocalGoals(prevGoals =>
+        prevGoals.map(goal => (goal.id === goalId ? currentGoal : goal))
+      );
+
+      onProgressStatusUpdate?.(
+        goalId,
+        currentGoal.progressStatus || 'NOT_STARTED',
+        currentGoal as Goal | GoalWithRatingExtended
+      );
+    } finally {
+      setUpdatingProgressStatus(null);
     }
   };
 
@@ -850,6 +1023,14 @@ export default function GoalsTable({
           aValue = a.status || '';
           bValue = b.status || '';
           break;
+        case 'progressStatus':
+          // Sort by execution order rather than alphabetically.
+          const progressOrder: Record<string, number> = {
+            NOT_STARTED: 1, IN_PROGRESS: 2, ON_HOLD: 3, BLOCKED: 4, COMPLETED: 5
+          };
+          aValue = progressOrder[a.progressStatus || 'NOT_STARTED'] || 0;
+          bValue = progressOrder[b.progressStatus || 'NOT_STARTED'] || 0;
+          break;
         case 'priority':
           const priorityOrder: Record<string, number> = { URGENT: 4, HIGH: 3, MEDIUM: 2, LOW: 1 };
           aValue = priorityOrder[a.priority || 'MEDIUM'] || 0;
@@ -927,7 +1108,19 @@ export default function GoalsTable({
                   {getSortIcon('status')}
                 </div>
               </th>
-              <th 
+              {showProgressStatus && (
+                <th
+                  className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
+                  style={{ width: '13%' }}
+                  onClick={() => handleSort('progressStatus')}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span>Progress</span>
+                    {getSortIcon('progressStatus')}
+                  </div>
+                </th>
+              )}
+              <th
                 className="text-left py-2.5 px-3 text-[10px] font-bold text-white uppercase tracking-wider cursor-pointer hover:bg-teal-700 transition-colors whitespace-nowrap"
                 style={{ width: '10%' }}
                 onClick={() => handleSort('priority')}
@@ -1003,7 +1196,7 @@ export default function GoalsTable({
             {sortedGoals.length === 0 ? (
               <tr>
                 <td 
-                  colSpan={5 + (showEmployee ? 1 : 0) + (showManager ? 1 : 0) + (showRating ? 1 : 0) + (showActions ? 1 : 0)} 
+                  colSpan={5 + (showProgressStatus ? 1 : 0) + (showEmployee ? 1 : 0) + (showManager ? 1 : 0) + (showRating ? 1 : 0) + (showActions ? 1 : 0)}
                   className="py-12 text-center text-gray-400"
                 >
                   <div className="flex flex-col items-center justify-center py-8">
@@ -1036,6 +1229,17 @@ export default function GoalsTable({
                       {getStatusBadge(goal.status, goal, session, disableStatusUpdate ? undefined : handleQuickStatusUpdate, updatingStatus, disableStatusUpdate, allowedStatuses)}
                     </div>
                   </td>
+                  {showProgressStatus && (
+                    <td className="py-2.5 px-3 text-[11px]" onClick={(e) => e.stopPropagation()}>
+                      {getProgressStatusBadge(
+                        goal.progressStatus || 'NOT_STARTED',
+                        goal,
+                        session,
+                        handleQuickProgressStatusUpdate,
+                        updatingProgressStatus
+                      )}
+                    </td>
+                  )}
                   <td className="py-2.5 px-3 text-[11px]" onClick={(e) => e.stopPropagation()}>
                     {getPriorityBadge(goal.priority || 'MEDIUM', goal, session, onPriorityUpdate ? handleQuickPriorityUpdate : undefined, updatingPriority, canEditPriority)}
                   </td>

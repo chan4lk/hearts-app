@@ -466,6 +466,22 @@ function GoalsPageContent() {
                   })
                 );
               }}
+              onProgressStatusUpdate={(goalId, newProgressStatus, updatedGoal) => {
+                setGoals(prevGoals =>
+                  prevGoals.map(goal => {
+                    if (goal.id === goalId) {
+                      // Only progress fields move - approval `status` is untouched
+                      return {
+                        ...goal,
+                        progressStatus: (updatedGoal as any).progressStatus || newProgressStatus,
+                        progress: (updatedGoal as any).progress ?? goal.progress,
+                        updatedAt: updatedGoal.updatedAt || goal.updatedAt
+                      };
+                    }
+                    return goal;
+                  })
+                );
+              }}
             />
           </motion.div>
         </div>
