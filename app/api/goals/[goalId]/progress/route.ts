@@ -7,7 +7,7 @@ import { logger } from '@/lib/logger';
 import { handleApiError } from '@/app/api/utils/error-handler';
 
 // Valid statuses for progress updates
-const ALLOWED_STATUSES_FOR_PROGRESS = ['DRAFT', 'PENDING', 'APPROVED'];
+const ALLOWED_STATUSES_FOR_PROGRESS = ['DRAFT', 'PENDING', 'APPROVED', 'MODIFIED'];
 
 // Valid progress status values
 const VALID_PROGRESS_STATUSES = ['NOT_STARTED', 'IN_PROGRESS', 'ON_HOLD', 'BLOCKED', 'COMPLETED'];
@@ -31,8 +31,16 @@ export async function PUT(
     const body = await req.json();
     const { progress, notes, progressStatus } = body;
 
-    if (typeof progress !== 'number' || progress < 0 || progress > 100) {
+    // `progress` is optional so a status-only change (e.g. BLOCKED) does not
+    // force the employee to also supply a percentage.
+    const hasProgress = progress !== undefined && progress !== null;
+
+    if (hasProgress && (typeof progress !== 'number' || progress < 0 || progress > 100)) {
       return new NextResponse('Invalid progress value', { status: 400 });
+    }
+
+    if (!hasProgress && !progressStatus) {
+      return new NextResponse('Either progress or progressStatus is required', { status: 400 });
     }
 
     // Validate progressStatus if provided
@@ -62,9 +70,10 @@ export async function PUT(
       );
     }
 
-    // Determine the progress status based on progress value if not provided
+    // Derive status from the percentage only when the caller did not pick one -
+    // an explicit choice (e.g. BLOCKED at 60%) must never be overwritten.
     let finalProgressStatus = progressStatus;
-    if (!finalProgressStatus) {
+    if (!finalProgressStatus && hasProgress) {
       if (progress === 0) {
         finalProgressStatus = 'NOT_STARTED';
       } else if (progress === 100) {
@@ -78,9 +87,9 @@ export async function PUT(
     const updatedGoal = await prisma.goal.update({
       where: { id: params.goalId },
       data: {
-        progress: progress,
+        ...(hasProgress ? { progress } : {}),
         progressStatus: finalProgressStatus,
-        progressNotes: notes,
+        ...(notes !== undefined ? { progressNotes: notes } : {}),
         lastProgressUpdate: new Date(),
       },
       include: {
@@ -98,7 +107,9 @@ export async function PUT(
       await prisma.notification.create({
         data: {
           type: 'GOAL_UPDATED',
-          message: `Progress updated to ${progress}% for goal: ${goal.title}`,
+          message: hasProgress
+            ? `Progress updated to ${progress}% for goal: ${goal.title}`
+            : `Progress status set to ${String(finalProgressStatus).replace('_', ' ')} for goal: ${goal.title}`,
           userId: goal.managerId,
           goalId: updatedGoal.id,
         },

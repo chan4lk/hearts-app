@@ -138,6 +138,7 @@ export default function GoalsSection({
             canEditPriority={canEditPriority}
             canEditDueDate={canEditDueDate}
             allowedStatuses={allowedStatuses}
+            showProgressStatus
           />
           
           {/* Pagination */}

@@ -253,6 +253,11 @@ export interface GoalWithRatingExtended {
   deletedById?: string | null;
   updatedById?: string | null;
   status: 'PENDING' | 'COMPLETED' | 'APPROVED' | 'REJECTED' | 'MODIFIED' | 'DRAFT' | 'DELETED' | 'IN_PROGRESS' | 'NOT_STARTED' | 'ON_HOLD' | 'BLOCKED';
+  // Employee-owned execution state, independent of the `status` approval workflow
+  progress?: number;
+  progressStatus?: ProgressStatus;
+  progressNotes?: string | null;
+  lastProgressUpdate?: string | null;
   rating?: Rating | null;
   employee: {
     id: string;

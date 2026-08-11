@@ -130,6 +130,7 @@ export default function GoalsSection({
             onDelete={activeView === 'created' ? onDeleteGoal : undefined}
             onStatusUpdate={onStatusUpdate}
             showActions={false}
+            showProgressStatus
           />
           
           {/* Pagination */}
